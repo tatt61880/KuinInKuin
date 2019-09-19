@@ -1,0 +1,161 @@
++enum Env
+	cui
+	wnd
+	web
+	cpp
+end enum
+
++var inputFile: []char
++var outputFile: []char
++var sysDir: []char
++var icon: []char
++var rls: bool
++var env: @Env
++var help: bool
++var version: bool
++var quiet: bool
++var appCode: int
++var notDeploy: bool
+
++var inputDir: []char
++var inputName: []char
++var outputDir: []char
+
++func acquireOption(): bool
+	var cmdLines: [][]char :: lib@cmdLine()
+	var envStr: []char
+	var appCodeStr: []char
+	
+	for i(0, ^cmdLines - 1)
+		var cmdLine: []char :: cmdLines[i]
+		if(^cmdLine = 2 & cmdLine[0] = '-')
+			switch c(cmdLine[1])
+			case 'i'
+				if(!getArg1(&@inputFile, cmdLines, &i, c))
+					ret false
+				end if
+			case 'o'
+				if(!getArg1(&@outputFile, cmdLines, &i, c))
+					ret false
+				end if
+			case 's'
+				if(!getArg1(&@sysDir, cmdLines, &i, c))
+					ret false
+				end if
+			case 'c'
+				if(!getArg1(&@icon, cmdLines, &i, c))
+					ret false
+				end if
+			case 'r'
+				if(!getArg0(&@rls, c))
+					ret false
+				end if
+			case 'e'
+				if(!getArg1(&envStr, cmdLines, &i, c))
+					ret false
+				end if
+			case 'h'
+				if(!getArg0(&@help, c))
+					ret false
+				end if
+			case 'v'
+				if(!getArg0(&@version, c))
+					ret false
+				end if
+			case 'q'
+				if(!getArg0(&@quiet, c))
+					ret false
+				end if
+			case 'a'
+				if(!getArg1(&appCodeStr, cmdLines, &i, c))
+					ret false
+				end if
+			case 'd' {This option is only used in Kuin Editor builds.}
+				if(!getArg0(&@notDeploy, c))
+					ret false
+				end if
+			default
+				do \err@err(%unexpectedOption, null, ["-\{c}"])
+				ret false
+			end switch
+		else
+			do \err@err(%unexpectedOption, null, ["-\{cmdLine}"])
+			ret false
+		end if
+	end for
+	
+	if(@inputFile =& null)
+		ret true
+	end if
+	
+	if(envStr =& null)
+		do @env :: %cui
+	else
+		switch(envStr)
+		case "cui"
+			do @env :: %cui
+		case "wnd"
+			do @env :: %wnd
+		case "web"
+			do @env :: %web
+		case "cpp"
+			do @env :: %cpp
+		default
+			do \err@err(%incorrectOption, null, ["-e"])
+		end switch
+	end if
+	
+	if(appCodeStr =& null)
+		do @appCode :: lib@rnd(1, 0xFFFFFFFF)
+	else
+		var success: bool
+		do @appCode :: appCodeStr.toInt(&success)
+		if(!success)
+			do \err@err(%incorrectOption, null, ["-a"])
+			ret false
+		end if
+	end if
+	
+	if(@outputFile =& null)
+		do @outputFile :: file@dir(@inputFile) ~ "out"
+	else
+		do @outputFile :: file@delExt(@outputFile)
+	end if
+	
+	if(@sysDir =& null)
+		do @sysDir :: "sys/"
+	end if
+	
+	if(@icon =& null)
+		do @icon :: @sysDir ~ "default.ico"
+	end if
+	
+	do @inputDir :: file@dir(@inputFile)
+	do @inputName :: file@delExt(file@fileName(@inputFile))
+	do @outputDir :: file@dir(@outputFile)
+	
+	if(file@ext(@inputFile) <> "kn")
+		do \err@err(%incorrectExt, null, [@inputName])
+	end if
+	
+	ret true
+	
+	func getArg0(out: &bool, option: char): bool
+		if(out <> false)
+			do \err@err(%incorrectOption, null, ["-\{option}"])
+			ret false
+		end if
+		do out :: true
+		ret true
+	end func
+	
+	func getArg1(out: &[]char, cmdLines: [][]char, idx: &int, option: char): bool
+		if(out <>& null | idx + 1 >= ^cmdLines)
+			do \err@err(%incorrectOption, null, ["-\{option}"])
+			ret false
+		end if
+		do out :: cmdLines[idx + 1]
+		do idx :+ 1
+		ret true
+	end func
+end func
