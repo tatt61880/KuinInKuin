@@ -1,0 +1,224 @@
++enum Origin
+	head
+	cur
+	tail
+end enum
+
++class Reader()
+	*func [d0000.knd, _readerDtor, __frc] _dtor()
+	end func
+
+	+func [__raw, file_readerFin] fin()
+	end func
+
+	+func [__raw, file_readerSetPos] setPos(origin: @Origin, pos: int)
+	end func
+
+	+func [__raw, file_readerGetPos] getPos(): int
+	end func
+
+	+func [d0000.knd, _readerDelimiter] delimiter(delimiters: []char)
+	end func
+
+	+func [d0000.knd, _readerRead] read(size: int): []bit8
+	end func
+
+	+func [__raw, file_readerReadLetter] readLetter(): char
+	end func
+
+	+func [d0000.knd, _readerReadInt] readInt(): int
+	end func
+
+	+func [d0000.knd, _readerReadFloat] readFloat(): float
+	end func
+
+	+func [d0000.knd, _readerReadChar] readChar(): char
+	end func
+
+	+func [d0000.knd, _readerReadStr] readStr(): []char
+	end func
+
+	+func [d0000.knd, _readerReadLine] readLine(): []char
+	end func
+
+	+func [d0000.knd, _readerFileSize] fileSize(): int
+	end func
+
+	+func [__raw, file_readerTerm] term(): bool
+	end func
+
+	var handle: int
+	var delimiterNum: int
+	var delimiters: int
+	var fileSize_: int
+end class
+
++class Writer()
+	*func [d0000.knd, _writerDtor, __frc] _dtor()
+	end func
+
+	+func [__raw, file_writerFin] fin()
+	end func
+
+	+func [__raw, file_writerSetPos] setPos(origin: @Origin, pos: int)
+	end func
+
+	+func [__raw, file_writerGetPos] getPos(): int
+	end func
+
+	+func [__raw, file_writerWrite] write(bin: []bit8)
+	end func
+
+	+func writeInt(n: int)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+
+	+func writeFloat(n: float)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+
+	+func [__raw, file_writerWriteChar] writeChar(n: char)
+	end func
+
+	+func writeStr(n: []char)
+		for i(0, ^n - 1)
+			do me.writeChar(n[i])
+		end for
+	end func
+
+	var handle: int
+end class
+
++func [__mki, __raw, file_makeReader] makeReader(me2: @Reader, path: []char): @Reader
+end func
+
++func [__mki, __raw, file_makeWriter] makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+end func
+
++enum SysDir
+	desktop :: 0x00
+	fonts :: 0x14
+	appData :: 0x1A
+	windows :: 0x24
+	system32 :: 0x25
+	programFiles :: 0x26
+end enum
+
++func [d0000.knd, _makeDir] makeDir(path: []char): bool
+end func
+
++func [d0000.knd, _forEachDir] forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+end func
+
++func [d0000.knd, _existPath] exist(path: []char): bool
+end func
+
++func [d0000.knd, _delDir] delDir(path: []char): bool
+end func
+
++func [d0000.knd, _delFile] delFile(path: []char): bool
+end func
+
++func [d0000.knd, _copyDir] copyDir(dst: []char, src: []char): bool
+end func
+
++func [__raw, file_copyFile] copyFile(dst: []char, src: []char): bool
+end func
+
++func [d0000.knd, _moveDir] moveDir(dst: []char, src: []char): bool
+end func
+
++func [d0000.knd, _moveFile] moveFile(dst: []char, src: []char): bool
+end func
+
++func dir(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret "./"
+	else
+		var r: []char :: #[p + 1]char
+		for i(0, p)
+			do r[i] :: path[i] = '\\' ?('/', path[i])
+		end for
+		ret r
+	end if
+end func
+
++func ext(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(path[p] <> '.')
+		ret ""
+	else
+		do p :+ 1
+		var r: []char :: #[^path - p]char
+		for i(0, ^path - p - 1)
+			do r[i] :: path[p + i]
+		end for
+		ret r
+	end if
+end func
+
++func fileName(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret path
+	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
+end func
+
++func [d0000.knd, _fullPath] fullPath(path: []char): []char
+end func
+
++func delExt(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(p < 0 | path[p] <> '.')
+		ret path
+	end if
+	var r: []char :: #[p]char
+	for i(0, p - 1)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
+end func
+
++func [d0000.knd, _sysDir] sysDir(kind: @SysDir): []char
+end func
+
++func [d0000.knd, _exeDir] exeDir(): []char
+end func
+
++func [d0000.knd, _fileSize] fileSize(path: []char): int
+end func
+
++func [d0000.knd, _setCurDir] setCurDir(path: []char)
+end func
+
++func [d0000.knd, _getCurDir] getCurDir(): []char
+end func

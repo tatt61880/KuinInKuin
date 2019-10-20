@@ -1,0 +1,17 @@
++var errCnt: int
+
++func err(id: \msg@Id, pos: \pos@Pos, args: [][]char)
+	if(id < %_nonErrs & @errCnt >= 100)
+		ret {Stop error detection at 100 pieces.}
+	end if
+	
+	var msg: []char :: \msg@get(id, args)
+	do cui@print((id $ bit32).toStr() ~ ": ")
+	if(pos <>& null)
+		do cui@print("[\{pos.srcName}: \{pos.row}, \{pos.col}]")
+	end if
+	do cui@print(msg ~ "\n")
+	if(id < %_nonErrs)
+		do @errCnt :+ 1
+	end if
+end func
