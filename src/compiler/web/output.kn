@@ -4,24 +4,15 @@ var funcs: queue<\ast@AstFunc>
 var classes: queue<\ast@AstClass>
 
 var uniqueId: []char
-var classDefs: list<[]char>
-var funcPrototypes: list<[]char>
 var codes: list<[]char>
-var classFuncs: list<[]char>
 var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
-var classTableSize: int
-var classTable: list<[]char>
 
-+class CppInfo(\ast@HasType)
++class WebInfo(\ast@HasType)
 	+var id: []char
-	+var breakLabel: []char
-	+var skipLabel: []char
-	+var classTableOffset: int
+	+var breakSkipLabel: []char
 	+var alreadyWritten: bool
-	+var breakLabelUsed: bool
-	+var skipLabelUsed: bool
 end class
 
 class TmpVar()
@@ -35,15 +26,10 @@ end class
 	do @classes :: #queue<\ast@AstClass>
 	
 	do @uniqueId :: "a"
-	do @classDefs :: #list<[]char>
-	do @funcPrototypes :: #list<[]char>
 	do @codes :: #list<[]char>
-	do @classFuncs :: #list<[]char>
 	do @tmpVars :: #list<@TmpVar>
 	do @globalVars :: #list<\ast@AstArg>
 	do @localVars :: #list<\ast@AstArg>
-	do @classTableSize :: 0
-	do @classTable :: #list<[]char>
 	
 	while(^@funcs > 0 | ^@classes > 0)
 		while(^@funcs > 0)
@@ -57,93 +43,42 @@ end class
 	end while
 	
 	do @write()
+	
 	ret true
 end func
 
 func buildFunc(ast: \ast@AstFunc)
-	var info: @CppInfo :: @getInfo(ast)
+	var info: @WebInfo :: @getInfo(ast)
 	if(info.alreadyWritten)
 		ret
 	end if
 	do info.alreadyWritten :: true
 	
-	var template: []char :: ""
-	if(ast.funcOption.and(%any) = %any)
-		if(ast.funcOption.and(%tkv) = %tkv)
-			do template :: "template<typename T_, typename K_, typename V_> "
-		elif(ast.funcOption.and(%tch) = %tch)
-			if(ast.funcOption.and(%rch) = %rch)
-				do template :: "template<typename T_, typename C_, typename R_> "
-			else
-				do template :: "template<typename T_, typename C_> "
-			end if
-		elif(ast.funcOption.and(%rch) = %rch)
-			do template :: "template<typename T_, typename R_> "
-		elif(ast.funcOption.and(%kvf) = %kvf)
-			do template :: "template<typename T_, typename K_, typename V_> "
-		else
-			do template :: "template<typename T_> "
-		end if
-	end if
-	
-	var retType: []char
-	if(ast.funcOption.and(%rch) = %rch)
-		do retType :: "R_"
-	elif(ast.funcOption.and(%rme) = %rme)
-		do retType :: "T_"
-	else
-		do retType :: @getType(ast.ret_)
-	end if
-	
 	var arg: []char :: ""
 	block
-		var idx: int :: 0
+		var first: bool :: true
 		var items: list<\ast@AstArg> :: ast.args
 		do items.head()
 		while(!items.term())
 			var item: \ast@AstArg :: items.get()
-			if(idx <> 0)
-				do arg :~ ", "
-			end if
-			var info2: @CppInfo :: @getInfo(item)
-			if(ast.funcOption.and(%any) = %any & idx = 0)
-				assert \ast@isInt(item.type)
-				do arg :~ "T_"
-			elif(ast.funcOption.and(%tkv) = %tkv & idx = 2)
-				assert \ast@isInt(item.type)
-				do arg :~ "K_"
-			elif(ast.funcOption.and(%tkv) = %tkv & idx = 3)
-				assert \ast@isInt(item.type)
-				do arg :~ "V_"
-			elif(ast.funcOption.and(%tch) = %tch & idx = 2)
-				assert \ast@isInt(item.type)
-				do arg :~ "C_"
-			elif(ast.funcOption.and(%tme) = %tme & idx = 2)
-				assert \ast@isInt(item.type)
-				do arg :~ "T_"
-			elif(ast.funcOption.and(%kvf) = %kvf & idx = 2)
-				assert \ast@isInt(item.type)
-				do arg :~ "const void*"
+			var info2: @WebInfo :: @getInfo(item)
+			if(first)
+				do first :: false
 			else
-				do arg :~ "\{@getType(item.type)}"
+				do arg :~ ","
 			end if
-			if(item.refVar)
-				do arg :~ "*"
-			end if
-			do arg :~ " \{info2.id}"
+			do arg :~ "\{info2.id}"
 			if(item.name <>& null)
 				do arg :~ " /*\{item.name}*/"
 			end if
 			do items.next()
-			do idx :+ 1
 		end while
 	end block
 	
 	if(ast.name <>& null)
 		do @codes.add("// \{ast.name}\n")
 	end if
-	do @funcPrototypes.add("\{template}static \{retType} \{info.id}(\{arg});\n")
-	do @codes.add("\{template}static \{retType} \{info.id}(\{arg}){\n")
+	do @codes.add("function \{info.id}(\{arg}){\n")
 	
 	if(ast.funcOption.and(%raw) = %raw)
 		if(^ast.funcAttr = 1)
@@ -154,12 +89,12 @@ func buildFunc(ast: \ast@AstFunc)
 				var arg2: \ast@AstArg :: ast.args.get()
 				if(arg2.type.refItem <>& null & arg2.type.refItem.typeId = %class_)
 					var members: list<\ast@AstClassItem> :: (arg2.type.refItem $ \ast@AstClass).items
-					do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, members)
+					do \web\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, members)
 					do hasMembers :: true
 				end if
 			end if
 			if(!hasMembers)
-				do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null)
+				do \web\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null)
 			end if
 			do @codes.add("}\n")
 		end if
@@ -167,7 +102,7 @@ func buildFunc(ast: \ast@AstFunc)
 		do @codes.tail()
 		var localVarPos: int :: @codes.idx()
 		
-		do @buildStats(ast.stats, null, null)
+		do @buildStats(ast.stats)
 		
 		do @codes.add("}\n")
 		
@@ -177,18 +112,18 @@ func buildFunc(ast: \ast@AstFunc)
 		do @localVars.head()
 		while(!@localVars.term())
 			var localVar: \ast@AstArg :: @localVars.get()
-			var info2: @CppInfo :: @getInfo(localVar)
+			var info2: @WebInfo :: @getInfo(localVar)
 			if(localVar.name =& null)
-				do @codes.ins("\{@getType(localVar.type)} \{info2.id} = \{@getDefaultValue(localVar.type)};\n")
+				do @codes.ins("let \{info2.id}=\{@getDefaultValue(localVar.type)};\n")
 			else
-				do @codes.ins("\{@getType(localVar.type)} \{info2.id} = \{@getDefaultValue(localVar.type)}; // \{localVar.name}\n")
+				do @codes.ins("let \{info2.id}=\{@getDefaultValue(localVar.type)}; // \{localVar.name}\n")
 			end if
 			do @localVars.del()
 		end while
 		do @tmpVars.head()
 		while(!@tmpVars.term())
 			var tmpVar: @TmpVar :: @tmpVars.get()
-			do @codes.ins("\{@getType(tmpVar.type)} \{tmpVar.identifier} = \{@getDefaultValue(tmpVar.type)};\n")
+			do @codes.ins("let \{tmpVar.identifier}=\{@getDefaultValue(tmpVar.type)};\n")
 			do @tmpVars.del()
 		end while
 	end if
@@ -200,89 +135,37 @@ func buildClass(ast: \ast@AstClass)
 		do parentId :: @refClass(ast.refItem $ \ast@AstClass)
 	end if
 	if(parentId =& null)
-		do parentId :: "Class_"
+		do parentId :: "Object"
 	end if
-	var info: @CppInfo :: @getInfo(ast)
-	block
-		assert info.classTableOffset <> -1
-		var parentOffset: int
-		if(ast.refItem =& null)
-			do parentOffset :: 0
-		else
-			var parentInfo: @CppInfo :: @getInfo(ast.refItem)
-			assert parentInfo.classTableOffset <> -1
-			do parentOffset :: parentInfo.classTableOffset
-		end if
-		do @classTable.add("classTable_[\{info.classTableOffset * @classTableItemSize}] = \{parentOffset * @classTableItemSize};\n")
-	end block
+	var info: @WebInfo :: @getInfo(ast)
 	if(ast.name <>& null)
-		do @classDefs.add("// \{ast.name}\n")
+		do @codes.add("// \{ast.name}\n")
 	end if
-	do @classDefs.add("class \{info.id} : public \{parentId}{\npublic:\n")
-	do @classDefs.add("\{info.id}();\n")
-	do @classFuncs.add("\{info.id}::\{info.id}(): \{parentId}()")
-	block
-		var items: list<\ast@AstClassItem> :: ast.items
-		do items.head()
-		while(!items.term())
-			var item: \ast@AstClassItem :: items.get()
-			if(item.def.typeId = %var_)
-				var var_: \ast@AstVar :: item.def $ \ast@AstVar
-				var info2: @CppInfo :: @getInfo(var_.arg)
-				do @classFuncs.add(", \{info2.id}()")
-			end if
-			do items.next()
-		end while
-	end block
-	do @classFuncs.add("{\n")
-	do @classFuncs.add("Y = \{info.classTableOffset * @classTableItemSize};\n")
 	block
 		var ctor: \ast@AstFunc :: findFunc(ast, "ctor")
+		do @codes.add("function \{info.id}(){\n")
+		do @codes.add("\{parentId}.call(this);\n")
 		if(ctor <>& null)
-			var ctorInfo: @CppInfo :: @getInfo(ctor)
-			do @classFuncs.add("\{ctorInfo.id}(this);\n")
+			var ctorInfo: @WebInfo :: @getInfo(ctor)
+			do @codes.add("\{ctorInfo.id}(this);\n")
 		end if
+		do @codes.add("}\n")
 	end block
-	do @classFuncs.add("}\n")
-	; TODO: Destructor.
-	block
-		var cmp: \ast@AstFunc :: findFunc(ast, "cmp")
-		if(cmp <>& null)
-			var cmpInfo: @CppInfo :: @getInfo(cmp)
-			do @classDefs.add("virtual int64_t cmp_(Class_* t) override;\n")
-			do @classFuncs.add("int64_t \{info.id}::cmp_(Class_* t){\n")
-			do @classFuncs.add("\{info.id}* u = reinterpret_cast<\{info.id}*>(t);\n")
-			do @classFuncs.add("return \{cmpInfo.id}(this, u);\n")
-			do @classFuncs.add("}\n")
-		end if
-		var copy: \ast@AstFunc :: findFunc(ast, "_copy")
-		block
-			assert copy <>& null
-			var copyInfo: @CppInfo :: @getInfo(copy)
-			do @classDefs.add("virtual Class_* copy_(Class_* t) override;\n")
-			do @classFuncs.add("Class_* \{info.id}::copy_(Class_* t){\n")
-			do @classFuncs.add("return \{copyInfo.id}(this);\n")
-			do @classFuncs.add("}\n")
-		end block
-	end block
+	do @codes.add("\{info.id}.prototype = Object.create(\{parentId}.prototype);\n")
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
 		do items.head()
 		while(!items.term())
 			var item: \ast@AstClassItem :: items.get()
-			if(item.def.typeId = %var_)
-				var var_: \ast@AstVar :: item.def $ \ast@AstVar
-				var info2: @CppInfo :: @getInfo(var_.arg)
-				if(var_.arg.name =& null)
-					do @classDefs.add("\{@getType(var_.arg.type)} \{info2.id};\n")
-				else
-					do @classDefs.add("\{@getType(var_.arg.type)} \{info2.id}; // \{var_.arg.name}\n")
-				end if
+			if(item.def.typeId = %func_)
+				var funcInfo: @WebInfo :: @getInfo(item.def)
+				do @codes.add("\{info.id}.prototype.\{funcInfo.id} = ")
+				do @buildFunc(item.def $ \ast@AstFunc)
 			end if
 			do items.next()
 		end while
 	end block
-	do @classDefs.add("};\n")
+	; TODO: Destructor.
 	
 	func findFunc(ast: \ast@AstClass, name: []char): \ast@AstFunc
 		var items: list<\ast@AstClassItem> :: ast.items
@@ -298,33 +181,33 @@ func buildClass(ast: \ast@AstClass)
 	end func
 end func
 
-func buildStats(stats: list<\ast@AstStat>, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
+func buildStats(stats: list<\ast@AstStat>)
 	do stats.head()
 	while(!stats.term())
 		var stat: \ast@AstStat :: stats.get()
 		switch(stat.typeId)
 		case %statIf
-			do @buildIf(stat $ \ast@AstStatIf, breakStat, skipStat)
+			do @buildIf(stat $ \ast@AstStatIf)
 		case %statSwitch
-			do @buildSwitch(stat $ \ast@AstStatSwitch, breakStat, skipStat)
+			do @buildSwitch(stat $ \ast@AstStatSwitch)
 		case %statWhile
-			do @buildWhile(stat $ \ast@AstStatWhile, breakStat, skipStat)
+			do @buildWhile(stat $ \ast@AstStatWhile)
 		case %statFor
-			do @buildFor(stat $ \ast@AstStatFor, breakStat, skipStat)
+			do @buildFor(stat $ \ast@AstStatFor)
 		case %statTry
-			do @buildTry(stat $ \ast@AstStatTry, breakStat, skipStat)
+			do @buildTry(stat $ \ast@AstStatTry)
 		case %statThrow
 			do @buildThrow(stat $ \ast@AstStatThrow)
 		case %statBlock
-			do @buildBlock(stat $ \ast@AstStatBlock, breakStat, skipStat)
+			do @buildBlock(stat $ \ast@AstStatBlock)
 		case %statRet
 			do @buildRet(stat $ \ast@AstStatRet)
 		case %statDo
 			do @buildDo(stat $ \ast@AstStatDo)
 		case %statBreak
-			do @buildBreak(stat $ \ast@AstStat, breakStat)
+			do @buildBreak(stat $ \ast@AstStat)
 		case %statSkip
-			do @buildSkip(stat $ \ast@AstStat, skipStat)
+			do @buildSkip(stat $ \ast@AstStat)
 		case %statAssert
 			do @buildAssert(stat $ \ast@AstStatAssert)
 		default
@@ -334,21 +217,27 @@ func buildStats(stats: list<\ast@AstStat>, breakStat: \ast@AstStat, skipStat: \a
 	end while
 end func
 
-func buildIf(ast: \ast@AstStatIf, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
-	var infoMe: @CppInfo :: @getInfo(ast)
+func buildIf(ast: \ast@AstStatIf)
+	var infoMe: @WebInfo :: @getInfo(ast)
 	if(ast.cond =& null)
 		; Optimized code.
-		do @buildBlock(ast.statBlock, breakStat, skipStat)
-		if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-			do @codes.add("\{infoMe.breakLabel}:;\n")
+		if(infoMe.breakSkipLabel <>& null)
+			do @codes.add("\{infoMe.breakSkipLabel}:{\n")
+		end if
+		do @buildBlock(ast.statBlock)
+		if(infoMe.breakSkipLabel <>& null)
+			do @codes.add("}\n")
 		end if
 		ret
 	end if
 	
+	if(infoMe.breakSkipLabel <>& null)
+		do @codes.add("\{infoMe.breakSkipLabel}:\n")
+	end if
 	do @codes.add("if(")
 	do @buildExpr(ast.cond)
 	do @codes.add("){\n")
-	do @buildBlock(ast.statBlock, breakStat, skipStat)
+	do @buildBlock(ast.statBlock)
 	do @codes.add("}\n")
 	block
 		var items: list<\ast@AstStatElIf> :: ast.elIfs
@@ -358,24 +247,21 @@ func buildIf(ast: \ast@AstStatIf, breakStat: \ast@AstStat, skipStat: \ast@AstSta
 			do @codes.add("else if(")
 			do @buildExpr(item.cond)
 			do @codes.add("){\n")
-			do @buildBlock(item.statBlock, breakStat, skipStat)
+			do @buildBlock(item.statBlock)
 			do @codes.add("}\n")
 			do items.next()
 		end while
 	end block
 	if(ast.elseStatBlock <>& null)
 		do @codes.add("else{\n")
-		do @buildBlock(ast.elseStatBlock, breakStat, skipStat)
+		do @buildBlock(ast.elseStatBlock)
 		do @codes.add("}\n")
-	end if
-	if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-		do @codes.add("\{infoMe.breakLabel}:;\n")
 	end if
 end func
 
-func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
-	var infoMe: @CppInfo :: @getInfo(ast)
-	var info: @CppInfo :: @getInfo(ast.blockVar)
+func buildSwitch(ast: \ast@AstStatSwitch)
+	var infoMe: @WebInfo :: @getInfo(ast)
+	var info: @WebInfo :: @getInfo(ast.blockVar)
 	if(!info.alreadyWritten)
 		do info.alreadyWritten :: true
 		do @localVars.add(ast.blockVar)
@@ -401,6 +287,9 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 		end while
 	end if
 	if(useSwitch)
+		if(infoMe.breakSkipLabel <>& null)
+			do @codes.add("\{infoMe.breakSkipLabel}:\n")
+		end if
 		do @codes.add("switch(")
 		do @buildExpr(ast.cond)
 		do @codes.add("){\n")
@@ -419,19 +308,22 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 					do @codes.add(":\n")
 					do items2.next()
 				end while
-				do @buildBlock(item.statBlock, ast, skipStat)
+				do @buildBlock(item.statBlock)
 				do @codes.add("break;\n")
 				do items.next()
 			end while
 		end block
 		if(ast.defaultStatBlock <>& null)
 			do @codes.add("default:\n")
-			do @buildBlock(ast.defaultStatBlock, ast, skipStat)
+			do @buildBlock(ast.defaultStatBlock)
 			do @codes.add("break;\n")
 		end if
 		do @codes.add("}\n")
 	else
-		do @codes.add("\{info.id} = ")
+		if(infoMe.breakSkipLabel <>& null)
+			do @codes.add("\{infoMe.breakSkipLabel}:{\n")
+		end if
+		do @codes.add("\{info.id}=")
 		do @buildExpr(ast.cond)
 		do @codes.add(";\n")
 		block
@@ -454,99 +346,93 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 					if(first2)
 						do first2 :: false
 					else
-						do @codes.add(" || ")
+						do @codes.add("||")
 					end if
 					if(exprs.expr1 =& null)
-						if(\ast@isRef(ast.cond.type))
-							do @codes.add("cmp_(\{info.id}, (")
+						if(!\ast@isStr(ast.cond.type) & \ast@isRef(ast.cond.type))
+							; TODO:
+							do @codes.add("cmp_(\{info.id},(")
 							do @buildExpr(exprs.expr0)
-							do @codes.add(")) == 0")
+							do @codes.add("))==0")
 						else
-							do @codes.add("\{info.id} == (")
+							do @codes.add("\{info.id}===(")
 							do @buildExpr(exprs.expr0)
 							do @codes.add(")")
 						end if
 					else
 						do @codes.add("(")
 						do @buildExpr(exprs.expr0)
-						do @codes.add(") <= \{info.id} && \{info.id} <= (")
+						do @codes.add(")<=\{info.id}&&\{info.id}<=(")
 						do @buildExpr(exprs.expr1)
 						do @codes.add(")")
 					end if
 					do items2.next()
 				end while
 				do @codes.add("){\n")
-				do @buildBlock(item.statBlock, breakStat, skipStat)
+				do @buildBlock(item.statBlock)
 				do @codes.add("}\n")
 				do items.next()
 			end while
 		end block
 		if(ast.defaultStatBlock <>& null)
 			do @codes.add("else{")
-			do @buildBlock(ast.defaultStatBlock, breakStat, skipStat)
+			do @buildBlock(ast.defaultStatBlock)
+			do @codes.add("}\n")
+		end if
+		if(infoMe.breakSkipLabel <>& null)
 			do @codes.add("}\n")
 		end if
 	end if
-	
-	if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-		do @codes.add("\{infoMe.breakLabel}:;\n")
-	end if
 end func
 
-func buildWhile(ast: \ast@AstStatWhile, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
-	var infoMe: @CppInfo :: @getInfo(ast)
+func buildWhile(ast: \ast@AstStatWhile)
+	var infoMe: @WebInfo :: @getInfo(ast)
 	if(ast.cond =& null)
+		if(infoMe.breakSkipLabel <>& null)
+			do @codes.add("\{infoMe.breakSkipLabel}:\n")
+		end if
 		do @codes.add("for(;;){\n")
-		do @buildStats(ast.stats, ast, ast)
-		if(infoMe.skipLabel <>& null & infoMe.skipLabelUsed)
-			do @codes.add("\{infoMe.skipLabel}:;\n")
-		end if
+		do @buildStats(ast.stats)
 		do @codes.add("}\n")
-		if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-			do @codes.add("\{infoMe.breakLabel}:;\n")
-		end if
 		ret
 	end if
 	if(ast.skip_)
-		do @codes.add("do{\n")
-		do @buildStats(ast.stats, ast, ast)
-		if(infoMe.skipLabel <>& null & infoMe.skipLabelUsed)
-			do @codes.add("\{infoMe.skipLabel}:;\n")
+		if(infoMe.breakSkipLabel <>& null)
+			do @codes.add("\{infoMe.breakSkipLabel}:\n")
 		end if
+		do @codes.add("do{\n")
+		do @buildStats(ast.stats)
 		do @codes.add("}while(")
 		do @buildExpr(ast.cond)
 		do @codes.add(");\n")
-		if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-			do @codes.add("\{infoMe.breakLabel}:;\n")
-		end if
 		ret
+	end if
+	if(infoMe.breakSkipLabel <>& null)
+		do @codes.add("\{infoMe.breakSkipLabel}:\n")
 	end if
 	do @codes.add("while(")
 	do @buildExpr(ast.cond)
 	do @codes.add("){\n")
-	do @buildStats(ast.stats, ast, ast)
-	if(infoMe.skipLabel <>& null & infoMe.skipLabelUsed)
-		do @codes.add("\{infoMe.skipLabel}:;\n")
-	end if
+	do @buildStats(ast.stats)
 	do @codes.add("}\n")
-	if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-		do @codes.add("\{infoMe.breakLabel}:;\n")
-	end if
 end func
 
-func buildFor(ast: \ast@AstStatFor, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
-	var infoMe: @CppInfo :: @getInfo(ast)
-	var info: @CppInfo :: @getInfo(ast.blockVar)
+func buildFor(ast: \ast@AstStatFor)
+	var infoMe: @WebInfo :: @getInfo(ast)
+	var info: @WebInfo :: @getInfo(ast.blockVar)
 	if(!info.alreadyWritten)
 		do info.alreadyWritten :: true
 		do @localVars.add(ast.blockVar)
 	end if
 	var endId: []char :: @addTmpVar(ast.cond.type)
-	do @codes.add("for(\{info.id} = (")
+	if(infoMe.breakSkipLabel <>& null)
+		do @codes.add("\{infoMe.breakSkipLabel}:\n")
+	end if
+	do @codes.add("for(\{info.id}=(")
 	do @buildExpr(ast.start)
-	do @codes.add("), \{endId} = (")
+	do @codes.add("),\{endId}=(")
 	do @buildExpr(ast.cond)
-	do @codes.add("); \{info.id} ")
+	do @codes.add(");\{info.id}")
 	assert ast.step.typeId = %exprValuePrim & \ast@isInt(ast.cond.type)
 	var step: int :: (ast.step $ \ast@AstExprValuePrim).value $ int
 	if(step > 0)
@@ -554,40 +440,31 @@ func buildFor(ast: \ast@AstStatFor, breakStat: \ast@AstStat, skipStat: \ast@AstS
 	else
 		do @codes.add(">=")
 	end if
-	do @codes.add(" \{endId}; \{info.id} ")
+	do @codes.add("\{endId};\{info.id}")
 	if(step > 0)
-		do @codes.add("+= (")
+		do @codes.add("+=(")
 	else
-		do @codes.add("-= (")
+		do @codes.add("-=(")
 	end if
 	do @buildExpr(ast.step)
 	do @codes.add(")){\n")
-	do @buildStats(ast.stats, ast, ast)
-	if(infoMe.skipLabel <>& null & infoMe.skipLabelUsed)
-		do @codes.add("\{infoMe.skipLabel}:;\n")
-	end if
+	do @buildStats(ast.stats)
 	do @codes.add("}\n")
-	if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-		do @codes.add("\{infoMe.breakLabel}:;\n")
-	end if
 end func
 
-func buildTry(ast: \ast@AstStatTry, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
-	var infoMe: @CppInfo :: @getInfo(ast)
-	var info: @CppInfo :: @getInfo(ast.blockVar)
+func buildTry(ast: \ast@AstStatTry)
+	var infoMe: @WebInfo :: @getInfo(ast)
+	var info: @WebInfo :: @getInfo(ast.blockVar)
 	if(!info.alreadyWritten)
 		do info.alreadyWritten :: true
 		do @localVars.add(ast.blockVar)
 	end if
-	if(ast.finallyStatBlock <>& null)
-		do @codes.add("try{\n")
+	if(infoMe.breakSkipLabel <>& null)
+		do @codes.add("\{infoMe.breakSkipLabel}:\n")
 	end if
 	do @codes.add("try{\n")
-	do @buildBlock(ast.statBlock, breakStat, skipStat)
-	if(ast.finallyStatBlock <>& null)
-		do @buildBlock(ast.finallyStatBlock, breakStat, skipStat)
-	end if
-	do @codes.add("}catch(int64_t \{info.id}){\n")
+	do @buildBlock(ast.statBlock)
+	do @codes.add("}catch(\{info.id}){\n")
 	block
 		var first: bool :: true
 		var items: list<\ast@AstStatCatch> :: ast.catches
@@ -608,23 +485,23 @@ func buildTry(ast: \ast@AstStatTry, breakStat: \ast@AstStat, skipStat: \ast@AstS
 				if(first2)
 					do first2 :: false
 				else
-					do @codes.add(" || ")
+					do @codes.add("||")
 				end if
 				if(exprs.expr1 =& null)
-					do @codes.add("\{info.id} == (")
+					do @codes.add("\{info.id}===(")
 					do @buildExpr(exprs.expr0)
 					do @codes.add(")")
 				else
 					do @codes.add("(")
 					do @buildExpr(exprs.expr0)
-					do @codes.add(") <= \{info.id} && \{info.id} <= (")
+					do @codes.add(")<=\{info.id}&&\{info.id}<=(")
 					do @buildExpr(exprs.expr1)
 					do @codes.add(")")
 				end if
 				do items2.next()
 			end while
 			do @codes.add("){\n")
-			do @buildBlock(item.statBlock, breakStat, skipStat)
+			do @buildBlock(item.statBlock)
 			do @codes.add("}\n")
 			do items.next()
 		end while
@@ -633,16 +510,13 @@ func buildTry(ast: \ast@AstStatTry, breakStat: \ast@AstStat, skipStat: \ast@AstS
 		else
 			do @codes.add("else{\n")
 		end if
-		do @codes.add("throw;\n}\n")
+		do @codes.add("throw \{info.id};\n}\n")
 	end block
 	do @codes.add("}\n")
 	if(ast.finallyStatBlock <>& null)
-		do @codes.add("}\ncatch(...){\n")
-		do @buildBlock(ast.finallyStatBlock, breakStat, skipStat)
-		do @codes.add("throw;\n}\n")
-	end if
-	if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-		do @codes.add("\{infoMe.breakLabel}:;\n")
+		do @codes.add("finally{\n")
+		do @buildBlock(ast.finallyStatBlock)
+		do @codes.add("}\n")
 	end if
 end func
 
@@ -652,11 +526,14 @@ func buildThrow(ast: \ast@AstStatThrow)
 	do @codes.add(";\n")
 end func
 
-func buildBlock(ast: \ast@AstStatBlock, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
-	var infoMe: @CppInfo :: @getInfo(ast)
-	do @buildStats(ast.stats, breakStat, skipStat)
-	if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
-		do @codes.add("\{infoMe.breakLabel}:;\n")
+func buildBlock(ast: \ast@AstStatBlock)
+	var infoMe: @WebInfo :: @getInfo(ast)
+	if(infoMe.breakSkipLabel <>& null)
+		do @codes.add("\{infoMe.breakSkipLabel}:{\n")
+	end if
+	do @buildStats(ast.stats)
+	if(infoMe.breakSkipLabel <>& null)
+		do @codes.add("}\n")
 	end if
 end func
 
@@ -675,32 +552,22 @@ func buildDo(ast: \ast@AstStatDo)
 	do @codes.add(";\n")
 end func
 
-func buildBreak(ast: \ast@AstStat, breakStat: \ast@AstStat)
+func buildBreak(ast: \ast@AstStat)
 	assert ast.refItem.typeId.and(%statBreakable) = %statBreakable
-	if(ast.refItem =& breakStat)
-		do @codes.add("break;\n")
-	else
-		var info: @CppInfo :: @getInfo(ast.refItem)
-		do info.breakLabelUsed :: true
-		do @codes.add("goto \{info.breakLabel};\n")
-	end if
+	var info: @WebInfo :: @getInfo(ast.refItem)
+	do @codes.add("break \{info.breakSkipLabel};\n")
 end func
 
-func buildSkip(ast: \ast@AstStat, skipStat: \ast@AstStat)
+func buildSkip(ast: \ast@AstStat)
 	assert ast.refItem.typeId.and(%statSkipable) = %statSkipable
-	if(ast.refItem =& skipStat)
-		do @codes.add("continue;\n")
-	else
-		var info: @CppInfo :: @getInfo(ast.refItem)
-		do info.skipLabelUsed :: true
-		do @codes.add("goto \{info.skipLabel};\n")
-	end if
+	var info: @WebInfo :: @getInfo(ast.refItem)
+	do @codes.add("continue \{info.breakSkipLabel};\n")
 end func
 
 func buildAssert(ast: \ast@AstStatAssert)
 	do @codes.add("if(!(")
 	do @buildExpr(ast.cond)
-	do @codes.add(")){\nthrow \{excpt@dbgAssertFailed $ bit32}U;\n}\n")
+	do @codes.add(")){throw \{excpt@dbgAssertFailed $ bit32};}\n")
 end func
 
 func buildExpr(ast: \ast@AstExpr)
@@ -758,13 +625,14 @@ func buildExpr1(ast: \ast@AstExpr1)
 		do @buildExpr(ast.child)
 		do @codes.add(")")
 	case %copy
+		; TODO:
 		do @codes.add("copy_(")
 		do @buildExpr(ast.child)
 		do @codes.add(")")
 	case %len
 		do @codes.add("(")
 		do @buildExpr(ast.child)
-		do @codes.add(")->Len()")
+		do @codes.add(").length")
 	default
 		assert false
 	end switch
@@ -777,188 +645,187 @@ func buildExpr2(ast: \ast@AstExpr2)
 	case %assign
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") = (")
+		do @codes.add(")=(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %or
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") || (")
+		do @codes.add(")||(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %and
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") && (")
+		do @codes.add(")&&(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %lt
-		if(\ast@isRef(type))
+		if(!\ast@isStr(type) & \ast@isRef(type))
+			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
-			do @codes.add("), (")
+			do @codes.add("),(")
 			do @buildExpr(ast.children1)
-			do @codes.add(")) < 0")
+			do @codes.add("))<0")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
-			do @codes.add(") < (")
+			do @codes.add(")<(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")")
 		end if
 	case %gt
-		if(\ast@isRef(type))
+		if(!\ast@isStr(type) & \ast@isRef(type))
+			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
-			do @codes.add("), (")
+			do @codes.add("),(")
 			do @buildExpr(ast.children1)
-			do @codes.add(")) > 0")
+			do @codes.add("))>0")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
-			do @codes.add(") > (")
+			do @codes.add(")>(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")")
 		end if
 	case %le
-		if(\ast@isRef(type))
+		if(!\ast@isStr(type) & \ast@isRef(type))
+			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
-			do @codes.add("), (")
+			do @codes.add("),(")
 			do @buildExpr(ast.children1)
-			do @codes.add(")) <= 0")
+			do @codes.add("))<=0")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
-			do @codes.add(") <= (")
+			do @codes.add(")<=(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")")
 		end if
 	case %ge
-		if(\ast@isRef(type))
+		if(!\ast@isStr(type) & \ast@isRef(type))
+			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
-			do @codes.add("), (")
+			do @codes.add("),(")
 			do @buildExpr(ast.children1)
-			do @codes.add(")) >= 0")
+			do @codes.add("))>=0")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
-			do @codes.add(") >= (")
+			do @codes.add(")>=(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")")
 		end if
 	case %eq
-		if(\ast@isRef(type))
+		if(!\ast@isStr(type) & \ast@isRef(type))
+			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
-			do @codes.add("), (")
+			do @codes.add("),(")
 			do @buildExpr(ast.children1)
-			do @codes.add(")) == 0")
+			do @codes.add("))==0")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
-			do @codes.add(") == (")
+			do @codes.add(")===(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")")
 		end if
 	case %nEq
-		if(\ast@isRef(type))
+		if(!\ast@isStr(type) & \ast@isRef(type))
+			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
-			do @codes.add("), (")
+			do @codes.add("),(")
 			do @buildExpr(ast.children1)
-			do @codes.add(")) != 0")
+			do @codes.add("))!=0")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
-			do @codes.add(") != (")
+			do @codes.add(")!==(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")")
 		end if
 	case %eqRef
-		do @codes.add("eqAddr_((")
+		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add("), (")
+		do @codes.add(")===(")
 		do @buildExpr(ast.children1)
-		do @codes.add("))")
+		do @codes.add(")")
 	case %nEqRef
-		do @codes.add("!eqAddr_((")
+		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add("), (")
+		do @codes.add(")!==(")
 		do @buildExpr(ast.children1)
-		do @codes.add("))")
+		do @codes.add(")")
 	case %cat
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(")->Cat(")
+		if(\ast@isStr(type))
+			do @codes.add(")+(")
+		else
+			do @codes.add(").concat(")
+		end if
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %add
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") + (")
+		do @codes.add(")+(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %sub
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") - (")
+		do @codes.add(")-(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %mul
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") * (")
+		do @codes.add(")*(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %div
+		if(!\ast@isFloat(type))
+			do @codes.add("~~(")
+		end if
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") / (")
+		do @codes.add(")/(")
+		do @buildExpr(ast.children1)
+		if(!\ast@isFloat(type))
+			do @codes.add("))")
+		else
+			do @codes.add(")")
+		end if
+	case %mod
+		do @codes.add("(")
+		do @buildExpr(ast.children0)
+		do @codes.add(")%(")
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
-	case %mod
-		if(\ast@isInt(type) | type.typeId.and(%typeBit) = %typeBit)
-			do @codes.add("(")
-			do @buildExpr(ast.children0)
-			do @codes.add(") % (")
-			do @buildExpr(ast.children1)
-			do @codes.add(")")
-		else
-			assert \ast@isFloat(type)
-			do @codes.add("fmod((")
-			do @buildExpr(ast.children0)
-			do @codes.add("), (")
-			do @buildExpr(ast.children1)
-			do @codes.add("))")
-		end if
 	case %pow
-		if(\ast@isInt(type) | type.typeId.and(%typeBit) = %typeBit)
-			do @codes.add("PowI_((")
-			do @buildExpr(ast.children0)
-			do @codes.add("), (")
-			do @buildExpr(ast.children1)
-			do @codes.add("))")
-		else
-			assert \ast@isFloat(type)
-			do @codes.add("pow((")
-			do @buildExpr(ast.children0)
-			do @codes.add("), (")
-			do @buildExpr(ast.children1)
-			do @codes.add("))")
-		end if
+		do @codes.add("(")
+		do @buildExpr(ast.children0)
+		do @codes.add(")**(")
+		do @buildExpr(ast.children1)
+		do @codes.add(")")
 	case %swap
 		var tmpVar: []char :: @addTmpVar(type)
-		do @codes.add("\{tmpVar} = (")
+		do @codes.add("\{tmpVar}=(")
 		do @buildExpr(ast.children0)
-		do @codes.add("), (")
+		do @codes.add("),(")
 		do @buildExpr(ast.children0)
-		do @codes.add(") = (")
+		do @codes.add(")=(")
 		do @buildExpr(ast.children1)
-		do @codes.add("), (")
+		do @codes.add("),(")
 		do @buildExpr(ast.children1)
-		do @codes.add(") = (\{tmpVar})")
+		do @codes.add(")=(\{tmpVar})")
 	default
 		assert false
 	end switch
@@ -968,9 +835,9 @@ func buildExpr3(ast: \ast@AstExpr3)
 	assert ast.varKind <> %unknown
 	do @codes.add("(")
 	do @buildExpr(ast.children0)
-	do @codes.add(") ? (")
+	do @codes.add(")?(")
 	do @buildExpr(ast.children1)
-	do @codes.add(") : (")
+	do @codes.add("):(")
 	do @buildExpr(ast.children2)
 	do @codes.add(")")
 end func
@@ -986,36 +853,46 @@ func buildExprNew(ast: \ast@AstExprNew)
 			var gen: \ast@AstTypeGen :: ast.itemType $ \ast@AstTypeGen
 			switch(gen.kind)
 			case %list_
-				do @codes.add("new List_<\{@getType(gen.itemType)}>()")
+				do @codes.add("[null, null, null]")
 			case %stack_
-				do @codes.add("new Stack_<\{@getType(gen.itemType)}>()")
+				do @codes.add("[]")
 			case %queue_
-				do @codes.add("new Queue_<\{@getType(gen.itemType)}>()")
+				do @codes.add("[]")
 			default
 				assert false
 			end switch
 		else
 			assert ast.itemType.typeId = %typeDict
-			var dict_: \ast@AstTypeDict :: ast.itemType $ \ast@AstTypeDict
-			do @codes.add("new Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>()")
+			do @codes.add("new Map()")
 		end if
 	end if
 end func
 
 func buildExprNewArray(ast: \ast@AstExprNewArray)
 	assert ast.varKind <> %unknown
-	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{@getType(ast.type)}>(\{^ast.idces}")
 	block
 		var items: list<\ast@AstExpr> :: ast.idces
 		do items.head()
-		while(!items.term())
-			do @codes.add(", (")
+		if(^items = 1)
+			do @codes.add("new Array(")
 			do @buildExpr(items.get())
-			do @codes.add(")")
-			do items.next()
-		end while
+			do @codes.add(").fill(\{@getDefaultValue(ast.itemType)})")
+		else
+			do @codes.add("(function A(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A(m);return a}})([")
+			var first: bool :: true
+			while(!items.term())
+				if(first)
+					do first :: false
+				else
+					do @codes.add(",(")
+				end if
+				do @buildExpr(items.get())
+				do @codes.add(")")
+				do items.next()
+			end while
+			do @codes.add("])")
+		end if
 	end block
-	do @codes.add(")")
 end func
 
 func buildExprAs(ast: \ast@AstExprAs)
@@ -1026,34 +903,58 @@ func buildExprAs(ast: \ast@AstExprAs)
 		var t2: \ast@AstType :: ast.childType
 		if(\ast@isClass(t1))
 			assert \ast@isClass(t2)
-			var id: []char :: @refClass(t2.refItem $ \ast@AstClass)
-			var info: @CppInfo :: @getInfo(t2.refItem)
-			do @codes.add("as_<\{id}>(classTable_, (")
+			do @refClass(t2.refItem $ \ast@AstClass)
 			do @buildExpr(ast.child)
-			do @codes.add("), \{info.classTableOffset * @classTableItemSize})")
 		else
-			do @codes.add("static_cast<\{@getType(ast.childType)}>(")
-			do @buildExpr(ast.child)
-			do @codes.add(")")
+			if(t1.typeId = %typeBit | \ast@isInt(t1) | \ast@isChar(t1) | \ast@isEnum(t1))
+				if(t2.typeId = %typeBit | \ast@isInt(t2) | \ast@isChar(t2) | \ast@isEnum(t2) | \ast@isFloat(t2))
+					do @buildExpr(ast.child)
+				else
+					assert \ast@isBool(t2)
+					do @codes.add("(")
+					do @buildExpr(ast.child)
+					do @codes.add(")!=0")
+				end if
+			elif(\ast@isFloat(t1))
+				if(t2.typeId = %typeBit | \ast@isInt(t2))
+					do @codes.add("~~(")
+					do @buildExpr(ast.child)
+					do @codes.add(")")
+				else
+					assert \ast@isFloat(t2)
+					do @buildExpr(ast.child)
+				end if
+			else
+				assert \ast@isBool(t1)
+				if(t2.typeId = %typeBit | \ast@isInt(t2))
+					do @codes.add("(")
+					do @buildExpr(ast.child)
+					do @codes.add(")?1:0")
+				else
+					assert \ast@isBool(t2)
+					do @buildExpr(ast.child)
+				end if
+			end if
 		end if
 	case %is
 		do @refClass(ast.childType.refItem $ \ast@AstClass)
-		var info: @CppInfo :: @getInfo(ast.childType.refItem)
-		do @codes.add("is_(classTable_, (")
+		var info: @WebInfo :: @getInfo(ast.childType.refItem)
+		do @codes.add("(")
 		do @buildExpr(ast.child)
-		do @codes.add("), \{info.classTableOffset * @classTableItemSize})")
+		do @codes.add(")instanceof \{info.id}")
 	case %nIs
 		do @refClass(ast.childType.refItem $ \ast@AstClass)
-		var info: @CppInfo :: @getInfo(ast.childType.refItem)
-		do @codes.add("!is_(classTable_, (")
+		var info: @WebInfo :: @getInfo(ast.childType.refItem)
+		do @codes.add("!((")
 		do @buildExpr(ast.child)
-		do @codes.add("), \{info.classTableOffset * @classTableItemSize})")
+		do @codes.add(")instanceof \{info.id})")
 	default
 		assert false
 	end switch
 end func
 
 func buildExprToBin(ast: \ast@AstExprToBin)
+	; TODO:
 	assert ast.varKind <> %unknown
 	do @codes.add("toBin_(")
 	do @buildExpr(ast.child)
@@ -1061,10 +962,11 @@ func buildExprToBin(ast: \ast@AstExprToBin)
 end func
 
 func buildExprFromBin(ast: \ast@AstExprFromBin)
+	; TODO:
 	assert ast.varKind <> %unknown
-	do @codes.add("fromBin_<\{@getType(ast.childType)}>((")
+	do @codes.add("fromBin_((")
 	do @buildExpr(ast.child)
-	do @codes.add("), (")
+	do @codes.add("),(")
 	do @buildExpr(ast.offset)
 	do @codes.add("))")
 end func
@@ -1072,52 +974,39 @@ end func
 func buildExprCall(ast: \ast@AstExprCall)
 	assert ast.varKind <> %unknown
 	var funcType: \ast@AstTypeFunc :: ast.func_.type $ \ast@AstTypeFunc
-	var template: []char :: null
+	var meTypeId: []char :: null
 	if(funcType <>& null & funcType.funcOption.and(%any) = %any)
 		var items: list<\ast@AstExprCallArg> :: ast.args
 		do items.head()
-		var meType: \ast@AstType :: items.get().arg.type
-		if(funcType.funcOption.and(%tkv) = %tkv)
-			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}>"
-		elif(funcType.funcOption.and(%tch) = %tch)
-			if(funcType.funcOption.and(%rch) = %rch)
-				do template :: "<\{@getType(meType)}, "
-				if(meType.typeId = %typeGen)
-					do template :~ "\{@getType((meType $ \ast@AstTypeGen).itemType)}, "
-				else
-					assert meType.typeId = %typeDict
-					do template :~ "\{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, "
-				end if
-				do template :~ "\{@getType(funcType.ret_)}>"
-			else
-				do template :: "<\{@getType(meType)}, "
-				if(meType.typeId = %typeArray)
-					do template :~ "\{@getType((meType $ \ast@AstTypeArray).itemType)}>"
-				elif(meType.typeId = %typeGen)
-					do template :~ "\{@getType((meType $ \ast@AstTypeGen).itemType)}>"
-				else
-					assert meType.typeId = %typeDict
-					do template :~ "\{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}>"
-				end if
-			end if
-		elif(funcType.funcOption.and(%rch) = %rch)
-			do template :: "<\{@getType(meType)}, \{@getType(funcType.ret_)}>"
-		elif(funcType.funcOption.and(%kvf) = %kvf)
-			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}>"
-		else
-			do template :: "<\{@getType(meType)}>"
-		end if
+		do meTypeId :: @makeTypeId(items.get().arg.type)
 	end if
-	if(template =& null)
+	var refNum: int :: 0
+	block
+		var items: list<\ast@AstExprCallArg> :: ast.args
+		do items.head()
+		while(!items.term())
+			if(items.get().refVar)
+				do refNum :+ 1
+			end if
+			do items.next()
+		end while
+	end block
+	var resultVar: []char :: null
+	var refVar: [][]char :: null
+	if(refNum > 0)
 		do @codes.add("(")
-		do @buildExpr(ast.func_)
-		do @codes.add(")")
-	else
-		do @buildExpr(ast.func_)
-		do @codes.add(template)
+		if(ast.type <>& null)
+			do resultVar :: @addTmpVar(ast.type)
+			do @codes.add("\{resultVar}=")
+		end if
+		do refVar :: #[refNum][]char
 	end if
 	do @codes.add("(")
+	do @buildExpr(ast.func_)
+	do @codes.add(")(")
 	block
+		var idx: int :: 0
+		var refCnt: int :: 0
 		var first: bool :: true
 		var items: list<\ast@AstExprCallArg> :: ast.args
 		do items.head()
@@ -1127,17 +1016,50 @@ func buildExprCall(ast: \ast@AstExprCall)
 				do first :: false
 				do @codes.add("(")
 			else
-				do @codes.add(", (")
+				do @codes.add(",(")
 			end if
-			if(item.refVar)
-				do @codes.add("&")
+			if(meTypeId <>& null & idx = 1)
+				do @codes.add(meTypeId)
+			elif(item.refVar)
+				do refVar[refCnt] :: @addTmpVar(item.arg.type)
+				do @codes.add("\{refVar[refCnt]}={$:(")
+				do @buildExpr(item.arg)
+				do @codes.add(")},\{refVar[refCnt]}")
+				do refCnt :+ 1
+			else
+				do @buildExpr(item.arg)
 			end if
-			do @buildExpr(item.arg)
 			do @codes.add(")")
+			do idx :+ 1
 			do items.next()
 		end while
 	end block
 	do @codes.add(")")
+	if(refNum > 0)
+		block
+			var idx: int :: 0
+			var refCnt: int :: 0
+			var items: list<\ast@AstExprCallArg> :: ast.args
+			do items.head()
+			while(!items.term())
+				var item: \ast@AstExprCallArg :: items.get()
+				if(meTypeId <>& null & idx = 1)
+					; Do nothing.
+				elif(item.refVar)
+					do @codes.add(",(")
+					do @buildExpr(item.arg)
+					do @codes.add(")=\{refVar[refCnt]}.$")
+					do refCnt :+ 1
+				end if
+				do idx :+ 1
+				do items.next()
+			end while
+		end block
+		if(ast.type <>& null)
+			do @codes.add(",\{resultVar}")
+		end if
+		do @codes.add(")")
+	end if
 	
 	block
 		var type: \ast@AstType :: ast.type
@@ -1150,12 +1072,13 @@ func buildExprCall(ast: \ast@AstExprCall)
 end func
 
 func buildExprArray(ast: \ast@AstExprArray)
+	; TODO: string
 	assert ast.varKind <> %unknown
 	do @codes.add("(")
 	do @buildExpr(ast.var_)
-	do @codes.add(")->At(")
+	do @codes.add(")[")
 	do @buildExpr(ast.idx)
-	do @codes.add(")")
+	do @codes.add("]")
 end func
 
 func buildExprDot(ast: \ast@AstExprDot)
@@ -1164,12 +1087,12 @@ func buildExprDot(ast: \ast@AstExprDot)
 		var classItem: \ast@AstClassItem :: ast.classItem
 		assert classItem <>& null
 		do @refClass(ast.var_.type.refItem $ \ast@AstClass)
-		var info: @CppInfo
+		var info: @WebInfo
 		if(classItem.def.typeId = %var_)
 			do info :: @getInfo((classItem.def $ \ast@AstVar).arg)
 			do @codes.add("(")
 			do @buildExpr(ast.var_)
-			do @codes.add(")->\{info.id}")
+			do @codes.add(").\{info.id}")
 		else
 			assert classItem.def.typeId = %func_
 			do info :: @getInfo(classItem.def)
@@ -1184,27 +1107,27 @@ end func
 
 func buildExprValue(ast: \ast@AstExprValue)
 	assert ast.type.typeId = %typeNull
-	do @codes.add("nullptr")
+	do @codes.add("null")
 end func
 
 func buildExprValuePrim(ast: \ast@AstExprValuePrim)
 	var type: \ast@AstType :: ast.type
 	if(\ast@isInt(type) | \ast@isEnum(type))
-		do @codes.add((ast.value $ int).toStr() ~ "LL")
+		do @codes.add((ast.value $ int).toStr())
 	elif(\ast@isChar(type))
-		do @codes.add("u'\\u\{(ast.value $ bit16).toStr().sub(2, -1)}'")
+		do @codes.add((ast.value $ bit16).toStr())
 	elif(\ast@isBool(type))
 		do @codes.add(ast.value = 0b64 ?("false", "true"))
 	elif(type.typeId = %typeBit)
 		switch((type $ \ast@AstTypeBit).size)
 		case 1
-			do @codes.add("static_cast<uint8_t>(\{ast.value $ bit8}U)")
+			do @codes.add((ast.value $ bit8).toStr())
 		case 2
-			do @codes.add("static_cast<uint16_t>(\{ast.value $ bit16}U)")
+			do @codes.add((ast.value $ bit16).toStr())
 		case 4
-			do @codes.add("\{ast.value $ bit32}U")
+			do @codes.add((ast.value $ bit32).toStr())
 		case 8
-			do @codes.add("\{ast.value $ bit64}ULL")
+			do @codes.add((ast.value $ bit64).toStr())
 		default
 			assert false
 		end switch
@@ -1215,20 +1138,18 @@ end func
 
 func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
-	var s: []char :: "new Array_<char16_t>(\{^value}"
+	var s: []char :: "\""
 	for i(0, ^value - 1)
-		do s :~ ", u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
+		do s :~ "\\u\{(value[i] $ bit16).toStr().sub(2, -1)}"
 	end for
-	do s :~ ")"
+	do s :~ "\""
 	do @codes.add(s)
 end func
 
 func buildExprValueFloat(ast: \ast@AstExprValueFloat)
 	var value: []char :: ast.value.toStr()
 	if(value = "inf")
-		do @codes.add("std::numeric_limits<double>::infinity()")
-	elif(value.find('.', -1) = -1)
-		do @codes.add(value ~ ".0")
+		do @codes.add("Infinity")
 	else
 		do @codes.add(value)
 	end if
@@ -1236,23 +1157,30 @@ end func
 
 func buildExprValueArray(ast: \ast@AstExprValueArray)
 	; Note that constant string values are handled by 'ExprValueStr'.
-	do @codes.add("new Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>(\{^ast.values}")
+	do @codes.add("[")
+	var first: bool :: true
 	var items: list<\ast@AstExpr> :: ast.values
 	do items.head()
 	while(!items.term())
-		do @codes.add(", (")
+		if(first)
+			do first :: false
+			do @codes.add("(")
+		else
+			do @codes.add(",(")
+		end if
 		do @buildExpr(items.get())
 		do @codes.add(")")
 		do items.next()
 	end while
-	do @codes.add(")")
+	do @codes.add("]")
 end func
 
 func buildExprRef(ast: \ast@AstExpr)
 	var ast2: \ast@Ast :: ast.refItem
-	var info: @CppInfo :: @getInfo(ast2)
+	var info: @WebInfo :: @getInfo(ast2)
 	if(ast2.typeId = %func_)
 		do @funcs.add(ast2 $ \ast@AstFunc)
+		do @codes.add(info.id)
 	else
 		assert ast2.typeId = %arg
 		var arg: \ast@AstArg :: ast2 $ \ast@AstArg
@@ -1273,142 +1201,48 @@ func buildExprRef(ast: \ast@AstExpr)
 			assert false
 		end switch
 		if(arg.refVar)
-			do @codes.add("*")
+			do @codes.add("\{info.id}.$")
+		else
+			do @codes.add(info.id)
 		end if
 	end if
-	do @codes.add(info.id)
 end func
 
 func write()
-	do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
+	var writer: file@Writer
+	do writer :: file@makeWriter(\option@outputFile ~ ".js", false)
+	do writer.writeStr("\"use strict\";!function(f){let w=window,d=w.document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);w.removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),w.addEventListener(\"load\",h))}(function(){\n")
 	
-	var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
-	do writer.writeStr("#include \"common.h\"\n")
-	do writer.writeStr("namespace {\n")
-	
-	do @classDefs.head()
-	while(!@classDefs.term())
-		do writer.writeStr(@classDefs.get())
-		do @classDefs.next()
-	end while
-	do @funcPrototypes.head()
-	while(!@funcPrototypes.term())
-		do writer.writeStr(@funcPrototypes.get())
-		do @funcPrototypes.next()
-	end while
-	do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
 	do @globalVars.head()
 	while(!@globalVars.term())
 		var globalVar: \ast@AstArg :: @globalVars.get()
-		var info: @CppInfo :: @getInfo(globalVar)
-		do writer.writeStr("static \{@getType(globalVar.type)} \{info.id};\n")
+		var info: @WebInfo :: @getInfo(globalVar)
+		do writer.writeStr("var \{info.id};\n")
 		do @globalVars.next()
-	end while
-	do @classFuncs.head()
-	while(!@classFuncs.term())
-		do writer.writeStr(@classFuncs.get())
-		do @classFuncs.next()
 	end while
 	do @codes.head()
 	while(!@codes.term())
 		do writer.writeStr(@codes.get())
 		do @codes.next()
 	end while
-	do writer.writeStr("}\n")
-	do writer.writeStr("int main(){\n")
-	block
-		do @classTable.head()
-		while(!@classTable.term())
-			var item: []char :: @classTable.get()
-			do writer.writeStr(item)
-			do @classTable.next()
-		end while
-	end block
-	do writer.writeStr("init_();\n")
+	
 	do writer.writeStr("a();\n")
-	do writer.writeStr("return 0;\n")
-	do writer.writeStr("}\n")
+	do writer.writeStr("})")
 	do writer.fin()
-end func
-
-func getType(type: \ast@AstType): []char
-	if(type =& null)
-		ret "void"
-	end if
-	switch(type.typeId)
-	case %typeArray
-		ret "Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>*"
-	case %typeBit
-		ret "uint\{(type $ \ast@AstTypeBit).size * 8}_t"
-	case %typeFunc
-		var func_: \ast@AstTypeFunc :: type $ \ast@AstTypeFunc
-		var id: []char :: @getId()
-		do @funcPrototypes.add("typedef \{@getType(func_.ret_)}(*\{id})(")
-		block
-			var arg: []char :: ""
-			var first: bool :: true
-			var items: list<\ast@AstTypeFuncArg> :: func_.args
-			do items.head()
-			while(!items.term())
-				var item: \ast@AstTypeFuncArg :: items.get()
-				if(first)
-					do first :: false
-				else
-					do arg :~ ", "
-				end if
-				do arg :~ "\{@getType(item.arg)}"
-				if(item.refVar)
-					do arg :~ "*"
-				end if
-				do items.next()
-			end while
-			do @funcPrototypes.add("\{arg});\n")
-		end block
-		ret id
-	case %typeGen
-		var gen: \ast@AstTypeGen :: type $ \ast@AstTypeGen
-		switch(gen.kind)
-		case %list_
-			ret "List_<\{@getType(gen.itemType)}>*"
-		case %stack_
-			ret "Stack_<\{@getType(gen.itemType)}>*"
-		case %queue_
-			ret "Queue_<\{@getType(gen.itemType)}>*"
-		default
-			assert false
-		end switch
-	case %typeDict
-		var dict_: \ast@AstTypeDict :: type $ \ast@AstTypeDict
-		ret "Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>*"
-	case %typePrim
-		var prim: \ast@AstTypePrim :: type $ \ast@AstTypePrim
-		switch(prim.kind)
-		case %int_
-			ret "int64_t"
-		case %float_
-			ret "double"
-		case %char_
-			ret "char16_t"
-		case %bool_
-			ret "bool"
-		default
-			assert false
-		end switch
-	case %typeUser
-		var ref: \ast@Ast :: type.refItem
-		if(ref.typeId = %class_)
-			do @refClass(ref $ \ast@AstClass)
-			var info: @CppInfo :: @getInfo(ref)
-			ret info.id ~ "*"
-		else
-			assert ref.typeId = %enum_
-			ret "int64_t"
-		end if
-	case %typeNull
-		assert false
-	default
-		assert false
-	end switch
+	
+	var fileName: []char :: file@fileName(\option@outputFile)
+	do writer :: file@makeWriter(\option@outputFile ~ ".html", false)
+	do writer.writeStr("<!DOCTYPE html>\n")
+	do writer.writeStr("<html>\n")
+	do writer.writeStr("\t<head>\n")
+	do writer.writeStr("\t\t<meta charset=\"utf-8\" />\n")
+	do writer.writeStr("\t\t<script src=\"\{fileName}.js\" type=\"text/javascript\"></script>\n")
+	do writer.writeStr("\t\t<title>\{fileName}</title>\n")
+	do writer.writeStr("\t</head>\n")
+	do writer.writeStr("\t<body>\n")
+	do writer.writeStr("\t</body>\n")
+	do writer.writeStr("</html>\n")
+	do writer.fin()
 end func
 
 func getId(): []char
@@ -1417,7 +1251,12 @@ func getId(): []char
 	while loop2(true)
 		var idx: int :: ^newId - 1
 		while loop(true)
-			if(newId[idx] = 'z')
+			switch(newId[idx])
+			case 'z'
+				do newId[idx] :: idx = 0 ?('A', '0')
+			case '9'
+				do newId[idx] :: 'A'
+			case 'Z'
 				if(idx = 0)
 					do newId :: #[^newId + 1]char
 					do newId.fill('a')
@@ -1426,25 +1265,25 @@ func getId(): []char
 					do idx :- 1
 					skip loop
 				end if
-			else
+			default
 				do newId[idx] :: newId[idx].offset(1)
-			end if
+			end switch
 			break loop
 		end while
 		switch(^newId)
 		case 2
 			switch(newId)
-			case "do", "if", "or"
+			case "do", "if", "in"
 				skip loop2
 			end switch
 		case 3
 			switch(newId)
-			case "and", "asm", "for", "int", "new", "not", "try", "xor"
+			case "for", "let", "new", "try", "var", "Map", "NaN", "Set"
 				skip loop2
 			end switch
 		case 4
 			switch(newId)
-			case "auto", "bool", "case", "char", "else", "enum", "goto", "long", "main", "this", "true", "void"
+			case "case", "else", "enum", "eval", "name", "null", "this", "true", "void", "with", "Date", "Intl", "JSON", "Math"
 				skip loop2
 			end switch
 		end switch
@@ -1454,29 +1293,20 @@ func getId(): []char
 	ret curId
 end func
 
-+func getInfo(ast: \ast@Ast): @CppInfo
++func getInfo(ast: \ast@Ast): @WebInfo
 	if(ast.extra =& null | ast.extra.typeId <> %info)
-		var info: @CppInfo :: #@CppInfo
+		var info: @WebInfo :: #@WebInfo
 		do info.typeId :: %info
 		do info.id :: @getId()
 		if(ast.typeId.and(%statBreakable) = %statBreakable & ast.name <>& null & ast.name <> "$")
-			do info.breakLabel :: @getId()
-			if(ast.typeId.and(%statSkipable) = %statSkipable)
-				do info.skipLabel :: @getId()
-			else
-				do info.skipLabel :: null
-			end if
+			do info.breakSkipLabel :: @getId()
 		else
-			do info.breakLabel :: null
-			do info.skipLabel :: null
+			do info.breakSkipLabel :: null
 		end if
-		do info.classTableOffset :: -1
 		do info.alreadyWritten :: false
-		do info.breakLabelUsed :: false
-		do info.skipLabelUsed :: false
 		do ast.extra :: info
 	end if
-	ret ast.extra $ @CppInfo
+	ret ast.extra $ @WebInfo
 end func
 
 func addTmpVar(type: \ast@AstType): []char
@@ -1488,7 +1318,7 @@ func addTmpVar(type: \ast@AstType): []char
 end func
 
 func refClass(ast: \ast@AstClass): []char
-	var info: @CppInfo :: @getInfo(ast)
+	var info: @WebInfo :: @getInfo(ast)
 	if(info.alreadyWritten)
 		ret info.id
 	end if
@@ -1496,42 +1326,13 @@ func refClass(ast: \ast@AstClass): []char
 	if(ast.refItem <>& null)
 		do @refClass(ast.refItem $ \ast@AstClass)
 	end if
-	if(info.classTableOffset = -1)
-		do info.classTableOffset :: @classTableSize
-		do @classTableSize :+ 1
-	end if
-	block
-		var items: list<\ast@AstClassItem> :: ast.items
-		do items.head()
-		while(!items.term())
-			var item: \ast@AstClassItem :: items.get()
-			if(item.def.typeId = %func_)
-				var func_: \ast@AstFunc :: item.def $ \ast@AstFunc
-				if(func_.ret_ <>& null)
-					do @getType(func_.ret_)
-				end if
-				var items2: list<\ast@AstArg> :: func_.args
-				do items2.head()
-				while(!items2.term())
-					var arg: \ast@AstArg :: items2.get()
-					do @getType(arg.type)
-					do items2.next()
-				end while
-				do @funcs.add(func_)
-			elif(item.def.typeId = %var_)
-				var var_: \ast@AstVar :: item.def $ \ast@AstVar
-				do @getType(var_.arg.type)
-			end if
-			do items.next()
-		end while
-	end block
 	do @classes.add(ast)
 	ret info.id
 end func
 
 func getDefaultValue(type: \ast@AstType): []char
 	if(\ast@isNullable(type))
-		ret "nullptr"
+		ret "null"
 	end if
 	switch(type.typeId)
 	case %typeUser
@@ -1544,7 +1345,7 @@ func getDefaultValue(type: \ast@AstType): []char
 		case %int_, %char_
 			ret "0"
 		case %float_
-			ret "0.0"
+			ret "0"
 		case %bool_
 			ret "false"
 		default
@@ -1553,4 +1354,21 @@ func getDefaultValue(type: \ast@AstType): []char
 	default
 		assert false
 	end switch
+end func
+
+func makeTypeId(type: \ast@AstType): []char
+	var result: []char :: ""
+	var first: bool :: true
+	var items: list<int> :: \convert@getTypeId(type)
+	do items.head()
+	while(!items.term())
+		if(first)
+			do first :: false
+		else
+			do result :~ ","
+		end if
+		do result :~ items.get().toStr()
+		do items.next()
+	end while
+	ret result
 end func

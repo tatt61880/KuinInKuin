@@ -9,7 +9,6 @@
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
 		do args.next()
-		do args.next()
 		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
 		var item: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

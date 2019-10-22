@@ -1,0 +1,202 @@
++func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>)
+	switch(attr)
+	case "addr"
+		; TODO:
+	case "addDict"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var key: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.set(\{key.id}, \{item.id});\n")
+	case "addList"
+		; TODO:
+	case "addQueue"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.push(\{item.id});\n")
+	case "addStack"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.push(\{item.id});\n")
+	case "and"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}&\{n.id};\n")
+	case "del"
+		; TODO:
+	case "fill"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var value: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.fill(\{value.id});\n")
+	case "findArray"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var start: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.indexOf(\{item.id},\{start.id}===-1?0:\{start.id});\n")
+	case "findBin"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let a_=0,b_=\{me_.id}.length-1,c_,m_;\n")
+		do codes.add("while (a_<=b_){\n")
+		do codes.add("c_=~~((a_+b_)/2);\n")
+		do codes.add("m_=cmp_(\{item.id},\{me_.id}[c_]);\n")
+		do codes.add("if(m_<0)b_=c_-1;\n")
+		do codes.add("else if(m_>0)a_=c_+1;\n")
+		do codes.add("else return c_;\n")
+		do codes.add("}\n")
+		do codes.add("return -1;\n")
+	case "forEach"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var callback: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var data: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let D_={F:\{callback.id},D:\{data.id},C:this};\n")
+		do codes.add("\{me_.id}.forEach(function(V_,K_){if(this.C)this.C=this.F(K_,V_,this.D)},D_);\n")
+		do codes.add("return D_.C;\n")
+	case "getDict"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var key: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var existed: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let r_=\{me_.id}.get(\{key.id});\n")
+		do codes.add("\{existed.id}.$=r_!==undefined;\n")
+		do codes.add("return r_;\n")
+	case "getList"
+		; TODO:
+	case "getQueue"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}.shift();\n")
+	case "getStack"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}.pop();\n")
+	case "head"
+		; TODO:
+	case "idx"
+		; TODO:
+	case "ins"
+		; TODO:
+	case "moveOffset"
+		; TODO:
+	case "next"
+		; TODO:
+	case "or"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}|\{n.id};\n")
+	case "peekQueue"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}[0];\n")
+	case "peekStack"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}[0];\n")
+	case "rnd"
+		do args.head()
+		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var max: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return ~~(Math.random()*(\{max.id}-\{min.id}+1))+\{min.id};\n")
+	case "rndFloat"
+		do args.head()
+		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var max: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.random()*(\{max.id}-\{min.id})+\{min.id};\n")
+	case "sub"
+		; TODO:
+	case "sysTime"
+		do codes.add("return new Date().getTime();\n")
+	case "tail"
+		; TODO:
+	case "term"
+		; TODO:
+	case "toBit64"
+		; TODO:
+	case "toFloat"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var success: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let r_=Number(\{me_.id});\n")
+		do codes.add("\{success.id}.$=isNaN(r_);\n")
+		do codes.add("return r_;\n")
+	case "toInt"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var success: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let r_=Number(\{me_.id});\n")
+		do codes.add("\{success.id}.$=isNaN(r_);\n")
+		do codes.add("return ~~r_;\n")
+	case "toStr"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}.toString(10);\n")
+	case "cui_print"
+		do args.head()
+		var str: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("console.log(\{str.id});\n")
+	case "file_copyFile"
+		; TODO:
+	case "file_makeReader"
+		; TODO:
+	case "file_makeWriter"
+		; TODO:
+	case "file_readerFin"
+		; TODO:
+	case "file_readerGetPos"
+		; TODO:
+	case "file_readerReadLetter"
+		; TODO:
+	case "file_readerSetPos"
+		; TODO:
+	case "file_readerTerm"
+		; TODO:
+	case "file_writerFin"
+		; TODO:
+	case "file_writerGetPos"
+		; TODO:
+	case "file_writerSetPos"
+		; TODO:
+	case "file_writerWrite"
+		; TODO:
+	case "file_writerWriteChar"
+		; TODO:
+	default
+		assert false
+	end switch
+end func

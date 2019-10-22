@@ -60,6 +60,10 @@ func build(): bool
 		if(!\cpp\output@output(entry))
 			ret false
 		end if
+	case %web
+		if(!\web\output@output(entry))
+			ret false
+		end if
 	default
 		assert false
 	end switch
