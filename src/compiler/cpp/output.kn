@@ -1296,7 +1296,9 @@ func write()
 		do writer.writeStr(@funcPrototypes.get())
 		do @funcPrototypes.next()
 	end while
-	do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
+	if(@classTableSize <> 0)
+		do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
+	end if
 	do @globalVars.head()
 	while(!@globalVars.term())
 		var globalVar: \ast@AstArg :: @globalVars.get()
