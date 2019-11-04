@@ -20,7 +20,7 @@ class TmpVar()
 	+var type: \ast@AstType
 end class
 
-+func output(entry: \ast@AstFunc): bool
++func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
@@ -42,7 +42,7 @@ end class
 		end while
 	end while
 	
-	do @write()
+	do @write(resFiles)
 	
 	ret true
 end func
@@ -158,9 +158,7 @@ func buildClass(ast: \ast@AstClass)
 		while(!items.term())
 			var item: \ast@AstClassItem :: items.get()
 			if(item.def.typeId = %func_)
-				var funcInfo: @WebInfo :: @getInfo(item.def)
-				do @codes.add("\{info.id}.prototype.\{funcInfo.id} = ")
-				do @buildFunc(item.def $ \ast@AstFunc)
+				do @funcs.add(item.def $ \ast@AstFunc)
 			end if
 			do items.next()
 		end while
@@ -625,14 +623,39 @@ func buildExpr1(ast: \ast@AstExpr1)
 		do @buildExpr(ast.child)
 		do @codes.add(")")
 	case %copy
-		; TODO:
-		do @codes.add("copy_(")
+		var typeId: []char :: @makeTypeId(ast.child.type)
+		do @codes.add("C_(\{typeId},(")
 		do @buildExpr(ast.child)
-		do @codes.add(")")
+		do @codes.add("))")
 	case %len
-		do @codes.add("(")
-		do @buildExpr(ast.child)
-		do @codes.add(").length")
+		var type: \ast@AstType :: ast.child.type
+		if(type.typeId = %typeGen)
+			switch((type $ \ast@AstTypeGen).kind)
+			case %list_
+				do @codes.add("(")
+				do @buildExpr(ast.child)
+				do @codes.add(").L")
+			case %stack_
+				do @codes.add("(")
+				do @buildExpr(ast.child)
+				do @codes.add(").length")
+			case %queue_
+				do @codes.add("(")
+				do @buildExpr(ast.child)
+				do @codes.add(").length")
+			default
+				assert false
+			end switch
+		elif(type.typeId = %typeDict)
+			do @codes.add("(")
+			do @buildExpr(ast.child)
+			do @codes.add(").size")
+		else
+			assert type.typeId = %typeArray
+			do @codes.add("(")
+			do @buildExpr(ast.child)
+			do @codes.add(").length")
+		end if
 	default
 		assert false
 	end switch
@@ -643,11 +666,28 @@ func buildExpr2(ast: \ast@AstExpr2)
 	var type: \ast@AstType :: ast.children0.type
 	switch(ast.kind)
 	case %assign
-		do @codes.add("(")
-		do @buildExpr(ast.children0)
-		do @codes.add(")=(")
-		do @buildExpr(ast.children1)
-		do @codes.add(")")
+		if(ast.children0.typeId = %exprArray & \ast@isChar((ast.children0 $ \ast@AstExprArray).type))
+			var ast2: \ast@AstExprArray :: ast.children0 $ \ast@AstExprArray
+			var tmpIdx: []char :: @addTmpVar(ast2.idx.type)
+			var tmpChar: []char :: @addTmpVar(ast2.type)
+			do @codes.add("(")
+			do @buildExpr(ast2.var_)
+			do @codes.add(")=(\{tmpIdx}=(")
+			do @buildExpr(ast2.idx)
+			do @codes.add("),(")
+			do @buildExpr(ast2.var_)
+			do @codes.add(").slice(0,\{tmpIdx})+String.fromCharCode(")
+			do @buildExpr(ast.children1)
+			do @codes.add(")+(")
+			do @buildExpr(ast2.var_)
+			do @codes.add(").slice(\{tmpIdx}+1))")
+		else
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(")=(")
+			do @buildExpr(ast.children1)
+			do @codes.add(")")
+		end if
 	case %or
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
@@ -853,7 +893,7 @@ func buildExprNew(ast: \ast@AstExprNew)
 			var gen: \ast@AstTypeGen :: ast.itemType $ \ast@AstTypeGen
 			switch(gen.kind)
 			case %list_
-				do @codes.add("[null, null, null]")
+				do @codes.add("{L:0,H:null,T:null,P:null}")
 			case %stack_
 				do @codes.add("[]")
 			case %queue_
@@ -873,24 +913,46 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 	block
 		var items: list<\ast@AstExpr> :: ast.idces
 		do items.head()
-		if(^items = 1)
-			do @codes.add("new Array(")
-			do @buildExpr(items.get())
-			do @codes.add(").fill(\{@getDefaultValue(ast.itemType)})")
-		else
-			do @codes.add("(function A(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A(m);return a}})([")
-			var first: bool :: true
-			while(!items.term())
-				if(first)
-					do first :: false
-				else
-					do @codes.add(",(")
-				end if
+		if(\ast@isChar(ast.itemType))
+			if(^items = 1)
+				do @codes.add("\"\\0\".repeat(")
 				do @buildExpr(items.get())
 				do @codes.add(")")
-				do items.next()
-			end while
-			do @codes.add("])")
+			else
+				do @codes.add("(function A(n){if(n.length==1)return new \"\\0\".repeat(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A(m);return a}})([")
+				var first: bool :: true
+				while(!items.term())
+					if(first)
+						do first :: false
+					else
+						do @codes.add(",(")
+					end if
+					do @buildExpr(items.get())
+					do @codes.add(")")
+					do items.next()
+				end while
+				do @codes.add("])")
+			end if
+		else
+			if(^items = 1)
+				do @codes.add("new Array(")
+				do @buildExpr(items.get())
+				do @codes.add(").fill(\{@getDefaultValue(ast.itemType)})")
+			else
+				do @codes.add("(function A(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A(m);return a}})([")
+				var first: bool :: true
+				while(!items.term())
+					if(first)
+						do first :: false
+					else
+						do @codes.add(",(")
+					end if
+					do @buildExpr(items.get())
+					do @codes.add(")")
+					do items.next()
+				end while
+				do @codes.add("])")
+			end if
 		end if
 	end block
 end func
@@ -1072,13 +1134,20 @@ func buildExprCall(ast: \ast@AstExprCall)
 end func
 
 func buildExprArray(ast: \ast@AstExprArray)
-	; TODO: string
 	assert ast.varKind <> %unknown
-	do @codes.add("(")
-	do @buildExpr(ast.var_)
-	do @codes.add(")[")
-	do @buildExpr(ast.idx)
-	do @codes.add("]")
+	if(\ast@isChar(ast.type))
+		do @codes.add("(")
+		do @buildExpr(ast.var_)
+		do @codes.add(").charCodeAt(")
+		do @buildExpr(ast.idx)
+		do @codes.add(")")
+	else
+		do @codes.add("(")
+		do @buildExpr(ast.var_)
+		do @codes.add(")[")
+		do @buildExpr(ast.idx)
+		do @codes.add("]")
+	end if
 end func
 
 func buildExprDot(ast: \ast@AstExprDot)
@@ -1140,7 +1209,7 @@ func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
 	var s: []char :: "\""
 	for i(0, ^value - 1)
-		do s :~ "\\u\{(value[i] $ bit16).toStr().sub(2, -1)}"
+		do s :~ @escapeChar(value[i])
 	end for
 	do s :~ "\""
 	do @codes.add(s)
@@ -1208,7 +1277,7 @@ func buildExprRef(ast: \ast@AstExpr)
 	end if
 end func
 
-func write()
+func write(resFiles: list<[]char>)
 	var writer: file@Writer
 	do writer :: file@makeWriter(\option@outputFile ~ ".js", false)
 	do writer.writeStr("\"use strict\";!function(f){let w=window,d=w.document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);w.removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),w.addEventListener(\"load\",h))}(function(){\n")
@@ -1217,7 +1286,7 @@ func write()
 	while(!@globalVars.term())
 		var globalVar: \ast@AstArg :: @globalVars.get()
 		var info: @WebInfo :: @getInfo(globalVar)
-		do writer.writeStr("var \{info.id};\n")
+		do writer.writeStr("var \{info.id}=\{@getDefaultValue(globalVar.type)};\n")
 		do @globalVars.next()
 	end while
 	do @codes.head()
@@ -1226,8 +1295,78 @@ func write()
 		do @codes.next()
 	end while
 	
+	do writer.writeStr("function C_(t,v){\n")
+	do writer.writeStr("switch(t[0]){\n")
+	do writer.writeStr("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%bool_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%bit8_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%bit16_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%bit32_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%bit64_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%func_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("case \{%enum_ $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("return v;\n")
+	do writer.writeStr("case \{%array $ \convert@runtimeTypeId $ int}:\n")
+	do writer.writeStr("if(t[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+	do writer.writeStr("return v;\n")
+	do writer.writeStr("else{\n")
+	do writer.writeStr("let a=new Array(v.length);\n")
+	do writer.writeStr("for(let i=0;i<v.length;i++)a[i]=C_(t.slice(1),v[i]);\n")
+	do writer.writeStr("return a;\n")
+	do writer.writeStr("}\n")
+	do writer.writeStr("case \{%list_ $ \convert@runtimeTypeId $ int}:\n")
+	; TODO:
+	do writer.writeStr("case \{%stack_ $ \convert@runtimeTypeId $ int}:\n")
+	; TODO:
+	do writer.writeStr("case \{%queue_ $ \convert@runtimeTypeId $ int}:\n")
+	; TODO:
+	do writer.writeStr("case \{%dict_ $ \convert@runtimeTypeId $ int}:\n")
+	; TODO:
+	do writer.writeStr("case \{%class_ $ \convert@runtimeTypeId $ int}:\n")
+	; TODO:
+	do writer.writeStr("}\n")
+	do writer.writeStr("}\n")
+	
+	do writer.writeStr("function F_(p){\n")
+	block
+		var first: bool :: true
+		do resFiles.head()
+		while(!resFiles.term())
+			var resFile: []char :: resFiles.get()
+			var reader: file@Reader :: file@makeReader(resFile)
+			if(first)
+				do first :: false
+				do writer.writeStr("if(p===\"")
+			else
+				do writer.writeStr("else if(p===\"")
+			end if
+			for i(^\option@inputDir, ^resFile - 1)
+				do writer.writeStr(@escapeChar(resFile[i]))
+			end for
+			do writer.writeStr("\")\n")
+			do writer.writeStr("return \"")
+			while(!reader.term())
+				var line: []char :: reader.readLine()
+				for i(0, ^line - 1)
+					do writer.writeStr(@escapeChar(line[i]))
+				end for
+				do writer.writeStr("\\n")
+			end while
+			do writer.writeStr("\";\n")
+			do reader.fin()
+			do resFiles.next()
+		end while
+		if(^resFiles > 0)
+			do writer.writeStr("else return null;\n")
+		else
+			do writer.writeStr("return null;\n")
+		end if
+	end block
+	do writer.writeStr("}\n")
 	do writer.writeStr("a();\n")
-	do writer.writeStr("})")
+	do writer.writeStr("})\n")
 	do writer.fin()
 	
 	var fileName: []char :: file@fileName(\option@outputFile)
@@ -1357,7 +1496,7 @@ func getDefaultValue(type: \ast@AstType): []char
 end func
 
 func makeTypeId(type: \ast@AstType): []char
-	var result: []char :: ""
+	var result: []char :: "["
 	var first: bool :: true
 	var items: list<int> :: \convert@getTypeId(type)
 	do items.head()
@@ -1370,5 +1509,21 @@ func makeTypeId(type: \ast@AstType): []char
 		do result :~ items.get().toStr()
 		do items.next()
 	end while
+	do result :~ "]"
 	ret result
+end func
+
+func escapeChar(c: char): []char
+	switch(c)
+	case '"'
+		ret "\\\""
+	case '\''
+		ret "\\'"
+	case '\\'
+		ret "\\\\"
+	case ' ' to '~'
+		ret c.toStr()
+	default
+		ret "\\u\{(c $ bit16).toStr().sub(2, -1)}"
+	end switch
 end func

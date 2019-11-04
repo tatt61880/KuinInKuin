@@ -29,7 +29,7 @@ class TmpVar()
 	+var type: \ast@AstType
 end class
 
-+func output(entry: \ast@AstFunc): bool
++func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
@@ -56,7 +56,7 @@ end class
 		end while
 	end while
 	
-	do @write()
+	do @write(resFiles)
 	ret true
 end func
 
@@ -1279,7 +1279,7 @@ func buildExprRef(ast: \ast@AstExpr)
 	do @codes.add(info.id)
 end func
 
-func write()
+func write(resFiles: list<[]char>)
 	do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
 	
 	var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
@@ -1296,6 +1296,7 @@ func write()
 		do writer.writeStr(@funcPrototypes.get())
 		do @funcPrototypes.next()
 	end while
+	; TODO: ResFiles
 	if(@classTableSize <> 0)
 		do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
 	end if

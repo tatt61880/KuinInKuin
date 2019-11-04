@@ -2522,19 +2522,20 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 				; Add the type of 'me' to the second argument when '_any_type' is specified.
 				var meType: \ast@AstExprCallArg :: #\ast@AstExprCallArg
 				block
-					var expr: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
-					do @initAstExpr(expr, %exprValuePrim, ast.pos)
-					do expr.value :: 0b64
+					var expr: \ast@AstExprValueArray :: #\ast@AstExprValueArray
+					do @initAstExpr(expr, %exprValueArray, ast.pos)
+					do expr.values :: #list<\ast@AstExpr>
 					block
-						var array: \ast@AstTypeArray :: #\ast@AstTypeArray
-						do @initAst(array, %typeArray, ast.pos)
+						var value: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
+						do @initAstExpr(value, %exprValuePrim, ast.pos)
+						do value.value :: 0b64
 						block
 							var prim: \ast@AstTypePrim :: #\ast@AstTypePrim
 							do @initAst(prim, %typePrim, ast.pos)
 							do prim.kind :: %int_
-							do array.itemType :: prim
+							do value.type :: prim
 						end block
-						do expr.type :: array
+						do expr.values.add(value)
 					end block
 					do meType.arg :: @rebuildExpr(expr, false)
 				end block

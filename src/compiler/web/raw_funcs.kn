@@ -12,7 +12,14 @@
 		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("\{me_.id}.set(\{key.id}, \{item.id});\n")
 	case "addList"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let n_={P:null,N:null,I:\{item.id}};\n")
+		do codes.add("if(\{me_.id}.H==null){\{me_.id}.H=n_;\{me_.id}.T=n_}else{n_.P=\{me_.id}.T;\{me_.id}.T.N=n_;\{me_.id}.T=n_}\n")
+		do codes.add("\{me_.id}.L++;\n")
 	case "addQueue"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -35,7 +42,13 @@
 		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return \{me_.id}&\{n.id};\n")
 	case "del"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let p_=\{me_.id}.P;\n")
+		do codes.add("if(p_.P==null)\{me_.id}.H=p_.N;else p_.P.N=p_.N;\n")
+		do codes.add("if(p_.N==null)\{me_.id}.T=p_.P;else p_.N.P=p_.P;\n")
+		do codes.add("\{me_.id}.P=p_.N;\n")
+		do codes.add("\{me_.id}.L--;\n")
 	case "fill"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -47,21 +60,42 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var start: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do codes.add("\{me_.id}.indexOf(\{item.id},\{start.id}===-1?0:\{start.id});\n")
+		do codes.add("if(\{meType.id}[0]===\{%array $ \convert@runtimeTypeId $ int}&&\{meType.id}[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add("return \{me_.id}.indexOf(String.fromCharCode(\{item.id}),\{start.id}===-1?0:\{start.id});\n")
+		do codes.add("else\n")
+		do codes.add("return \{me_.id}.indexOf(\{item.id},\{start.id}===-1?0:\{start.id});\n")
 	case "findBin"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do codes.add("let a_=0,b_=\{me_.id}.length-1,c_,m_;\n")
+		do codes.add("let a_=0,b_=\{me_.id}.length-1,c_,m_,f_;\n")
+		do codes.add("switch(\{meType.id}[0]){\n")
+		do codes.add("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit8_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit16_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit32_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit64_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%enum_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%array $ \convert@runtimeTypeId $ int}:\n") {TODO:}
+		do codes.add("f_=function(a,b){return a>b?1:a<b?-1:0};\n")
+		do codes.add("break;\n")
+		do codes.add("default:\n")
+		; TODO:
+		do codes.add("break;\n")
+		do codes.add("}\n")
 		do codes.add("while (a_<=b_){\n")
 		do codes.add("c_=~~((a_+b_)/2);\n")
-		do codes.add("m_=cmp_(\{item.id},\{me_.id}[c_]);\n")
+		do codes.add("m_=f_(\{item.id},\{me_.id}[c_]);\n")
 		do codes.add("if(m_<0)b_=c_-1;\n")
 		do codes.add("else if(m_>0)a_=c_+1;\n")
 		do codes.add("else return c_;\n")
@@ -75,22 +109,41 @@
 		var callback: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var data: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do codes.add("let D_={F:\{callback.id},D:\{data.id},C:this};\n")
+		do codes.add("let D_={F:\{callback.id},D:\{data.id},C:true};\n")
 		do codes.add("\{me_.id}.forEach(function(V_,K_){if(this.C)this.C=this.F(K_,V_,this.D)},D_);\n")
 		do codes.add("return D_.C;\n")
 	case "getDict"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var key: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var existed: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("let r_=\{me_.id}.get(\{key.id});\n")
-		do codes.add("\{existed.id}.$=r_!==undefined;\n")
+		do codes.add("if(!(\{existed.id}.$=r_!==undefined)){\n")
+		do codes.add("switch(\{meType.id}){\n")
+		do codes.add("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit8_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit16_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit32_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%bit64_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%enum_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return 0;\n")
+		do codes.add("case \{%bool_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return false;\n")
+		do codes.add("default:\n")
+		do codes.add("return null;\n")
+		do codes.add("}\n")
+		do codes.add("}\n")
 		do codes.add("return r_;\n")
 	case "getList"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}.P.I;\n")
 	case "getQueue"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -100,15 +153,52 @@
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return \{me_.id}.pop();\n")
 	case "head"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.P=\{me_.id}.H;\n")
 	case "idx"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let p_=\{me_.id}.H,i_=0;\n")
+		do codes.add("if(\{me_.id}.P==null)return -1;\n")
+		do codes.add("while(p_!=null){\n")
+		do codes.add("if(p_==\{me_.id}.P)return i_\n")
+		do codes.add("i_++;\n")
+		do codes.add("p_=p_.N;\n")
+		do codes.add("}\n")
+		do codes.add("return -1;\n")
 	case "ins"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let p_=\{me_.id}.P;\n")
+		do codes.add("let n_={P:p_.P,N:p_,I:\{item.id}}\n")
+		do codes.add("if(p_.P==null)\{me_.id}.H=n_;else p_.P.N=n_;\n")
+		do codes.add("p_.P=n_;\n")
+		do codes.add("\{me_.id}.L++;\n")
 	case "moveOffset"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var offset: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{offset.id}>=0){\n")
+		do codes.add("for(let i_=0;i_<\{offset.id};i_++){\n")
+		do codes.add("if(\{me_.id}.P==null)break;\n")
+		do codes.add("\{me_.id}.P=\{me_.id}.P.N;\n")
+		do codes.add("}\n")
+		do codes.add("}else{\n")
+		do codes.add("for(let i_=0;i_>\{offset.id};i_--){\n")
+		do codes.add("if(\{me_.id}.P==null)break;\n")
+		do codes.add("\{me_.id}.P=\{me_.id}.P.P;\n")
+		do codes.add("}\n")
+		do codes.add("}\n")
 	case "next"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.P=\{me_.id}.P.N;\n")
 	case "or"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -123,7 +213,7 @@
 	case "peekStack"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do codes.add("return \{me_.id}[0];\n")
+		do codes.add("return \{me_.id}[\{me_.id}.length-1];\n")
 	case "rnd"
 		do args.head()
 		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -137,15 +227,38 @@
 		var max: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return Math.random()*(\{max.id}-\{min.id})+\{min.id};\n")
 	case "sub"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var start: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var len: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{len.id}===-1?\{me_.id}.slice(\{start.id}):\{me_.id}.slice(\{start.id},\{start.id}+\{len.id});\n")
 	case "sysTime"
 		do codes.add("return new Date().getTime();\n")
 	case "tail"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.P=\{me_.id}.T;\n")
 	case "term"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}.P==null;\n")
 	case "toBit64"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var success: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{me_.id}.length>=2&&\{me_.id}[0]===\"0\"&&\{me_.id}[1]===\"x\"){\n")
+		do codes.add("let s_=\{me_.id}.slice(2),r_=Number(s_);\n")
+		do codes.add("\{success.id}.$=isNaN(s_);\n")
+		do codes.add("return parseInt(s_,16);\n")
+		do codes.add("}else{\n")
+		do codes.add("let r_=Number(\{me_.id});\n")
+		do codes.add("\{success.id}.$=isNaN(r_);\n")
+		do codes.add("return parseInt(\{me_.id},10);\n")
+		do codes.add("}\n")
 	case "toFloat"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -159,13 +272,42 @@
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var success: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{me_.id}.length>=2&&\{me_.id}[0]===\"0\"&&\{me_.id}[1]===\"x\"){\n")
+		do codes.add("let s_=\{me_.id}.slice(2),r_=Number(s_);\n")
+		do codes.add("\{success.id}.$=isNaN(s_);\n")
+		do codes.add("return parseInt(s_,16);\n")
+		do codes.add("}else{\n")
 		do codes.add("let r_=Number(\{me_.id});\n")
 		do codes.add("\{success.id}.$=isNaN(r_);\n")
-		do codes.add("return ~~r_;\n")
+		do codes.add("return parseInt(\{me_.id},10);\n")
+		do codes.add("}\n")
 	case "toStr"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var type: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("switch(\{type.id}[0]){\n")
+		do codes.add("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("case \{%enum_ $ \convert@runtimeTypeId $ int}:\n")
 		do codes.add("return \{me_.id}.toString(10);\n")
+		do codes.add("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return String.fromCharCode(\{me_.id});\n")
+		do codes.add("case \{%bool_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return \{me_.id}?\"true\":\"false\";\n")
+		do codes.add("case \{%bit8_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return \"0x\"+(\"00\"+\{me_.id}.toString(16)).slice(-2);\n")
+		do codes.add("case \{%bit16_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return \"0x\"+(\"0000\"+\{me_.id}.toString(16)).slice(-4);\n")
+		do codes.add("case \{%bit32_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return \"0x\"+(\"00000000\"+\{me_.id}.toString(16)).slice(-8);\n")
+		do codes.add("case \{%bit64_ $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("return \"0x\"+(\"0000000000000000\"+\{me_.id}.toString(16)).slice(-16);\n")
+		do codes.add("case \{%array $ \convert@runtimeTypeId $ int}:\n")
+		do codes.add("if(\{type.id}[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add("return \{me_.id};\n")
+		; TODO:
+		do codes.add("}\n")
 	case "cui_print"
 		do args.head()
 		var str: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -173,30 +315,107 @@
 	case "file_copyFile"
 		; TODO:
 	case "file_makeReader"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var path: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("let f_=F_(\{path.id});\n")
+		do codes.add("if(f_===null)return null;\n")
+		do codes.add("\{me_.id}.\{handle.id}={F:f_,I:0};\n")
+		do codes.add("return \{me_.id};\n")
 	case "file_makeWriter"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var path: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var append: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("\{me_.id}.\{handle.id}={F:\"\",I:0};\n")
+		do codes.add("return \{me_.id};\n")
 	case "file_readerFin"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("\{me_.id}.\{handle.id}.F=null;\n")
 	case "file_readerGetPos"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("return \{me_.id}.\{handle.id}.I;\n")
 	case "file_readerReadLetter"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("return \{me_.id}.\{handle.id}.F.charCodeAt(\{me_.id}.\{handle.id}.I++);\n")
 	case "file_readerSetPos"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var origin: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var pos: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("\{me_.id}.\{handle.id}.I=\{pos.id};\n")
 	case "file_readerTerm"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("return \{me_.id}.\{handle.id}.I>=\{me_.id}.\{handle.id}.F.length;\n")
 	case "file_writerFin"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("document.body.innerHTML+=\{me_.id}.\{handle.id}.F.replace(/[&'`\"<>\\n]/g,function(match){return{'&':'&amp;','\\'':'&#x27;','`':'&#x60;','\"':'&quot;','<':'&lt;','>':'&gt;','\\n':'<br/>'}[match]});\n")
+		do codes.add("\{me_.id}.\{handle.id}.F=null;\n")
 	case "file_writerGetPos"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("return \{me_.id}.\{handle.id}.I;\n")
 	case "file_writerSetPos"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var origin: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var pos: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("\{me_.id}.\{handle.id}.I=\{pos.id};\n")
 	case "file_writerWrite"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
 		; TODO:
 	case "file_writerWriteChar"
-		; TODO:
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		var handle: \web\output@WebInfo :: search(members, "handle")
+		do codes.add("if(\{me_.id}.\{handle.id}.I<\{me_.id}.\{handle.id}.F.length)\n")
+		do codes.add("\{me_.id}.\{handle.id}.F=\{me_.id}.\{handle.id}.F.slice(0,\{me_.id}.\{handle.id}.I)+String.fromCharCode(\{n.id})+\{me_.id}.\{handle.id}.F.slice(\{me_.id}.\{handle.id}.I+1);\n")
+		do codes.add("else{\n")
+		do codes.add("\{me_.id}.\{handle.id}.F+=String.fromCharCode(\{n.id});\n")
+		do codes.add("}\n")
+		do codes.add("\{me_.id}.\{handle.id}.I++;\n")
 	default
 		assert false
 	end switch
+	
+	func search(members: list<\ast@AstClassItem>, name: []char): \web\output@WebInfo
+		do members.head()
+		while(!members.term())
+			var def: \ast@Ast :: members.get().def
+			if(def.typeId = %var_ & (def $ \ast@AstVar).arg.name <>& null & (def $ \ast@AstVar).arg.name = name)
+				ret \web\output@getInfo((def $ \ast@AstVar).arg)
+			end if
+			do members.next()
+		end while
+		assert false
+		ret null
+	end func
 end func
