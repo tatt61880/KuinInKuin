@@ -38,7 +38,7 @@ end func
 func _finVars()
 end func
 
-func [__any, __raw, toStr] _toStr(me_: []bit8, type: int): []char
+func [__any, __raw, toStr] _toStr(me_: int, type: []int): []char
 end func
 
 func [d0000.knd] _toStrFmtInt(me_: int, fmt: []char): []char
@@ -91,76 +91,76 @@ func _offset(me_: char, n: int): char
 	ret (me_ $ bit64 + n $ bit64) $ char
 end func
 
-func [__any, __tme, __rme, __raw, or] _or(me_: []bit8, type: int, n: []bit8): int
+func [__any, __tme, __rme, __raw, or] _or(me_: int, type: []int, n: int): int
 end func
 
-func [__any, __tme, __rme, __raw, and] _and(me_: []bit8, type: int, n: []bit8): int
+func [__any, __tme, __rme, __raw, and] _and(me_: int, type: []int, n: int): int
 end func
 
-func [d0000.knd, __any, __tme, __rme] _xor(me_: []bit8, type: int, n: []bit8): int
+func [__any, __tme, __rme] _xor(me_: int, type: []int, n: int): int
 end func
 
-func [d0000.knd, __any, __rme] _not(me_: []bit8, type: int): int
+func [__any, __rme] _not(me_: int, type: []int): int
 end func
 
-func [d0000.knd, __any, __rme] _shl(me_: []bit8, type: int, n: int): int
+func [__any, __rme] _shl(me_: int, type: []int, n: int): int
 end func
 
-func [d0000.knd, __any, __rme] _shr(me_: []bit8, type: int, n: int): int
+func [__any, __rme] _shr(me_: int, type: []int, n: int): int
 end func
 
-func [d0000.knd, __any, __rme] _sar(me_: []bit8, type: int, n: int): int
+func [__any, __rme] _sar(me_: int, type: []int, n: int): int
 end func
 
-func [d0000.knd, __any, __rme] _endian(me_: []bit8, type: int): int
+func [__any, __rme] _endian(me_: int, type: []int): int
 end func
 
-func [__any, __rme, __raw, sub] _sub(me_: []bit8, type: int, start: int, len: int): int
+func [__any, __rme, __raw, sub] _sub(me_: int, type: []int, start: int, len: int): int
 end func
 
-func [d0000.knd, __any] _reverse(me_: []bit8, type: int)
+func [__any] _reverse(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _shuffle(me_: []bit8, type: int)
+func [__any] _shuffle(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _sortArray(me_: []bit8, type: int)
+func [__any] _sortArray(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _sortDescArray(me_: []bit8, type: int)
+func [__any] _sortDescArray(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _sortList(me_: []bit8, type: int)
+func [__any] _sortList(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _sortDescList(me_: []bit8, type: int)
+func [__any] _sortDescList(me_: int, type: []int)
 end func
 
-func [__any, __tch, __raw, findArray] _findArray(me_: []bit8, type: int, item: []bit8, start: int): int
+func [__any, __tch, __raw, findArray] _findArray(me_: int, type: []int, item: int, start: int): int
 end func
 
-func [d0000.knd, __any, __tch] _findList(me_: []bit8, type: int, item: []bit8): bool
+func [__any, __tch] _findList(me_: int, type: []int, item: int): bool
 end func
 
-func [d0000.knd, __any, __tch] _findLastArray(me_: []bit8, type: int, item: []bit8, start: int): int
+func [__any, __tch] _findLastArray(me_: int, type: []int, item: int, start: int): int
 end func
 
-func [d0000.knd, __any, __tch] _findLastList(me_: []bit8, type: int, item: []bit8): bool
+func [__any, __tch] _findLastList(me_: int, type: []int, item: int): bool
 end func
 
-func [__any, __tch, __raw, findBin] _findBin(me_: []bit8, type: int, item: []bit8): int
+func [__any, __tch, __raw, findBin] _findBin(me_: int, type: []int, item: int): int
 end func
 
-func [__any, __tch, __raw, fill] _fill(me_: []bit8, type: int, value: []bit8)
+func [__any, __tch, __raw, fill] _fill(me_: int, type: []int, value: int)
 end func
 
-func [d0000.knd, __any, __rch] _min(me_: []bit8, type: int): int
+func [__any, __rch] _min(me_: int, type: []int): int
 end func
 
-func [d0000.knd, __any, __rch] _max(me_: []bit8, type: int): int
+func [__any, __rch] _max(me_: int, type: []int): int
 end func
 
-func [d0000.knd, __any, __rme] _repeat(me_: []bit8, type: int, len: int): int
+func [__any, __rme] _repeat(me_: int, type: []int, len: int): int
 end func
 
 func [__raw, toInt] _toInt(me_: []char, success: &bool): int
@@ -295,86 +295,86 @@ end func
 func [d0000.knd] _findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
 end func
 
-func [__any, __tch, __raw, addList] _addList(me_: []bit8, type: int, item: []bit8)
+func [__any, __tch, __raw, addList] _addList(me_: int, type: []int, item: int)
 end func
 
-func [__any, __tch, __raw, addStack] _addStack(me_: []bit8, type: int, item: []bit8)
+func [__any, __tch, __raw, addStack] _addStack(me_: int, type: []int, item: int)
 end func
 
-func [__any, __tch, __raw, addQueue] _addQueue(me_: []bit8, type: int, item: []bit8)
+func [__any, __tch, __raw, addQueue] _addQueue(me_: int, type: []int, item: int)
 end func
 
-func [__any, __tkv, __raw, addDict] _addDict(me_: []bit8, type: int, itemType: int, key: []bit8, item: []bit8)
+func [__any, __tkv, __raw, addDict] _addDict(me_: int, type: []int, key: int, item: int)
 end func
 
-func [__any, __rch, __raw, getList] _getList(me_: []bit8, type: int): int
+func [__any, __rch, __raw, getList] _getList(me_: int, type: []int): int
 end func
 
-func [__any, __rch, __raw, getStack] _getStack(me_: []bit8, type: int): int
+func [__any, __rch, __raw, getStack] _getStack(me_: int, type: []int): int
 end func
 
-func [__any, __rch, __raw, getQueue] _getQueue(me_: []bit8, type: int): int
+func [__any, __rch, __raw, getQueue] _getQueue(me_: int, type: []int): int
 end func
 
-func [__any, __tch, __rch, __raw, getDict] _getDict(me_: []bit8, type: int, key: []bit8, existed: &bool): int
+func [__any, __tch, __rch, __raw, getDict] _getDict(me_: int, type: []int, key: int, existed: &bool): int
 end func
 
-func [d0000.knd, __any, __rch] _getOffset(me_: []bit8, type: int, offset: int): int
+func [__any, __rch] _getOffset(me_: int, type: []int, offset: int): int
 end func
 
-func [__any, __raw, head] _head(me_: []bit8, type: int)
+func [__any, __raw, head] _head(me_: int, type: []int)
 end func
 
-func [__any, __raw, moveOffset] _moveOffset(me_: []bit8, type: int, offset: int)
+func [__any, __raw, moveOffset] _moveOffset(me_: int, type: []int, offset: int)
 end func
 
-func [__any, __raw, tail] _tail(me_: []bit8, type: int)
+func [__any, __raw, tail] _tail(me_: int, type: []int)
 end func
 
-func [__any, __raw, next] _next(me_: []bit8, type: int)
+func [__any, __raw, next] _next(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _prev(me_: []bit8, type: int)
+func [__any] _prev(me_: int, type: []int)
 end func
 
-func [__any, __raw, term] _term(me_: []bit8, type: int): bool
+func [__any, __raw, term] _term(me_: int, type: []int): bool
 end func
 
-func [d0000.knd, __any] _termOffset(me_: []bit8, type: int, offset: int): bool
+func [__any] _termOffset(me_: int, type: []int, offset: int): bool
 end func
 
-func [__any, __raw, del] _del(me_: []bit8, type: int)
+func [__any, __raw, del] _del(me_: int, type: []int)
 end func
 
-func [d0000.knd, __any] _delNext(me_: []bit8, type: int)
+func [__any] _delNext(me_: int, type: []int)
 end func
 
-func [__any, __tch, __raw, ins] _ins(me_: []bit8, type: int, item: []bit8)
+func [__any, __tch, __raw, ins] _ins(me_: int, type: []int, item: int)
 end func
 
-func [d0000.knd, __any, __rac] _toArray(me_: []bit8, type: int): int
+func [__any, __rac] _toArray(me_: int, type: []int): int
 end func
 
-func [d0000.knd, __any, __rak] _toArrayKey(me_: []bit8, type: int): int
+func [__any, __rak] _toArrayKey(me_: int, type: []int): int
 end func
 
-func [d0000.knd, __any, __rav] _toArrayValue(me_: []bit8, type: int): int
+func [__any, __rav] _toArrayValue(me_: int, type: []int): int
 end func
 
-func [__any, __rch, __raw, peekQueue] _peekQueue(me_: []bit8, type: int): int
+func [__any, __rch, __raw, peekQueue] _peekQueue(me_: int, type: []int): int
 end func
 
-func [__any, __rch, __raw, peekStack] _peekStack(me_: []bit8, type: int): int
+func [__any, __rch, __raw, peekStack] _peekStack(me_: int, type: []int): int
 end func
 
-func [d0000.knd, __any, __tch] _exist(me_: []bit8, type: int, key: []bit8): bool
+func [__any, __tch] _exist(me_: int, type: []int, key: int): bool
 end func
 
-func [__any, __kvf, __raw, forEach] _forEach(me_: []bit8, type: int, callback: int, data: @Class): bool
+func [__any, __kvf, __raw, forEach] _forEach(me_: int, type: []int, callback: int, data: @Class): bool
 end func
 
-func [d0000.knd, __any, __tch] _delDict(me_: []bit8, type: int, key: []bit8)
+func [__any, __tch] _delDict(me_: int, type: []int, key: int)
 end func
 
-func [__any, __raw, idx] _idx(me_: []bit8, type: int): int
+func [__any, __raw, idx] _idx(me_: int, type: []int): int
 end func

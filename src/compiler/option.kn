@@ -22,7 +22,7 @@ end enum
 +var outputDir: []char
 
 +func acquireOption(): bool
-	var cmdLines: [][]char :: lib@cmdLine()
+	var cmdLines: [][]char :: ["-i", "F:/kuin_git/KuinInKuin/src/compiler/res/test.kn", "-o", "F:/kuin_git/KuinInKuin/test_web/out3", "-s", "F:/kuin_git/KuinInKuin/src/compiler/res/sys/", "-e", "cpp"] {lib@cmdLine()}
 	var envStr: []char
 	var appCodeStr: []char
 	
@@ -79,7 +79,7 @@ end enum
 				ret false
 			end switch
 		else
-			do \err@err(%unexpectedOption, null, ["-\{cmdLine}"])
+			do \err@err(%unexpectedOption, null, ["\{cmdLine}"])
 			ret false
 		end if
 	end for

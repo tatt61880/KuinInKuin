@@ -439,228 +439,239 @@ func rebuildClass(ast: \ast@AstClass)
 	end if
 	do ast.extra :: ast
 	
-	if(ast.refItem <>& null)
-		var parent: \ast@Ast :: ast.refItem
-		if(parent.typeId = %alias_)
-			do @rebuildAlias(parent $ \ast@AstAlias, null)
-			do ast.refItem :: (parent $ \ast@AstAlias).type.refItem
-			assert ast.refItem.typeId = %class_
-		else
-			assert parent.typeId = %class_
-			do @rebuildClass(parent $ \ast@AstClass)
-		end if
-	end if
+	var dtor: \ast@AstFunc :: null
+	var copy: \ast@AstFunc :: null
+	var toBin: \ast@AstFunc :: null
+	var fromBin: \ast@AstFunc :: null
+	do process1(ast, &dtor, &copy, &toBin, &fromBin)
+	do process2(ast, dtor, copy, toBin, fromBin)
+	do @rebuildFunc(dtor)
+	do @rebuildFunc(copy)
+	do @rebuildFunc(toBin)
+	do @rebuildFunc(fromBin)
 	
-	block
-		; Make sure that the class references do not circulate.
-		var parent: \ast@AstClass :: ast
-		var chk: dict<\ast@AstClass, bool> :: #dict<\ast@AstClass, bool>
-		while(parent <>& null)
-			if(chk.get(parent, &))
-				do \err@err(%circulatingClass, ast.pos, [ast.name])
-				ret
-			end if
-			do chk.add(parent, true)
-			do parent :: parent.refItem $ \ast@AstClass
-		end while
-	end block
-	
-	block
-		var dtor: \ast@AstFunc :: null
-		var copy: \ast@AstFunc :: null
-		var toBin: \ast@AstFunc :: null
-		var fromBin: \ast@AstFunc :: null
-		var astItems: list<\ast@AstClassItem> :: ast.items
-		do astItems.head()
-		while(!astItems.term())
-			var item: \ast@AstClassItem :: astItems.get()
-			var memberName: []char
-			block
-				var def: \ast@Ast :: item.def
-				if(def.typeId = %var_)
-					do memberName :: (def $ \ast@AstVar).arg.name
-				elif(def.typeId = %const_)
-					do memberName :: (def $ \ast@AstConst).arg.name
-				else
-					do memberName :: def.name
-				end if
-			end block
-			; Check whether functions are overriding another.
-			var parentItem: \ast@AstClassItem :: null
-			block
-				var parent: \ast@AstClass :: ast.refItem $ \ast@AstClass
-				while(parentItem =& null & parent <>& null)
-					var items: list<\ast@AstClassItem> :: parent.items
-					do items.head()
-					while(!items.term())
-						var parentName: []char
-						var item2: \ast@AstClassItem :: items.get()
-						var def: \ast@Ast :: item2.def
-						if(def.typeId = %var_)
-							do parentName :: (def $ \ast@AstVar).arg.name
-						elif(def.typeId = %const_)
-							do parentName :: (def $ \ast@AstConst).arg.name
-						else
-							do parentName :: def.name
-						end if
-						if(memberName = parentName)
-							do parentItem :: item2
-						end if
-						do items.next()
-					end while
-					do parent :: parent.refItem $ \ast@AstClass
-				end while
-			end block
-			if(parentItem =& null)
-				if(item.override)
-					do \err@err(%overridedMemberNotFound, item.def.pos, [memberName])
-					ret
-				end if
+	func process1(ast: \ast@AstClass, dtor: &\ast@AstFunc, copy: &\ast@AstFunc, toBin: &\ast@AstFunc, fromBin: &\ast@AstFunc)
+		if(ast.refItem <>& null)
+			var parent: \ast@Ast :: ast.refItem
+			if(parent.typeId = %alias_)
+				do @rebuildAlias(parent $ \ast@AstAlias, null)
+				do ast.refItem :: (parent $ \ast@AstAlias).type.refItem
+				assert ast.refItem.typeId = %class_
 			else
-				if(!item.override)
-					do \err@err(%memberDuplicatedWithParentClass, item.def.pos, [memberName])
+				assert parent.typeId = %class_
+				do @rebuildClass(parent $ \ast@AstClass)
+			end if
+		end if
+		
+		block
+			; Make sure that the class references do not circulate.
+			var parent: \ast@AstClass :: ast
+			var chk: dict<\ast@AstClass, bool> :: #dict<\ast@AstClass, bool>
+			while(parent <>& null)
+				if(chk.get(parent, &))
+					do \err@err(%circulatingClass, ast.pos, [ast.name])
 					ret
 				end if
-				if(!(item.def.typeId = %func_ & parentItem.def.typeId = %func_))
-					do \err@err(%overridingNonFunc, item.def.pos, [memberName])
-					ret
-				end if
-				if(item.public <> parentItem.public)
-					do \err@err(%overriddenMemberNotMatchAccessModifier, item.def.pos, [memberName])
-					ret
-				end if
-				var func1: \ast@AstFunc :: item.def $ \ast@AstFunc
-				var func2: \ast@AstFunc :: parentItem.def $ \ast@AstFunc
-				if(func1.ret_ =& null & func2.ret_ <>& null |
-					|func1.ret_ <>& null & func2.ret_ =& null |
-					|func1.ret_ <>& null & func2.ret_ <>& null & !@cmpType(func1.ret_, func2.ret_, false) |
-					|^func1.args <> ^func2.args)
-					do \err@err(%overriddenMemberNotMatchTypeOrArg, item.def.pos, [memberName])
-					ret
-				end if
-				var items1: list<\ast@AstArg> :: func1.args
-				var items2: list<\ast@AstArg> :: func2.args
-				do items1.head()
-				do items2.head()
-				for i(0, ^items1 - 1)
-					var arg1: \ast@AstArg :: items1.get()
-					var arg2: \ast@AstArg :: items2.get()
-					if(arg1.type.typeId = %typeUser & arg1.type.refItem =& null |
-						|arg2.type.typeId = %typeUser & arg2.type.refItem =& null |
-						|!@cmpType(arg1.type, arg2.type, false) |
-						|arg1.name <>& null & arg2.name <>& null & arg1.name <> arg2.name |
-						|arg1.refVar <> arg2.refVar)
+				do chk.add(parent, true)
+				do parent :: parent.refItem $ \ast@AstClass
+			end while
+		end block
+		
+		block
+			var astItems: list<\ast@AstClassItem> :: ast.items
+			do astItems.head()
+			while(!astItems.term())
+				var item: \ast@AstClassItem :: astItems.get()
+				var memberName: []char
+				block
+					var def: \ast@Ast :: item.def
+					if(def.typeId = %var_)
+						do memberName :: (def $ \ast@AstVar).arg.name
+					elif(def.typeId = %const_)
+						do memberName :: (def $ \ast@AstConst).arg.name
+					else
+						do memberName :: def.name
+					end if
+				end block
+				; Check whether functions are overriding another.
+				var parentItem: \ast@AstClassItem :: null
+				block
+					var parent: \ast@AstClass :: ast.refItem $ \ast@AstClass
+					while(parentItem =& null & parent <>& null)
+						var items: list<\ast@AstClassItem> :: parent.items
+						do items.head()
+						while(!items.term())
+							var parentName: []char
+							var item2: \ast@AstClassItem :: items.get()
+							var def: \ast@Ast :: item2.def
+							if(def.typeId = %var_)
+								do parentName :: (def $ \ast@AstVar).arg.name
+							elif(def.typeId = %const_)
+								do parentName :: (def $ \ast@AstConst).arg.name
+							else
+								do parentName :: def.name
+							end if
+							if(memberName = parentName)
+								do parentItem :: item2
+							end if
+							do items.next()
+						end while
+						do parent :: parent.refItem $ \ast@AstClass
+					end while
+				end block
+				if(parentItem =& null)
+					if(item.override)
+						do \err@err(%overridedMemberNotFound, item.def.pos, [memberName])
+						ret
+					end if
+				else
+					if(!item.override)
+						do \err@err(%memberDuplicatedWithParentClass, item.def.pos, [memberName])
+						ret
+					end if
+					if(!(item.def.typeId = %func_ & parentItem.def.typeId = %func_))
+						do \err@err(%overridingNonFunc, item.def.pos, [memberName])
+						ret
+					end if
+					if(item.public <> parentItem.public)
+						do \err@err(%overriddenMemberNotMatchAccessModifier, item.def.pos, [memberName])
+						ret
+					end if
+					var func1: \ast@AstFunc :: item.def $ \ast@AstFunc
+					var func2: \ast@AstFunc :: parentItem.def $ \ast@AstFunc
+					if(func1.ret_ =& null & func2.ret_ <>& null |
+						|func1.ret_ <>& null & func2.ret_ =& null |
+						|func1.ret_ <>& null & func2.ret_ <>& null & !@cmpType(func1.ret_, func2.ret_, false) |
+						|^func1.args <> ^func2.args)
 						do \err@err(%overriddenMemberNotMatchTypeOrArg, item.def.pos, [memberName])
 						ret
 					end if
-					do items1.next()
-					do items2.next()
-				end for
-				do item.parentItem :: parentItem
-			end if
-			
-			switch(memberName)
-			case "_dtor", "_copy", "_toBin", "_fromBin"
-				assert item.def.typeId = %func_
-				var func_: \ast@AstFunc :: item.def $ \ast@AstFunc
-				if(item.override & (item.def $ \ast@AstFunc).funcOption.and(%frc) = %none)
-					do \err@err(%notAllowedToBeOverridden, func_.pos, [memberName])
-					ret
+					var items1: list<\ast@AstArg> :: func1.args
+					var items2: list<\ast@AstArg> :: func2.args
+					do items1.head()
+					do items2.head()
+					for i(0, ^items1 - 1)
+						var arg1: \ast@AstArg :: items1.get()
+						var arg2: \ast@AstArg :: items2.get()
+						if(arg1.type.typeId = %typeUser & arg1.type.refItem =& null |
+							|arg2.type.typeId = %typeUser & arg2.type.refItem =& null |
+							|!@cmpType(arg1.type, arg2.type, false) |
+							|arg1.name <>& null & arg2.name <>& null & arg1.name <> arg2.name |
+							|arg1.refVar <> arg2.refVar)
+							do \err@err(%overriddenMemberNotMatchTypeOrArg, item.def.pos, [memberName])
+							ret
+						end if
+						do items1.next()
+						do items2.next()
+					end for
+					do item.parentItem :: parentItem
 				end if
-				switch(memberName[1])
-				case 'd'
-					do dtor :: func_
-				case 'c'
-					do copy :: func_
-				case 't'
-					do toBin :: func_
-				case 'f'
-					do fromBin :: func_
+				
+				switch(memberName)
+				case "_dtor", "_copy", "_toBin", "_fromBin"
+					assert item.def.typeId = %func_
+					var func_: \ast@AstFunc :: item.def $ \ast@AstFunc
+					if(item.override & (item.def $ \ast@AstFunc).funcOption.and(%frc) = %none)
+						do \err@err(%notAllowedToBeOverridden, func_.pos, [memberName])
+						ret
+					end if
+					switch(memberName[1])
+					case 'd'
+						do dtor :: func_
+					case 'c'
+						do copy :: func_
+					case 't'
+						do toBin :: func_
+					case 'f'
+						do fromBin :: func_
+					default
+						assert false
+					end switch
+					; Skip 'RebuildFunc' to add the contents later.
 				default
-					assert false
+					; Analyze functions and variables in classes because they can be referred to as instances.
+					var def: \ast@Ast :: item.def
+					if(def.typeId = %func_)
+						var idx: int :: astItems.idx()
+						assert idx <> -1
+						do @rebuildFunc(def $ \ast@AstFunc)
+						do astItems.head()
+						do astItems.moveOffset(idx)
+					elif(def.typeId = %var_)
+						do @rebuildVar(def $ \ast@AstVar)
+					end if
 				end switch
-				; Skip 'RebuildFunc' to add the contents later.
-			default
-				; Analyze functions and variables in classes because they can be referred to as instances.
-				var def: \ast@Ast :: item.def
-				if(def.typeId = %func_)
-					var idx: int :: astItems.idx()
-					assert idx <> -1
-					do @rebuildFunc(def $ \ast@AstFunc)
-					do astItems.head()
-					do astItems.moveOffset(idx)
-				elif(def.typeId = %var_)
-					do @rebuildVar(def $ \ast@AstVar)
-				end if
-			end switch
+				
+				do astItems.next()
+			end while
 			
-			do astItems.next()
-		end while
-		
-		; Get 'me' of special functions.
-		if(dtor =& null)
-			do dtor :: @addSpecialFunc(ast, "_dtor")
-		end if
-		if(copy =& null)
-			do copy :: @addSpecialFunc(ast, "_copy")
-			var type: \ast@AstTypeUser :: #\ast@AstTypeUser
-			do @initAst(type, %typeUser, ast.pos)
-			do type.refItem :: ast
-			do copy.ret_ :: type
-		end if
-		if(toBin =& null)
-			do toBin :: @addSpecialFunc(ast, "_toBin")
-			var type: \ast@AstTypeArray :: #\ast@AstTypeArray
-			do @initAst(type, %typeArray, ast.pos)
-			block
-				var type2: \ast@AstTypeBit :: #\ast@AstTypeBit
-				do @initAst(type2, %typeBit, ast.pos)
-				do type2.size :: 1
-				do type.itemType :: type2
-			end block
-			do toBin.ret_ :: type
-		end if
-		if(fromBin =& null)
-			do fromBin :: @addSpecialFunc(ast, "_fromBin")
-			; 'bin'.
-			block
-				var arg: \ast@AstArg :: #\ast@AstArg
-				do @initAst(arg, %arg, ast.pos)
-				do arg.kind :: %localArg
-				do arg.refVar :: false
-				do arg.expr :: null
+			; Get 'me' of special functions.
+			if(dtor =& null)
+				do dtor :: @addSpecialFunc(ast, "_dtor")
+			end if
+			if(copy =& null)
+				do copy :: @addSpecialFunc(ast, "_copy")
+				var type: \ast@AstTypeUser :: #\ast@AstTypeUser
+				do @initAst(type, %typeUser, ast.pos)
+				do type.refItem :: ast
+				do copy.ret_ :: type
+			end if
+			if(toBin =& null)
+				do toBin :: @addSpecialFunc(ast, "_toBin")
+				var type: \ast@AstTypeArray :: #\ast@AstTypeArray
+				do @initAst(type, %typeArray, ast.pos)
 				block
-					var type: \ast@AstTypeArray :: #\ast@AstTypeArray
-					do @initAst(type, %typeArray, ast.pos)
+					var type2: \ast@AstTypeBit :: #\ast@AstTypeBit
+					do @initAst(type2, %typeBit, ast.pos)
+					do type2.size :: 1
+					do type.itemType :: type2
+				end block
+				do toBin.ret_ :: type
+			end if
+			if(fromBin =& null)
+				do fromBin :: @addSpecialFunc(ast, "_fromBin")
+				; 'bin'.
+				block
+					var arg: \ast@AstArg :: #\ast@AstArg
+					do @initAst(arg, %arg, ast.pos)
+					do arg.kind :: %localArg
+					do arg.refVar :: false
+					do arg.expr :: null
 					block
-						var type2: \ast@AstTypeBit :: #\ast@AstTypeBit
-						do @initAst(type2, %typeBit, ast.pos)
-						do type2.size :: 1
-						do type.itemType :: type2
+						var type: \ast@AstTypeArray :: #\ast@AstTypeArray
+						do @initAst(type, %typeArray, ast.pos)
+						block
+							var type2: \ast@AstTypeBit :: #\ast@AstTypeBit
+							do @initAst(type2, %typeBit, ast.pos)
+							do type2.size :: 1
+							do type.itemType :: type2
+						end block
+						do arg.type :: type
 					end block
-					do arg.type :: type
+					do fromBin.args.add(arg)
 				end block
-				do fromBin.args.add(arg)
-			end block
-			; 'idx'.
-			block
-				var arg: \ast@AstArg :: #\ast@AstArg
-				do @initAst(arg, %arg, ast.pos)
-				do arg.kind :: %localArg
-				do arg.refVar :: true
-				do arg.expr :: null
+				; 'idx'.
 				block
-					var type: \ast@AstTypePrim :: #\ast@AstTypePrim
-					do @initAst(type, %typePrim, ast.pos)
-					do type.kind :: %int_
-					do arg.type :: type
+					var arg: \ast@AstArg :: #\ast@AstArg
+					do @initAst(arg, %arg, ast.pos)
+					do arg.kind :: %localArg
+					do arg.refVar :: true
+					do arg.expr :: null
+					block
+						var type: \ast@AstTypePrim :: #\ast@AstTypePrim
+						do @initAst(type, %typePrim, ast.pos)
+						do type.kind :: %int_
+						do arg.type :: type
+					end block
+					do fromBin.args.add(arg)
 				end block
-				do fromBin.args.add(arg)
-			end block
-			do fromBin.args.head()
-			do fromBin.ret_ :: fromBin.args.get().type
-		end if
-		
+				do fromBin.args.head()
+				do fromBin.ret_ :: fromBin.args.get().type
+			end if
+		end block
+	end func
+	
+	func process2(ast: \ast@AstClass, dtor: \ast@AstFunc, copy: \ast@AstFunc, toBin: \ast@AstFunc, fromBin: \ast@AstFunc)
 		; The '_dtor' function.
 		block
 			var ptr: \ast@AstClass :: ast
@@ -719,7 +730,7 @@ func rebuildClass(ast: \ast@AstClass)
 					end block
 					do var_.def :: var2
 				end block
-				; TODO: do copy.stats.add(@rebuildStat(var_, copy.ret_, copy))
+				do copy.stats.add(@rebuildStat(var_, copy.ret_, copy))
 				block
 					do result :: #\ast@AstExpr
 					do @initAstExpr(result, %exprRef, ast.pos)
@@ -770,7 +781,7 @@ func rebuildClass(ast: \ast@AstClass)
 									end if
 									do do_.expr :: assign
 								end block
-								; TODO: do copy.stats.add(@rebuildStat(do_, copy.ret_, copy))
+								do copy.stats.add(@rebuildStat(do_, copy.ret_, copy))
 							end block
 						end if
 						do items.next()
@@ -846,7 +857,7 @@ func rebuildClass(ast: \ast@AstClass)
 					end block
 					do var_.def :: var2
 				end block
-				; TODO: do toBin.stats.add(@rebuildStat(var_, toBin.ret_, toBin))
+				do toBin.stats.add(@rebuildStat(var_, toBin.ret_, toBin))
 				block
 					do result :: #\ast@AstExpr
 					do @initAstExpr(result, %exprRef, ast.pos)
@@ -859,8 +870,6 @@ func rebuildClass(ast: \ast@AstClass)
 					end block
 				end block
 			end block
-			; TODO:
-			{
 			block
 				var ptr: \ast@AstClass :: ast
 				while(ptr <>& null)
@@ -906,7 +915,6 @@ func rebuildClass(ast: \ast@AstClass)
 					do ptr :: ptr.refItem $ \ast@AstClass
 				end while
 			end block
-			}
 			block
 				var ret_: \ast@AstStatRet :: #\ast@AstStatRet
 				do @initAst(ret_, %statRet, ast.pos)
@@ -918,8 +926,6 @@ func rebuildClass(ast: \ast@AstClass)
 		; The '_fromBin' function.
 		block
 			var result: \ast@AstExpr
-			; TODO:
-			{
 			block
 				var var_: \ast@AstStatVar :: #\ast@AstStatVar
 				do @initAst(var_, %statVar, ast.pos)
@@ -1016,17 +1022,6 @@ func rebuildClass(ast: \ast@AstClass)
 					do ptr :: ptr.refItem $ \ast@AstClass
 				end while
 			end block
-			}
-			block
-				; TODO:
-				do result :: #\ast@AstExprValue
-				do @initAstExpr(result, %exprValue, ast.pos)
-				block
-					var type: \ast@AstTypeNull :: #\ast@AstTypeNull
-					do @initAst(type, %typeNull, ast.pos)
-					do result.type :: type
-				end block
-			end block
 			block
 				var ret_: \ast@AstStatRet :: #\ast@AstStatRet
 				do @initAst(ret_, %statRet, ast.pos)
@@ -1034,12 +1029,7 @@ func rebuildClass(ast: \ast@AstClass)
 				do fromBin.stats.add(@rebuildStat(ret_, fromBin.ret_, fromBin))
 			end block
 		end block
-		
-		do @rebuildFunc(dtor)
-		do @rebuildFunc(copy)
-		do @rebuildFunc(toBin)
-		do @rebuildFunc(fromBin)
-	end block
+	end func
 end func
 
 func rebuildEnum(ast: \ast@AstEnum)
@@ -1423,6 +1413,7 @@ func rebuildTry(ast: \ast@AstStatTry, retType: \ast@AstType, parentFunc: \ast@As
 				end if
 				do items2.next()
 			end while
+			do catch_.statBlock :: @rebuildBlock(catch_.statBlock, retType, parentFunc) $ \ast@AstStatBlock
 			do items.next()
 		end while
 	end if
@@ -2531,14 +2522,20 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 				; Add the type of 'me' to the second argument when '_any_type' is specified.
 				var meType: \ast@AstExprCallArg :: #\ast@AstExprCallArg
 				block
-					var expr: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
-					do @initAstExpr(expr, %exprValuePrim, ast.pos)
-					do expr.value :: 0b64
+					var expr: \ast@AstExprValueArray :: #\ast@AstExprValueArray
+					do @initAstExpr(expr, %exprValueArray, ast.pos)
+					do expr.values :: #list<\ast@AstExpr>
 					block
-						var prim: \ast@AstTypePrim :: #\ast@AstTypePrim
-						do @initAst(prim, %typePrim, ast.pos)
-						do prim.kind :: %int_
-						do expr.type :: prim
+						var value: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
+						do @initAstExpr(value, %exprValuePrim, ast.pos)
+						do value.value :: 0b64
+						block
+							var prim: \ast@AstTypePrim :: #\ast@AstTypePrim
+							do @initAst(prim, %typePrim, ast.pos)
+							do prim.kind :: %int_
+							do value.type :: prim
+						end block
+						do expr.values.add(value)
 					end block
 					do meType.arg :: @rebuildExpr(expr, false)
 				end block
@@ -2551,33 +2548,6 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 					do ast.args.head()
 					do ast.args.next()
 					do ast.args.ins(meType)
-				end if
-			end if
-			if(type.funcOption.and(%tkv) <> %none)
-				; Add the type of 'value' to the third argument when '_take_key_value' is specified.
-				var valueType: \ast@AstExprCallArg :: #\ast@AstExprCallArg
-				block
-					var expr: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
-					do @initAstExpr(expr, %exprValuePrim, ast.pos)
-					do expr.value :: 0b64
-					block
-						var prim: \ast@AstTypePrim :: #\ast@AstTypePrim
-						do @initAst(prim, %typePrim, ast.pos)
-						do prim.kind :: %int_
-						do expr.type :: prim
-					end block
-					do valueType.arg :: @rebuildExpr(expr, false)
-				end block
-				do valueType.refVar :: false
-				do valueType.skipVar :: false
-				if(^ast.args = 2)
-					do ast.args.add(valueType)
-				else
-					assert ^ ast.args >= 3
-					do ast.args.head()
-					do ast.args.next()
-					do ast.args.next()
-					do ast.args.ins(valueType)
 				end if
 			end if
 		else
@@ -2735,12 +2705,10 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 					if(dbg)
 						assert ^ func_.args >= 2
 						do func_.args.head()
-						var arg: \ast@AstType :: func_.args.get().arg
-						assert arg.typeId = %typeArray
-						assert(arg $ \ast@AstTypeArray).itemType.typeId = %typeBit
-						assert((arg $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
-						do func_.args.next()
 						assert \ast@isInt(func_.args.get().arg)
+						do func_.args.next()
+						var argType: \ast@AstType :: func_.args.get().arg
+						assert argType.typeId = %typeArray & \ast@isInt((argType $ \ast@AstTypeArray).itemType)
 					end if
 					do func_.args.head()
 					do func_.args.get().arg :: varType
@@ -2755,10 +2723,7 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 						do func_.args.head()
 						do func_.args.next()
 						do func_.args.next()
-						var arg: \ast@AstType :: func_.args.get().arg
-						assert arg.typeId = %typeArray
-						assert(arg $ \ast@AstTypeArray).itemType.typeId = %typeBit
-						assert((arg $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+						assert \ast@isInt(func_.args.get().arg)
 					end if
 					do func_.args.head()
 					do func_.args.next()
@@ -2775,10 +2740,7 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 						do func_.args.head()
 						do func_.args.next()
 						do func_.args.next()
-						var arg: \ast@AstType :: func_.args.get().arg
-						assert arg.typeId = %typeArray
-						assert(arg $ \ast@AstTypeArray).itemType.typeId = %typeBit
-						assert((arg $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+						assert \ast@isInt(func_.args.get().arg)
 					end if
 					do func_.args.head()
 					do func_.args.next()
@@ -2804,19 +2766,10 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 						do func_.args.next()
 						assert \ast@isInt(func_.args.get().arg)
 						do func_.args.next()
-						var arg: \ast@AstType :: func_.args.get().arg
-						assert arg.typeId = %typeArray
-						assert(arg $ \ast@AstTypeArray).itemType.typeId = %typeBit
-						assert((arg $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
-						do func_.args.next()
-						do arg :: func_.args.get().arg
-						assert arg.typeId = %typeArray
-						assert(arg $ \ast@AstTypeArray).itemType.typeId = %typeBit
-						assert((arg $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+						assert \ast@isInt(func_.args.get().arg)
 						assert varType.typeId = %typeDict
 					end if
 					do func_.args.head()
-					do func_.args.next()
 					do func_.args.next()
 					do func_.args.next()
 					do func_.args.get().arg :: (varType $ \ast@AstTypeDict).itemTypeKey

@@ -54,10 +54,25 @@ func build(): bool
 		ret false
 	end if
 	
+	; 'Res' files.
+	var resDir: []char :: \option@inputDir ~ "res/"
+	class ResFiles()
+		+var files: list<[]char>
+	end class
+	var resFiles: ResFiles :: #ResFiles
+	do resFiles.files :: #list<[]char>
+	if(file@exist(resDir))
+		do file@forEach(resDir, true, searchResFiles, resFiles)
+	end if
+	
 	; 'Output'
 	switch(\option@env)
 	case %cpp
-		if(!\cpp\output@output(entry))
+		if(!\cpp\output@output(entry, resFiles.files))
+			ret false
+		end if
+	case %web
+		if(!\web\output@output(entry, resFiles.files))
 			ret false
 		end if
 	default
@@ -67,4 +82,12 @@ func build(): bool
 	do \err@err(%generationProcessCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	ret true
+	
+	func searchResFiles(path: []char, isDir: bool, data: kuin@Class): bool
+		if(!isDir)
+			var data2: ResFiles :: data $ ResFiles
+			do data2.files.add(path)
+		end if
+		ret true
+	end func
 end func

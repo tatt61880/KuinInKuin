@@ -9,6 +9,7 @@
 		<resource>analyze.kn</resource>
 		<resource>ast.kn</resource>
 		<resource>builtin_func.kn</resource>
+		<resource>convert.kn</resource>
 		<resource>cpp\output.kn</resource>
 		<resource>cpp\raw_funcs.kn</resource>
 		<resource>err.kn</resource>
@@ -16,5 +17,7 @@
 		<resource>option.kn</resource>
 		<resource>parse.kn</resource>
 		<resource>pos.kn</resource>
+		<resource>web\output.kn</resource>
+		<resource>web\raw_funcs.kn</resource>
 	</resources>
 </configuration>

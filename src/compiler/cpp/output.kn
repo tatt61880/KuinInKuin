@@ -11,7 +11,6 @@ var classFuncs: list<[]char>
 var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
-var usedFeatures: @UsedFeature
 var classTableSize: int
 var classTable: list<[]char>
 
@@ -30,19 +29,10 @@ class TmpVar()
 	+var type: \ast@AstType
 end class
 
-+enum UsedFeature
-	none :: 0x00
-end enum
-
-+func output(entry: \ast@AstFunc): bool
++func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
-	do @globalVars :: #list<\ast@AstArg>
-	do @localVars :: #list<\ast@AstArg>
-	do @usedFeatures :: %none
-	do @classTableSize :: 0
-	do @classTable :: #list<[]char>
 	
 	do @uniqueId :: "a"
 	do @classDefs :: #list<[]char>
@@ -50,6 +40,10 @@ end enum
 	do @codes :: #list<[]char>
 	do @classFuncs :: #list<[]char>
 	do @tmpVars :: #list<@TmpVar>
+	do @globalVars :: #list<\ast@AstArg>
+	do @localVars :: #list<\ast@AstArg>
+	do @classTableSize :: 0
+	do @classTable :: #list<[]char>
 	
 	while(^@funcs > 0 | ^@classes > 0)
 		while(^@funcs > 0)
@@ -62,8 +56,7 @@ end enum
 		end while
 	end while
 	
-	do @write()
-	do @deploy()
+	do @write(resFiles)
 	ret true
 end func
 
@@ -114,19 +107,19 @@ func buildFunc(ast: \ast@AstFunc)
 			end if
 			var info2: @CppInfo :: @getInfo(item)
 			if(ast.funcOption.and(%any) = %any & idx = 0)
-				assert item.type.typeId = %typeArray & (item.type $ \ast@AstTypeArray).itemType.typeId = %typeBit & ((item.type $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+				assert \ast@isInt(item.type)
 				do arg :~ "T_"
-			elif(ast.funcOption.and(%tkv) = %tkv & idx = 3)
-				assert item.type.typeId = %typeArray & (item.type $ \ast@AstTypeArray).itemType.typeId = %typeBit & ((item.type $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+			elif(ast.funcOption.and(%tkv) = %tkv & idx = 2)
+				assert \ast@isInt(item.type)
 				do arg :~ "K_"
-			elif(ast.funcOption.and(%tkv) = %tkv & idx = 4)
-				assert item.type.typeId = %typeArray & (item.type $ \ast@AstTypeArray).itemType.typeId = %typeBit & ((item.type $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+			elif(ast.funcOption.and(%tkv) = %tkv & idx = 3)
+				assert \ast@isInt(item.type)
 				do arg :~ "V_"
 			elif(ast.funcOption.and(%tch) = %tch & idx = 2)
-				assert item.type.typeId = %typeArray & (item.type $ \ast@AstTypeArray).itemType.typeId = %typeBit & ((item.type $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+				assert \ast@isInt(item.type)
 				do arg :~ "C_"
 			elif(ast.funcOption.and(%tme) = %tme & idx = 2)
-				assert item.type.typeId = %typeArray & (item.type $ \ast@AstTypeArray).itemType.typeId = %typeBit & ((item.type $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+				assert \ast@isInt(item.type)
 				do arg :~ "T_"
 			elif(ast.funcOption.and(%kvf) = %kvf & idx = 2)
 				assert \ast@isInt(item.type)
@@ -150,7 +143,7 @@ func buildFunc(ast: \ast@AstFunc)
 		do @codes.add("// \{ast.name}\n")
 	end if
 	do @funcPrototypes.add("\{template}static \{retType} \{info.id}(\{arg});\n")
-	do @codes.add("\{template}static \{retType} \{info.id}(\{arg})\n{\n")
+	do @codes.add("\{template}static \{retType} \{info.id}(\{arg}){\n")
 	
 	if(ast.funcOption.and(%raw) = %raw)
 		if(^ast.funcAttr = 1)
@@ -168,7 +161,7 @@ func buildFunc(ast: \ast@AstFunc)
 			if(!hasMembers)
 				do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null)
 			end if
-			do @codes.add("}\n\n")
+			do @codes.add("}\n")
 		end if
 	else
 		do @codes.tail()
@@ -176,7 +169,7 @@ func buildFunc(ast: \ast@AstFunc)
 		
 		do @buildStats(ast.stats, null, null)
 		
-		do @codes.add("}\n\n")
+		do @codes.add("}\n")
 		
 		do @codes.head()
 		do @codes.moveOffset(localVarPos)
@@ -262,6 +255,15 @@ func buildClass(ast: \ast@AstClass)
 			do @classFuncs.add("return \{cmpInfo.id}(this, u);\n")
 			do @classFuncs.add("}\n")
 		end if
+		var copy: \ast@AstFunc :: findFunc(ast, "_copy")
+		block
+			assert copy <>& null
+			var copyInfo: @CppInfo :: @getInfo(copy)
+			do @classDefs.add("virtual Class_* copy_(Class_* t) override;\n")
+			do @classFuncs.add("Class_* \{info.id}::copy_(Class_* t){\n")
+			do @classFuncs.add("return \{copyInfo.id}(this);\n")
+			do @classFuncs.add("}\n")
+		end block
 	end block
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
@@ -379,7 +381,7 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 		do @localVars.add(ast.blockVar)
 	end if
 	var useSwitch: bool :: false
-	if chk(\ast@isInt(ast.cond.type) | \ast@isEnum(ast.cond.type) | ast.cond.type.typeId = %typeBit)
+	if chk(\ast@isInt(ast.cond.type) | \ast@isChar(ast.cond.type) | \ast@isEnum(ast.cond.type) | ast.cond.type.typeId = %typeBit)
 		do useSwitch :: true
 		var items: list<\ast@AstStatCase> :: ast.cases
 		do items.head()
@@ -1052,15 +1054,23 @@ func buildExprAs(ast: \ast@AstExprAs)
 end func
 
 func buildExprToBin(ast: \ast@AstExprToBin)
-	; TODO:
+	assert ast.varKind <> %unknown
+	do @codes.add("toBin_(")
+	do @buildExpr(ast.child)
+	do @codes.add(")")
 end func
 
 func buildExprFromBin(ast: \ast@AstExprFromBin)
-	; TODO:
+	assert ast.varKind <> %unknown
+	do @codes.add("fromBin_<\{@getType(ast.childType)}>((")
+	do @buildExpr(ast.child)
+	do @codes.add("), (")
+	do @buildExpr(ast.offset)
+	do @codes.add("))")
 end func
 
 func buildExprCall(ast: \ast@AstExprCall)
-	; TODO: assert ast.varKind <> %unknown
+	assert ast.varKind <> %unknown
 	var funcType: \ast@AstTypeFunc :: ast.func_.type $ \ast@AstTypeFunc
 	var template: []char :: null
 	if(funcType <>& null & funcType.funcOption.and(%any) = %any)
@@ -1269,6 +1279,61 @@ func buildExprRef(ast: \ast@AstExpr)
 	do @codes.add(info.id)
 end func
 
+func write(resFiles: list<[]char>)
+	do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
+	
+	var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+	do writer.writeStr("#include \"common.h\"\n")
+	do writer.writeStr("namespace {\n")
+	
+	do @classDefs.head()
+	while(!@classDefs.term())
+		do writer.writeStr(@classDefs.get())
+		do @classDefs.next()
+	end while
+	do @funcPrototypes.head()
+	while(!@funcPrototypes.term())
+		do writer.writeStr(@funcPrototypes.get())
+		do @funcPrototypes.next()
+	end while
+	; TODO: ResFiles
+	if(@classTableSize <> 0)
+		do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
+	end if
+	do @globalVars.head()
+	while(!@globalVars.term())
+		var globalVar: \ast@AstArg :: @globalVars.get()
+		var info: @CppInfo :: @getInfo(globalVar)
+		do writer.writeStr("static \{@getType(globalVar.type)} \{info.id};\n")
+		do @globalVars.next()
+	end while
+	do @classFuncs.head()
+	while(!@classFuncs.term())
+		do writer.writeStr(@classFuncs.get())
+		do @classFuncs.next()
+	end while
+	do @codes.head()
+	while(!@codes.term())
+		do writer.writeStr(@codes.get())
+		do @codes.next()
+	end while
+	do writer.writeStr("}\n")
+	do writer.writeStr("int main(){\n")
+	block
+		do @classTable.head()
+		while(!@classTable.term())
+			var item: []char :: @classTable.get()
+			do writer.writeStr(item)
+			do @classTable.next()
+		end while
+	end block
+	do writer.writeStr("init_();\n")
+	do writer.writeStr("a();\n")
+	do writer.writeStr("return 0;\n")
+	do writer.writeStr("}\n")
+	do writer.fin()
+end func
+
 func getType(type: \ast@AstType): []char
 	if(type =& null)
 		ret "void"
@@ -1349,60 +1414,6 @@ func getType(type: \ast@AstType): []char
 	end switch
 end func
 
-func write()
-	var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
-	do writer.writeStr("#include \"common.h\"\n")
-	do writer.writeStr("namespace {\n")
-	
-	do @classDefs.head()
-	while(!@classDefs.term())
-		do writer.writeStr(@classDefs.get())
-		do @classDefs.next()
-	end while
-	do @funcPrototypes.head()
-	while(!@funcPrototypes.term())
-		do writer.writeStr(@funcPrototypes.get())
-		do @funcPrototypes.next()
-	end while
-	do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
-	do @globalVars.head()
-	while(!@globalVars.term())
-		var globalVar: \ast@AstArg :: @globalVars.get()
-		var info: @CppInfo :: @getInfo(globalVar)
-		do writer.writeStr("static \{@getType(globalVar.type)} \{info.id};\n")
-		do @globalVars.next()
-	end while
-	do @classFuncs.head()
-	while(!@classFuncs.term())
-		do writer.writeStr(@classFuncs.get())
-		do @classFuncs.next()
-	end while
-	do @codes.head()
-	while(!@codes.term())
-		do writer.writeStr(@codes.get())
-		do @codes.next()
-	end while
-	do writer.writeStr("}\n")
-	do writer.writeStr("int main(){\n")
-	block
-		do @classTable.head()
-		while(!@classTable.term())
-			var item: []char :: @classTable.get()
-			do writer.writeStr(item)
-			do @classTable.next()
-		end while
-	end block
-	do writer.writeStr("init_();\n")
-	do writer.writeStr("a();\n")
-	do writer.writeStr("return 0;\n")
-	do writer.writeStr("}\n")
-	do writer.fin()
-end func
-
-func deploy()
-	do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
-end func
-
 func getId(): []char
 	var curId: []char :: @uniqueId
 	var newId: []char :: ##@uniqueId
@@ -1431,7 +1442,7 @@ func getId(): []char
 			end switch
 		case 3
 			switch(newId)
-			case "and", "asm", "for", "int", "not", "try", "xor"
+			case "and", "asm", "for", "int", "new", "not", "try", "xor"
 				skip loop2
 			end switch
 		case 4

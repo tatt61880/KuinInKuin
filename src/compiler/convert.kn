@@ -1,0 +1,94 @@
++enum runtimeTypeId
+	int_
+	float_
+	char_
+	bool_
+	bit8_
+	bit16_
+	bit32_
+	bit64_
+	func_
+	enum_
+	ref :: 0x80
+	array
+	list_
+	stack_
+	queue_
+	dict_
+	class_
+end enum
+
++func getTypeId(type: \ast@AstType): list<int>
+	var result: list<int> :: #list<int>
+	do @makeTypeIdRecursion(type, result)
+	ret result
+end func
+
+func makeTypeIdRecursion(type: \ast@AstType, output: list<int>)
+	if(\ast@isInt(type))
+		do output.add(%int_ $ @runtimeTypeId $ int)
+		ret
+	end if
+	if(\ast@isFloat(type))
+		do output.add(%float_ $ @runtimeTypeId $ int)
+		ret
+	end if
+	if(\ast@isChar(type))
+		do output.add(%char_ $ @runtimeTypeId $ int)
+		ret
+	end if
+	if(\ast@isBool(type))
+		do output.add(%bool_ $ @runtimeTypeId $ int)
+		ret
+	end if
+	if(type.typeId = %typeBit)
+		switch((type $ \ast@AstTypeBit).size)
+		case 1
+			do output.add(%bit8_ $ @runtimeTypeId $ int)
+		case 2
+			do output.add(%bit16_ $ @runtimeTypeId $ int)
+		case 4
+			do output.add(%bit32_ $ @runtimeTypeId $ int)
+		case 8
+			do output.add(%bit64_ $ @runtimeTypeId $ int)
+		default
+			assert false
+		end switch
+		ret
+	end if
+	if(type.typeId = %typeFunc)
+		do output.add(%func_ $ @runtimeTypeId $ int)
+		ret
+	end if
+	if(\ast@isEnum(type))
+		do output.add(%enum_ $ @runtimeTypeId $ int)
+		ret
+	end if
+	if(type.typeId = %typeArray)
+		do output.add(%array $ @runtimeTypeId $ int)
+		do @makeTypeIdRecursion((type $ \ast@AstTypeArray).itemType, output)
+		ret
+	end if
+	if(type.typeId = %typeGen)
+		switch((type $ \ast@AstTypeGen).kind)
+		case %list_
+			do output.add(%list_ $ @runtimeTypeId $ int)
+		case %stack_
+			do output.add(%stack_ $ @runtimeTypeId $ int)
+		case %queue_
+			do output.add(%queue_ $ @runtimeTypeId $ int)
+		default
+			assert false
+		end switch
+		do @makeTypeIdRecursion((type $ \ast@AstTypeGen).itemType, output)
+		ret
+	end if
+	if(type.typeId = %typeDict)
+		do output.add(%dict_ $ @runtimeTypeId $ int)
+		do @makeTypeIdRecursion((type $ \ast@AstTypeDict).itemTypeKey, output)
+		do @makeTypeIdRecursion((type $ \ast@AstTypeDict).itemTypeValue, output)
+		ret
+	end if
+	assert \ast@isClass(type)
+	do output.add(%class_ $ @runtimeTypeId $ int)
+end func

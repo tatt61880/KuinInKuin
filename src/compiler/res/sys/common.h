@@ -240,6 +240,8 @@ static R newArray_(int64_t n, ...) noexcept
 template<typename T>
 static Array_<T>* copy_(Array_<T>* t) noexcept
 {
+	if (t == nullptr)
+		return nullptr;
 	Array_<T>* r = new Array_<T>();
 	r->L = t->L;
 	r->B = new T[static_cast<size_t>(t->L) + bufLen_<T>()];
@@ -250,26 +252,37 @@ static Array_<T>* copy_(Array_<T>* t) noexcept
 template<typename T>
 static List_<T>* copy_(List_<T>* t) noexcept
 {
+	if (t == nullptr)
+		return nullptr;
 	// TODO:
 }
 template<typename T>
 static Stack_<T>* copy_(Stack_<T>* t) noexcept
 {
+	if (t == nullptr)
+		return nullptr;
 	// TODO:
 }
 template<typename T>
 static Queue_<T>* copy_(Queue_<T>* t) noexcept
 {
+	if (t == nullptr)
+		return nullptr;
 	// TODO:
 }
 template<typename T1, typename T2>
 static Dict_<T1, T2>* copy_(Dict_<T1, T2>* t) noexcept
 {
+	if (t == nullptr)
+		return nullptr;
 	// TODO:
 }
-static Class_* copy_(Class_* t) noexcept
+template<typename T>
+static T* copy_(T* t) noexcept
 {
-	// TODO:
+	if (t == nullptr)
+		return nullptr;
+	return static_cast<T*>((new T())->copy_(t));
 }
 static int64_t copy_(int64_t t) noexcept { return t; }
 static char16_t copy_(char16_t t) noexcept { return t; }
@@ -430,6 +443,8 @@ public:
 
 	virtual int64_t cmp_(Class_* t) = 0;
 
+	virtual Class_* copy_(Class_* t) = 0;
+
 	int64_t Y;
 };
 
@@ -588,6 +603,20 @@ static int64_t cmp_(uint8_t a, uint8_t b) noexcept { return static_cast<int64_t>
 static int64_t cmp_(uint16_t a, uint16_t b) noexcept { return static_cast<int64_t>(a) - static_cast<int64_t>(b); }
 static int64_t cmp_(uint32_t a, uint32_t b) noexcept { return static_cast<int64_t>(a) - static_cast<int64_t>(b); }
 static int64_t cmp_(uint64_t a, uint64_t b) noexcept { return a > b ? 1LL : (a < b ? -1LL : 0LL); }
+
+template<typename T>
+static Array_<uint8_t>* toBin_(T t)
+{
+	// TODO:
+	return nullptr;
+}
+
+template<typename T>
+static T fromBin_(Array_<uint8_t>* t, int64_t o)
+{
+	// TODO:
+	return (T)0;
+}
 
 template<typename T>
 static Array_<T>* sub_(Array_<T>* a, int64_t start, int64_t len)
