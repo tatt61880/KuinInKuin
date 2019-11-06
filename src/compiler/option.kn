@@ -10,21 +10,23 @@ end enum
 +var sysDir: []char
 +var icon: []char
 +var rls: bool
-+var env: @Env
++var env_: @Env
 +var help: bool
 +var version: bool
 +var quiet: bool
 +var appCode: int
 +var notDeploy: bool
++var extra: dict<[]char, bool>
 
 +var inputDir: []char
 +var inputName: []char
 +var outputDir: []char
 
 +func acquireOption(): bool
-	var cmdLines: [][]char :: ["-i", "F:/kuin_git/KuinInKuin/src/compiler/res/test.kn", "-o", "F:/kuin_git/KuinInKuin/test_web/out3", "-s", "F:/kuin_git/KuinInKuin/src/compiler/res/sys/", "-e", "cpp"] {lib@cmdLine()}
+	var cmdLines: [][]char :: lib@cmdLine()
 	var envStr: []char
 	var appCodeStr: []char
+	do @extra :: #dict<[]char, bool>
 	
 	for i(0, ^cmdLines - 1)
 		var cmdLine: []char :: cmdLines[i]
@@ -74,6 +76,12 @@ end enum
 				if(!getArg0(&@notDeploy, c))
 					ret false
 				end if
+			case 'x'
+				var extra: []char
+				if(!getArg1(&extra, cmdLines, &i, c))
+					ret false
+				end if
+				do @extra.add(extra, true)
 			default
 				do \err@err(%unexpectedOption, null, ["-\{c}"])
 				ret false
@@ -89,17 +97,17 @@ end enum
 	end if
 	
 	if(envStr =& null)
-		do @env :: %cui
+		do @env_ :: %cui
 	else
 		switch(envStr)
 		case "cui"
-			do @env :: %cui
+			do @env_ :: %cui
 		case "wnd"
-			do @env :: %wnd
+			do @env_ :: %wnd
 		case "web"
-			do @env :: %web
+			do @env_ :: %web
 		case "cpp"
-			do @env :: %cpp
+			do @env_ :: %cpp
 		default
 			do \err@err(%incorrectOption, null, ["-e"])
 		end switch

@@ -66,7 +66,7 @@ func build(): bool
 	end if
 	
 	; 'Output'
-	switch(\option@env)
+	switch(\option@env_)
 	case %cpp
 		if(!\cpp\output@output(entry, resFiles.files))
 			ret false

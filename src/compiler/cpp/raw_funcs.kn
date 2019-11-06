@@ -41,6 +41,19 @@
 		do args.next()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id} & \{n.id};\n")
+	case "cmdLine"
+		do codes.add("Array_<Array_<char16_t>*>* a_ = new Array_<Array_<char16_t>*>();\n")
+		do codes.add("a_->L = argc_;\n")
+		do codes.add("a_->B = new Array_<char16_t>*[static_cast<size_t>(argc_)];\n")
+		do codes.add("for (int64_t i_ = 0; i_ < argc_; i_++){\n")
+		do codes.add("std::string s_ = argv_[i_];\n")
+		do codes.add("const std::u16string t_ = utf8ToUtf16_(s_);\n")
+		do codes.add("a_->B[i_] = new Array_<char16_t>();\n")
+		do codes.add("a_->B[i_]->L = static_cast<int64_t>(t_.size());\n")
+		do codes.add("a_->B[i_]->B = new char16_t[t_.size() + 1];\n")
+		do codes.add("std::memcpy(a_->B[i_]->B, t_.c_str(), sizeof(char16_t) * (t_.size() + 1));\n")
+		do codes.add("}\n")
+		do codes.add("return a_;\n")
 	case "del"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -283,6 +296,22 @@
 		do args.next()
 		var src: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return copyFile_(\{dst.id}->B, \{src.id}->B);\n")
+	case "file_exist"
+		do args.head()
+		var path: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		; TODO:
+		do codes.add("return false;\n")
+	case "file_forEach"
+		do args.head()
+		var path: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var recursion: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var callback: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var data: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		; TODO:
+		do codes.add("return false;\n")
 	case "file_makeReader"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -400,6 +429,10 @@
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
 		do codes.add("writer_* r_ = reinterpret_cast<writer_*>(\{me_.id}->\{handle.id});\n")
 		do codes.add("writeUtf8_(r_->F, \{n.id});\n")
+	case "wnd_editBaseGetText"
+		; TODO:
+	case "wnd_makeEditMulti"
+		; TODO:
 	default
 		assert false
 	end switch

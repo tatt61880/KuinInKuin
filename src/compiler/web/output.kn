@@ -347,7 +347,11 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 						do @codes.add("||")
 					end if
 					if(exprs.expr1 =& null)
-						if(!\ast@isStr(ast.cond.type) & \ast@isRef(ast.cond.type))
+						if(\ast@isStr(ast.cond.type))
+							do @codes.add("\{info.id}.S===(")
+							do @buildExpr(exprs.expr0)
+							do @codes.add(").S")
+						elif(\ast@isRef(ast.cond.type))
 							; TODO:
 							do @codes.add("cmp_(\{info.id},(")
 							do @buildExpr(exprs.expr0)
@@ -652,9 +656,15 @@ func buildExpr1(ast: \ast@AstExpr1)
 			do @codes.add(").size")
 		else
 			assert type.typeId = %typeArray
-			do @codes.add("(")
-			do @buildExpr(ast.child)
-			do @codes.add(").length")
+			if(\ast@isChar((type $ \ast@AstTypeArray).itemType))
+				do @codes.add("(")
+				do @buildExpr(ast.child)
+				do @codes.add(").S.length")
+			else
+				do @codes.add("(")
+				do @buildExpr(ast.child)
+				do @codes.add(").length")
+			end if
 		end if
 	default
 		assert false
@@ -672,15 +682,15 @@ func buildExpr2(ast: \ast@AstExpr2)
 			var tmpChar: []char :: @addTmpVar(ast2.type)
 			do @codes.add("(")
 			do @buildExpr(ast2.var_)
-			do @codes.add(")=(\{tmpIdx}=(")
+			do @codes.add(").S=(\{tmpIdx}=(")
 			do @buildExpr(ast2.idx)
 			do @codes.add("),(")
 			do @buildExpr(ast2.var_)
-			do @codes.add(").slice(0,\{tmpIdx})+String.fromCharCode(")
+			do @codes.add(").S.slice(0,\{tmpIdx})+String.fromCharCode(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")+(")
 			do @buildExpr(ast2.var_)
-			do @codes.add(").slice(\{tmpIdx}+1))")
+			do @codes.add(").S.slice(\{tmpIdx}+1))")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
@@ -701,7 +711,13 @@ func buildExpr2(ast: \ast@AstExpr2)
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %lt
-		if(!\ast@isStr(type) & \ast@isRef(type))
+		if(\ast@isStr(type))
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S<(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S")
+		elif(\ast@isRef(type))
 			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
@@ -716,7 +732,13 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add(")")
 		end if
 	case %gt
-		if(!\ast@isStr(type) & \ast@isRef(type))
+		if(\ast@isStr(type))
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S>(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S")
+		elif(\ast@isRef(type))
 			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
@@ -731,7 +753,13 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add(")")
 		end if
 	case %le
-		if(!\ast@isStr(type) & \ast@isRef(type))
+		if(\ast@isStr(type))
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S<=(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S")
+		elif(\ast@isRef(type))
 			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
@@ -746,7 +774,13 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add(")")
 		end if
 	case %ge
-		if(!\ast@isStr(type) & \ast@isRef(type))
+		if(\ast@isStr(type))
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S>=(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S")
+		elif(\ast@isRef(type))
 			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
@@ -761,7 +795,13 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add(")")
 		end if
 	case %eq
-		if(!\ast@isStr(type) & \ast@isRef(type))
+		if(\ast@isStr(type))
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S===(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S")
+		elif(\ast@isRef(type))
 			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
@@ -776,7 +816,13 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add(")")
 		end if
 	case %nEq
-		if(!\ast@isStr(type) & \ast@isRef(type))
+		if(\ast@isStr(type))
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S!==(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S")
+		elif(\ast@isRef(type))
 			; TODO:
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
@@ -803,15 +849,19 @@ func buildExpr2(ast: \ast@AstExpr2)
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %cat
-		do @codes.add("(")
-		do @buildExpr(ast.children0)
 		if(\ast@isStr(type))
-			do @codes.add(")+(")
+			do @codes.add("{S:(")
+			do @buildExpr(ast.children0)
+			do @codes.add(").S+(")
+			do @buildExpr(ast.children1)
+			do @codes.add(").S}")
 		else
+			do @codes.add("(")
+			do @buildExpr(ast.children0)
 			do @codes.add(").concat(")
+			do @buildExpr(ast.children1)
+			do @codes.add(")")
 		end if
-		do @buildExpr(ast.children1)
-		do @codes.add(")")
 	case %add
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
@@ -915,11 +965,11 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 		do items.head()
 		if(\ast@isChar(ast.itemType))
 			if(^items = 1)
-				do @codes.add("\"\\0\".repeat(")
+				do @codes.add("{S:\"\\0\".repeat(")
 				do @buildExpr(items.get())
-				do @codes.add(")")
+				do @codes.add(")}")
 			else
-				do @codes.add("(function A(n){if(n.length==1)return new \"\\0\".repeat(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A(m);return a}})([")
+				do @codes.add("(function A_(n){if(n.length===1)return{S:\"\\0\".repeat(\{@getDefaultValue(ast.itemType)})}else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
@@ -939,7 +989,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 				do @buildExpr(items.get())
 				do @codes.add(").fill(\{@getDefaultValue(ast.itemType)})")
 			else
-				do @codes.add("(function A(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A(m);return a}})([")
+				do @codes.add("(function A_(n){if(n.length===1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
@@ -1138,7 +1188,7 @@ func buildExprArray(ast: \ast@AstExprArray)
 	if(\ast@isChar(ast.type))
 		do @codes.add("(")
 		do @buildExpr(ast.var_)
-		do @codes.add(").charCodeAt(")
+		do @codes.add(").S.charCodeAt(")
 		do @buildExpr(ast.idx)
 		do @codes.add(")")
 	else
@@ -1207,11 +1257,11 @@ end func
 
 func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
-	var s: []char :: "\""
+	var s: []char :: "{S:\""
 	for i(0, ^value - 1)
 		do s :~ @escapeChar(value[i])
 	end for
-	do s :~ "\""
+	do s :~ "\"}"
 	do @codes.add(s)
 end func
 
@@ -1280,13 +1330,19 @@ end func
 func write(resFiles: list<[]char>)
 	var writer: file@Writer
 	do writer :: file@makeWriter(\option@outputFile ~ ".js", false)
-	do writer.writeStr("\"use strict\";!function(f){let w=window,d=w.document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);w.removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),w.addEventListener(\"load\",h))}(function(){\n")
+	var static: bool :: \option@extra.get("static", &)
+	if(static)
+		do writer.writeStr("\"use strict\";function \{file@fileName(\option@outputFile)}(O_){\n")
+	else
+		do writer.writeStr("\"use strict\";!function(f){let d=document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),addEventListener(\"load\",h))}(function(){\n")
+		do writer.writeStr("let O_;\n")
+	end if
 	
 	do @globalVars.head()
 	while(!@globalVars.term())
 		var globalVar: \ast@AstArg :: @globalVars.get()
 		var info: @WebInfo :: @getInfo(globalVar)
-		do writer.writeStr("var \{info.id}=\{@getDefaultValue(globalVar.type)};\n")
+		do writer.writeStr("let \{info.id}=\{@getDefaultValue(globalVar.type)};\n")
 		do @globalVars.next()
 	end while
 	do @codes.head()
@@ -1310,7 +1366,7 @@ func write(resFiles: list<[]char>)
 	do writer.writeStr("return v;\n")
 	do writer.writeStr("case \{%array $ \convert@runtimeTypeId $ int}:\n")
 	do writer.writeStr("if(t[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
-	do writer.writeStr("return v;\n")
+	do writer.writeStr("return v===null?null:{S:v.S};\n")
 	do writer.writeStr("else{\n")
 	do writer.writeStr("let a=new Array(v.length);\n")
 	do writer.writeStr("for(let i=0;i<v.length;i++)a[i]=C_(t.slice(1),v[i]);\n")
@@ -1366,7 +1422,11 @@ func write(resFiles: list<[]char>)
 	end block
 	do writer.writeStr("}\n")
 	do writer.writeStr("a();\n")
-	do writer.writeStr("})\n")
+	if(static)
+		do writer.writeStr("}\n")
+	else
+		do writer.writeStr("})\n")
+	end if
 	do writer.fin()
 	
 	var fileName: []char :: file@fileName(\option@outputFile)

@@ -46,9 +46,9 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	
 	var truePath: []char
 	if(key[0] = '\\')
-		do truePath :: \option@inputDir ~ key.sub(1, -1) ~ ".kn"
+		do truePath :: \option@inputDir ~ replacePath(key.sub(1, -1)) ~ ".kn"
 	else
-		do truePath :: \option@sysDir ~ key ~ ".kn"
+		do truePath :: \option@sysDir ~ replacePath(key) ~ ".kn"
 	end if
 	do @filePtr :: file@makeReader(truePath)
 	if(@filePtr =& null)
@@ -95,6 +95,14 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 				ret false
 			end while
 		end while
+	end func
+	
+	func replacePath(path: []char): []char
+		var r: []char :: #[^path]char
+		for i(0, ^path - 1)
+			do r[i] :: path[i] = '\\' ?('/', path[i])
+		end for
+		ret r
 	end func
 end func
 
@@ -2049,6 +2057,8 @@ func parseExprValue(): \ast@AstExpr
 				ret ast
 			case "dbg"
 				ret @makePrimValue(pos, %bool_, \option@rls ?(0b64, 1b64))
+			case "env"
+				ret @makePrimValue(pos, %int_, \option@env_ $ bit64)
 			default
 				var ast: \ast@AstExpr :: #\ast@AstExpr
 				do @initAstExpr(ast, %exprRef, pos)
@@ -2093,7 +2103,7 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 				ret null
 			end if
 			if(len = 1024)
-				do \err@err(%tooLongNumericLiteral, pos, [buf])
+				do \err@err(%tooLongNumericLiteral, pos, [buf.sub(0, len)])
 				do @readUntilRet(c)
 				ret null
 			end if
@@ -2102,7 +2112,7 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 			do floatType :: true
 		case '0' to '9', 'A' to 'F'
 			if(len = 1024)
-				do \err@err(%tooLongNumericLiteral, pos, [buf])
+				do \err@err(%tooLongNumericLiteral, pos, [buf.sub(0, len)])
 				do @readUntilRet(c)
 				ret null
 			end if
@@ -2123,7 +2133,7 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 		do c :: @read()
 		if(c = 'e')
 			if(len = 1024)
-				do \err@err(%tooLongNumericLiteral, pos, [buf])
+				do \err@err(%tooLongNumericLiteral, pos, [buf.sub(0, len)])
 				do @readUntilRet(c)
 				ret null
 			end if
@@ -2136,7 +2146,7 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 				ret null
 			end if
 			if(len = 1024)
-				do \err@err(%tooLongNumericLiteral, pos, [buf])
+				do \err@err(%tooLongNumericLiteral, pos, [buf.sub(0, len)])
 				do @readUntilRet(c)
 				ret null
 			end if
@@ -2150,7 +2160,7 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 			end if
 			while('0' <= c & c <= '9', skip)
 				if(len = 1024)
-					do \err@err(%tooLongNumericLiteral, pos, [buf])
+					do \err@err(%tooLongNumericLiteral, pos, [buf.sub(0, len)])
 					do @readUntilRet(c)
 					ret null
 				end if
@@ -2162,7 +2172,7 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 		do @fileBuf :: c
 		block
 			var success: bool
-			var value: float :: buf.toFloat(&success)
+			var value: float :: buf.sub(0, len).toFloat(&success)
 			if(!success)
 				do \err@err(%wrongFloatingPointLiteral, pos, [buf.sub(0, len)])
 				do @readUntilRet(@read())
@@ -2201,10 +2211,10 @@ func parseExprNumber(row: int, col: int, c: char): \ast@AstExpr
 			var value: bit64
 			var success: bool
 			if(base = 10)
-				do value :: buf.toBit64(&success)
+				do value :: buf.sub(0, len).toBit64(&success)
 			else
 				assert base = 16
-				do value :: ("0x" ~ buf).toBit64(&success)
+				do value :: ("0x" ~ buf.sub(0, len)).toBit64(&success)
 			end if
 			if(!success)
 				do \err@err(%integerLiteralOverflowed, pos, [buf.sub(0, len)])
@@ -2351,6 +2361,7 @@ func isReserved(name: []char): bool
 		|"else",
 		|"end",
 		|"enum",
+		|"env",
 		|"false",
 		|"finally",
 		|"float",
