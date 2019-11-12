@@ -1,3 +1,8 @@
++const envCui: bit64 :: 0b64
++const envWnd: bit64 :: 1b64
++const envWeb: bit64 :: 2b64
++const envCpp: bit64 :: 3b64
+
 +class Class()
 	func ctor()
 	end func

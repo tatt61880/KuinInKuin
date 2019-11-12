@@ -3,7 +3,7 @@
 +const intMin: int :: -9223372036854775807 - 1
 +const intMax: int :: 9223372036854775807
 
-+func [d0000.knd, _cmdLine] cmdLine(): [][]char
++func [__raw, cmdLine] cmdLine(): [][]char
 end func
 
 +func [_exit_code] exitCode(code: int)

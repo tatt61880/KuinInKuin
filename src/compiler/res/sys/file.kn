@@ -39,6 +39,7 @@ end enum
 	end func
 
 	+func [d0000.knd, _readerReadLine] readLine(): []char
+		ret null {TODO:}
 	end func
 
 	+func [d0000.knd, _readerFileSize] fileSize(): int
@@ -113,10 +114,10 @@ end enum
 +func [d0000.knd, _makeDir] makeDir(path: []char): bool
 end func
 
-+func [d0000.knd, _forEachDir] forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
++func [__raw, file_forEach] forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 end func
 
-+func [d0000.knd, _existPath] exist(path: []char): bool
++func [__raw, file_exist] exist(path: []char): bool
 end func
 
 +func [d0000.knd, _delDir] delDir(path: []char): bool
