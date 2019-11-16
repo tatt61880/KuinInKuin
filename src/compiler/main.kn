@@ -84,10 +84,8 @@ func build(): bool
 	ret true
 	
 	func searchResFiles(path: []char, isDir: bool, data: kuin@Class): bool
-		if(!isDir)
-			var data2: ResFiles :: data $ ResFiles
-			do data2.files.add(path)
-		end if
+		var data2: ResFiles :: data $ ResFiles
+		do data2.files.add(path)
 		ret true
 	end func
 end func

@@ -325,7 +325,7 @@ template<typename T>
 class Array_ : public Ref_
 {
 public:
-	Array_() noexcept : Ref_()
+	Array_() noexcept : Ref_(), L(), B()
 	{
 	}
 
@@ -527,7 +527,7 @@ static Array_<char16_t>* toStr_(double v)
 static Array_<char16_t>* toStr_(uint8_t v)
 {
 	std::stringstream s;
-	s << "0x" << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << v;
+	s << "0x" << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << static_cast<uint16_t>(v);
 	const std::string& t = s.str();
 	Array_<char16_t>* r = new Array_<char16_t>();
 	r->L = static_cast<int64_t>(t.size());
@@ -818,6 +818,36 @@ static dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a)
 	return n;
 }
 
+static int64_t powI_(int64_t a, int64_t b) noexcept
+{
+	switch (b)
+	{
+	case 0LL:
+		return 1LL;
+	case 1LL:
+		return a;
+	case 2LL:
+		return a * a;
+	}
+	if (a == 1LL)
+		return 1LL;
+	if (a == -1LL)
+		return std::abs(b) % 2LL == 0LL ? 1LL : -1LL;
+	if (b < 0LL)
+		return 0LL;
+	int64_t r = 1LL;
+	for (; ; )
+	{
+		if ((b & 1LL) == 1LL)
+			r *= a;
+		b >>= 1LL;
+		if (b == 0LL)
+			break;
+		a *= a;
+	}
+	return r;
+}
+
 class reader_
 {
 public:
@@ -881,7 +911,7 @@ static void writeUtf8_(std::ofstream* f, char16_t c)
 		u = c, size = 1;
 	else
 	{
-		u = (0x80 | (c & 0x3f)) << 8;
+		u = static_cast<uint64_t>(0x80 | (c & 0x3f)) << 8;
 		c >>= 6;
 		if ((c >> 5) == 0)
 			u |= 0xc0 | c, size = 2;

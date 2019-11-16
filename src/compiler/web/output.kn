@@ -1385,13 +1385,12 @@ func write(resFiles: list<[]char>)
 	do writer.writeStr("}\n")
 	do writer.writeStr("}\n")
 	
-	do writer.writeStr("function F_(p){\n")
+	do writer.writeStr("function F_(p,f){\n")
 	block
 		var first: bool :: true
 		do resFiles.head()
 		while(!resFiles.term())
 			var resFile: []char :: resFiles.get()
-			var reader: file@Reader :: file@makeReader(resFile)
 			if(first)
 				do first :: false
 				do writer.writeStr("if(p===\"")
@@ -1402,25 +1401,52 @@ func write(resFiles: list<[]char>)
 				do writer.writeStr(@escapeChar(resFile[i]))
 			end for
 			do writer.writeStr("\")\n")
-			do writer.writeStr("return \"")
-			while(!reader.term())
-				var line: []char :: reader.readLine()
-				for i(0, ^line - 1)
-					do writer.writeStr(@escapeChar(line[i]))
-				end for
-				do writer.writeStr("\\n")
-			end while
-			do writer.writeStr("\";\n")
-			do reader.fin()
+			if(resFile[^resFile - 1] = '/')
+				do writer.writeStr("return f?null:true;\n")
+			else
+				do writer.writeStr("return f?\"")
+				var reader: file@Reader :: file@makeReader(resFile)
+				while(!reader.term())
+					var line: []char :: reader.readLine()
+					for i(0, ^line - 1)
+						do writer.writeStr(@escapeChar(line[i]))
+					end for
+					do writer.writeStr("\\n")
+				end while
+				do reader.fin()
+				do writer.writeStr("\":true;\n")
+			end if
 			do resFiles.next()
 		end while
 		if(^resFiles > 0)
-			do writer.writeStr("else return null;\n")
+			do writer.writeStr("else return f?null:false;\n")
 		else
-			do writer.writeStr("return null;\n")
+			do writer.writeStr("return f?null:false;\n")
 		end if
 	end block
 	do writer.writeStr("}\n")
+	
+	block
+		do writer.writeStr("function FF_(){return[")
+		var first: bool :: true
+		do resFiles.head()
+		while(!resFiles.term())
+			var resFile: []char :: resFiles.get()
+			if(first)
+				do first :: false
+				do writer.writeStr("\"")
+			else
+				do writer.writeStr(",\"")
+			end if
+			for i(^\option@inputDir, ^resFile - 1)
+				do writer.writeStr(@escapeChar(resFile[i]))
+			end for
+			do writer.writeStr("\"")
+			do resFiles.next()
+		end while
+		do writer.writeStr("];}\n")
+	end block
+	
 	do writer.writeStr("a();\n")
 	if(static)
 		do writer.writeStr("}\n")

@@ -38,8 +38,19 @@ end enum
 	+func [d0000.knd, _readerReadStr] readStr(): []char
 	end func
 
-	+func [d0000.knd, _readerReadLine] readLine(): []char
-		ret null {TODO:}
+	+func readLine(): []char
+		var buf: []char :: ""
+		while loop(!me.term())
+			var c: char :: me.readLetter()
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c = '\n')
+				break loop
+			end if
+			do buf :~ c.toStr()
+		end while
+		ret buf
 	end func
 
 	+func [d0000.knd, _readerFileSize] fileSize(): int
