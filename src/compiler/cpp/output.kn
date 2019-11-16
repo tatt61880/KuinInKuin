@@ -1280,62 +1280,78 @@ func buildExprRef(ast: \ast@AstExpr)
 end func
 
 func write(resFiles: list<[]char>)
-	do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
-	
-	var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
-	do writer.writeStr("#include \"common.h\"\n")
-	do writer.writeStr("namespace {\n")
-	
-	do @classDefs.head()
-	while(!@classDefs.term())
-		do writer.writeStr(@classDefs.get())
-		do @classDefs.next()
-	end while
-	do @funcPrototypes.head()
-	while(!@funcPrototypes.term())
-		do writer.writeStr(@funcPrototypes.get())
-		do @funcPrototypes.next()
-	end while
-	; TODO: ResFiles
-	if(@classTableSize <> 0)
-		do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
-	end if
-	do writer.writeStr("static int64_t argc_;\n")
-	do writer.writeStr("static char** argv_;\n")
-	do @globalVars.head()
-	while(!@globalVars.term())
-		var globalVar: \ast@AstArg :: @globalVars.get()
-		var info: @CppInfo :: @getInfo(globalVar)
-		do writer.writeStr("static \{@getType(globalVar.type)} \{info.id};\n")
-		do @globalVars.next()
-	end while
-	do @classFuncs.head()
-	while(!@classFuncs.term())
-		do writer.writeStr(@classFuncs.get())
-		do @classFuncs.next()
-	end while
-	do @codes.head()
-	while(!@codes.term())
-		do writer.writeStr(@codes.get())
-		do @codes.next()
-	end while
-	do writer.writeStr("}\n")
-	do writer.writeStr("int main(int c_, char** v_){\n")
-	do writer.writeStr("argc_ = c_ - 1;\n")
-	do writer.writeStr("argv_ = v_ + 1;\n")
-	block
-		do @classTable.head()
-		while(!@classTable.term())
-			var item: []char :: @classTable.get()
-			do writer.writeStr(item)
-			do @classTable.next()
+	if(\option@extra.get("merge", &))
+		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+		var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
+		while(!reader.term())
+			var s: []char :: reader.readLine()
+			do writer.writeStr(s ~ "\n")
 		end while
-	end block
-	do writer.writeStr("init_();\n")
-	do writer.writeStr("a();\n")
-	do writer.writeStr("return 0;\n")
-	do writer.writeStr("}\n")
-	do writer.fin()
+		do reader.fin()
+		do writeCpp(writer, resFiles)
+		do writer.fin()
+	else
+		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
+		
+		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+		do writer.writeStr("#include \"common.h\"\n")
+		do writeCpp(writer, resFiles)
+		do writer.fin()
+	end if
+	
+	func writeCpp(writer: file@Writer, resFiles: list<[]char>)
+		do writer.writeStr("namespace {\n")
+		
+		do @classDefs.head()
+		while(!@classDefs.term())
+			do writer.writeStr(@classDefs.get())
+			do @classDefs.next()
+		end while
+		do @funcPrototypes.head()
+		while(!@funcPrototypes.term())
+			do writer.writeStr(@funcPrototypes.get())
+			do @funcPrototypes.next()
+		end while
+		; TODO: ResFiles
+		if(@classTableSize <> 0)
+			do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
+		end if
+		do writer.writeStr("static int64_t argc_;\n")
+		do writer.writeStr("static char** argv_;\n")
+		do @globalVars.head()
+		while(!@globalVars.term())
+			var globalVar: \ast@AstArg :: @globalVars.get()
+			var info: @CppInfo :: @getInfo(globalVar)
+			do writer.writeStr("static \{@getType(globalVar.type)} \{info.id};\n")
+			do @globalVars.next()
+		end while
+		do @classFuncs.head()
+		while(!@classFuncs.term())
+			do writer.writeStr(@classFuncs.get())
+			do @classFuncs.next()
+		end while
+		do @codes.head()
+		while(!@codes.term())
+			do writer.writeStr(@codes.get())
+			do @codes.next()
+		end while
+		do writer.writeStr("}\n")
+		do writer.writeStr("int main(int c_, char** v_){\n")
+		do writer.writeStr("argc_ = c_ - 1;\n")
+		do writer.writeStr("argv_ = v_ + 1;\n")
+		block
+			do @classTable.head()
+			while(!@classTable.term())
+				var item: []char :: @classTable.get()
+				do writer.writeStr(item)
+				do @classTable.next()
+			end while
+		end block
+		do writer.writeStr("init_();\n")
+		do writer.writeStr("a();\n")
+		do writer.writeStr("return 0;\n")
+		do writer.writeStr("}\n")
+	end func
 end func
 
 func getType(type: \ast@AstType): []char

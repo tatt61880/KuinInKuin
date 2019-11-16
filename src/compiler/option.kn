@@ -77,7 +77,7 @@ end enum
 					ret false
 				end if
 			case 'x'
-				var extra: []char
+				var extra: []char :: null
 				if(!getArg1(&extra, cmdLines, &i, c))
 					ret false
 				end if

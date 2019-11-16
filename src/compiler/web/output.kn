@@ -1329,145 +1329,167 @@ end func
 
 func write(resFiles: list<[]char>)
 	var writer: file@Writer
-	do writer :: file@makeWriter(\option@outputFile ~ ".js", false)
-	var static: bool :: \option@extra.get("static", &)
-	if(static)
-		do writer.writeStr("\"use strict\";function \{file@fileName(\option@outputFile)}(O_){\n")
+	if(\option@extra.get("merge", &))
+		var fileName: []char :: file@fileName(\option@outputFile)
+		do writer :: file@makeWriter(\option@outputFile ~ ".html", false)
+		do writer.writeStr("<!DOCTYPE html>\n")
+		do writer.writeStr("<html>\n")
+		do writer.writeStr("\t<head>\n")
+		do writer.writeStr("\t\t<meta charset=\"utf-8\" />\n")
+		do writer.writeStr("\t\t<title>\{fileName}</title>\n")
+		do writer.writeStr("\t\t<script type=\"text/javascript\">\n")
+		do writeJs(writer, resFiles)
+		do writer.writeStr("\t\t</script>\n")
+		do writer.writeStr("\t</head>\n")
+		do writer.writeStr("\t<body>\n")
+		do writer.writeStr("\t</body>\n")
+		do writer.writeStr("</html>\n")
+		do writer.fin()
 	else
-		do writer.writeStr("\"use strict\";!function(f){let d=document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),addEventListener(\"load\",h))}(function(){\n")
-		do writer.writeStr("let O_;\n")
+		do writer :: file@makeWriter(\option@outputFile ~ ".js", false)
+		do writeJs(writer, resFiles)
+		do writer.fin()
+		
+		var fileName: []char :: file@fileName(\option@outputFile)
+		do writer :: file@makeWriter(\option@outputFile ~ ".html", false)
+		do writer.writeStr("<!DOCTYPE html>\n")
+		do writer.writeStr("<html>\n")
+		do writer.writeStr("\t<head>\n")
+		do writer.writeStr("\t\t<meta charset=\"utf-8\" />\n")
+		do writer.writeStr("\t\t<script src=\"\{fileName}.js\" type=\"text/javascript\"></script>\n")
+		do writer.writeStr("\t\t<title>\{fileName}</title>\n")
+		do writer.writeStr("\t</head>\n")
+		do writer.writeStr("\t<body>\n")
+		do writer.writeStr("\t</body>\n")
+		do writer.writeStr("</html>\n")
+		do writer.fin()
 	end if
 	
-	do @globalVars.head()
-	while(!@globalVars.term())
-		var globalVar: \ast@AstArg :: @globalVars.get()
-		var info: @WebInfo :: @getInfo(globalVar)
-		do writer.writeStr("let \{info.id}=\{@getDefaultValue(globalVar.type)};\n")
-		do @globalVars.next()
-	end while
-	do @codes.head()
-	while(!@codes.term())
-		do writer.writeStr(@codes.get())
-		do @codes.next()
-	end while
-	
-	do writer.writeStr("function C_(t,v){\n")
-	do writer.writeStr("switch(t[0]){\n")
-	do writer.writeStr("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%bool_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%bit8_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%bit16_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%bit32_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%bit64_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%func_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("case \{%enum_ $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("return v;\n")
-	do writer.writeStr("case \{%array $ \convert@runtimeTypeId $ int}:\n")
-	do writer.writeStr("if(t[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
-	do writer.writeStr("return v===null?null:{S:v.S};\n")
-	do writer.writeStr("else{\n")
-	do writer.writeStr("let a=new Array(v.length);\n")
-	do writer.writeStr("for(let i=0;i<v.length;i++)a[i]=C_(t.slice(1),v[i]);\n")
-	do writer.writeStr("return a;\n")
-	do writer.writeStr("}\n")
-	do writer.writeStr("case \{%list_ $ \convert@runtimeTypeId $ int}:\n")
-	; TODO:
-	do writer.writeStr("case \{%stack_ $ \convert@runtimeTypeId $ int}:\n")
-	; TODO:
-	do writer.writeStr("case \{%queue_ $ \convert@runtimeTypeId $ int}:\n")
-	; TODO:
-	do writer.writeStr("case \{%dict_ $ \convert@runtimeTypeId $ int}:\n")
-	; TODO:
-	do writer.writeStr("case \{%class_ $ \convert@runtimeTypeId $ int}:\n")
-	; TODO:
-	do writer.writeStr("}\n")
-	do writer.writeStr("}\n")
-	
-	do writer.writeStr("function F_(p,f){\n")
-	block
-		var first: bool :: true
-		do resFiles.head()
-		while(!resFiles.term())
-			var resFile: []char :: resFiles.get()
-			if(first)
-				do first :: false
-				do writer.writeStr("if(p===\"")
-			else
-				do writer.writeStr("else if(p===\"")
-			end if
-			for i(^\option@inputDir, ^resFile - 1)
-				do writer.writeStr(@escapeChar(resFile[i]))
-			end for
-			do writer.writeStr("\")\n")
-			if(resFile[^resFile - 1] = '/')
-				do writer.writeStr("return f?null:true;\n")
-			else
-				do writer.writeStr("return f?\"")
-				var reader: file@Reader :: file@makeReader(resFile)
-				while(!reader.term())
-					var line: []char :: reader.readLine()
-					for i(0, ^line - 1)
-						do writer.writeStr(@escapeChar(line[i]))
-					end for
-					do writer.writeStr("\\n")
-				end while
-				do reader.fin()
-				do writer.writeStr("\":true;\n")
-			end if
-			do resFiles.next()
-		end while
-		if(^resFiles > 0)
-			do writer.writeStr("else return f?null:false;\n")
+	func writeJs(writer: file@Writer, resFiles: list<[]char>)
+		var static: bool :: \option@extra.get("static", &)
+		if(static)
+			do writer.writeStr("\"use strict\";function \{file@fileName(\option@outputFile)}(O_){\n")
 		else
-			do writer.writeStr("return f?null:false;\n")
+			do writer.writeStr("\"use strict\";!function(f){let d=document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),addEventListener(\"load\",h))}(function(){\n")
+			do writer.writeStr("let O_;\n")
 		end if
-	end block
-	do writer.writeStr("}\n")
-	
-	block
-		do writer.writeStr("function FF_(){return[")
-		var first: bool :: true
-		do resFiles.head()
-		while(!resFiles.term())
-			var resFile: []char :: resFiles.get()
-			if(first)
-				do first :: false
-				do writer.writeStr("\"")
-			else
-				do writer.writeStr(",\"")
-			end if
-			for i(^\option@inputDir, ^resFile - 1)
-				do writer.writeStr(@escapeChar(resFile[i]))
-			end for
-			do writer.writeStr("\"")
-			do resFiles.next()
+		
+		do @globalVars.head()
+		while(!@globalVars.term())
+			var globalVar: \ast@AstArg :: @globalVars.get()
+			var info: @WebInfo :: @getInfo(globalVar)
+			do writer.writeStr("let \{info.id}=\{@getDefaultValue(globalVar.type)};\n")
+			do @globalVars.next()
 		end while
-		do writer.writeStr("];}\n")
-	end block
-	
-	do writer.writeStr("a();\n")
-	if(static)
+		do @codes.head()
+		while(!@codes.term())
+			do writer.writeStr(@codes.get())
+			do @codes.next()
+		end while
+		
+		do writer.writeStr("function C_(t,v){\n")
+		do writer.writeStr("switch(t[0]){\n")
+		do writer.writeStr("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%bool_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%bit8_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%bit16_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%bit32_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%bit64_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%func_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("case \{%enum_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("return v;\n")
+		do writer.writeStr("case \{%array $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("if(t[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do writer.writeStr("return v===null?null:{S:v.S};\n")
+		do writer.writeStr("else{\n")
+		do writer.writeStr("let a=new Array(v.length);\n")
+		do writer.writeStr("for(let i=0;i<v.length;i++)a[i]=C_(t.slice(1),v[i]);\n")
+		do writer.writeStr("return a;\n")
 		do writer.writeStr("}\n")
-	else
-		do writer.writeStr("})\n")
-	end if
-	do writer.fin()
-	
-	var fileName: []char :: file@fileName(\option@outputFile)
-	do writer :: file@makeWriter(\option@outputFile ~ ".html", false)
-	do writer.writeStr("<!DOCTYPE html>\n")
-	do writer.writeStr("<html>\n")
-	do writer.writeStr("\t<head>\n")
-	do writer.writeStr("\t\t<meta charset=\"utf-8\" />\n")
-	do writer.writeStr("\t\t<script src=\"\{fileName}.js\" type=\"text/javascript\"></script>\n")
-	do writer.writeStr("\t\t<title>\{fileName}</title>\n")
-	do writer.writeStr("\t</head>\n")
-	do writer.writeStr("\t<body>\n")
-	do writer.writeStr("\t</body>\n")
-	do writer.writeStr("</html>\n")
-	do writer.fin()
+		do writer.writeStr("case \{%list_ $ \convert@runtimeTypeId $ int}:\n")
+		; TODO:
+		do writer.writeStr("case \{%stack_ $ \convert@runtimeTypeId $ int}:\n")
+		; TODO:
+		do writer.writeStr("case \{%queue_ $ \convert@runtimeTypeId $ int}:\n")
+		; TODO:
+		do writer.writeStr("case \{%dict_ $ \convert@runtimeTypeId $ int}:\n")
+		; TODO:
+		do writer.writeStr("case \{%class_ $ \convert@runtimeTypeId $ int}:\n")
+		; TODO:
+		do writer.writeStr("}\n")
+		do writer.writeStr("}\n")
+		
+		do writer.writeStr("function F_(p,f){\n")
+		block
+			var first: bool :: true
+			do resFiles.head()
+			while(!resFiles.term())
+				var resFile: []char :: resFiles.get()
+				if(first)
+					do first :: false
+					do writer.writeStr("if(p===\"")
+				else
+					do writer.writeStr("else if(p===\"")
+				end if
+				for i(^\option@inputDir, ^resFile - 1)
+					do writer.writeStr(@escapeChar(resFile[i]))
+				end for
+				do writer.writeStr("\")\n")
+				if(resFile[^resFile - 1] = '/')
+					do writer.writeStr("return f?null:true;\n")
+				else
+					do writer.writeStr("return f?\"")
+					var reader: file@Reader :: file@makeReader(resFile)
+					while(!reader.term())
+						var line: []char :: reader.readLine()
+						for i(0, ^line - 1)
+							do writer.writeStr(@escapeChar(line[i]))
+						end for
+						do writer.writeStr("\\n")
+					end while
+					do reader.fin()
+					do writer.writeStr("\":true;\n")
+				end if
+				do resFiles.next()
+			end while
+			if(^resFiles > 0)
+				do writer.writeStr("else return f?null:false;\n")
+			else
+				do writer.writeStr("return f?null:false;\n")
+			end if
+		end block
+		do writer.writeStr("}\n")
+		
+		block
+			do writer.writeStr("function FF_(){return[")
+			var first: bool :: true
+			do resFiles.head()
+			while(!resFiles.term())
+				var resFile: []char :: resFiles.get()
+				if(first)
+					do first :: false
+					do writer.writeStr("\"")
+				else
+					do writer.writeStr(",\"")
+				end if
+				for i(^\option@inputDir, ^resFile - 1)
+					do writer.writeStr(@escapeChar(resFile[i]))
+				end for
+				do writer.writeStr("\"")
+				do resFiles.next()
+			end while
+			do writer.writeStr("];}\n")
+		end block
+		
+		do writer.writeStr("a();\n")
+		if(static)
+			do writer.writeStr("}\n")
+		else
+			do writer.writeStr("})\n")
+		end if
+	end func
 end func
 
 func getId(): []char

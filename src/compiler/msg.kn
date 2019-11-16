@@ -1,4 +1,4 @@
-+var lang: @Lang :: %en
++var lang: @Lang :: %ja
 
 +enum Lang
 	ja
@@ -984,30 +984,30 @@ end enum
 	case %compilationStarted
 		switch(@lang)
 		case %ja
-			ret "コンパイル開始: \{args[0]}。"
+			ret "コンパイル開始: \{args[0]}秒。"
 		default
-			ret "Compilation started: \{args[0]}."
+			ret "Compilation started: \{args[0]}s."
 		end switch
 	case %parsingCompleted
 		switch(@lang)
 		case %ja
-			ret "字句構文解析完了: \{args[0]}。"
+			ret "字句構文解析完了: \{args[0]}秒。"
 		default
-			ret "Parsing is complete: \{args[0]}."
+			ret "Parsing is complete: \{args[0]}s."
 		end switch
 	case %semanticAnalysisCompleted
 		switch(@lang)
 		case %ja
-			ret "意味解析完了: \{args[0]}。"
+			ret "意味解析完了: \{args[0]}秒。"
 		default
-			ret "Semantic analysis is complete: \{args[0]}."
+			ret "Semantic analysis is complete: \{args[0]}s."
 		end switch
 	case %generationProcessCompleted
 		switch(@lang)
 		case %ja
-			ret "生成処理完了: \{args[0]}。"
+			ret "生成処理完了: \{args[0]}秒。"
 		default
-			ret "Generation process is complete: \{args[0]}."
+			ret "Generation process is complete: \{args[0]}s."
 		end switch
 	default
 		assert false
