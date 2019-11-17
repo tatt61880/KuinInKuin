@@ -114,16 +114,16 @@ func buildFunc(ast: \ast@AstFunc)
 			var localVar: \ast@AstArg :: @localVars.get()
 			var info2: @WebInfo :: @getInfo(localVar)
 			if(localVar.name =& null)
-				do @codes.ins("let \{info2.id}=\{@getDefaultValue(localVar.type)};\n")
+				do @codes.ins("let \{info2.id};\n")
 			else
-				do @codes.ins("let \{info2.id}=\{@getDefaultValue(localVar.type)}; // \{localVar.name}\n")
+				do @codes.ins("let \{info2.id}; // \{localVar.name}\n")
 			end if
 			do @localVars.del()
 		end while
 		do @tmpVars.head()
 		while(!@tmpVars.term())
 			var tmpVar: @TmpVar :: @tmpVars.get()
-			do @codes.ins("let \{tmpVar.identifier}=\{@getDefaultValue(tmpVar.type)};\n")
+			do @codes.ins("let \{tmpVar.identifier};\n")
 			do @tmpVars.del()
 		end while
 	end if
@@ -284,13 +284,14 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 			do items.next()
 		end while
 	end if
+	do @codes.add("\{info.id}=")
+	do @buildExpr(ast.cond)
+	do @codes.add(";\n")
 	if(useSwitch)
 		if(infoMe.breakSkipLabel <>& null)
 			do @codes.add("\{infoMe.breakSkipLabel}:\n")
 		end if
-		do @codes.add("switch(")
-		do @buildExpr(ast.cond)
-		do @codes.add("){\n")
+		do @codes.add("switch(\{info.id}){\n")
 		block
 			var items: list<\ast@AstStatCase> :: ast.cases
 			do items.head()
@@ -321,63 +322,62 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 		if(infoMe.breakSkipLabel <>& null)
 			do @codes.add("\{infoMe.breakSkipLabel}:{\n")
 		end if
-		do @codes.add("\{info.id}=")
-		do @buildExpr(ast.cond)
-		do @codes.add(";\n")
-		block
-			var first: bool :: true
-			var items: list<\ast@AstStatCase> :: ast.cases
-			do items.head()
-			while(!items.term())
-				var item: \ast@AstStatCase :: items.get()
-				if(first)
-					do first :: false
-					do @codes.add("if(")
+		var first: bool :: true
+		var items: list<\ast@AstStatCase> :: ast.cases
+		do items.head()
+		while(!items.term())
+			var item: \ast@AstStatCase :: items.get()
+			if(first)
+				do first :: false
+				do @codes.add("if(")
+			else
+				do @codes.add("else if(")
+			end if
+			var first2: bool :: true
+			var items2: list<\ast@ExprPair> :: item.conds
+			do items2.head()
+			while(!items2.term())
+				var exprs: \ast@ExprPair :: items2.get()
+				if(first2)
+					do first2 :: false
 				else
-					do @codes.add("else if(")
+					do @codes.add("||")
 				end if
-				var first2: bool :: true
-				var items2: list<\ast@ExprPair> :: item.conds
-				do items2.head()
-				while(!items2.term())
-					var exprs: \ast@ExprPair :: items2.get()
-					if(first2)
-						do first2 :: false
-					else
-						do @codes.add("||")
-					end if
-					if(exprs.expr1 =& null)
-						if(\ast@isStr(ast.cond.type))
-							do @codes.add("\{info.id}.S===(")
-							do @buildExpr(exprs.expr0)
-							do @codes.add(").S")
-						elif(\ast@isRef(ast.cond.type))
-							; TODO:
-							do @codes.add("cmp_(\{info.id},(")
-							do @buildExpr(exprs.expr0)
-							do @codes.add("))==0")
-						else
-							do @codes.add("\{info.id}===(")
-							do @buildExpr(exprs.expr0)
-							do @codes.add(")")
-						end if
-					else
-						do @codes.add("(")
+				if(exprs.expr1 =& null)
+					if(\ast@isStr(ast.cond.type))
+						do @codes.add("\{info.id}.S===(")
 						do @buildExpr(exprs.expr0)
-						do @codes.add(")<=\{info.id}&&\{info.id}<=(")
-						do @buildExpr(exprs.expr1)
+						do @codes.add(").S")
+					elif(\ast@isRef(ast.cond.type))
+						; TODO:
+						do @codes.add("cmp_(\{info.id},(")
+						do @buildExpr(exprs.expr0)
+						do @codes.add("))==0")
+					else
+						do @codes.add("\{info.id}===(")
+						do @buildExpr(exprs.expr0)
 						do @codes.add(")")
 					end if
-					do items2.next()
-				end while
-				do @codes.add("){\n")
-				do @buildBlock(item.statBlock)
-				do @codes.add("}\n")
-				do items.next()
+				else
+					do @codes.add("(")
+					do @buildExpr(exprs.expr0)
+					do @codes.add(")<=\{info.id}&&\{info.id}<=(")
+					do @buildExpr(exprs.expr1)
+					do @codes.add(")")
+				end if
+				do items2.next()
 			end while
-		end block
+			do @codes.add("){\n")
+			do @buildBlock(item.statBlock)
+			do @codes.add("}\n")
+			do items.next()
+		end while
 		if(ast.defaultStatBlock <>& null)
-			do @codes.add("else{")
+			if(^items = 0)
+				do @codes.add("{")
+			else
+				do @codes.add("else{")
+			end if
 			do @buildBlock(ast.defaultStatBlock)
 			do @codes.add("}\n")
 		end if
@@ -442,12 +442,7 @@ func buildFor(ast: \ast@AstStatFor)
 	else
 		do @codes.add(">=")
 	end if
-	do @codes.add("\{endId};\{info.id}")
-	if(step > 0)
-		do @codes.add("+=(")
-	else
-		do @codes.add("-=(")
-	end if
+	do @codes.add("\{endId};\{info.id}+=(")
 	do @buildExpr(ast.step)
 	do @codes.add(")){\n")
 	do @buildStats(ast.stats)
@@ -900,11 +895,11 @@ func buildExpr2(ast: \ast@AstExpr2)
 		do @buildExpr(ast.children1)
 		do @codes.add(")")
 	case %pow
-		do @codes.add("(")
+		do @codes.add("Math.pow((")
 		do @buildExpr(ast.children0)
-		do @codes.add(")**(")
+		do @codes.add("),(")
 		do @buildExpr(ast.children1)
-		do @codes.add(")")
+		do @codes.add("))")
 	case %swap
 		var tmpVar: []char :: @addTmpVar(type)
 		do @codes.add("\{tmpVar}=(")
@@ -969,11 +964,12 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 				do @buildExpr(items.get())
 				do @codes.add(")}")
 			else
-				do @codes.add("(function A_(n){if(n.length===1)return{S:\"\\0\".repeat(\{@getDefaultValue(ast.itemType)})}else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a}})([")
+				do @codes.add("(function A_(n){if(n.length===1)return{S:\"\\0\".repeat(\{@getDefaultValue(ast.itemType)})};else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a;}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
 						do first :: false
+						do @codes.add("(")
 					else
 						do @codes.add(",(")
 					end if
@@ -1481,6 +1477,23 @@ func write(resFiles: list<[]char>)
 				do resFiles.next()
 			end while
 			do writer.writeStr("];}\n")
+		end block
+		
+		block
+			do writer.writeStr("function DS_(t){\n")
+			do writer.writeStr("let i=1;\n")
+			do writer.writeStr("!function T(){\n")
+			do writer.writeStr("if(t[i]<\{%ref $ \convert@runtimeTypeId $ int})\n")
+			do writer.writeStr("++i;\n")
+			do writer.writeStr("else if(t[i]===\{%dict_ $ \convert@runtimeTypeId $ int})\n")
+			do writer.writeStr("++i,T(),T();\n")
+			do writer.writeStr("else if(t[i]===\{%class_ $ \convert@runtimeTypeId $ int})\n")
+			do writer.writeStr("++i;\n")
+			do writer.writeStr("else\n")
+			do writer.writeStr("++i,T();\n")
+			do writer.writeStr("}()\n")
+			do writer.writeStr("return t[i];\n")
+			do writer.writeStr("}\n")
 		end block
 		
 		do writer.writeStr("a();\n")

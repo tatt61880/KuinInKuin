@@ -541,7 +541,7 @@ func parseEnum(): \ast@AstEnum
 		else
 			var expr: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
 			do @initAstExpr(expr, %exprValuePrim, ast.pos)
-			do expr.type :: null {Set the type to 'NULL' when no value is specified.}
+			do expr.type :: null {Set the type to 'null' when no value is specified.}
 			do expr.value :: 0b64
 			do item :: expr
 		end if

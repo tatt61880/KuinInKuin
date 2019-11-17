@@ -1,5 +1,13 @@
 +func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>)
 	switch(attr)
+	case "acos"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::acos(\{x.id});\n")
+	case "acosh"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::acosh(\{x.id});\n")
 	case "addr"
 		do args.head()
 		var class_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -41,6 +49,26 @@
 		do args.next()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id} & \{n.id};\n")
+	case "asin"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::asin(\{x.id});\n")
+	case "asinh"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::asinh(\{x.id});\n")
+	case "atan"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::atan(\{x.id});\n")
+	case "atanh"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::atanh(\{x.id});\n")
+	case "ceil"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::ceil(\{x.id});\n")
 	case "cmdLine"
 		do codes.add("Array_<Array_<char16_t>*>* a_ = new Array_<Array_<char16_t>*>();\n")
 		do codes.add("a_->L = argc_;\n")
@@ -54,11 +82,33 @@
 		do codes.add("std::memcpy(a_->B[i_]->B, t_.c_str(), sizeof(char16_t) * (t_.size() + 1));\n")
 		do codes.add("}\n")
 		do codes.add("return a_;\n")
+	case "cos"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::cos(\{x.id});\n")
+	case "cosh"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::cosh(\{x.id});\n")
 	case "del"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("auto& i_ = \{me_.id}->I++;\n")
 		do codes.add("\{me_.id}->B.erase(i_);\n")
+	case "dist"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var y: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var centerX: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var centerY: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::hypot(\{x.id} - \{centerX.id}, \{y.id} - \{centerY.id});\n")
+	case "exp"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::exp(\{x.id});\n")
 	case "fill"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -95,6 +145,24 @@
 		do codes.add("else return c_;\n")
 		do codes.add("}\n")
 		do codes.add("return -1;\n")
+	case "findLastArray"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var item: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var start: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("if(\{start.id} == -1) \{start.id} = \{me_.id}->L - 1;\n")
+		do codes.add("if(\{start.id} >= \{me_.id}->L) return -1;\n")
+		do codes.add("for(int64_t i_ = \{start.id}; i_ >= 0; i_--){\n")
+		do codes.add("if(\{me_.id}->B[i_] == \{item.id}) return i_;\n")
+		do codes.add("}\n")
+		do codes.add("return -1;\n")
+	case "floor"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::floor(\{x.id});\n")
 	case "forEach"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -149,6 +217,21 @@
 		do args.next()
 		var item: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("\{me_.id}->B.insert(\{me_.id}->I, \{item.id});\n")
+	case "invRot"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var y: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var centerX: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		var centerY: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("double r_ = std::atan2(\{y.id} - \{centerY.id}, \{x.id} - \{centerX.id});\n")
+		do codes.add("return r_ < 0.0 ? r_ + 2.0 * 3.14159265358979323846 : r_;\n")
+	case "ln"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::log(\{x.id});\n")
 	case "moveOffset"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -170,6 +253,10 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("++\{me_.id}->I;\n")
+	case "not"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return ~\{me_.id};\n")
 	case "or"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -185,6 +272,13 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id}->B.top();\n")
+	case "prev"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("if(\{me_.id}->I == \{me_.id}->B.begin())\n")
+		do codes.add("\{me_.id}->I = \{me_.id}->B.end();\n")
+		do codes.add("else\n")
+		do codes.add("--\{me_.id}->I;\n")
 	case "rnd"
 		do args.head()
 		var min: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -197,6 +291,40 @@
 		do args.next()
 		var max: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return rndFloat_(\{min.id}, \{max.id});\n")
+	case "sar"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		; TODO: sign
+		do codes.add("return \{me_.id} >> \{n.id};\n")
+	case "shl"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return \{me_.id} << \{n.id};\n")
+	case "shr"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return \{me_.id} >> \{n.id};\n")
+	case "sin"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::sin(\{x.id});\n")
+	case "sinh"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::sinh(\{x.id});\n")
+	case "sqrt"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::sqrt(\{x.id});\n")
 	case "sub"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -213,10 +341,22 @@
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("\{me_.id}->I = \{me_.id}->B.end();\n")
 		do codes.add("--\{me_.id}->I;\n")
+	case "tan"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::tan(\{x.id});\n")
+	case "tanh"
+		do args.head()
+		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return std::tanh(\{x.id});\n")
 	case "term"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id}->I == \{me_.id}->B.end();\n")
+	case "toArray"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return toArray_<C_>(\{me_.id});")
 	case "toBit64"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -284,9 +424,20 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return toStr_(\{me_.id});\n")
+	case "xor"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return \{me_.id} ^ \{n.id};\n")
 	case "cui_print"
 		do args.head()
 		var str: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("if(\{str.id} == nullptr){\n")
+		do codes.add("std::cout << \"(null)\";\n")
+		do codes.add("return;\n")
+		do codes.add("}\n")
 		do codes.add("std::u16string s_ = \{str.id}->B;\n")
 		do codes.add("const std::string& t_ = utf16ToUtf8_(s_);\n")
 		do codes.add("std::cout << t_ << std::flush;\n")

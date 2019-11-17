@@ -45,82 +45,124 @@ end func
 +func [d0000.knd, _rndUuid] rndUuid(): []char
 end func
 
-+func [d0000.knd, _cos] cos(x: float): float
++func [__raw, cos] cos(x: float): float
 end func
 
-+func [d0000.knd, _sin] sin(x: float): float
++func [__raw, sin] sin(x: float): float
 end func
 
-+func [d0000.knd, _tan] tan(x: float): float
++func [__raw, tan] tan(x: float): float
 end func
 
-+func [d0000.knd, _acos] acos(x: float): float
++func [__raw, acos] acos(x: float): float
 end func
 
-+func [d0000.knd, _asin] asin(x: float): float
++func [__raw, asin] asin(x: float): float
 end func
 
-+func [d0000.knd, _atan] atan(x: float): float
++func [__raw, atan] atan(x: float): float
 end func
 
-+func [d0000.knd, _cosh] cosh(x: float): float
++func [__raw, cosh] cosh(x: float): float
 end func
 
-+func [d0000.knd, _sinh] sinh(x: float): float
++func [__raw, sinh] sinh(x: float): float
 end func
 
-+func [d0000.knd, _tanh] tanh(x: float): float
++func [__raw, tanh] tanh(x: float): float
 end func
 
-+func [d0000.knd, _acosh] acosh(x: float): float
++func [__raw, acosh] acosh(x: float): float
 end func
 
-+func [d0000.knd, _asinh] asinh(x: float): float
++func [__raw, asinh] asinh(x: float): float
 end func
 
-+func [d0000.knd, _atanh] atanh(x: float): float
++func [__raw, atanh] atanh(x: float): float
 end func
 
-+func [d0000.knd, _sqrt] sqrt(x: float): float
++func [__raw, sqrt] sqrt(x: float): float
 end func
 
-+func [d0000.knd, _exp] exp(x: float): float
++func [__raw, exp] exp(x: float): float
 end func
 
-+func [d0000.knd, _ln] ln(x: float): float
++func [__raw, ln] ln(x: float): float
 end func
 
-+func [d0000.knd, _log] log(base: float, x: float): float
++func log(base: float, x: float): float
+	ret @ln(x) / @ln(base)
 end func
 
-+func [d0000.knd, _floor] floor(x: float): float
++func [__raw, floor] floor(x: float): float
 end func
 
-+func [d0000.knd, _ceil] ceil(x: float): float
++func [__raw, ceil] ceil(x: float): float
 end func
 
-+func [d0000.knd, _round] round(x: float, precision: int): float
++func round(x: float, precision: int): float
+	if(precision = 0)
+		ret x >= 0.0 ?(@floor(x + 0.5), -@floor(-x + 0.5))
+	else
+		var p: float :: 10.0 ^ (precision $ float)
+		ret x >= 0.0 ?(@floor(x * p + 0.5) / p, -@floor(-x * p + 0.5) / p)
+	end if
 end func
 
-+func [d0000.knd, _rot] rot(x: &float, y: &float, centerX: float, centerY: float, angle: float)
++func rot(x: &float, y: &float, centerX: float, centerY: float, angle: float)
+	var x2: float :: x - centerX
+	var y2: float :: y - centerY
+	var cosTheta: float :: @cos(angle)
+	var sinTheta: float :: @sin(angle)
+	var x3: float :: x2 * cosTheta - y2 * sinTheta
+	var y3: float :: x2 * sinTheta + y2 * cosTheta
+	do x :: x3 + centerX
+	do y :: y3 + centerY
 end func
 
-+func [d0000.knd, _invRot] invRot(x: float, y: float, centerX: float, centerY: float): float
++func [__raw, invRot] invRot(x: float, y: float, centerX: float, centerY: float): float
 end func
 
-+func [d0000.knd, _dist] dist(x: float, y: float, centerX: float, centerY: float): float
++func [__raw, dist] dist(x: float, y: float, centerX: float, centerY: float): float
 end func
 
-+func [d0000.knd, _chase] chase(x: &float, target: float, vel: float): bool
++func chase(x: &float, target: float, vel: float): bool
+	if(x = target)
+		ret true
+	end if
+	if(x < target)
+		do x :+ vel
+		if(x >= target)
+			do x :: target
+			ret true
+		end if
+	else
+		do x :- vel
+		if(x <= target)
+			do x :: target
+			ret true
+		end if
+	end if
+	ret false
 end func
 
-+func [d0000.knd, _same] same(n1: float, n2: float): bool
++func same(n1: float, n2: float): bool
+	var max: float :: 1.0
+	if(max < n1)
+		do max :: n1
+	end if
+	if(max < n2)
+		do max :: n2
+	end if
+	ret (n1 - n2).abs() <= 2.220446049250313e-16 * max
 end func
 
-+func [d0000.knd, _toRad] toRad(degree: float): float
++func toRad(degree: float): float
+	ret degree * @pi / 180.0
 end func
 
-+func [d0000.knd, _toDegree] toDegree(rad: float): float
++func toDegree(rad: float): float
+	ret rad * 180.0 / @pi
 end func
 
 +func cmp(s1: []char, s2: []char): int

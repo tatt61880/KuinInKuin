@@ -419,7 +419,7 @@ end func
 
 func rebuildAlias(ast: \ast@AstAlias, parent: \ast@AstAlias)
 	; Make sure that the enum references do not circulate.
-	if(ast = parent)
+	if(ast =& parent)
 		do \err@err(%circulatingAlias, parent.pos, [parent.name])
 		do ast.type :: null
 		ret
@@ -1159,7 +1159,7 @@ func rebuildStat(ast: \ast@AstStat, retType: \ast@AstType, parentFunc: \ast@AstF
 			assert !items.term()
 		end if
 		if(arg.expr =& null)
-			ret null
+			do arg.expr :: @makeExprDefaultValue(arg.type, arg.pos) $ \ast@AstExpr
 		end if
 		block
 			; Replace initializers with assignment operators.
@@ -1950,9 +1950,20 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 				if(ast.children0.typeId.and(%exprValue) = %exprValue & ast.children1.typeId.and(%exprValue) = %exprValue)
 					var value: bool :: false
 					var children0Type: \ast@AstType :: ast.children0.type
-					if(children0Type.typeId = %typeBit | \ast@isInt(children0Type) | \ast@isFloat(children0Type) | \ast@isChar(children0Type) | \ast@isBool(children0Type) | \ast@isEnum(children0Type))
+					if(children0Type.typeId = %typeBit | \ast@isInt(children0Type) | \ast@isChar(children0Type) | \ast@isBool(children0Type) | \ast@isEnum(children0Type))
 						var n1: bit64 :: (ast.children0 $ \ast@AstExprValuePrim).value
 						var n2: bit64 :: (ast.children1 $ \ast@AstExprValuePrim).value
+						switch(ast.kind)
+						case %eq
+							do value :: n1 = n2
+						case %nEq
+							do value :: n1 <> n2
+						default
+							assert false
+						end switch
+					elif(\ast@isFloat(children0Type))
+						var n1: float :: (ast.children0 $ \ast@AstExprValueFloat).value
+						var n2: float :: (ast.children1 $ \ast@AstExprValueFloat).value
 						switch(ast.kind)
 						case %eq
 							do value :: n1 = n2
@@ -2131,7 +2142,7 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 				do \err@err(%wrongLeftOrRightValueOfSwapOperator, ast.pos, null)
 				ret null
 			end if
-			if(!\ast@isClass(ast.children0.type) & ast.children0.type.refItem <>& ast.children1.type.refItem)
+			if(!(\ast@isClass(ast.children0.type) & ast.children0.type.refItem <>& ast.children1.type.refItem))
 				do ast.type :: ast.children0.type
 				do correct :: true
 			end if
@@ -3219,6 +3230,36 @@ func makeExprNull(pos: \pos@Pos): \ast@AstExprValue
 		do value.type :: type
 	end block
 	ret value
+end func
+
+func makeExprDefaultValue(type: \ast@AstType, pos: \pos@Pos): \ast@AstExprValue
+	if(\ast@isEnum(type))
+		var value: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
+		do @initAstExpr(value, %exprValuePrim, pos)
+		do value.type :: type
+		do value.value :: 0b64
+		ret value
+	end if
+	if(\ast@isNullable(type))
+		ret @makeExprNull(pos)
+	end if
+	if(\ast@isFloat(type))
+		var value: \ast@AstExprValueFloat :: #\ast@AstExprValueFloat
+		do @initAstExpr(value, %exprValueFloat, pos)
+		do value.type :: type
+		do value.value :: 0.0
+		ret value
+	end if
+	switch(type.typeId)
+	case %typeBit, %typePrim
+		var value: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
+		do @initAstExpr(value, %exprValuePrim, pos)
+		do value.type :: type
+		do value.value :: 0b64
+		ret value
+	default
+		assert false
+	end switch
 end func
 
 func refreshStats(stats: list<\ast@AstStat>, retType: \ast@AstType, parentFunc: \ast@AstFunc): list<\ast@AstStat>

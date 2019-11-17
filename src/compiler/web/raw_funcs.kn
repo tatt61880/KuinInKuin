@@ -1,5 +1,13 @@
 +func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>)
 	switch(attr)
+	case "acos"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.acos(\{x.id});\n")
+	case "acosh"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.log(\{x.id}+Math.sqrt(\{x.id}*\{x.id}-1));\n")
 	case "addr"
 		; TODO:
 	case "addDict"
@@ -45,12 +53,40 @@
 		do args.next()
 		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return \{me_.id}&\{n.id};\n")
+	case "asin"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.asin(\{x.id});\n")
+	case "asinh"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.log(\{x.id}+Math.sqrt(\{x.id}*\{x.id}+1));\n")
+	case "atan"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.atan(\{x.id});\n")
+	case "atanh"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return 0.5*Math.log((1+\{x.id})/(1-\{x.id}));\n")
+	case "ceil"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.ceil(\{x.id});\n")
 	case "cmdLine"
 		do codes.add("let r_=(O_&&O_.cmdLine)?O_.cmdLine:location.search.slice(1).split(\"&\");\n")
 		do codes.add("if(r_.length===1&&r_[0]===\"\")return[];\n")
 		do codes.add("for(let i_=0;i_<r_.length;i_++)\n")
 		do codes.add("r_[i_]={S:r_[i_]};\n")
 		do codes.add("return r_;\n")
+	case "cos"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.cos(\{x.id});\n")
+	case "cosh"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.cosh(\{x.id});\n")
 	case "del"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -59,6 +95,21 @@
 		do codes.add("if(p_.N===null)\{me_.id}.T=p_.P;else p_.N.P=p_.P;\n")
 		do codes.add("\{me_.id}.P=p_.N;\n")
 		do codes.add("\{me_.id}.L--;\n")
+	case "dist"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var y: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var centerX: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var centerY: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let x_=\{x.id}-\{centerX.id},y_=\{y.id}-\{centerY.id};\n")
+		do codes.add("return Math.sqrt(x_*x_+y_*y_);\n")
+	case "exp"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.exp(\{x.id});\n")
 	case "fill"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -117,6 +168,23 @@
 		do codes.add("else return c_;\n")
 		do codes.add("}\n")
 		do codes.add("return -1;\n")
+	case "findLastArray"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var start: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{meType.id}[0]===\{%array $ \convert@runtimeTypeId $ int}&&\{meType.id}[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add("return \{me_.id}.S.lastIndexOf(String.fromCharCode(\{item.id}),\{start.id}===-1?\{me_.id}.S.length-1:\{start.id});\n")
+		do codes.add("else\n")
+		do codes.add("return \{me_.id}.lastIndexOf(\{item.id},\{start.id}===-1?\{me_.id}.S.length-1:\{start.id});\n")
+	case "floor"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.floor(\{x.id});\n")
 	case "forEach"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -147,7 +215,7 @@
 		do codes.add("else\n")
 		do codes.add("r_=\{me_.id}.get(\{key.id});\n")
 		do codes.add("if(!(\{existed.id}.$=r_!==undefined)){\n")
-		do codes.add("switch(\{meType.id}){\n")
+		do codes.add("switch(DS_(\{meType.id})){\n") {TODO: [2]}
 		do codes.add("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
 		do codes.add("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
 		do codes.add("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")
@@ -203,6 +271,21 @@
 		do codes.add("if(\{me_.id}.T===null)\{me_.id}.T=n_;\n")
 		do codes.add("p_.P=n_;\n")
 		do codes.add("\{me_.id}.L++;\n")
+	case "invRot"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var y: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var centerX: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var centerY: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let r_=Math.atan2(\{y.id}-\{centerY.id},\{x.id}-\{centerX.id});\n")
+		do codes.add("return r_<0.0?r_+2.0*Math.PI:r_;\n")
+	case "ln"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.log(\{x.id});\n")
 	case "moveOffset"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -224,6 +307,10 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("\{me_.id}.P=\{me_.id}.P.N;\n")
+	case "not"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return ~\{me_.id};\n")
 	case "or"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -239,6 +326,10 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return \{me_.id}[\{me_.id}.length-1];\n")
+	case "prev"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("\{me_.id}.P=\{me_.id}.P.P;\n")
 	case "rnd"
 		do args.head()
 		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -251,6 +342,39 @@
 		do args.next()
 		var max: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return Math.random()*(\{max.id}-\{min.id})+\{min.id};\n")
+	case "sar"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}>>\{n.id};\n")
+	case "shl"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}<<\{n.id};\n")
+	case "shr"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}>>>\{n.id};\n")
+	case "sin"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.sin(\{x.id});\n")
+	case "sinh"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.sinh(\{x.id});\n")
+	case "sqrt"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.sqrt(\{x.id});\n")
 	case "sub"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -270,10 +394,27 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("\{me_.id}.P=\{me_.id}.T;\n")
+	case "tan"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.tan(\{x.id});\n")
+	case "tanh"
+		do args.head()
+		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return Math.tanh(\{x.id});\n")
 	case "term"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return \{me_.id}.P===null;\n")
+	case "toArray"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("let a_=new Array(\{me_.id}.L),e_=\{me_.id}.H;\n")
+		do codes.add("for(let i_=0;i_<\{me_.id}.L;i_++){\n")
+		do codes.add("a_[i_]=e_.I;\n")
+		do codes.add("e_=e_.N;\n")
+		do codes.add("}\n")
+		do codes.add("return a_;\n")
 	case "toBit64"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -342,9 +483,17 @@
 		do codes.add("return \{me_.id};\n")
 		; TODO:
 		do codes.add("}\n")
+	case "xor"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("return \{me_.id}^\{n.id};\n")
 	case "cui_print"
 		do args.head()
 		var str: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{str.id}===null)\{str.id}={S:\"(null)\"};\n")
 		do codes.add("if(O_&&O_.print){O_.print(\{str.id}.S);return;}\n")
 		do codes.add("console.log(\{str.id}.S);\n")
 	case "file_copyFile"
@@ -442,7 +591,7 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		var handle: \web\output@WebInfo :: search(members, "handle")
-		do codes.add("var d_=\{me_.id}.\{handle.id}.F.replace(\"\\n\", \"\\u000D\\n\");\n")
+		do codes.add("let d_=\{me_.id}.\{handle.id}.F.replace(\"\\n\", \"\\u000D\\n\");\n")
 		do codes.add("if(O_&&O_.writeFile){O_.writeFile(\{me_.id}.\{handle.id}.P,d_);return;}\n")
 		do codes.add("let b_=new Blob([d_]);\n")
 		do codes.add("let l_=document.createElement(\"a\");\n")

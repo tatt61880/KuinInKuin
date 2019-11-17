@@ -81,6 +81,12 @@ func buildFunc(ast: \ast@AstFunc)
 			do template :: "template<typename T_, typename R_> "
 		elif(ast.funcOption.and(%kvf) = %kvf)
 			do template :: "template<typename T_, typename K_, typename V_> "
+		elif(ast.funcOption.and(%rac) = %rac)
+			do template :: "template<typename T_, typename C_> "
+		elif(ast.funcOption.and(%rak) = %rak)
+			do template :: "template<typename T_, typename K_> "
+		elif(ast.funcOption.and(%rav) = %rav)
+			do template :: "template<typename T_, typename V_> "
 		else
 			do template :: "template<typename T_> "
 		end if
@@ -91,6 +97,12 @@ func buildFunc(ast: \ast@AstFunc)
 		do retType :: "R_"
 	elif(ast.funcOption.and(%rme) = %rme)
 		do retType :: "T_"
+	elif(ast.funcOption.and(%rac) = %rac)
+		do retType :: "Array_<C_>*"
+	elif(ast.funcOption.and(%rak) = %rak)
+		do retType :: "Array_<K_>*"
+	elif(ast.funcOption.and(%rav) = %rav)
+		do retType :: "Array_<V_>*"
 	else
 		do retType :: @getType(ast.ret_)
 	end if
@@ -179,16 +191,16 @@ func buildFunc(ast: \ast@AstFunc)
 			var localVar: \ast@AstArg :: @localVars.get()
 			var info2: @CppInfo :: @getInfo(localVar)
 			if(localVar.name =& null)
-				do @codes.ins("\{@getType(localVar.type)} \{info2.id} = \{@getDefaultValue(localVar.type)};\n")
+				do @codes.ins("\{@getType(localVar.type)} \{info2.id};\n")
 			else
-				do @codes.ins("\{@getType(localVar.type)} \{info2.id} = \{@getDefaultValue(localVar.type)}; // \{localVar.name}\n")
+				do @codes.ins("\{@getType(localVar.type)} \{info2.id}; // \{localVar.name}\n")
 			end if
 			do @localVars.del()
 		end while
 		do @tmpVars.head()
 		while(!@tmpVars.term())
 			var tmpVar: @TmpVar :: @tmpVars.get()
-			do @codes.ins("\{@getType(tmpVar.type)} \{tmpVar.identifier} = \{@getDefaultValue(tmpVar.type)};\n")
+			do @codes.ins("\{@getType(tmpVar.type)} \{tmpVar.identifier};\n")
 			do @tmpVars.del()
 		end while
 	end if
@@ -400,10 +412,11 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 			do items.next()
 		end while
 	end if
+	do @codes.add("\{info.id} = ")
+	do @buildExpr(ast.cond)
+	do @codes.add(";\n")
 	if(useSwitch)
-		do @codes.add("switch(")
-		do @buildExpr(ast.cond)
-		do @codes.add("){\n")
+		do @codes.add("switch(\{info.id}){\n")
 		block
 			var items: list<\ast@AstStatCase> :: ast.cases
 			do items.head()
@@ -431,58 +444,57 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 		end if
 		do @codes.add("}\n")
 	else
-		do @codes.add("\{info.id} = ")
-		do @buildExpr(ast.cond)
-		do @codes.add(";\n")
-		block
-			var first: bool :: true
-			var items: list<\ast@AstStatCase> :: ast.cases
-			do items.head()
-			while(!items.term())
-				var item: \ast@AstStatCase :: items.get()
-				if(first)
-					do first :: false
-					do @codes.add("if(")
+		var first: bool :: true
+		var items: list<\ast@AstStatCase> :: ast.cases
+		do items.head()
+		while(!items.term())
+			var item: \ast@AstStatCase :: items.get()
+			if(first)
+				do first :: false
+				do @codes.add("if(")
+			else
+				do @codes.add("else if(")
+			end if
+			var first2: bool :: true
+			var items2: list<\ast@ExprPair> :: item.conds
+			do items2.head()
+			while(!items2.term())
+				var exprs: \ast@ExprPair :: items2.get()
+				if(first2)
+					do first2 :: false
 				else
-					do @codes.add("else if(")
+					do @codes.add(" || ")
 				end if
-				var first2: bool :: true
-				var items2: list<\ast@ExprPair> :: item.conds
-				do items2.head()
-				while(!items2.term())
-					var exprs: \ast@ExprPair :: items2.get()
-					if(first2)
-						do first2 :: false
-					else
-						do @codes.add(" || ")
-					end if
-					if(exprs.expr1 =& null)
-						if(\ast@isRef(ast.cond.type))
-							do @codes.add("cmp_(\{info.id}, (")
-							do @buildExpr(exprs.expr0)
-							do @codes.add(")) == 0")
-						else
-							do @codes.add("\{info.id} == (")
-							do @buildExpr(exprs.expr0)
-							do @codes.add(")")
-						end if
-					else
-						do @codes.add("(")
+				if(exprs.expr1 =& null)
+					if(\ast@isRef(ast.cond.type))
+						do @codes.add("cmp_(\{info.id}, (")
 						do @buildExpr(exprs.expr0)
-						do @codes.add(") <= \{info.id} && \{info.id} <= (")
-						do @buildExpr(exprs.expr1)
+						do @codes.add(")) == 0")
+					else
+						do @codes.add("\{info.id} == (")
+						do @buildExpr(exprs.expr0)
 						do @codes.add(")")
 					end if
-					do items2.next()
-				end while
-				do @codes.add("){\n")
-				do @buildBlock(item.statBlock, breakStat, skipStat)
-				do @codes.add("}\n")
-				do items.next()
+				else
+					do @codes.add("(")
+					do @buildExpr(exprs.expr0)
+					do @codes.add(") <= \{info.id} && \{info.id} <= (")
+					do @buildExpr(exprs.expr1)
+					do @codes.add(")")
+				end if
+				do items2.next()
 			end while
-		end block
+			do @codes.add("){\n")
+			do @buildBlock(item.statBlock, breakStat, skipStat)
+			do @codes.add("}\n")
+			do items.next()
+		end while
 		if(ast.defaultStatBlock <>& null)
-			do @codes.add("else{")
+			if(^items = 0)
+				do @codes.add("{")
+			else
+				do @codes.add("else{")
+			end if
 			do @buildBlock(ast.defaultStatBlock, breakStat, skipStat)
 			do @codes.add("}\n")
 		end if
@@ -554,12 +566,7 @@ func buildFor(ast: \ast@AstStatFor, breakStat: \ast@AstStat, skipStat: \ast@AstS
 	else
 		do @codes.add(">=")
 	end if
-	do @codes.add(" \{endId}; \{info.id} ")
-	if(step > 0)
-		do @codes.add("+= (")
-	else
-		do @codes.add("-= (")
-	end if
+	do @codes.add(" \{endId}; \{info.id} += (")
 	do @buildExpr(ast.step)
 	do @codes.add(")){\n")
 	do @buildStats(ast.stats, ast, ast)
@@ -1104,6 +1111,12 @@ func buildExprCall(ast: \ast@AstExprCall)
 			do template :: "<\{@getType(meType)}, \{@getType(funcType.ret_)}>"
 		elif(funcType.funcOption.and(%kvf) = %kvf)
 			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}>"
+		elif(funcType.funcOption.and(%rac) = %rac)
+			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeGen).itemType)}>"
+		elif(funcType.funcOption.and(%rak) = %rak)
+			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}>"
+		elif(funcType.funcOption.and(%rav) = %rav)
+			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}>"
 		else
 			do template :: "<\{@getType(meType)}>"
 		end if
@@ -1337,7 +1350,7 @@ func write(resFiles: list<[]char>)
 		end while
 		do writer.writeStr("}\n")
 		do writer.writeStr("int main(int c_, char** v_){\n")
-		do writer.writeStr("argc_ = c_ - 1;\n")
+		do writer.writeStr("argc_ = static_cast<int64_t>(c_) - 1;\n")
 		do writer.writeStr("argv_ = v_ + 1;\n")
 		block
 			do @classTable.head()
@@ -1550,30 +1563,4 @@ func refClass(ast: \ast@AstClass): []char
 	end block
 	do @classes.add(ast)
 	ret info.id
-end func
-
-func getDefaultValue(type: \ast@AstType): []char
-	if(\ast@isNullable(type))
-		ret "nullptr"
-	end if
-	switch(type.typeId)
-	case %typeUser
-		assert \ast@isEnum(type)
-		ret "0"
-	case %typeBit
-		ret "0"
-	case %typePrim
-		switch((type $ \ast@AstTypePrim).kind)
-		case %int_, %char_
-			ret "0"
-		case %float_
-			ret "0.0"
-		case %bool_
-			ret "false"
-		default
-			assert false
-		end switch
-	default
-		assert false
-	end switch
 end func

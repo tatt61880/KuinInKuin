@@ -102,19 +102,19 @@ end func
 func [__any, __tme, __rme, __raw, and] _and(me_: int, type: []int, n: int): int
 end func
 
-func [__any, __tme, __rme] _xor(me_: int, type: []int, n: int): int
+func [__any, __tme, __rme, __raw, xor] _xor(me_: int, type: []int, n: int): int
 end func
 
-func [__any, __rme] _not(me_: int, type: []int): int
+func [__any, __rme, __raw, not] _not(me_: int, type: []int): int
 end func
 
-func [__any, __rme] _shl(me_: int, type: []int, n: int): int
+func [__any, __rme, __raw, shl] _shl(me_: int, type: []int, n: int): int
 end func
 
-func [__any, __rme] _shr(me_: int, type: []int, n: int): int
+func [__any, __rme, __raw, shr] _shr(me_: int, type: []int, n: int): int
 end func
 
-func [__any, __rme] _sar(me_: int, type: []int, n: int): int
+func [__any, __rme, __raw, sar] _sar(me_: int, type: []int, n: int): int
 end func
 
 func [__any, __rme] _endian(me_: int, type: []int): int
@@ -147,7 +147,7 @@ end func
 func [__any, __tch] _findList(me_: int, type: []int, item: int): bool
 end func
 
-func [__any, __tch] _findLastArray(me_: int, type: []int, item: int, start: int): int
+func [__any, __tch, __raw, findLastArray] _findLastArray(me_: int, type: []int, item: int, start: int): int
 end func
 
 func [__any, __tch] _findLastList(me_: int, type: []int, item: int): bool
@@ -179,20 +179,28 @@ end func
 
 func _lower(me_: []char): []char
 	assert me_ <>& null
+	var s: []char :: #[^me_]char
 	for i(0, ^me_ - 1)
 		if('A' <= me_[i] & me_[i] <= 'Z')
-			do me_[i] :: (me_[i] $ bit64 - 0x41b64 + 0x61b64) $ char
+			do s[i] :: (me_[i] $ bit64 - 0x41b64 + 0x61b64) $ char
+		else
+			do s[i] :: me_[i]
 		end if
 	end for
+	ret s
 end func
 
 func _upper(me_: []char): []char
 	assert me_ <>& null
+	var s: []char :: #[^me_]char
 	for i(0, ^me_ - 1)
 		if('a' <= me_[i] & me_[i] <= 'z')
-			do me_[i] :: (me_[i] $ bit64 - 0x61b64 + 0x41b64) $ char
+			do s[i] :: (me_[i] $ bit64 - 0x61b64 + 0x41b64) $ char
+		else
+			do s[i] :: me_[i]
 		end if
 	end for
+	ret s
 end func
 
 func _trim(me_: []char): []char
@@ -262,7 +270,18 @@ func _trimRight(me_: []char): []char
 	ret r
 end func
 
-func [d0000.knd] _split(me_: []char, delimiter: []char): [][]char
+func _split(me_: []char, delimiter: []char): [][]char
+	var result: list<[]char> :: #list<[]char>
+	var p: int :: 0
+	while(true)
+		var p2: int :: me_.findStr(delimiter, p)
+		if(p2 = -1)
+			do result.add(me_.sub(p, -1))
+			ret result.toArray()
+		end if
+		do result.add(me_.sub(p, p2 - p))
+		do p :: p2 + ^delimiter
+	end while
 end func
 
 func _join(me_: [][]char, delimiter: []char): []char
@@ -291,10 +310,28 @@ end func
 func [d0000.knd] _replace(me_: []char, old: []char, new: []char): []char
 end func
 
-func [d0000.knd] _findStr(me_: []char, pattern: []char, start: int): int
+func _findStr(me_: []char, pattern: []char, start: int): int
+	for i(0, ^me_ - ^pattern)
+		for j(0, ^pattern)
+			if(me_[i + j] <> pattern[j])
+				skip i
+			end if
+		end for
+		ret i
+	end for
+	ret -1
 end func
 
-func [d0000.knd] _findStrLast(me_: []char, pattern: []char, start: int): int
+func _findStrLast(me_: []char, pattern: []char, start: int): int
+	for i(^me_ - ^pattern, 0, -1)
+		for j(0, ^pattern)
+			if(me_[i + j] <> pattern[j])
+				skip i
+			end if
+		end for
+		ret i
+	end for
+	ret -1
 end func
 
 func [d0000.knd] _findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
@@ -339,7 +376,7 @@ end func
 func [__any, __raw, next] _next(me_: int, type: []int)
 end func
 
-func [__any] _prev(me_: int, type: []int)
+func [__any, __raw, prev] _prev(me_: int, type: []int)
 end func
 
 func [__any, __raw, term] _term(me_: int, type: []int): bool
@@ -357,7 +394,7 @@ end func
 func [__any, __tch, __raw, ins] _ins(me_: int, type: []int, item: int)
 end func
 
-func [__any, __rac] _toArray(me_: int, type: []int): int
+func [__any, __rac, __raw, toArray] _toArray(me_: int, type: []int): int
 end func
 
 func [__any, __rak] _toArrayKey(me_: int, type: []int): int

@@ -2,6 +2,19 @@ func main()
 	do @test1()
 end func
 
+var s: []char :: "abc" ~ "def"
+
+func dump(ns: []bit8)
+	var s: []char :: ""
+	for i(0, ^ns - 1)
+		do s :~ " " ~ ns[i].toStr()
+	end for
+	do cui@print(s ~ "\n")
+end func
+
+; Single line comment #1.
+; Single line comment #2.
+
 func test1()
 	do cui@print("Kuin" ~ " Test " ~ "Program\n")
 	
@@ -95,5 +108,1347 @@ func test1()
 		do d1 :+ 2b64
 		do d2 :: 0b64 - d2
 		do cui@print(c1.toStr() ~ ", " ~ d1.toStr() ~ ", " ~ c2.toStr() ~ ", " ~ d2.toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((-3 = 5).toStr() ~ ", " ~ (-3 <> 5).toStr() ~ ", " ~ (-3 < 5).toStr() ~ ", " ~ (-3 <= 5).toStr() ~ ", " ~ (-3 > 5).toStr() ~ ", " ~ (-3 >= 5).toStr() ~ "\n")
+		
+		var a: int :: -3
+		var b: int :: 5
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print((4 = 4).toStr() ~ ", " ~ (4 <> 4).toStr() ~ ", " ~ (4 < 4).toStr() ~ ", " ~ (4 <= 4).toStr() ~ ", " ~ (4 > 4).toStr() ~ ", " ~ (4 >= 4).toStr() ~ "\n")
+		
+		var c: int :: 4
+		var d: int :: 4
+		do cui@print((c = d).toStr() ~ ", " ~ (c <> d).toStr() ~ ", " ~ (c < d).toStr() ~ ", " ~ (c <= d).toStr() ~ ", " ~ (c > d).toStr() ~ ", " ~ (c >= d).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((-3.0 = 5.0).toStr() ~ ", " ~ (-3.0 <> 5.0).toStr() ~ ", " ~ (-3.0 < 5.0).toStr() ~ ", " ~ (-3.0 <= 5.0).toStr() ~ ", " ~ (-3.0 > 5.0).toStr() ~ ", " ~ (-3.0 >= 5.0).toStr() ~ "\n")
+		
+		var a: float :: -3.0
+		var b: float :: 5.0
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print((4.0 = 4.0).toStr() ~ ", " ~ (4.0 <> 4.0).toStr() ~ ", " ~ (4.0 < 4.0).toStr() ~ ", " ~ (4.0 <= 4.0).toStr() ~ ", " ~ (4.0 > 4.0).toStr() ~ ", " ~ (4.0 >= 4.0).toStr() ~ "\n")
+		
+		var c: float :: 4.0
+		var d: float :: 4.0
+		do cui@print((c = d).toStr() ~ ", " ~ (c <> d).toStr() ~ ", " ~ (c < d).toStr() ~ ", " ~ (c <= d).toStr() ~ ", " ~ (c > d).toStr() ~ ", " ~ (c >= d).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((0x79b8 = 0x81b8).toStr() ~ ", " ~ (0x79b8 <> 0x81b8).toStr() ~ ", " ~ (0x79b8 < 0x81b8).toStr() ~ ", " ~ (0x79b8 <= 0x81b8).toStr() ~ ", " ~ (0x79b8 > 0x81b8).toStr() ~ ", " ~ (0x79b8 >= 0x81b8).toStr() ~ "\n")
+		
+		var a: bit8 :: 0x79b8
+		var b: bit8 :: 0x81b8
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print((0x80b8 = 0x80b8).toStr() ~ ", " ~ (0x80b8 <> 0x80b8).toStr() ~ ", " ~ (0x80b8 < 0x80b8).toStr() ~ ", " ~ (0x80b8 <= 0x80b8).toStr() ~ ", " ~ (0x80b8 > 0x80b8).toStr() ~ ", " ~ (0x80b8 >= 0x80b8).toStr() ~ "\n")
+		
+		var c: bit8 :: 0x80b8
+		var d: bit8 :: 0x80b8
+		do cui@print((c = d).toStr() ~ ", " ~ (c <> d).toStr() ~ ", " ~ (c < d).toStr() ~ ", " ~ (c <= d).toStr() ~ ", " ~ (c > d).toStr() ~ ", " ~ (c >= d).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((0x7900b16 = 0x8100b16).toStr() ~ ", " ~ (0x7900b16 <> 0x8100b16).toStr() ~ ", " ~ (0x7900b16 < 0x8100b16).toStr() ~ ", " ~ (0x7900b16 <= 0x8100b16).toStr() ~ ", " ~ (0x7900b16 > 0x8100b16).toStr() ~ ", " ~ (0x7900b16 >= 0x8100b16).toStr() ~ "\n")
+		
+		var a: bit16 :: 0x7900b16
+		var b: bit16 :: 0x8100b16
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print((0x8000b16 = 0x8000b16).toStr() ~ ", " ~ (0x8000b16 <> 0x8000b16).toStr() ~ ", " ~ (0x8000b16 < 0x8000b16).toStr() ~ ", " ~ (0x8000b16 <= 0x8000b16).toStr() ~ ", " ~ (0x8000b16 > 0x8000b16).toStr() ~ ", " ~ (0x8000b16 >= 0x8000b16).toStr() ~ "\n")
+		
+		var c: bit16 :: 0x8000b16
+		var d: bit16 :: 0x8000b16
+		do cui@print((c = d).toStr() ~ ", " ~ (c <> d).toStr() ~ ", " ~ (c < d).toStr() ~ ", " ~ (c <= d).toStr() ~ ", " ~ (c > d).toStr() ~ ", " ~ (c >= d).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((0x79000000b32 = 0x81000000b32).toStr() ~ ", " ~ (0x79000000b32 <> 0x81000000b32).toStr() ~ ", " ~ (0x79000000b32 < 0x81000000b32).toStr() ~ ", " ~ (0x79000000b32 <= 0x81000000b32).toStr() ~ ", " ~ (0x79000000b32 > 0x81000000b32).toStr() ~ ", " ~ (0x79000000b32 >= 0x81000000b32).toStr() ~ "\n")
+		
+		var a: bit32 :: 0x79000000b32
+		var b: bit32 :: 0x81000000b32
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print((0x80000000b32 = 0x80000000b32).toStr() ~ ", " ~ (0x80000000b32 <> 0x80000000b32).toStr() ~ ", " ~ (0x80000000b32 < 0x80000000b32).toStr() ~ ", " ~ (0x80000000b32 <= 0x80000000b32).toStr() ~ ", " ~ (0x80000000b32 > 0x80000000b32).toStr() ~ ", " ~ (0x80000000b32 >= 0x80000000b32).toStr() ~ "\n")
+		
+		var c: bit32 :: 0x80000000b32
+		var d: bit32 :: 0x80000000b32
+		do cui@print((c = d).toStr() ~ ", " ~ (c <> d).toStr() ~ ", " ~ (c < d).toStr() ~ ", " ~ (c <= d).toStr() ~ ", " ~ (c > d).toStr() ~ ", " ~ (c >= d).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((0x7900000000000000b64 = 0x8100000000000000b64).toStr() ~ ", " ~ (0x7900000000000000b64 <> 0x8100000000000000b64).toStr() ~ ", " ~ (0x7900000000000000b64 < 0x8100000000000000b64).toStr() ~ ", " ~ (0x7900000000000000b64 <= 0x8100000000000000b64).toStr() ~ ", " ~ (0x7900000000000000b64 > 0x8100000000000000b64).toStr() ~ ", " ~ (0x7900000000000000b64 >= 0x8100000000000000b64).toStr() ~ "\n")
+		
+		var a: bit64 :: 0x7900000000000000b64
+		var b: bit64 :: 0x8100000000000000b64
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print((0x8000000000000000b64 = 0x8000000000000000b64).toStr() ~ ", " ~ (0x8000000000000000b64 <> 0x8000000000000000b64).toStr() ~ ", " ~ (0x8000000000000000b64 < 0x8000000000000000b64).toStr() ~ ", " ~ (0x8000000000000000b64 <= 0x8000000000000000b64).toStr() ~ ", " ~ (0x8000000000000000b64 > 0x8000000000000000b64).toStr() ~ ", " ~ (0x8000000000000000b64 >= 0x8000000000000000b64).toStr() ~ "\n")
+		
+		var c: bit64 :: 0x8000000000000000b64
+		var d: bit64 :: 0x8000000000000000b64
+		do cui@print((c = d).toStr() ~ ", " ~ (c <> d).toStr() ~ ", " ~ (c < d).toStr() ~ ", " ~ (c <= d).toStr() ~ ", " ~ (c > d).toStr() ~ ", " ~ (c >= d).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print(("ab" = "a" ~ "c").toStr() ~ ", " ~ ("ab" <> "a" ~ "c").toStr() ~ ", " ~ ("ab" < "a" ~ "c").toStr() ~ ", " ~ ("ab" <= "a" ~ "c").toStr() ~ ", " ~ ("ab" > "a" ~ "c").toStr() ~ ", " ~ ("ab" >= "a" ~ "c").toStr() ~ "\n")
+		
+		var a: []char :: "ab"
+		var b: []char :: "a" ~ "c"
+		do cui@print((a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ ", " ~ (a < b).toStr() ~ ", " ~ (a <= b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a >= b).toStr() ~ "\n")
+		
+		do cui@print(("ab" = "a" ~ "b").toStr() ~ ", " ~ ("ab" <> "a" ~ "b").toStr() ~ ", " ~ ("ab" < "a" ~ "b").toStr() ~ ", " ~ ("ab" <= "a" ~ "b").toStr() ~ ", " ~ ("ab" > "a" ~ "b").toStr() ~ ", " ~ ("ab" >= "a" ~ "b").toStr() ~ "\n")
+		do cui@print((a = "ab").toStr() ~ ", " ~ (a <> "ab").toStr() ~ ", " ~ (a < "ab").toStr() ~ ", " ~ (a <= "ab").toStr() ~ ", " ~ (a > "ab").toStr() ~ ", " ~ (a >= "ab").toStr() ~ "\n")
+	end block
+	
+	block
+		var a: []char :: "ab"
+		var b: []char :: "ab"
+		var c: []char :: a
+		var d: []char :: null
+		var e: []char :: null
+		do cui@print((a =& b).toStr() ~ ", " ~ (a <>& b).toStr() ~ "\n")
+		do cui@print((a =& c).toStr() ~ ", " ~ (a <>& c).toStr() ~ "\n")
+		do cui@print((b =& c).toStr() ~ ", " ~ (b <>& c).toStr() ~ "\n")
+		do cui@print((a =& d).toStr() ~ ", " ~ (a <>& d).toStr() ~ "\n")
+		do cui@print((d =& e).toStr() ~ ", " ~ (d <>& e).toStr() ~ "\n")
+		do cui@print((d =& null).toStr() ~ ", " ~ (d <>& null).toStr() ~ "\n")
+		do cui@print((null =& null).toStr() ~ ", " ~ (null <>& null).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((true & true).toStr() ~ ", " ~ (true | true).toStr() ~ "\n")
+		do cui@print((true & false).toStr() ~ ", " ~ (true | false).toStr() ~ "\n")
+		do cui@print((false & true).toStr() ~ ", " ~ (false | true).toStr() ~ "\n")
+		do cui@print((false & false).toStr() ~ ", " ~ (false | false).toStr() ~ "\n")
+		do cui@print((true ?("T", "F")) ~ "\n")
+		do cui@print((false ?("T", "F")) ~ "\n")
+		do cui@print((!true ?("T", "F")) ~ "\n")
+		do cui@print((!false ?("T", "F")) ~ "\n")
+		
+		var a: bool :: null =& null
+		var b: bool :: null <>& null
+		var c: bool :: null =& null
+		var d: bool :: null <>& null
+		do cui@print((a & c).toStr() ~ ", " ~ (a | c).toStr() ~ "\n")
+		do cui@print((a & d).toStr() ~ ", " ~ (a | d).toStr() ~ "\n")
+		do cui@print((b & c).toStr() ~ ", " ~ (b | c).toStr() ~ "\n")
+		do cui@print((b & d).toStr() ~ ", " ~ (b | d).toStr() ~ "\n")
+		do cui@print((a ?("T", "F")) ~ "\n")
+		do cui@print((b ?("T", "F")) ~ "\n")
+		do cui@print((!a ?("T", "F")) ~ "\n")
+		do cui@print((!b ?("T", "F")) ~ "\n")
+	end block
+	
+	block
+		var a: []char :: (null =& null).toStr()
+		var b: []char :: (null <>& null).toStr()
+		do a :~ ", " ~ b
+		do cui@print(a ~ "\n")
+	end block
+	
+	block
+		do cui@print((^("abcdef")).toStr() ~ "\n")
+		do cui@print((5).abs().toStr() ~ "\n")
+		do cui@print((-5).abs().toStr() ~ "\n")
+		do cui@print((5.0).abs().toStr() ~ "\n")
+		do cui@print((-5.0).abs().toStr() ~ "\n")
+	end block
+	
+	block
+		var a: int :: 3
+		var b: int :: 5
+		do a :$ b
+		do cui@print(a.toStr() ~ ", " ~ b.toStr() ~ "\n")
+		
+		var c: []char :: "abc"
+		var d: []char :: "def"
+		do c :$ d
+		do cui@print(c ~ ", " ~ d ~ "\n")
+	end block
+	
+	block
+		do cui@print((65537 $ int).toStr() ~ "\n")
+		do cui@print((65537 $ float).toStr() ~ "\n")
+		do cui@print((65537 $ bit8).toStr() ~ "\n")
+		do cui@print((65537 $ bit16).toStr() ~ "\n")
+		do cui@print((65537 $ bit32).toStr() ~ "\n")
+		do cui@print((65537 $ bit64).toStr() ~ "\n")
+		do cui@print((33 $ char).toStr() ~ "\n")
+		do cui@print((0 $ bool).toStr() ~ "\n")
+		do cui@print((5 $ bool).toStr() ~ "\n")
+		
+		var n: int :: 65537
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ float).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+		do n :: 33
+		do cui@print((n $ char).toStr() ~ "\n")
+		do n :: 0
+		do cui@print((n $ bool).toStr() ~ "\n")
+		do n :: 5
+		do cui@print((n $ bool).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((65537.5 $ int).toStr() ~ "\n")
+		do cui@print((65537.5 $ float).toStr() ~ "\n")
+		do cui@print((65537.5 $ bit8).toStr() ~ "\n")
+		do cui@print((65537.5 $ bit16).toStr() ~ "\n")
+		do cui@print((65537.5 $ bit32).toStr() ~ "\n")
+		do cui@print((65537.5 $ bit64).toStr() ~ "\n")
+		
+		var n: float :: 65537.5
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ float).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print(('A' $ int).toStr() ~ "\n")
+		do cui@print(('A' $ char).toStr() ~ "\n")
+		do cui@print(('A' $ bit8).toStr() ~ "\n")
+		do cui@print(('A' $ bit16).toStr() ~ "\n")
+		do cui@print(('A' $ bit32).toStr() ~ "\n")
+		do cui@print(('A' $ bit64).toStr() ~ "\n")
+		
+		var n: char :: 'A'
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ char).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((false $ int).toStr() ~ "\n")
+		do cui@print((false $ bool).toStr() ~ "\n")
+		do cui@print((false $ bit8).toStr() ~ "\n")
+		do cui@print((false $ bit16).toStr() ~ "\n")
+		do cui@print((false $ bit32).toStr() ~ "\n")
+		do cui@print((false $ bit64).toStr() ~ "\n")
+		do cui@print((true $ int).toStr() ~ "\n")
+		do cui@print((true $ bool).toStr() ~ "\n")
+		do cui@print((true $ bit8).toStr() ~ "\n")
+		do cui@print((true $ bit16).toStr() ~ "\n")
+		do cui@print((true $ bit32).toStr() ~ "\n")
+		do cui@print((true $ bit64).toStr() ~ "\n")
+		
+		var n: bool :: false
+		var m: bool :: true
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ bool).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+		do cui@print((m $ int).toStr() ~ "\n")
+		do cui@print((m $ bool).toStr() ~ "\n")
+		do cui@print((m $ bit8).toStr() ~ "\n")
+		do cui@print((m $ bit16).toStr() ~ "\n")
+		do cui@print((m $ bit32).toStr() ~ "\n")
+		do cui@print((m $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((255b8 $ int).toStr() ~ "\n")
+		do cui@print((255b8 $ float).toStr() ~ "\n")
+		do cui@print((33b8 $ char).toStr() ~ "\n")
+		do cui@print((0b8 $ bool).toStr() ~ "\n")
+		do cui@print((5b8 $ bool).toStr() ~ "\n")
+		do cui@print((255b8 $ bit8).toStr() ~ "\n")
+		do cui@print((255b8 $ bit16).toStr() ~ "\n")
+		do cui@print((255b8 $ bit32).toStr() ~ "\n")
+		do cui@print((255b8 $ bit64).toStr() ~ "\n")
+		
+		var n: bit8 :: 255b8
+		var m: bit8 :: 33b8
+		var f: bit8 :: 0b8
+		var t: bit8 :: 5b8
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ float).toStr() ~ "\n")
+		do cui@print((m $ char).toStr() ~ "\n")
+		do cui@print((f $ bool).toStr() ~ "\n")
+		do cui@print((t $ bool).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((255b16 $ int).toStr() ~ "\n")
+		do cui@print((255b16 $ float).toStr() ~ "\n")
+		do cui@print((33b16 $ char).toStr() ~ "\n")
+		do cui@print((0b16 $ bool).toStr() ~ "\n")
+		do cui@print((5b16 $ bool).toStr() ~ "\n")
+		do cui@print((255b16 $ bit8).toStr() ~ "\n")
+		do cui@print((255b16 $ bit16).toStr() ~ "\n")
+		do cui@print((255b16 $ bit32).toStr() ~ "\n")
+		do cui@print((255b16 $ bit64).toStr() ~ "\n")
+		
+		var n: bit16 :: 255b16
+		var m: bit16 :: 33b16
+		var f: bit16 :: 0b16
+		var t: bit16 :: 5b16
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ float).toStr() ~ "\n")
+		do cui@print((m $ char).toStr() ~ "\n")
+		do cui@print((f $ bool).toStr() ~ "\n")
+		do cui@print((t $ bool).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((255b32 $ int).toStr() ~ "\n")
+		do cui@print((255b32 $ float).toStr() ~ "\n")
+		do cui@print((33b32 $ char).toStr() ~ "\n")
+		do cui@print((0b32 $ bool).toStr() ~ "\n")
+		do cui@print((5b32 $ bool).toStr() ~ "\n")
+		do cui@print((255b32 $ bit8).toStr() ~ "\n")
+		do cui@print((255b32 $ bit16).toStr() ~ "\n")
+		do cui@print((255b32 $ bit32).toStr() ~ "\n")
+		do cui@print((255b32 $ bit64).toStr() ~ "\n")
+		
+		var n: bit32 :: 255b32
+		var m: bit32 :: 33b32
+		var f: bit32 :: 0b32
+		var t: bit32 :: 5b32
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ float).toStr() ~ "\n")
+		do cui@print((m $ char).toStr() ~ "\n")
+		do cui@print((f $ bool).toStr() ~ "\n")
+		do cui@print((t $ bool).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print((255b64 $ int).toStr() ~ "\n")
+		do cui@print((255b64 $ float).toStr() ~ "\n")
+		do cui@print((33b64 $ char).toStr() ~ "\n")
+		do cui@print((0b64 $ bool).toStr() ~ "\n")
+		do cui@print((5b64 $ bool).toStr() ~ "\n")
+		do cui@print((255b64 $ bit8).toStr() ~ "\n")
+		do cui@print((255b64 $ bit16).toStr() ~ "\n")
+		do cui@print((255b64 $ bit32).toStr() ~ "\n")
+		do cui@print((255b64 $ bit64).toStr() ~ "\n")
+		
+		var n: bit64 :: 255b64
+		var m: bit64 :: 33b64
+		var f: bit64 :: 0b64
+		var t: bit64 :: 5b64
+		do cui@print((n $ int).toStr() ~ "\n")
+		do cui@print((n $ float).toStr() ~ "\n")
+		do cui@print((m $ char).toStr() ~ "\n")
+		do cui@print((f $ bool).toStr() ~ "\n")
+		do cui@print((t $ bool).toStr() ~ "\n")
+		do cui@print((n $ bit8).toStr() ~ "\n")
+		do cui@print((n $ bit16).toStr() ~ "\n")
+		do cui@print((n $ bit32).toStr() ~ "\n")
+		do cui@print((n $ bit64).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print(@s ~ "\n")
+		
+		var a: [][]char :: ["ab", "cd", "ef"]
+		do cui@print(a[0] ~ ", " ~ a[1] ~ ", " ~ a[2] ~ "\n")
+	end block
+	
+	block
+		func f(n: int): int
+			ret n = 0 ?(1, n * f(n - 1))
+		end func
+		
+		do cui@print(f(5).toStr() ~ "\n")
+		
+		func g(n: [][]char, m: [][]char): [][]char
+			ret[n[0], m[0]]
+		end func
+		
+		var s: [][]char :: ["ab", "cd"]
+		var t: [][]char :: ["ef", "gh"]
+		var u: [][]char :: g(s, t)
+		do cui@print((^u).toStr() ~ ", " ~ u[0] ~ ", " ~ u[1] ~ "\n")
+	end block
+	
+	for i(1, 5, 2)
+		for j(i, 1, -2)
+			do cui@print(i.toStr() ~ ", " ~ j.toStr() ~ "\n")
+		end for
+	end for
+	
+	block
+		var i: int :: 1
+		while(i <= 5)
+			var j: int :: i
+			while(j >= 1)
+				do cui@print(i.toStr() ~ ", " ~ j.toStr() ~ "\n")
+				do j :- 2
+			end while
+			do i :+ 2
+		end while
+	end block
+	
+	block
+		var i: int :: 1
+		while(i % 2 = 0, skip)
+			do cui@print(i.toStr() ~ "\n")
+			do i :+ 1
+		end while
+	end block
+	
+	for i(1, 15)
+		if(i % 3 = 0 & i % 5 = 0)
+			do cui@print("FizzBuzz" ~ "\n")
+		elif(i % 3 = 0)
+			do cui@print("Fizz" ~ "\n")
+		elif(i % 5 = 0)
+			do cui@print("Buzz" ~ "\n")
+		else
+			do cui@print(i.toStr() ~ "\n")
+		end if
+	end for
+	
+	for i(1, 10)
+		switch n(i)
+		case 2, 6 to 7
+			do cui@print("abc" ~ "\n")
+		case 4 to 6, 9
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(i $ float)
+		case 2.0, 6.0 to 7.0
+			do cui@print("abc" ~ "\n")
+		case 4.0 to 6.0, 9.0
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(i $ bit8)
+		case 2b8, 6b8 to 7b8
+			do cui@print("abc" ~ "\n")
+		case 4b8 to 6b8, 9b8
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(i $ bit16)
+		case 2b16, 6b16 to 7b16
+			do cui@print("abc" ~ "\n")
+		case 4b16 to 6b16, 9b16
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(i $ bit32)
+		case 2b32, 6b32 to 7b32
+			do cui@print("abc" ~ "\n")
+		case 4b32 to 6b32, 9b32
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(i $ bit64)
+		case 2b64, 6b64 to 7b64
+			do cui@print("abc" ~ "\n")
+		case 4b64 to 6b64, 9b64
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(('A' $ int + i) $ char)
+		case 'C', 'E' to 'F'
+			do cui@print("abc" ~ "\n")
+		case 'F' to 'H', 'J'
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n.toStr() ~ "\n")
+		end switch
+	end for
+	
+	for i(1, 10)
+		switch n(i.toStr())
+		case "2", "6" to "7"
+			do cui@print("abc" ~ "\n")
+		case "4" to "6", "9"
+			do cui@print("def" ~ "\n")
+		default
+			do cui@print(n ~ "\n")
+		end switch
+	end for
+	
+	block
+		for i(1, 10)
+			for j(1, 10)
+				if(i = 2)
+					skip i
+				elif(i = 4)
+					break i
+				elif(j = 3)
+					skip j
+				elif(j = 5)
+					break j
+				end if
+				do cui@print(i.toStr() ~ ", " ~ j.toStr() ~ "\n")
+			end for
+		end for
+	end block
+	
+	block
+		const n: int :: 5
+		do cui@print(n.toStr() ~ "\n")
+	end block
+	
+	block
+		enum A
+			a
+			b
+			c :: 5
+			d
+			e :: -2
+			f
+		end enum
+		enum B
+			a :: -1
+		end enum
+		block
+			do cui@print((%a $ A $ int).toStr() ~ "\n")
+			do cui@print((%b $ A $ int).toStr() ~ "\n")
+			do cui@print((%c $ A $ int).toStr() ~ "\n")
+			do cui@print((%d $ A $ int).toStr() ~ "\n")
+			do cui@print((%e $ A $ int).toStr() ~ "\n")
+			do cui@print((%f $ A $ int).toStr() ~ "\n")
+			do cui@print((%e $ A $ bit8).toStr() ~ "\n")
+			do cui@print((%e $ A $ bit16).toStr() ~ "\n")
+			do cui@print((%e $ A $ bit32).toStr() ~ "\n")
+			do cui@print((%e $ A $ bit64).toStr() ~ "\n")
+			var n: A
+			do n :: %a $ B $ A
+			do cui@print((n $ int).toStr() ~ ", " ~ (n = %f).toStr() ~ ", " ~ (n <> %f).toStr() ~ ", " ~ (n < %e).toStr() ~ ", " ~ (n > %e).toStr() ~ "\n")
+			do n :: 1234 $ A
+			do cui@print((n $ int).toStr() ~ "\n")
+			do n :: 0xFFb8 $ A
+			do cui@print((n $ int).toStr() ~ "\n")
+			do n :: 0xFFb16 $ A
+			do cui@print((n $ int).toStr() ~ "\n")
+			do n :: 0xFFb32 $ A
+			do cui@print((n $ int).toStr() ~ "\n")
+			do n :: 0xFFb64 $ A
+			do cui@print((n $ int).toStr() ~ "\n")
+		end block
+	end block
+	
+	block
+		class A()
+		end class
+		
+		class B()
+		end class
+		
+		var a: A :: #A
+		var b: B :: #B
+		do cui@print((a =$ kuin@Class).toStr() ~ ", " ~ (b =$ kuin@Class).toStr() ~ ", " ~ (a =$ A).toStr() ~ ", " ~ (b =$ B).toStr() ~ ", " ~ (a =$ B).toStr() ~ ", " ~ (b =$ A).toStr() ~ "\n")
+		do cui@print((a <>$ kuin@Class).toStr() ~ ", " ~ (b <>$ kuin@Class).toStr() ~ ", " ~ (a <>$ A).toStr() ~ ", " ~ (b <>$ B).toStr() ~ ", " ~ (a <>$ B).toStr() ~ ", " ~ (b <>$ A).toStr() ~ "\n")
+	end block
+	
+	block
+		class A()
+			var a: int
+			
+			*func ctor()
+				do me.a :: 5
+			end func
+			
+			+func f(): int
+				ret me.a
+			end func
+		end class
+		
+		class B(A)
+			+*func f(): int
+				ret 1234
+			end func
+		end class
+		
+		do cui@print((#A).f().toStr() ~ ", " ~ (#B).f().toStr() ~ "\n")
+		var a: A :: #A
+		var b: A :: #B
+		do cui@print(a.f().toStr() ~ ", " ~ b.f().toStr() ~ "\n")
+	end block
+	
+	block
+		var ns: list<int> :: #list<int>
+		do ns.add(1)
+		do ns.add(2)
+		do ns.add(3)
+		do ns.head()
+		do ns.ins(4)
+		do ns.ins(5)
+		do ns.tail()
+		do ns.ins(6)
+		do ns.ins(7)
+		do ns.head()
+		while(!ns.term())
+			do cui@print(ns.get().toStr() ~ "\n")
+			do ns.next()
+		end while
+		do ns.head()
+		do ns.del()
+		do ns.tail()
+		do ns.del()
+		do cui@print((^ns).toStr() ~ "\n")
+		do ns.head()
+		while(!ns.term())
+			do cui@print(ns.get().toStr() ~ "\n")
+			do ns.next()
+		end while
+		
+		var ss: list<[]char> :: #list<[]char>
+		do ss.add("ab")
+		do ss.add("cd")
+		do ss.add("ef")
+		do ss.head()
+		do ss.ins("gh")
+		do ss.ins("ij")
+		do ss.tail()
+		do ss.ins("kl")
+		do ss.ins("mn")
+		do ss.tail()
+		while(!ss.term())
+			do cui@print(ss.get() ~ "\n")
+			do ss.prev()
+		end while
+		do ss.head()
+		do ss.del()
+		do ss.tail()
+		do ss.del()
+		do cui@print((^ss).toStr() ~ "\n")
+		while(!ss.term())
+			do cui@print(ss.get() ~ "\n")
+			do ss.prev()
+		end while
+	end block
+	
+	block
+		var ns: stack<int> :: #stack<int>
+		do ns.add(1)
+		do ns.add(2)
+		do ns.add(3)
+		do ns.add(4)
+		do ns.add(5)
+		do cui@print(ns.peek().toStr() ~ "\n")
+		while(^ns <> 0)
+			do cui@print(ns.get().toStr() ~ "\n")
+		end while
+		do ns.add(0)
+	end block
+	
+	block
+		var ns: stack<[]char> :: #stack<[]char>
+		do ns.add("a")
+		do ns.add("b")
+		do ns.add("c")
+		do ns.add("d")
+		do ns.add("e")
+		do cui@print(ns.peek() ~ "\n")
+		while(^ns <> 0)
+			do cui@print(ns.get() ~ "\n")
+		end while
+		do ns.add("f")
+	end block
+	
+	block
+		var ns: queue<int> :: #queue<int>
+		do ns.add(1)
+		do ns.add(2)
+		do ns.add(3)
+		do ns.add(4)
+		do ns.add(5)
+		do cui@print(ns.peek().toStr() ~ "\n")
+		while(^ns <> 0)
+			do cui@print(ns.get().toStr() ~ "\n")
+		end while
+		do ns.add(0)
+	end block
+	
+	block
+		var ns: queue<[]char> :: #queue<[]char>
+		do ns.add("a")
+		do ns.add("b")
+		do ns.add("c")
+		do ns.add("d")
+		do ns.add("e")
+		do cui@print(ns.peek() ~ "\n")
+		while(^ns <> 0)
+			do cui@print(ns.get() ~ "\n")
+		end while
+		do ns.add("f")
+	end block
+	
+	block
+		var n: dict<int, int> :: #dict<int, int>
+		do n.add(6, 16)
+		do n.add(8, 18)
+		do n.add(10, 20)
+		do n.add(4, 14)
+		do n.add(2, 12)
+		do n.add(3, 13)
+		do n.add(7, 17)
+		do n.add(1, 11)
+		do n.add(9, 19)
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			do cui@print(n.get(i, &existed).toStr() ~ "\n")
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
+	end block
+	
+	block
+		var n: dict<int, []char> :: #dict<int, []char>
+		do n.add(6, "f")
+		do n.add(8, "h")
+		do n.add(10, "j")
+		do n.add(4, "d")
+		do n.add(2, "b")
+		do n.add(3, "c")
+		do n.add(7, "g")
+		do n.add(1, "a")
+		do n.add(9, "i")
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			do cui@print(n.get(i, &existed))
+			do cui@print("\n")
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
+	end block
+	
+	block
+		var n: dict<[]char, int> :: #dict<[]char, int>
+		do n.add("f", 6)
+		do n.add("h", 8)
+		do n.add("j", 10)
+		do n.add("d", 4)
+		do n.add("b", 2)
+		do n.add("c", 3)
+		do n.add("g", 7)
+		do n.add("a", 1)
+		do n.add("i", 9)
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			do cui@print(n.get((('a' $ int + i - 1) $ char).toStr(), &existed).toStr() ~ "\n")
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
+	end block
+	
+	block
+		var n: dict<[]char, []char> :: #dict<[]char, []char>
+		do n.add("f", "F")
+		do n.add("h", "H")
+		do n.add("j", "J")
+		do n.add("d", "D")
+		do n.add("b", "B")
+		do n.add("c", "C")
+		do n.add("g", "G")
+		do n.add("a", "A")
+		do n.add("i", "I")
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			do cui@print(n.get((('a' $ int + i - 1) $ char).toStr(), &existed))
+			do cui@print("\n")
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
+	end block
+	
+	block
+		var n: [][]char :: ["abc", "def"]
+		var m: [][]char :: ##n
+		do cui@print((n[0] = m[0]).toStr() ~ ", " ~ (n[0] =& m[0]).toStr() ~ "\n")
+	end block
+	
+	block
+		var n: list<list<int>> :: #list<list<int>>
+		var n2: list<int> :: #list<int>
+		do n2.add(3)
+		do n2.add(5)
+		do n.add(n2)
+		var m: list<list<int>> :: ##n
+		do n.head()
+		do n.get().head()
+		do m.head()
+		do m.get().head()
+		do cui@print(n.get().get().toStr() ~ ", " ~ m.get().get().toStr() ~ "\n")
+	end block
+	
+	block
+		var n: stack<stack<int>> :: #stack<stack<int>>
+		var n2: stack<int> :: #stack<int>
+		do n2.add(3)
+		do n2.add(5)
+		do n.add(n2)
+		var m: stack<stack<int>> :: ##n
+		do cui@print(n.peek().get().toStr() ~ ", " ~ m.peek().get().toStr() ~ "\n")
+		do cui@print(n.get().get().toStr() ~ ", " ~ m.get().get().toStr() ~ "\n")
+	end block
+	
+	block
+		var n: queue<queue<int>> :: #queue<queue<int>>
+		var n2: queue<int> :: #queue<int>
+		do n2.add(3)
+		do n2.add(5)
+		do n.add(n2)
+		var m: queue<queue<int>> :: ##n
+		do cui@print(n.peek().get().toStr() ~ ", " ~ m.peek().get().toStr() ~ "\n")
+		do cui@print(n.get().get().toStr() ~ ", " ~ m.get().get().toStr() ~ "\n")
+	end block
+	
+	block
+		var n: dict<[]char, []char> :: #dict<[]char, []char>
+		do n.add("a", "A")
+		do n.add("c", "C")
+		do n.add("b", "B")
+		var m: dict<[]char, []char> :: ##n
+		do cui@print(n.get("a", &) ~ n.get("b", &) ~ n.get("c", &) ~ "\n")
+		do cui@print(m.get("a", &) ~ m.get("b", &) ~ m.get("c", &) ~ "\n")
+		do cui@print((n.get("a", &) = m.get("a", &)).toStr() ~ ", " ~ (n.get("a", &) =& m.get("a", &)).toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit8 :: 0xF6b8
+		var m: bit8 :: 0x0Ab8
+		do cui@print(n.or(m).toStr() ~ "\n")
+		do cui@print(n.and(m).toStr() ~ "\n")
+		do cui@print(n.xor(m).toStr() ~ "\n")
+		do cui@print(n.not().toStr() ~ "\n")
+		do cui@print(n.shl(1).toStr() ~ "\n")
+		do cui@print(n.shr(1).toStr() ~ "\n")
+		do cui@print(n.sar(1).toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit16 :: 0xF6F6b16
+		var m: bit16 :: 0x0A0Ab16
+		do cui@print(n.or(m).toStr() ~ "\n")
+		do cui@print(n.and(m).toStr() ~ "\n")
+		do cui@print(n.xor(m).toStr() ~ "\n")
+		do cui@print(n.not().toStr() ~ "\n")
+		do cui@print(n.shl(1).toStr() ~ "\n")
+		do cui@print(n.shr(1).toStr() ~ "\n")
+		do cui@print(n.sar(1).toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit32 :: 0xF6F6F6F6b32
+		var m: bit32 :: 0x0A0A0A0Ab32
+		do cui@print(n.or(m).toStr() ~ "\n")
+		do cui@print(n.and(m).toStr() ~ "\n")
+		do cui@print(n.xor(m).toStr() ~ "\n")
+		do cui@print(n.not().toStr() ~ "\n")
+		do cui@print(n.shl(1).toStr() ~ "\n")
+		do cui@print(n.shr(1).toStr() ~ "\n")
+		do cui@print(n.sar(1).toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit64 :: 0xF6F6F6F6F6F6F6F6b64
+		var m: bit64 :: 0x0A0A0A0A0A0A0A0Ab64
+		do cui@print(n.or(m).toStr() ~ "\n")
+		do cui@print(n.and(m).toStr() ~ "\n")
+		do cui@print(n.xor(m).toStr() ~ "\n")
+		do cui@print(n.not().toStr() ~ "\n")
+		do cui@print(n.shl(1).toStr() ~ "\n")
+		do cui@print(n.shr(1).toStr() ~ "\n")
+		do cui@print(n.sar(1).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print("abcdeabcde".find('d', -1).toStr() ~ "\n")
+		do cui@print("abcdeabcde".find('f', -1).toStr() ~ "\n")
+		do cui@print("abcdeabcde".findLast('d', -1).toStr() ~ "\n")
+		do cui@print("abcdeabcde".findLast('f', -1).toStr() ~ "\n")
+		
+		do cui@print("abcde".sub(1, 3) ~ "\n")
+		do cui@print("abcde".sub(1, -1) ~ "\n")
+		do cui@print(["a", "b", "c"].sub(1, 1)[0] ~ "\n")
+		do cui@print(["a", "b", "c"].sub(1, -1)[1] ~ "\n")
+	end block
+	
+	block
+		var n: []char :: "This is a string value."
+		var m: [][]char :: ["AB", "CD", "EF"]
+		do n.reverse()
+		do m.reverse()
+		do cui@print(n ~ "\n")
+		do cui@print(m[0] ~ m[1] ~ m[2] ~ "\n")
+	end block
+	
+	block
+		var n: []char :: "This is a string value."
+		var m: [][]char :: ["AB", "CD", "EF"]
+		do n.sort()
+		do m.sort()
+		do cui@print(n ~ "\n")
+		do cui@print(m[0] ~ m[1] ~ m[2] ~ "\n")
+	end block
+	
+	block
+		var n: []char :: "This is a string value."
+		var m: [][]char :: ["AB", "CD", "EF"]
+		do n.sortDesc()
+		do m.sortDesc()
+		do cui@print(n ~ "\n")
+		do cui@print(m[0] ~ m[1] ~ m[2] ~ "\n")
+	end block
+	
+	block
+		do cui@print(lib@cos(lib@pi / 6.0).toStr() ~ "\n")
+		do cui@print(lib@sin(lib@pi / 6.0).toStr() ~ "\n")
+		do cui@print(lib@tan(lib@pi / 6.0).toStr() ~ "\n")
+		do cui@print(lib@sqrt(2.0).toStr() ~ "\n")
+		do cui@print(lib@exp(2.0).toStr() ~ "\n")
+		do cui@print(lib@ln(lib@e).toStr() ~ "\n")
+		do cui@print(lib@log(2.0, 8.0).toStr() ~ "\n")
+	end block
+	
+	block
+		var x: float :: 10.0
+		var y: float :: 1.0
+		do lib@rot(&x, &y, 5.0, 1.0, lib@pi / 2.0)
+		do cui@print(x.toStr() ~ ", " ~ y.toStr() ~ "\n")
+		do cui@print(lib@invRot(x, y, 5.0, 1.0).toStr() ~ "\n")
+		do cui@print(lib@dist(4.0, 5.0, 1.0, 1.0).toStr() ~ "\n")
+	end block
+	
+	block
+		var x: float :: 5.0
+		while(!lib@chase(&x, 10.0, 2.0))
+			do cui@print(x.toStr() ~ "\n")
+		end while
+		do cui@print(x.toStr() ~ "\n")
+	end block
+	
+	block
+		var x: float :: 15.0
+		while(!lib@chase(&x, 10.0, 2.0))
+			do cui@print(x.toStr() ~ "\n")
+		end while
+		do cui@print(x.toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print(lib@floor(2.5).toStr() ~ "\n")
+		do cui@print(lib@floor(-2.5).toStr() ~ "\n")
+		do cui@print(lib@ceil(2.5).toStr() ~ "\n")
+		do cui@print(lib@ceil(-2.5).toStr() ~ "\n")
+		do cui@print(lib@round(5555.5555, 0).toStr() ~ "\n")
+		do cui@print(lib@round(-5555.5555, 0).toStr() ~ "\n")
+		do cui@print(lib@round(5555.5555, 2).toStr() ~ "\n")
+		do cui@print(lib@round(-5555.5555, 2).toStr() ~ "\n")
+		do cui@print(lib@round(5555.5555, -2).toStr() ~ "\n")
+		do cui@print(lib@round(-5555.5555, -2).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print("aBcDeF".lower() ~ "\n")
+		do cui@print("aBcDeF".upper() ~ "\n")
+		do cui@print("a" ~ "  bcd  ".trim() ~ "e" ~ "\n")
+		do cui@print("a" ~ "  bcd  ".trimLeft() ~ "e" ~ "\n")
+		do cui@print("a" ~ "  bcd  ".trimRight() ~ "e" ~ "\n")
+	end block
+	
+	block
+		func f(a: int, b: &int, c: float, d: &float, e: &char): []char
+			do b :: 5
+			do d :: 3.5
+			do e :: 'Z'
+			ret "A"
+		end func
+		
+		var x: func<(int, &int, float, &float, &char): []char> :: f
+		var a: int
+		var b: float
+		var c: char
+		do cui@print(x(a, &a, b, &b, &c) ~ ", " ~ a.toStr() ~ ", " ~ b.toStr() ~ ", " ~ c.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: float :: 0.0
+		for(1, 10)
+			do n :+ 0.1
+		end for
+		do cui@print((n = 1.0).toStr() ~ ", " ~ lib@same(n, 1.0).toStr() ~ "\n")
+	end block
+	
+	block
+		do cui@print('c'.offset(1).toStr() ~ "\n")
+		do cui@print('c'.offset(-1).toStr() ~ "\n")
+	end block
+	
+	block
+		class C()
+			+var n: int
+			
+			+*func cmp(t: kuin@Class): int
+				ret me.n - (t $ C).n
+			end func
+		end class
+		
+		var a: C :: #C
+		do a.n :: 3
+		var b: C :: #C
+		do b.n :: 5
+		var c: C :: #C
+		do c.n :: 3
+		do cui@print((a < b).toStr() ~ ", " ~ (a > b).toStr() ~ ", " ~ (a = b).toStr() ~ ", " ~ (a <> b).toStr() ~ "\n")
+		do cui@print((a < c).toStr() ~ ", " ~ (a > c).toStr() ~ ", " ~ (a = c).toStr() ~ ", " ~ (a <> c).toStr() ~ "\n")
+		
+		var d: []C :: [#C, #C, #C, #C]
+		do d[0].n :: 7
+		do d[1].n :: 3
+		do d[2].n :: 5
+		do d[3].n :: 4
+		do d.sort()
+		do cui@print(d[0].n.toStr() ~ ", " ~ d[1].n.toStr() ~ ", " ~ d[2].n.toStr() ~ ", " ~ d[3].n.toStr() ~ "\n")
+	end block
+	
+	block
+		class C()
+			+var i: int
+			+var s: []char
+		end class
+		
+		var a: C :: #C
+		do a.i :: 5
+		do a.s :: "abc"
+		var b: C :: ##a
+		do cui@print(b.i.toStr() ~ ", " ~ (a.s = b.s).toStr() ~ ", " ~ (a.s =& b.s).toStr() ~ "\n")
+	end block
+	
+	block
+		var n: int :: 123456789012
+		var m: int
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< int
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: float :: lib@pi
+		var m: float
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< float
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: char :: 'X'
+		var m: char
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< char
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bool :: true
+		var m: bool
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< bool
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	
+	block
+		var n: bit8 :: 0x12b8
+		var m: bit8
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< bit8
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit16 :: 0x1234b16
+		var m: bit16
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< bit16
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit32 :: 0x12345678b32
+		var m: bit32
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< bit32
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: bit64 :: 0xF012345678ABCDEFb64
+		var m: bit64
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< bit64
+		do cui@print(m.toStr() ~ "\n")
+	end block
+	
+	block
+		var n: []int :: [1, 2, 3]
+		var m: []int
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< []int
+		do cui@print(m[0].toStr() ~ ", " ~ m[1].toStr() ~ ", " ~ m[2].toStr() ~ "\n")
+	end block
+	
+	block
+		var n: []char :: "abcdef"
+		var m: []char
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< []char
+		do cui@print(m ~ "\n")
+	end block
+	
+	block
+		var n: [][]char :: ["ab", "cd", "ef"]
+		var m: [][]char
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< [][]char
+		do cui@print(m[0] ~ ", " ~ m[1] ~ ", " ~ m[2] ~ "\n")
+	end block
+	
+	block
+		var n: list<char> :: #list<char>
+		var m: list<char>
+		do n.add('a')
+		do n.add('b')
+		do n.add('c')
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< list<char>
+		do m.head()
+		while(!m.term())
+			do cui@print(m.get().toStr() ~ "\n")
+			do m.next()
+		end while
+	end block
+	
+	block
+		var n: stack<char> :: #stack<char>
+		var m: stack<char>
+		do n.add('a')
+		do n.add('b')
+		do n.add('c')
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< stack<char>
+		while(^m <> 0)
+			do cui@print(m.get().toStr() ~ "\n")
+		end while
+	end block
+	
+	block
+		var n: queue<char> :: #queue<char>
+		var m: queue<char>
+		do n.add('a')
+		do n.add('b')
+		do n.add('c')
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< queue<char>
+		while(^m <> 0)
+			do cui@print(m.get().toStr() ~ "\n")
+		end while
+	end block
+	
+	block
+		var n: dict<[]char, int> :: #dict<[]char, int>
+		var m: dict<[]char, int>
+		do n.add("a", 1)
+		do n.add("c", 3)
+		do n.add("b", 2)
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< dict<[]char, int>
+		do cui@print(m.get("a", &).toStr() ~ ", " ~ m.get("b", &).toStr() ~ ", " ~ m.get("c", &).toStr() ~ "\n")
+	end block
+	
+	block
+		enum E
+			x :: 1234
+		end enum
+		
+		var n: E :: %x
+		var m: E
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< E
+		do cui@print((m $ int).toStr() ~ "\n")
+	end block
+	
+	block
+		class C()
+			+var a: int
+			+var b: []char
+		end class
+		
+		var n: C :: #C
+		var m: C :: #C
+		do n.a :: 5
+		do n.b :: "abc"
+		var bin: []bit8 :: n $> []bit8
+		do @dump(bin)
+		do m :: bin $< C
+		do cui@print(m.a.toStr() ~ ", " ~ m.b ~ "\n")
+	end block
+	
+	block
+		; Single line comment #3.
+		; Single line comment #4.
+		{
+				{
+					Nest comment.
+				}
+			}
+		do cui@print
+		|
+		|(
+		|"Line breaking." ~ "\n"
+		|)
+		
+		;{
+		do cui@print("Comment test #1." ~ "\n")
+		;}
+		
+		{
+			;}
+			"}"
+			'}'
+			do cui@print("Comment test #2." ~ "\n")
+			}
+		
+		{
+			;{
+			"{"
+			'{'
+			do cui@print("Comment test #3." ~ "\n")
+			}
+	end block
+	
+	block
+		var a: []int :: #[3]int
+		do a[0] :: 1
+		do a[1] :: 2
+		do a[2] :: 3
+		do cui@print((^a).toStr() ~ ", " ~ a[0].toStr() ~ ", " ~ a[1].toStr() ~ ", " ~ a[2].toStr() ~ "\n")
+	end block
+	
+	block
+		var a: [][][]char :: #[3, 2, 4]char
+		do cui@print((^a).toStr() ~ ", " ~ (^a[0]).toStr() ~ ", " ~ (^a[0][0]).toStr() ~ "\n")
+	end block
+	
+	block
+		var x: float :: 314159.0e-5
+		do cui@print(x.toStr() ~ "\n")
+	end block
+	
+	block
+		alias t: int
+		alias u: []char
+		var a: t
+		var b: u
+		do a :: 5
+		do b :: "abc"
+		do cui@print(a.toStr() ~ "\n")
+		do cui@print(b ~ "\n")
+	end block
+	
+	block
+		var n: list<int> :: #list<int>
+		do n.add(3)
+		do n.add(4)
+		do n.add(5)
+		var m: []int :: n.toArray()
+		do cui@print((^m).toStr() ~ ", " ~ m[0].toStr() ~ ", " ~ m[1].toStr() ~ ", " ~ m[2].toStr() ~ "\n")
+	end block
+	
+	block
+		var n: list<[]char> :: #list<[]char>
+		do n.add("ab")
+		do n.add("cd")
+		do n.add("ef")
+		var m: [][]char :: n.toArray()
+		do cui@print((^m).toStr() ~ ", " ~ m[0] ~ ", " ~ m[1] ~ ", " ~ m[2] ~ "\n")
+	end block
+	
+	block
+		var s: []char :: "abxxcdexxfxxxxg"
+		var ts: [][]char :: s.split("xx")
+		do cui@print((^ts).toStr() ~ "\n")
+		for i(0, ^ts - 1)
+			do cui@print(ts[i] ~ "\n")
+		end for
+	end block
+	
+	block
+		do cui@print('\u006E'.toStr() ~ "\n")
+		do cui@print("00\u0054\u0065\u0073\u007400" ~ "\n")
 	end block
 end func

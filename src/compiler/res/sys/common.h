@@ -245,6 +245,23 @@ static R newArray_(int64_t n, ...) noexcept
 }
 
 template<typename T>
+static Array_<T>* toArray_(List_<T>* l) noexcept
+{
+	Array_<T>* a = new Array_<T>();
+	a->L = l->Len();
+	a->B = new T[static_cast<size_t>(a->L) + bufLen_<T>()];
+	int64_t i = 0;
+	for (auto& e : l->B)
+	{
+		a->B[i] = e;
+		i++;
+	}
+	if (bufLen_<T>() > 0)
+		a->B[a->L] = 0;
+	return a;
+}
+
+template<typename T>
 static Array_<T>* copy_(Array_<T>* t) noexcept
 {
 	if (t == nullptr)
