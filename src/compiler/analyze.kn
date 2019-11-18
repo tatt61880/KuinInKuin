@@ -3063,7 +3063,7 @@ func rebuildExprValueArray(ast: \ast@AstExprValueArray): \ast@AstExpr
 			var items: list<\ast@AstExpr> :: ast.values
 			do items.head()
 			while loop(!items.term())
-				if(items.get().typeId <> %exprValue)
+				if(items.get().typeId.and(%exprValue) <> %exprValue)
 					do isConst :: false
 					break loop
 				end if
@@ -3085,7 +3085,7 @@ func rebuildExprValueArray(ast: \ast@AstExprValueArray): \ast@AstExpr
 			end while
 			do ast2.value :: s
 			do ast2 :: @rebuildExprValueStr(ast2) $ \ast@AstExprValueStr
-			do ast.extra :: ast
+			do ast.extra :: ast2
 			ret ast.extra $ \ast@AstExpr
 		end if
 	end if

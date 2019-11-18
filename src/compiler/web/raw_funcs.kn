@@ -215,7 +215,7 @@
 		do codes.add("else\n")
 		do codes.add("r_=\{me_.id}.get(\{key.id});\n")
 		do codes.add("if(!(\{existed.id}.$=r_!==undefined)){\n")
-		do codes.add("switch(DS_(\{meType.id})){\n") {TODO: [2]}
+		do codes.add("switch(DS_(\{meType.id})){\n")
 		do codes.add("case \{%int_ $ \convert@runtimeTypeId $ int}:\n")
 		do codes.add("case \{%float_ $ \convert@runtimeTypeId $ int}:\n")
 		do codes.add("case \{%char_ $ \convert@runtimeTypeId $ int}:\n")

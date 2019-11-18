@@ -1272,6 +1272,26 @@ end func
 
 func buildExprValueArray(ast: \ast@AstExprValueArray)
 	; Note that constant string values are handled by 'ExprValueStr'.
+	if(\ast@isStr(ast.type))
+		do @codes.add("{S:String.fromCharCode(")
+		var first: bool :: true
+		var items: list<\ast@AstExpr> :: ast.values
+		do items.head()
+		while(!items.term())
+			if(first)
+				do first :: false
+				do @codes.add("(")
+			else
+				do @codes.add(",(")
+			end if
+			do @buildExpr(items.get())
+			do @codes.add(")")
+			do items.next()
+		end while
+		do @codes.add(")}")
+		ret
+	end if
+	
 	do @codes.add("[")
 	var first: bool :: true
 	var items: list<\ast@AstExpr> :: ast.values
@@ -1405,11 +1425,16 @@ func write(resFiles: list<[]char>)
 		do writer.writeStr("return a;\n")
 		do writer.writeStr("}\n")
 		do writer.writeStr("case \{%list_ $ \convert@runtimeTypeId $ int}:\n")
+		do writer.writeStr("let l={L:v.L,H:null,T:null,P:null};\n")
 		; TODO:
 		do writer.writeStr("case \{%stack_ $ \convert@runtimeTypeId $ int}:\n")
-		; TODO:
+		do writer.writeStr("let s=new Array(v.length);\n")
+		do writer.writeStr("for(let i=0;i<v.length;i++)s[i]=C_(t.slice(1),v[i]);\n")
+		do writer.writeStr("return s;\n")
 		do writer.writeStr("case \{%queue_ $ \convert@runtimeTypeId $ int}:\n")
-		; TODO:
+		do writer.writeStr("let q=new Array(v.length);\n")
+		do writer.writeStr("for(let i=0;i<v.length;i++)q[i]=C_(t.slice(1),v[i]);\n")
+		do writer.writeStr("return q;\n")
 		do writer.writeStr("case \{%dict_ $ \convert@runtimeTypeId $ int}:\n")
 		; TODO:
 		do writer.writeStr("case \{%class_ $ \convert@runtimeTypeId $ int}:\n")

@@ -915,6 +915,8 @@ func test1()
 		do cui@print((n[0] = m[0]).toStr() ~ ", " ~ (n[0] =& m[0]).toStr() ~ "\n")
 	end block
 	
+	; TODO:
+	{
 	block
 		var n: list<list<int>> :: #list<list<int>>
 		var n2: list<int> :: #list<int>
@@ -961,6 +963,7 @@ func test1()
 		do cui@print(m.get("a", &) ~ m.get("b", &) ~ m.get("c", &) ~ "\n")
 		do cui@print((n.get("a", &) = m.get("a", &)).toStr() ~ ", " ~ (n.get("a", &) =& m.get("a", &)).toStr() ~ "\n")
 	end block
+	}
 	
 	block
 		var n: bit8 :: 0xF6b8
@@ -1160,6 +1163,8 @@ func test1()
 		do cui@print(d[0].n.toStr() ~ ", " ~ d[1].n.toStr() ~ ", " ~ d[2].n.toStr() ~ ", " ~ d[3].n.toStr() ~ "\n")
 	end block
 	
+	; TODO:
+	{
 	block
 		class C()
 			+var i: int
@@ -1357,6 +1362,7 @@ func test1()
 		do m :: bin $< C
 		do cui@print(m.a.toStr() ~ ", " ~ m.b ~ "\n")
 	end block
+	}
 	
 	block
 		; Single line comment #3.
