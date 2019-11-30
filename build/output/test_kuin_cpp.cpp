@@ -1682,7 +1682,7 @@ return aae >> aag;
 }
 // _sar
 template<typename T_> static T_ rh(T_ aah /*me_*/, Array_<int64_t>* aai /*type*/, int64_t aaj /*n*/){
-return aah >> aaj;
+return sar_(aah, aaj);
 }
 // _findArray
 template<typename T_, typename C_> static int64_t rs(T_ aak /*me_*/, Array_<int64_t>* aal /*type*/, C_ aam /*item*/, int64_t aan /*start*/){

@@ -876,7 +876,7 @@ static dictImpl_<T1, T2>* dictCopy_(dictImpl_<T1, T2>* n) noexcept
 {
 	if (n == nullptr)
 		return nullptr;
-	dictImpl_<T1, T2>* r = new dictImpl_<T1, T2>(n->K, n->V);
+	dictImpl_<T1, T2>* r = new dictImpl_<T1, T2>(copy_(n->K), copy_(n->V));
 	r->R = n->R;
 	r->CL = dictCopy_(n->CL);
 	r->CR = dictCopy_(n->CR);
@@ -912,6 +912,11 @@ static int64_t powI_(int64_t a, int64_t b) noexcept
 	}
 	return r;
 }
+
+static uint8_t sar_(uint8_t me_, int64_t n) { return static_cast<uint8_t>(static_cast<int8_t>(me_) >> n); }
+static uint16_t sar_(uint16_t me_, int64_t n) { return static_cast<uint16_t>(static_cast<int16_t>(me_) >> n); }
+static uint32_t sar_(uint32_t me_, int64_t n) { return static_cast<uint32_t>(static_cast<int32_t>(me_) >> n); }
+static uint64_t sar_(uint64_t me_, int64_t n) { return static_cast<uint64_t>(static_cast<int64_t>(me_) >> n); }
 
 class reader_
 {
