@@ -269,8 +269,10 @@ static Array_<T>* copy_(Array_<T>* t) noexcept
 	Array_<T>* r = new Array_<T>();
 	r->L = t->L;
 	r->B = new T[static_cast<size_t>(t->L) + bufLen_<T>()];
-	for (int64_t i = 0; i < t->L + static_cast<int64_t>(bufLen_<T>()); i++)
+	for (int64_t i = 0; i < t->L; i++)
 		r->B[i] = copy_(t->B[i]);
+	if (bufLen_<T>() > 0)
+		r->B[r->L] = 0;
 	return r;
 }
 template<typename T>
@@ -278,32 +280,68 @@ static List_<T>* copy_(List_<T>* t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
-	// TODO:
-	return nullptr;
+	List_<T>* r = new List_<T>();
+	for (auto& i = t->B.begin(); i != t->B.end(); ++i)
+	{
+		r->B.push_back(copy_(*i));
+		if (i == t->I)
+		{
+			auto& e = r->B.end();
+			--e;
+			r->I = e;
+		}
+	}
+	return r;
 }
 template<typename T>
 static Stack_<T>* copy_(Stack_<T>* t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
-	// TODO:
-	return nullptr;
+	Stack_<T>* r = new Stack_<T>();
+	std::stack<T> b;
+	while (!t->B.empty())
+	{
+		b.push(t->B.top());
+		t->B.pop();
+	}
+	while (!b.empty())
+	{
+		r->B.push(copy_(b.top()));
+		t->B.push(b.top());
+		b.pop();
+	}
+	return r;
 }
 template<typename T>
 static Queue_<T>* copy_(Queue_<T>* t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
-	// TODO:
-	return nullptr;
+	Queue_<T>* r = new Queue_<T>();
+	std::queue<T> b;
+	while (!t->B.empty())
+	{
+		b.push(t->B.front());
+		t->B.pop();
+	}
+	while (!b.empty())
+	{
+		r->B.push(copy_(b.front()));
+		t->B.push(b.front());
+		b.pop();
+	}
+	return r;
 }
 template<typename T1, typename T2>
 static Dict_<T1, T2>* copy_(Dict_<T1, T2>* t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
-	// TODO:
-	return nullptr;
+	Dict_<T1, T2>* r = new Dict_<T1, T2>();
+	r->L = t->L;
+	r->B = dictCopy_<T1, T2>(t->B);
+	return r;
 }
 template<typename T>
 static T* copy_(T* t) noexcept
@@ -831,6 +869,18 @@ static dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a)
 		n->CR->R = false;
 	}
 	return n;
+}
+
+template<typename T1, typename T2>
+static dictImpl_<T1, T2>* dictCopy_(dictImpl_<T1, T2>* n) noexcept
+{
+	if (n == nullptr)
+		return nullptr;
+	dictImpl_<T1, T2>* r = new dictImpl_<T1, T2>(n->K, n->V);
+	r->R = n->R;
+	r->CL = dictCopy_(n->CL);
+	r->CR = dictCopy_(n->CR);
+	return r;
 }
 
 static int64_t powI_(int64_t a, int64_t b) noexcept
