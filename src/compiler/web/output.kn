@@ -1,5 +1,3 @@
-const classTableItemSize: int :: 2
-
 var funcs: queue<\ast@AstFunc>
 var classes: queue<\ast@AstClass>
 
@@ -8,11 +6,13 @@ var codes: list<[]char>
 var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
+var classTable: list<[]char>
 
 +class WebInfo(\ast@HasType)
 	+var id: []char
 	+var breakSkipLabel: []char
 	+var alreadyWritten: bool
+	+var classTableOffset: int
 end class
 
 class TmpVar()
@@ -30,6 +30,7 @@ end class
 	do @tmpVars :: #list<@TmpVar>
 	do @globalVars :: #list<\ast@AstArg>
 	do @localVars :: #list<\ast@AstArg>
+	do @classTable :: #list<[]char>
 	
 	while(^@funcs > 0 | ^@classes > 0)
 		while(^@funcs > 0)
@@ -152,12 +153,18 @@ func buildClass(ast: \ast@AstClass)
 		do @codes.add("}\n")
 	end block
 	do @codes.add("\{info.id}.prototype = Object.create(\{parentId}.prototype);\n")
+	do @codes.add("\{info.id}.prototype.Y_ = \{info.classTableOffset};\n")
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
 		do items.head()
 		while(!items.term())
 			var item: \ast@AstClassItem :: items.get()
-			if(item.def.typeId = %func_)
+			if(item.def.typeId = %var_)
+				var arg: \ast@AstArg :: (item.def $ \ast@AstVar).arg
+				var info2: @WebInfo :: @getInfo(arg)
+				do @codes.add("\{info.id}.prototype.\{info2.id} = \{@getDefaultValue(arg.type)};\n")
+			else
+				assert item.def.typeId = %func_
 				do @funcs.add(item.def $ \ast@AstFunc)
 			end if
 			do items.next()
@@ -358,11 +365,23 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 						do @codes.add(")")
 					end if
 				else
-					do @codes.add("(")
-					do @buildExpr(exprs.expr0)
-					do @codes.add(")<=\{info.id}&&\{info.id}<=(")
-					do @buildExpr(exprs.expr1)
-					do @codes.add(")")
+					if(\ast@isStr(ast.cond.type))
+						do @codes.add("(")
+						do @buildExpr(exprs.expr0)
+						do @codes.add(").S<=\{info.id}.S&&\{info.id}.S<=(")
+						do @buildExpr(exprs.expr1)
+						do @codes.add(").S")
+					elif(\ast@isRef(ast.cond.type))
+						assert \ast@isClass(ast.cond.type)
+						; TODO: cmp
+						do @codes.add("false")
+					else
+						do @codes.add("(")
+						do @buildExpr(exprs.expr0)
+						do @codes.add(")<=\{info.id}&&\{info.id}<=(")
+						do @buildExpr(exprs.expr1)
+						do @codes.add(")")
+					end if
 				end if
 				do items2.next()
 			end while
@@ -1112,7 +1131,11 @@ func buildExprCall(ast: \ast@AstExprCall)
 			elif(item.refVar)
 				do refVar[refCnt] :: @addTmpVar(item.arg.type)
 				do @codes.add("\{refVar[refCnt]}={$:(")
-				do @buildExpr(item.arg)
+				if(item.skipVar)
+					do @codes.add(@getDefaultValue(item.arg.type))
+				else
+					do @buildExpr(item.arg)
+				end if
 				do @codes.add(")},\{refVar[refCnt]}")
 				do refCnt :+ 1
 			else
@@ -1192,8 +1215,9 @@ func buildExprDot(ast: \ast@AstExprDot)
 		else
 			assert classItem.def.typeId = %func_
 			do info :: @getInfo(classItem.def)
-			; 'ast.var_' is calculated elsewhere.
-			do @codes.add("\{info.id}")
+			do @codes.add("CT_[(")
+			do @buildExpr(ast.var_)
+			do @codes.add(").Y_ + \{info.classTableOffset}]")
 		end if
 	else
 		assert ast.refItem.typeId = %exprRef
@@ -1371,6 +1395,10 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("let O_;\n")
 		end if
 		
+		if(^@classTable <> 0)
+			do writer.writeStr("let CT_ = new Array(\{^@classTable});\n")
+		end if
+		
 		do @globalVars.head()
 		while(!@globalVars.term())
 			var globalVar: \ast@AstArg :: @globalVars.get()
@@ -1514,6 +1542,15 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("}\n")
 		end block
 		
+		if(^@classTable <> 0)
+			do @classTable.head()
+			while(!@classTable.term())
+				var item: []char :: @classTable.get()
+				do writer.writeStr(item)
+				do @classTable.next()
+			end while
+		end if
+		
 		do writer.writeStr("a();\n")
 		if(static)
 			do writer.writeStr("}\n")
@@ -1581,6 +1618,7 @@ end func
 		else
 			do info.breakSkipLabel :: null
 		end if
+		do info.classTableOffset :: -1
 		do info.alreadyWritten :: false
 		do ast.extra :: info
 	end if
@@ -1604,8 +1642,63 @@ func refClass(ast: \ast@AstClass): []char
 	if(ast.refItem <>& null)
 		do @refClass(ast.refItem $ \ast@AstClass)
 	end if
+	block
+		var parentOffset: int
+		if(ast.refItem =& null)
+			do parentOffset :: 0
+		else
+			var parentInfo: @WebInfo :: @getInfo(ast.refItem)
+			assert parentInfo.classTableOffset <> -1
+			do parentOffset :: parentInfo.classTableOffset
+		end if
+		if(info.classTableOffset = -1)
+			do info.classTableOffset :: ^@classTable
+		end if
+		do @classTable.add("CT_[\{info.classTableOffset}] = \{parentOffset};\n")
+		var funcs: dict<int, \ast@AstFunc> :: #dict<int, \ast@AstFunc>
+		do setFuncOffsetRecursion(&, funcs, ast, false)
+		do funcs.forEach(addFuncPosCallback, null)
+	end block
 	do @classes.add(ast)
 	ret info.id
+	
+	func setFuncOffsetRecursion(idx: &int, funcs: dict<int, \ast@AstFunc>, ast: \ast@AstClass, parent: bool)
+		if(ast.refItem <>& null)
+			do setFuncOffsetRecursion(&idx, funcs, ast.refItem $ \ast@AstClass, true)
+		end if
+		var items: list<\ast@AstClassItem> :: ast.items
+		do items.head()
+		while(!items.term())
+			var item: \ast@AstClassItem :: items.get()
+			if(item.def.typeId = %func_)
+				var func_: \ast@AstFunc :: item.def $ \ast@AstFunc
+				var info: @WebInfo :: @getInfo(func_)
+				if(item.override)
+					var parentItem: \ast@AstClassItem :: item.parentItem
+					assert parentItem <>& null
+					var parentInfo: @WebInfo :: @getInfo(parentItem.def)
+					assert parentInfo.classTableOffset <> -1
+					do info.classTableOffset :: parentInfo.classTableOffset
+				else
+					do idx :+ 1
+					if(info.classTableOffset = -1)
+						do info.classTableOffset :: idx
+					else
+						assert info.classTableOffset = idx
+					end if
+				end if
+				do funcs.add(info.classTableOffset, func_)
+			end if
+			do items.next()
+		end while
+	end func
+	
+	func addFuncPosCallback(key: int, value: \ast@AstFunc, data: kuin@Class): bool
+		var info: @WebInfo :: @getInfo(value)
+		var s: []char :: "CT_[\{^@classTable}] = \{info.id};\n"
+		do @classTable.add(s)
+		ret true
+	end func
 end func
 
 func getDefaultValue(type: \ast@AstType): []char

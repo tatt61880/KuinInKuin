@@ -1360,7 +1360,7 @@ func write(resFiles: list<[]char>)
 			end while
 		end block
 		do writer.writeStr("init_();\n")
-		do writer.writeStr("a();\n")
+		do writer.writeStr("_a();\n")
 		do writer.writeStr("return 0;\n")
 		do writer.writeStr("}\n")
 	end func
@@ -1449,44 +1449,24 @@ end func
 func getId(): []char
 	var curId: []char :: @uniqueId
 	var newId: []char :: ##@uniqueId
-	while loop2(true)
-		var idx: int :: ^newId - 1
-		while loop(true)
-			if(newId[idx] = 'z')
-				if(idx = 0)
-					do newId :: #[^newId + 1]char
-					do newId.fill('a')
-				else
-					do newId[idx] :: 'a'
-					do idx :- 1
-					skip loop
-				end if
+	var idx: int :: ^newId - 1
+	while loop(true)
+		if(newId[idx] = 'z')
+			if(idx = 0)
+				do newId :: #[^newId + 1]char
+				do newId.fill('a')
 			else
-				do newId[idx] :: newId[idx].offset(1)
+				do newId[idx] :: 'a'
+				do idx :- 1
+				skip loop
 			end if
-			break loop
-		end while
-		switch(^newId)
-		case 2
-			switch(newId)
-			case "do", "if", "or"
-				skip loop2
-			end switch
-		case 3
-			switch(newId)
-			case "and", "asm", "for", "int", "new", "not", "try", "xor"
-				skip loop2
-			end switch
-		case 4
-			switch(newId)
-			case "auto", "bool", "case", "char", "else", "enum", "goto", "long", "main", "this", "true", "void"
-				skip loop2
-			end switch
-		end switch
-		break loop2
+		else
+			do newId[idx] :: newId[idx].offset(1)
+		end if
+		break loop
 	end while
 	do @uniqueId :: newId
-	ret curId
+	ret "_" ~ curId
 end func
 
 +func getInfo(ast: \ast@Ast): @CppInfo
@@ -1609,33 +1589,7 @@ func refClass(ast: \ast@AstClass): []char
 	
 	func addFuncPosCallback(key: int, value: \ast@AstFunc, data: kuin@Class): bool
 		var info: @CppInfo :: @getInfo(value)
-		var s: []char :: "classTable_[\{^@classTable}] = reinterpret_cast<int64_t>(static_cast<"
-		if(value.ret_ =& null)
-			do s :~ "void"
-		else
-			do s :~ @getType(value.ret_)
-		end if
-		do s :~ "(*)("
-		block
-			var first: bool :: true
-			var items: list<\ast@AstArg> :: value.args
-			do items.head()
-			while(!items.term())
-				var arg: \ast@AstArg :: items.get()
-				if(first)
-					do first :: false
-				else
-					do s :~ ", "
-				end if
-				do s :~ @getType(arg.type)
-				if(arg.refVar)
-					do s :~ "*"
-				end if
-				do items.next()
-			end while
-		end block
-		do s :~ ")>(\{info.id}));\n"
-		do @classTable.add(s)
+		do @classTable.add("classTable_[\{^@classTable}] = reinterpret_cast<int64_t>(\{info.id});\n")
 		ret true
 	end func
 end func

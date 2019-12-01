@@ -49,13 +49,7 @@ static std::u16string utf8ToUtf16_(const std::string& s)
 
 #define STRICT
 #define _WIN32_DCOM
-
 #include <Windows.h>
-
-#undef min
-#undef far
-#undef max
-#undef near
 
 const char newLine_[] = { '\r', '\n' };
 
