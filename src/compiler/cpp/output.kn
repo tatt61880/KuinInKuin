@@ -1,5 +1,3 @@
-const classTableItemSize: int :: 2
-
 var funcs: queue<\ast@AstFunc>
 var classes: queue<\ast@AstClass>
 
@@ -11,7 +9,6 @@ var classFuncs: list<[]char>
 var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
-var classTableSize: int
 var classTable: list<[]char>
 
 +class CppInfo(\ast@HasType)
@@ -42,7 +39,6 @@ end class
 	do @tmpVars :: #list<@TmpVar>
 	do @globalVars :: #list<\ast@AstArg>
 	do @localVars :: #list<\ast@AstArg>
-	do @classTableSize :: 0
 	do @classTable :: #list<[]char>
 	
 	while(^@funcs > 0 | ^@classes > 0)
@@ -215,18 +211,6 @@ func buildClass(ast: \ast@AstClass)
 		do parentId :: "Class_"
 	end if
 	var info: @CppInfo :: @getInfo(ast)
-	block
-		assert info.classTableOffset <> -1
-		var parentOffset: int
-		if(ast.refItem =& null)
-			do parentOffset :: 0
-		else
-			var parentInfo: @CppInfo :: @getInfo(ast.refItem)
-			assert parentInfo.classTableOffset <> -1
-			do parentOffset :: parentInfo.classTableOffset
-		end if
-		do @classTable.add("classTable_[\{info.classTableOffset * @classTableItemSize}] = \{parentOffset * @classTableItemSize};\n")
-	end block
 	if(ast.name <>& null)
 		do @classDefs.add("// \{ast.name}\n")
 	end if
@@ -247,7 +231,7 @@ func buildClass(ast: \ast@AstClass)
 		end while
 	end block
 	do @classFuncs.add("{\n")
-	do @classFuncs.add("Y = \{info.classTableOffset * @classTableItemSize};\n")
+	do @classFuncs.add("Y = \{info.classTableOffset};\n")
 	block
 		var ctor: \ast@AstFunc :: findFunc(ast, "ctor")
 		if(ctor <>& null)
@@ -476,11 +460,19 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 						do @codes.add(")")
 					end if
 				else
-					do @codes.add("(")
-					do @buildExpr(exprs.expr0)
-					do @codes.add(") <= \{info.id} && \{info.id} <= (")
-					do @buildExpr(exprs.expr1)
-					do @codes.add(")")
+					if(\ast@isRef(ast.cond.type))
+						do @codes.add("cmp_(\{info.id}, (")
+						do @buildExpr(exprs.expr0)
+						do @codes.add(")) >= 0 && cmp_(\{info.id}, (")
+						do @buildExpr(exprs.expr1)
+						do @codes.add(")) <= 0")
+					else
+						do @codes.add("(")
+						do @buildExpr(exprs.expr0)
+						do @codes.add(") <= \{info.id} && \{info.id} <= (")
+						do @buildExpr(exprs.expr1)
+						do @codes.add(")")
+					end if
 				end if
 				do items2.next()
 			end while
@@ -1037,7 +1029,7 @@ func buildExprAs(ast: \ast@AstExprAs)
 			var info: @CppInfo :: @getInfo(t2.refItem)
 			do @codes.add("as_<\{id}>(classTable_, (")
 			do @buildExpr(ast.child)
-			do @codes.add("), \{info.classTableOffset * @classTableItemSize})")
+			do @codes.add("), \{info.classTableOffset})")
 		else
 			do @codes.add("static_cast<\{@getType(ast.childType)}>(")
 			do @buildExpr(ast.child)
@@ -1048,13 +1040,13 @@ func buildExprAs(ast: \ast@AstExprAs)
 		var info: @CppInfo :: @getInfo(ast.childType.refItem)
 		do @codes.add("is_(classTable_, (")
 		do @buildExpr(ast.child)
-		do @codes.add("), \{info.classTableOffset * @classTableItemSize})")
+		do @codes.add("), \{info.classTableOffset})")
 	case %nIs
 		do @refClass(ast.childType.refItem $ \ast@AstClass)
 		var info: @CppInfo :: @getInfo(ast.childType.refItem)
 		do @codes.add("!is_(classTable_, (")
 		do @buildExpr(ast.child)
-		do @codes.add("), \{info.classTableOffset * @classTableItemSize})")
+		do @codes.add("), \{info.classTableOffset})")
 	default
 		assert false
 	end switch
@@ -1142,10 +1134,16 @@ func buildExprCall(ast: \ast@AstExprCall)
 			else
 				do @codes.add(", (")
 			end if
-			if(item.refVar)
-				do @codes.add("&")
+			if(item.skipVar)
+				assert item.refVar
+				var tmp: []char :: @addTmpVar(item.arg.type)
+				do @codes.add("std::memset(&\{tmp}, 0, sizeof(\{@getType(item.arg.type)})), &\{tmp}")
+			else
+				if(item.refVar)
+					do @codes.add("&")
+				end if
+				do @buildExpr(item.arg)
 			end if
-			do @buildExpr(item.arg)
 			do @codes.add(")")
 			do items.next()
 		end while
@@ -1186,8 +1184,9 @@ func buildExprDot(ast: \ast@AstExprDot)
 		else
 			assert classItem.def.typeId = %func_
 			do info :: @getInfo(classItem.def)
-			; 'ast.var_' is calculated elsewhere.
-			do @codes.add("\{info.id}")
+			do @codes.add("reinterpret_cast<\{@getType(ast.type)}>(classTable_[(")
+			do @buildExpr(ast.var_)
+			do @codes.add(")->Y + \{info.classTableOffset}])")
 		end if
 	else
 		assert ast.refItem.typeId = %exprRef
@@ -1326,8 +1325,8 @@ func write(resFiles: list<[]char>)
 			do @funcPrototypes.next()
 		end while
 		; TODO: ResFiles
-		if(@classTableSize <> 0)
-			do writer.writeStr("static int64_t classTable_[\{@classTableSize * @classTableItemSize}];\n")
+		if(^@classTable <> 0)
+			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
 		end if
 		do writer.writeStr("static int64_t argc_;\n")
 		do writer.writeStr("static char** argv_;\n")
@@ -1361,7 +1360,7 @@ func write(resFiles: list<[]char>)
 			end while
 		end block
 		do writer.writeStr("init_();\n")
-		do writer.writeStr("a();\n")
+		do writer.writeStr("_a();\n")
 		do writer.writeStr("return 0;\n")
 		do writer.writeStr("}\n")
 	end func
@@ -1450,44 +1449,24 @@ end func
 func getId(): []char
 	var curId: []char :: @uniqueId
 	var newId: []char :: ##@uniqueId
-	while loop2(true)
-		var idx: int :: ^newId - 1
-		while loop(true)
-			if(newId[idx] = 'z')
-				if(idx = 0)
-					do newId :: #[^newId + 1]char
-					do newId.fill('a')
-				else
-					do newId[idx] :: 'a'
-					do idx :- 1
-					skip loop
-				end if
+	var idx: int :: ^newId - 1
+	while loop(true)
+		if(newId[idx] = 'z')
+			if(idx = 0)
+				do newId :: #[^newId + 1]char
+				do newId.fill('a')
 			else
-				do newId[idx] :: newId[idx].offset(1)
+				do newId[idx] :: 'a'
+				do idx :- 1
+				skip loop
 			end if
-			break loop
-		end while
-		switch(^newId)
-		case 2
-			switch(newId)
-			case "do", "if", "or"
-				skip loop2
-			end switch
-		case 3
-			switch(newId)
-			case "and", "asm", "for", "int", "new", "not", "try", "xor"
-				skip loop2
-			end switch
-		case 4
-			switch(newId)
-			case "auto", "bool", "case", "char", "else", "enum", "goto", "long", "main", "this", "true", "void"
-				skip loop2
-			end switch
-		end switch
-		break loop2
+		else
+			do newId[idx] :: newId[idx].offset(1)
+		end if
+		break loop
 	end while
 	do @uniqueId :: newId
-	ret curId
+	ret "_" ~ curId
 end func
 
 +func getInfo(ast: \ast@Ast): @CppInfo
@@ -1532,10 +1511,23 @@ func refClass(ast: \ast@AstClass): []char
 	if(ast.refItem <>& null)
 		do @refClass(ast.refItem $ \ast@AstClass)
 	end if
-	if(info.classTableOffset = -1)
-		do info.classTableOffset :: @classTableSize
-		do @classTableSize :+ 1
-	end if
+	block
+		var parentOffset: int
+		if(ast.refItem =& null)
+			do parentOffset :: 0
+		else
+			var parentInfo: @CppInfo :: @getInfo(ast.refItem)
+			assert parentInfo.classTableOffset <> -1
+			do parentOffset :: parentInfo.classTableOffset
+		end if
+		if(info.classTableOffset = -1)
+			do info.classTableOffset :: ^@classTable
+		end if
+		do @classTable.add("classTable_[\{info.classTableOffset}] = \{parentOffset};\n")
+		var funcs: dict<int, \ast@AstFunc> :: #dict<int, \ast@AstFunc>
+		do setFuncOffsetRecursion(&, funcs, ast, false)
+		do funcs.forEach(addFuncPosCallback, null)
+	end block
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
 		do items.head()
@@ -1563,4 +1555,41 @@ func refClass(ast: \ast@AstClass): []char
 	end block
 	do @classes.add(ast)
 	ret info.id
+	
+	func setFuncOffsetRecursion(idx: &int, funcs: dict<int, \ast@AstFunc>, ast: \ast@AstClass, parent: bool)
+		if(ast.refItem <>& null)
+			do setFuncOffsetRecursion(&idx, funcs, ast.refItem $ \ast@AstClass, true)
+		end if
+		var items: list<\ast@AstClassItem> :: ast.items
+		do items.head()
+		while(!items.term())
+			var item: \ast@AstClassItem :: items.get()
+			if(item.def.typeId = %func_)
+				var func_: \ast@AstFunc :: item.def $ \ast@AstFunc
+				var info: @CppInfo :: @getInfo(func_)
+				if(item.override)
+					var parentItem: \ast@AstClassItem :: item.parentItem
+					assert parentItem <>& null
+					var parentInfo: @CppInfo :: @getInfo(parentItem.def)
+					assert parentInfo.classTableOffset <> -1
+					do info.classTableOffset :: parentInfo.classTableOffset
+				else
+					do idx :+ 1
+					if(info.classTableOffset = -1)
+						do info.classTableOffset :: idx
+					else
+						assert info.classTableOffset = idx
+					end if
+				end if
+				do funcs.add(info.classTableOffset, func_)
+			end if
+			do items.next()
+		end while
+	end func
+	
+	func addFuncPosCallback(key: int, value: \ast@AstFunc, data: kuin@Class): bool
+		var info: @CppInfo :: @getInfo(value)
+		do @classTable.add("classTable_[\{^@classTable}] = reinterpret_cast<int64_t>(\{info.id});\n")
+		ret true
+	end func
 end func

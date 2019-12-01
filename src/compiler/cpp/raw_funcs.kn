@@ -298,7 +298,7 @@
 		do args.next()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		; TODO: sign
-		do codes.add("return \{me_.id} >> \{n.id};\n")
+		do codes.add("return sar_(\{me_.id}, \{n.id});\n")
 	case "shl"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

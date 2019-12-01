@@ -1,5 +1,9 @@
 func main()
-	do @test1()
+	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14]
+	for i(0, ^funcs - 1)
+		do cui@print("-- Test \{i + 1} --\n")
+		do funcs[i]()
+	end for
 end func
 
 var s: []char :: "abc" ~ "def"
@@ -109,7 +113,9 @@ func test1()
 		do d2 :: 0b64 - d2
 		do cui@print(c1.toStr() ~ ", " ~ d1.toStr() ~ ", " ~ c2.toStr() ~ ", " ~ d2.toStr() ~ "\n")
 	end block
-	
+end func
+
+func test2()
 	block
 		do cui@print((-3 = 5).toStr() ~ ", " ~ (-3 <> 5).toStr() ~ ", " ~ (-3 < 5).toStr() ~ ", " ~ (-3 <= 5).toStr() ~ ", " ~ (-3 > 5).toStr() ~ ", " ~ (-3 >= 5).toStr() ~ "\n")
 		
@@ -204,7 +210,9 @@ func test1()
 		do cui@print(("ab" = "a" ~ "b").toStr() ~ ", " ~ ("ab" <> "a" ~ "b").toStr() ~ ", " ~ ("ab" < "a" ~ "b").toStr() ~ ", " ~ ("ab" <= "a" ~ "b").toStr() ~ ", " ~ ("ab" > "a" ~ "b").toStr() ~ ", " ~ ("ab" >= "a" ~ "b").toStr() ~ "\n")
 		do cui@print((a = "ab").toStr() ~ ", " ~ (a <> "ab").toStr() ~ ", " ~ (a < "ab").toStr() ~ ", " ~ (a <= "ab").toStr() ~ ", " ~ (a > "ab").toStr() ~ ", " ~ (a >= "ab").toStr() ~ "\n")
 	end block
-	
+end func
+
+func test3()
 	block
 		var a: []char :: "ab"
 		var b: []char :: "ab"
@@ -250,7 +258,9 @@ func test1()
 		do a :~ ", " ~ b
 		do cui@print(a ~ "\n")
 	end block
-	
+end func
+
+func test4()
 	block
 		do cui@print((^("abcdef")).toStr() ~ "\n")
 		do cui@print((5).abs().toStr() ~ "\n")
@@ -464,7 +474,9 @@ func test1()
 		do cui@print((n $ bit32).toStr() ~ "\n")
 		do cui@print((n $ bit64).toStr() ~ "\n")
 	end block
-	
+end func
+
+func test5()
 	block
 		do cui@print(@s ~ "\n")
 		
@@ -614,7 +626,9 @@ func test1()
 			do cui@print(n ~ "\n")
 		end switch
 	end for
-	
+end func
+
+func test6()
 	block
 		for i(1, 10)
 			for j(1, 10)
@@ -675,7 +689,9 @@ func test1()
 			do cui@print((n $ int).toStr() ~ "\n")
 		end block
 	end block
-	
+end func
+
+func test7()
 	block
 		class A()
 		end class
@@ -766,7 +782,9 @@ func test1()
 			do ss.prev()
 		end while
 	end block
-	
+end func
+
+func test8()
 	block
 		var ns: stack<int> :: #stack<int>
 		do ns.add(1)
@@ -822,7 +840,9 @@ func test1()
 		end while
 		do ns.add("f")
 	end block
-	
+end func
+
+func test9()
 	block
 		var n: dict<int, int> :: #dict<int, int>
 		do n.add(6, 16)
@@ -908,15 +928,15 @@ func test1()
 			end if
 		end for
 	end block
-	
+end func
+
+func test10()
 	block
 		var n: [][]char :: ["abc", "def"]
 		var m: [][]char :: ##n
 		do cui@print((n[0] = m[0]).toStr() ~ ", " ~ (n[0] =& m[0]).toStr() ~ "\n")
 	end block
 	
-	; TODO:
-	{
 	block
 		var n: list<list<int>> :: #list<list<int>>
 		var n2: list<int> :: #list<int>
@@ -963,7 +983,6 @@ func test1()
 		do cui@print(m.get("a", &) ~ m.get("b", &) ~ m.get("c", &) ~ "\n")
 		do cui@print((n.get("a", &) = m.get("a", &)).toStr() ~ ", " ~ (n.get("a", &) =& m.get("a", &)).toStr() ~ "\n")
 	end block
-	}
 	
 	block
 		var n: bit8 :: 0xF6b8
@@ -1012,7 +1031,9 @@ func test1()
 		do cui@print(n.shr(1).toStr() ~ "\n")
 		do cui@print(n.sar(1).toStr() ~ "\n")
 	end block
-	
+end func
+
+func test11()
 	block
 		do cui@print("abcdeabcde".find('d', -1).toStr() ~ "\n")
 		do cui@print("abcdeabcde".find('f', -1).toStr() ~ "\n")
@@ -1099,7 +1120,9 @@ func test1()
 		do cui@print(lib@round(5555.5555, -2).toStr() ~ "\n")
 		do cui@print(lib@round(-5555.5555, -2).toStr() ~ "\n")
 	end block
-	
+end func
+
+func test12()
 	block
 		do cui@print("aBcDeF".lower() ~ "\n")
 		do cui@print("aBcDeF".upper() ~ "\n")
@@ -1177,7 +1200,12 @@ func test1()
 		var b: C :: ##a
 		do cui@print(b.i.toStr() ~ ", " ~ (a.s = b.s).toStr() ~ ", " ~ (a.s =& b.s).toStr() ~ "\n")
 	end block
-	
+	}
+end func
+
+func test13()
+	; TODO:
+	{
 	block
 		var n: int :: 123456789012
 		var m: int
@@ -1363,7 +1391,9 @@ func test1()
 		do cui@print(m.a.toStr() ~ ", " ~ m.b ~ "\n")
 	end block
 	}
-	
+end func
+
+func test14()
 	block
 		; Single line comment #3.
 		; Single line comment #4.

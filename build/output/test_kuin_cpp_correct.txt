@@ -1,3 +1,4 @@
+-- Test 1 --
 Kuin Test Program
 23, 2, 823543
 23, 2, 823543
@@ -17,6 +18,7 @@ Kuin Test Program
 0x0000000000000017, 0x0000000000000002
 0x0000000000000017, 0x0000000000000002
 0x0000000000000001, 0x0000000000000001, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF
+-- Test 2 --
 false, true, true, true, false, false
 false, true, true, true, false, false
 true, false, false, true, false, true
@@ -45,6 +47,7 @@ false, true, true, true, false, false
 false, true, true, true, false, false
 true, false, false, true, false, true
 true, false, false, true, false, true
+-- Test 3 --
 false, true
 true, false
 false, true
@@ -69,6 +72,7 @@ F
 F
 T
 true, false
+-- Test 4 --
 6
 5
 5
@@ -214,6 +218,7 @@ true
 0x00FF
 0x000000FF
 0x00000000000000FF
+-- Test 5 --
 abcdef
 ab, cd, ef
 120
@@ -327,6 +332,7 @@ abc
 8
 def
 10
+-- Test 6 --
 1, 1
 1, 2
 1, 4
@@ -350,6 +356,7 @@ def
 255
 255
 255
+-- Test 7 --
 true, true, true, true, false, false
 false, false, false, false, true, true
 5, 1234
@@ -375,6 +382,7 @@ ab
 ij
 gh
 5
+-- Test 8 --
 5
 5
 4
@@ -399,6 +407,7 @@ b
 c
 d
 e
+-- Test 9 --
 9
 0
 Not existed.
@@ -463,6 +472,15 @@ I
 J
 (null)
 Not existed.
+-- Test 10 --
+true, false
+3, 3
+5, 5
+3, 3
+3, 3
+5, 5
+ABC
+ABC
 true, false
 0xFE
 0x02
@@ -492,6 +510,7 @@ true, false
 0xEDEDEDEDEDEDEDEC
 0x7B7B7B7B7B7B7B7B
 0xFB7B7B7B7B7B7B7B
+-- Test 11 --
 3
 -1
 8
@@ -532,6 +551,7 @@ EFCDAB
 -5555.56
 5600
 -5600
+-- Test 12 --
 abcdef
 ABCDEF
 abcde
@@ -542,3 +562,5 @@ d
 b
 true, false, false, true
 false, false, true, false
+-- Test 13 --
+-- Test 14 --

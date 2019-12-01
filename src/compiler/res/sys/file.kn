@@ -21,21 +21,26 @@ end enum
 	end func
 
 	+func [d0000.knd, _readerRead] read(size: int): []bit8
+		ret null { TODO: }
 	end func
 
 	+func [__raw, file_readerReadLetter] readLetter(): char
 	end func
 
 	+func [d0000.knd, _readerReadInt] readInt(): int
+		ret 0 { TODO: }
 	end func
 
 	+func [d0000.knd, _readerReadFloat] readFloat(): float
+		ret 0.0 { TODO: }
 	end func
 
 	+func [d0000.knd, _readerReadChar] readChar(): char
+		ret '\0' { TODO: }
 	end func
 
 	+func [d0000.knd, _readerReadStr] readStr(): []char
+		ret null { TODO: }
 	end func
 
 	+func readLine(): []char
@@ -54,6 +59,7 @@ end enum
 	end func
 
 	+func [d0000.knd, _readerFileSize] fileSize(): int
+		ret 0 { TODO: }
 	end func
 
 	+func [__raw, file_readerTerm] term(): bool
