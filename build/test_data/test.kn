@@ -1067,8 +1067,10 @@ func test11()
 	block
 		var n: []char :: "This is a string value."
 		var m: [][]char :: ["AB", "CD", "EF"]
-		do n.sortDesc()
-		do m.sortDesc()
+		do n.sort()
+		do n.reverse()
+		do m.sort()
+		do m.reverse()
 		do cui@print(n ~ "\n")
 		do cui@print(m[0] ~ m[1] ~ m[2] ~ "\n")
 	end block

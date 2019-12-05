@@ -907,6 +907,15 @@ static int64_t powI_(int64_t a, int64_t b) noexcept
 	return r;
 }
 
+template<typename T>
+static void reverse_(Array_<T>* me) { std::reverse<T*>(me->B, me->B + me->L); }
+
+template<typename T>
+static bool sortCmp_(const T& a, const T& b) { return cmp_(a, b) < 0; }
+
+template<typename T>
+static void sort_(Array_<T>* me) { std::sort<T*, bool(*)(const T&, const T&)>(me->B, me->B + me->L, sortCmp_<T>); }
+
 static uint8_t sar_(uint8_t me_, int64_t n) { return static_cast<uint8_t>(static_cast<int8_t>(me_) >> n); }
 static uint16_t sar_(uint16_t me_, int64_t n) { return static_cast<uint16_t>(static_cast<int16_t>(me_) >> n); }
 static uint32_t sar_(uint32_t me_, int64_t n) { return static_cast<uint32_t>(static_cast<int32_t>(me_) >> n); }

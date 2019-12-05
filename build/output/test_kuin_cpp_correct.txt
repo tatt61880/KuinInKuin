@@ -527,12 +527,12 @@ vutsssrnliiihgeaaT.
 EFCDAB
 0.866025
 0.5
-0.57735
+0.577351
 1.41421
 7.38906
-1
+0.999999
 3
-5, 6
+4.99998, 6
 1.5708
 5
 7
@@ -558,9 +558,12 @@ abcde
 abcd  e
 a  bcde
 A, 5, 3.5, Z
+false, true
 d
 b
 true, false, false, true
 false, false, true, false
+3, 4, 5, 7
+5, true, false
 -- Test 13 --
 -- Test 14 --

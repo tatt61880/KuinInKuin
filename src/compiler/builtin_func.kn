@@ -64,7 +64,6 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		do @builtinFuncs.add("shuffle", %array)
 		do @builtinFuncs.add("sign", %intFloat)
 		do @builtinFuncs.add("sort", %arrayList)
-		do @builtinFuncs.add("sortDesc", %arrayList)
 		do @builtinFuncs.add("split", %str)
 		do @builtinFuncs.add("sub", %array)
 		do @builtinFuncs.add("tail", %list_)
@@ -218,8 +217,6 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 			switch(member)
 			case "sort"
 				do member :: "sortArray"
-			case "sortDesc"
-				do member :: "sortDescArray"
 			case "find"
 				do member :: "findArray"
 			case "findLast"
@@ -233,8 +230,6 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 			switch(member)
 			case "sort"
 				do member :: "sortList"
-			case "sortDesc"
-				do member :: "sortDescList"
 			case "find"
 				do member :: "findList"
 			case "findLast"

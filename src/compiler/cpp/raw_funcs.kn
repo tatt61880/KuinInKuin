@@ -279,6 +279,10 @@
 		do codes.add("\{me_.id}->I = \{me_.id}->B.end();\n")
 		do codes.add("else\n")
 		do codes.add("--\{me_.id}->I;\n")
+	case "reverse"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("reverse_(\{me_.id});\n")
 	case "rnd"
 		do args.head()
 		var min: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -321,6 +325,10 @@
 		do args.head()
 		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return std::sinh(\{x.id});\n")
+	case "sortArray"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("sort_(\{me_.id});\n")
 	case "sqrt"
 		do args.head()
 		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

@@ -123,22 +123,16 @@ end func
 func [__any, __rme, __raw, sub] _sub(me_: int, type: []int, start: int, len: int): int
 end func
 
-func [__any] _reverse(me_: int, type: []int)
+func [__any, __raw, reverse] _reverse(me_: int, type: []int)
 end func
 
 func [__any] _shuffle(me_: int, type: []int)
 end func
 
-func [__any] _sortArray(me_: int, type: []int)
-end func
-
-func [__any] _sortDescArray(me_: int, type: []int)
+func [__any, __raw, sortArray] _sortArray(me_: int, type: []int)
 end func
 
 func [__any] _sortList(me_: int, type: []int)
-end func
-
-func [__any] _sortDescList(me_: int, type: []int)
 end func
 
 func [__any, __tch, __raw, findArray] _findArray(me_: int, type: []int, item: int, start: int): int

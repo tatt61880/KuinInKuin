@@ -118,7 +118,7 @@
 		do args.next()
 		var value: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("if(\{meType.id}[0]===\{%array $ \convert@runtimeTypeId $ int}&&\{meType.id}[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
-		do codes.add("\{me_.id}.S=String.fromCharCode(\{value.id}).repeat(\{me_.id}.S.length);\n")
+		do codes.add("\{me_.id}.S=R_(String.fromCharCode(\{value.id}),\{me_.id}.S.length);\n")
 		do codes.add("else\n")
 		do codes.add("\{me_.id}.fill(\{value.id});\n")
 	case "findArray"
@@ -330,6 +330,15 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("\{me_.id}.P=\{me_.id}.P.P;\n")
+	case "reverse"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{meType.id}[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add("\{me_.id}.S=\{me_.id}.S.split(\"\").reverse().join(\"\");\n")
+		do codes.add("else\n")
+		do codes.add("\{me_.id}.reverse();\n")
 	case "rnd"
 		do args.head()
 		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -379,6 +388,19 @@
 		do args.head()
 		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return Math.sinh(\{x.id});\n")
+	case "sortArray"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("if(\{meType.id}[1]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add("\{me_.id}.S=\{me_.id}.S.split(\"\").sort().join(\"\");\n")
+		do codes.add("else if(\{meType.id}[1]===\{%array $ \convert@runtimeTypeId $ int}&&\{meType.id}[2]===\{%char_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add("\{me_.id}.sort();\n")
+		do codes.add("else if(\{meType.id}[1]===\{%class_ $ \convert@runtimeTypeId $ int})\n")
+		do codes.add(";\n") {TODO:}
+		do codes.add("else\n")
+		do codes.add("\{me_.id}.sort(function(a,b){return a>b?1:a<b?-1:0;});\n")
 	case "sqrt"
 		do args.head()
 		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -599,7 +621,7 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		var handle: \web\output@WebInfo :: search(members, "handle")
-		do codes.add("let d_=\{me_.id}.\{handle.id}.F.replace(\"\\n\", \"\\u000D\\n\");\n")
+		do codes.add("let d_=\{me_.id}.\{handle.id}.F.replace(/\\n/g, \"\\u000D\\n\");\n")
 		do codes.add("if(O_&&O_.writeFile){O_.writeFile(\{me_.id}.\{handle.id}.P,d_);return;}\n")
 		do codes.add("let b_=new Blob([d_]);\n")
 		do codes.add("let l_=document.createElement(\"a\");\n")

@@ -960,11 +960,11 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 		do items.head()
 		if(\ast@isChar(ast.itemType))
 			if(^items = 1)
-				do @codes.add("{S:\"\\0\".repeat(")
+				do @codes.add("{S:R_(\"\\0\",(")
 				do @buildExpr(items.get())
-				do @codes.add(")}")
+				do @codes.add("))}")
 			else
-				do @codes.add("(function A_(n){if(n.length===1)return{S:\"\\0\".repeat(\{@getDefaultValue(ast.itemType)})};else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a;}})([")
+				do @codes.add("(function A_(n){if(n.length===1)return{S:R_(\"\\0\",n[0])};else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a;}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
@@ -1539,6 +1539,15 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("++i,T();\n")
 			do writer.writeStr("}()\n")
 			do writer.writeStr("return t[i];\n")
+			do writer.writeStr("}\n")
+		end block
+		
+		block
+			do writer.writeStr("function R_(c,n){\n")
+			do writer.writeStr("if(c.repeat)return c.repeat(n);\n")
+			do writer.writeStr("let r=\"\";\n")
+			do writer.writeStr("for(let i=0;i<n;i++)r+=c;\n")
+			do writer.writeStr("return r;\n")
 			do writer.writeStr("}\n")
 		end block
 		
