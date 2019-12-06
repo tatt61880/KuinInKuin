@@ -242,26 +242,6 @@ func buildClass(ast: \ast@AstClass)
 	do @classFuncs.add("}\n")
 	; TODO: Destructor.
 	block
-		var cmp: \ast@AstFunc :: findFunc(ast, "cmp")
-		if(cmp <>& null)
-			var cmpInfo: @CppInfo :: @getInfo(cmp)
-			do @classDefs.add("virtual int64_t cmp_(Class_* t) override;\n")
-			do @classFuncs.add("int64_t \{info.id}::cmp_(Class_* t){\n")
-			do @classFuncs.add("\{info.id}* u = reinterpret_cast<\{info.id}*>(t);\n")
-			do @classFuncs.add("return \{cmpInfo.id}(this, u);\n")
-			do @classFuncs.add("}\n")
-		end if
-		var copy: \ast@AstFunc :: findFunc(ast, "_copy")
-		block
-			assert copy <>& null
-			var copyInfo: @CppInfo :: @getInfo(copy)
-			do @classDefs.add("virtual Class_* copy_(Class_* t) override;\n")
-			do @classFuncs.add("Class_* \{info.id}::copy_(Class_* t){\n")
-			do @classFuncs.add("return \{copyInfo.id}(this);\n")
-			do @classFuncs.add("}\n")
-		end block
-	end block
-	block
 		var items: list<\ast@AstClassItem> :: ast.items
 		do items.head()
 		while(!items.term())
@@ -1294,6 +1274,10 @@ end func
 func write(resFiles: list<[]char>)
 	if(\option@extra.get("merge", &))
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+		do writer.writeStr("#include <cstdint>\n")
+		if(^@classTable <> 0)
+			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
+		end if
 		var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
 		while(!reader.term())
 			var s: []char :: reader.readLine()
@@ -1306,6 +1290,10 @@ func write(resFiles: list<[]char>)
 		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
 		
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+		do writer.writeStr("#include <cstdint>\n")
+		if(^@classTable <> 0)
+			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
+		end if
 		do writer.writeStr("#include \"common.h\"\n")
 		do writeCpp(writer, resFiles)
 		do writer.fin()
@@ -1325,9 +1313,6 @@ func write(resFiles: list<[]char>)
 			do @funcPrototypes.next()
 		end while
 		; TODO: ResFiles
-		if(^@classTable <> 0)
-			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
-		end if
 		do writer.writeStr("static int64_t argc_;\n")
 		do writer.writeStr("static char** argv_;\n")
 		do @globalVars.head()

@@ -18,6 +18,16 @@
 	class_
 end enum
 
++enum methodOffset
+	ctor :: 1
+	dtor
+	cmp
+	copy
+	toBin
+	fromBin
+	toStr
+end enum
+
 +func getTypeId(type: \ast@AstType): list<int>
 	var result: list<int> :: #list<int>
 	do @makeTypeIdRecursion(type, result)

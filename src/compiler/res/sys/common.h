@@ -1,7 +1,6 @@
 #include <chrono>
 #include <codecvt>
 #include <cstdarg>
-#include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
@@ -14,14 +13,37 @@
 #include <type_traits>
 #include <vector>
 
-class Ref_;
+class Ref_
+{
+public:
+	Ref_() noexcept : R(0LL)
+	{
+	}
+
+	bool EqAddr(const Ref_* t) noexcept
+	{
+		return this == t;
+	}
+
+	int64_t R;
+};
+
+class Class_ : public Ref_
+{
+public:
+	Class_() noexcept : Ref_(), Y(0LL)
+	{
+	}
+
+	int64_t Y;
+};
+
 template<typename T> class Array_;
 template<typename T> class List_;
 template<typename T> class Stack_;
 template<typename T> class Queue_;
 template<typename T1, typename T2> class dictImpl_;
 template<typename T1, typename T2> class Dict_;
-class Class_;
 
 #if _MSC_VER >= 1900
 static std::string utf16ToUtf8_(const std::u16string& s)
@@ -342,7 +364,10 @@ static T* copy_(T* t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
-	return static_cast<T*>((new T())->copy_(t));
+	Class_* r = new Class_();
+	Class_* s = reinterpret_cast<Class_*(*)(Class_*)>(classTable_[r->Y + 4])(t);
+	delete r;
+	return static_cast<T*>(s);
 }
 static int64_t copy_(int64_t t) noexcept { return t; }
 static char16_t copy_(char16_t t) noexcept { return t; }
@@ -352,21 +377,6 @@ static uint8_t copy_(uint8_t t) noexcept { return t; }
 static uint16_t copy_(uint16_t t) noexcept { return t; }
 static uint32_t copy_(uint32_t t) noexcept { return t; }
 static uint64_t copy_(uint64_t t) noexcept { return t; }
-
-class Ref_
-{
-public:
-	Ref_() noexcept : R(0LL)
-	{
-	}
-
-	bool EqAddr(const Ref_* t) noexcept
-	{
-		return this == t;
-	}
-
-	int64_t R;
-};
 
 template<typename T>
 class Array_ : public Ref_
@@ -492,20 +502,6 @@ public:
 
 	int64_t L;
 	dictImpl_<T1, T2>* B;
-};
-
-class Class_ : public Ref_
-{
-public:
-	Class_() noexcept : Ref_(), Y(0LL)
-	{
-	}
-
-	virtual int64_t cmp_(Class_* t) = 0;
-
-	virtual Class_* copy_(Class_* t) = 0;
-
-	int64_t Y;
 };
 
 static Array_<char16_t>* toStr_(int64_t v)
@@ -652,10 +648,7 @@ static int64_t cmp_(Array_<char16_t>* a, Array_<char16_t>* b)
 	}
 	return a->L > b->L ? 1 : (a->L < b->L ? -1 : 0);
 }
-static int64_t cmp_(Class_* a, Class_* b) noexcept
-{
-	return a->cmp_(b);
-}
+static int64_t cmp_(Class_* a, Class_* b) noexcept { return reinterpret_cast<int64_t(*)(Class_*, Class_*)>(classTable_[a->Y + 3])(a, b); }
 static int64_t cmp_(int64_t a, int64_t b) noexcept { return a - b; }
 static int64_t cmp_(char16_t a, char16_t b) noexcept { return static_cast<int64_t>(a) - static_cast<int64_t>(b); }
 static int64_t cmp_(double a, double b) noexcept { return a > b ? 1LL : (a < b ? -1LL : 0LL); }
