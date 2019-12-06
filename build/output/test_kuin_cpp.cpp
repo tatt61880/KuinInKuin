@@ -1,5 +1,5 @@
 #include <cstdint>
-static int64_t classTable_[50];
+static int64_t classTable_[58];
 #include "common.h"
 namespace {
 // Class
@@ -21,7 +21,7 @@ _lw();
 class _mc : public _lj{
 public:
 _mc();
-int64_t _wz; // a
+int64_t _xj; // a
 };
 // B
 class _mk : public _mc{
@@ -33,6 +33,13 @@ class _tz : public _lj{
 public:
 _tz();
 int64_t _uf; // n
+};
+// C
+class _ul : public _lj{
+public:
+_ul();
+int64_t _uq; // i
+Array_<char16_t>* _ur; // s
 };
 static void _a();
 static void _e();
@@ -59,100 +66,104 @@ static void _x();
 static void _y();
 static void _z();
 static void _aa();
-typedef Array_<char16_t>*(*_uj)(int64_t, int64_t*, double, double*, char16_t*);
+typedef Array_<char16_t>*(*_ut)(int64_t, int64_t*, double, double*, char16_t*);
 static void _ab();
 static void _ac();
-static void _ai(Array_<char16_t>* _vl /*str*/);
-template<typename T_> static Array_<char16_t>* _aj(T_ _vm /*me_*/, Array_<int64_t>* _vn /*type*/);
-static int64_t _ed(int64_t _vo /*me_*/);
-static double _ee(double _vp /*me_*/);
-static int64_t _fs(int64_t _vq /*n*/);
-static Array_<Array_<char16_t>*>* _fw(Array_<Array_<char16_t>*>* _vr /*n*/, Array_<Array_<char16_t>*>* _vs /*m*/);
-static void _lk(_lj* _vt /*me*/);
-static void _ll(_lj* _vu /*me*/);
-static int64_t _lm(_lj* _vv /*me*/, _lj* _vw /*t*/);
-static _lj* _ln(_lj* _vx /*me*/);
-static Array_<uint8_t>* _lo(_lj* _vz /*me*/);
-static _lj* _lp(_lj* _wb /*me*/, Array_<uint8_t>* _wc /*bin*/, int64_t* _wd /*idx*/);
-static Array_<char16_t>* _lq(_lj* _wf /*me*/);
-static void _lr(_li* _wg);
-static _li* _ls(_li* _wh);
-static Array_<uint8_t>* _lt(_li* _wj);
-static _li* _lu(_li* _wl, Array_<uint8_t>* _wm, int64_t* _wn);
-static void _lx(_lw* _wp);
-static _lw* _ly(_lw* _wq);
-static Array_<uint8_t>* _lz(_lw* _ws);
-static _lw* _ma(_lw* _wu, Array_<uint8_t>* _wv, int64_t* _ww);
-static void _md(_mc* _wy /*me*/);
-static int64_t _me(_mc* _xa /*me*/);
-static void _mf(_mc* _xb);
-static _mc* _mg(_mc* _xc);
-static Array_<uint8_t>* _mh(_mc* _xe);
-static _mc* _mi(_mc* _xh, Array_<uint8_t>* _xi, int64_t* _xj);
-static int64_t _ml(_mk* _xl /*me*/);
-static void _mm(_mk* _xm);
-static _mk* _mn(_mk* _xn);
-static Array_<uint8_t>* _mo(_mk* _xp);
-static _mk* _mp(_mk* _xs, Array_<uint8_t>* _xt, int64_t* _xu);
-template<typename T_, typename C_> static void _mx(T_ _xw /*me_*/, Array_<int64_t>* _xx /*type*/, C_ _xy /*item*/);
-template<typename T_> static void _my(T_ _xz /*me_*/, Array_<int64_t>* _ya /*type*/);
-template<typename T_, typename C_> static void _mz(T_ _yb /*me_*/, Array_<int64_t>* _yc /*type*/, C_ _yd /*item*/);
-template<typename T_> static void _na(T_ _ye /*me_*/, Array_<int64_t>* _yf /*type*/);
-template<typename T_> static bool _nc(T_ _yg /*me_*/, Array_<int64_t>* _yh /*type*/);
-template<typename T_, typename R_> static R_ _nd(T_ _yi /*me_*/, Array_<int64_t>* _yj /*type*/);
-template<typename T_> static void _ne(T_ _yk /*me_*/, Array_<int64_t>* _yl /*type*/);
-template<typename T_> static void _nf(T_ _ym /*me_*/, Array_<int64_t>* _yn /*type*/);
-template<typename T_> static void _nj(T_ _yo /*me_*/, Array_<int64_t>* _yp /*type*/);
-template<typename T_, typename C_> static void _nn(T_ _yq /*me_*/, Array_<int64_t>* _yr /*type*/, C_ _ys /*item*/);
-template<typename T_, typename R_> static R_ _no(T_ _yt /*me_*/, Array_<int64_t>* _yu /*type*/);
-template<typename T_, typename R_> static R_ _nq(T_ _yv /*me_*/, Array_<int64_t>* _yw /*type*/);
-template<typename T_, typename C_> static void _nw(T_ _yx /*me_*/, Array_<int64_t>* _yy /*type*/, C_ _yz /*item*/);
-template<typename T_, typename R_> static R_ _nx(T_ _za /*me_*/, Array_<int64_t>* _zb /*type*/);
-template<typename T_, typename R_> static R_ _nz(T_ _zc /*me_*/, Array_<int64_t>* _zd /*type*/);
-template<typename T_, typename K_, typename V_> static void _of(T_ _ze /*me_*/, Array_<int64_t>* _zf /*type*/, K_ _zg /*key*/, V_ _zh /*item*/);
-template<typename T_, typename C_, typename R_> static R_ _om(T_ _zi /*me_*/, Array_<int64_t>* _zj /*type*/, C_ _zk /*key*/, bool* _zl /*existed*/);
-template<typename T_> static T_ _qy(T_ _zm /*me_*/, Array_<int64_t>* _zn /*type*/, T_ _zo /*n*/);
-template<typename T_> static T_ _qz(T_ _zp /*me_*/, Array_<int64_t>* _zq /*type*/, T_ _zr /*n*/);
-template<typename T_> static T_ _ra(T_ _zs /*me_*/, Array_<int64_t>* _zt /*type*/, T_ _zu /*n*/);
-template<typename T_> static T_ _rb(T_ _zv /*me_*/, Array_<int64_t>* _zw /*type*/);
-template<typename T_> static T_ _rc(T_ _zx /*me_*/, Array_<int64_t>* _zy /*type*/, int64_t _zz /*n*/);
-template<typename T_> static T_ _rd(T_ _aaa /*me_*/, Array_<int64_t>* _aab /*type*/, int64_t _aac /*n*/);
-template<typename T_> static T_ _re(T_ _aad /*me_*/, Array_<int64_t>* _aae /*type*/, int64_t _aaf /*n*/);
-template<typename T_, typename C_> static int64_t _rp(T_ _aag /*me_*/, Array_<int64_t>* _aah /*type*/, C_ _aai /*item*/, int64_t _aaj /*start*/);
-template<typename T_, typename C_> static int64_t _rq(T_ _aak /*me_*/, Array_<int64_t>* _aal /*type*/, C_ _aam /*item*/, int64_t _aan /*start*/);
-template<typename T_> static T_ _rr(T_ _aao /*me_*/, Array_<int64_t>* _aap /*type*/, int64_t _aaq /*start*/, int64_t _aar /*len*/);
-template<typename T_> static void _rv(T_ _aas /*me_*/, Array_<int64_t>* _aat /*type*/);
-template<typename T_> static void _rz(T_ _aau /*me_*/, Array_<int64_t>* _aav /*type*/);
-static double _se(double _aaw /*x*/);
-static double _sf(double _aax /*x*/);
-static double _sg(double _aay /*x*/);
-static double _sh(double _aaz /*x*/);
-static double _si(double _aba /*x*/);
-static double _sj(double _abb /*x*/);
-static double _sk(double _abc /*base*/, double _abd /*x*/);
-static void _so(double* _abe /*x*/, double* _abf /*y*/, double _abg /*centerX*/, double _abh /*centerY*/, double _abi /*angle*/);
-static double _sp(double _abp /*x*/, double _abq /*y*/, double _abr /*centerX*/, double _abs /*centerY*/);
-static double _sq(double _abt /*x*/, double _abu /*y*/, double _abv /*centerX*/, double _abw /*centerY*/);
-static bool _su(double* _abx /*x*/, double _aby /*target*/, double _abz /*vel*/);
-static double _sz(double _acl /*x*/);
-static double _ta(double _acm /*x*/);
-static double _tb(double _acn /*x*/, int64_t _aco /*precision*/);
-static Array_<char16_t>* _td(Array_<char16_t>* _act /*me_*/);
-static Array_<char16_t>* _te(Array_<char16_t>* _add /*me_*/);
-static Array_<char16_t>* _tf(Array_<char16_t>* _adn /*me_*/);
-static Array_<char16_t>* _tg(Array_<char16_t>* _aeo /*me_*/);
-static Array_<char16_t>* _th(Array_<char16_t>* _afg /*me_*/);
-static Array_<char16_t>* _tk(int64_t _afy /*a*/, int64_t* _afz /*b*/, double _aga /*c*/, double* _agb /*d*/, char16_t* _agc /*e*/);
-static bool _tu(double _agd /*n1*/, double _age /*n2*/);
-static char16_t _tw(char16_t _agk /*me_*/, int64_t _agl /*n*/);
-static int64_t _ua(_tz* _agm /*me*/, _lj* _agn /*t*/);
-static void _ub(_tz* _ago);
-static _tz* _uc(_tz* _agp);
-static Array_<uint8_t>* _ud(_tz* _agr);
-static _tz* _ue(_tz* _agu, Array_<uint8_t>* _agv, int64_t* _agw);
-template<typename T_, typename C_> static Array_<C_>* _ux(T_ _agy /*me_*/, Array_<int64_t>* _agz /*type*/);
-static Array_<Array_<char16_t>*>* _ve(Array_<char16_t>* _aha /*me_*/, Array_<char16_t>* _ahb /*delimiter*/);
-static int64_t _ahg(Array_<char16_t>* _ahj /*me_*/, Array_<char16_t>* _ahk /*pattern*/, int64_t _ahl /*start*/);
+static void _ai(Array_<char16_t>* _vv /*str*/);
+template<typename T_> static Array_<char16_t>* _aj(T_ _vw /*me_*/, Array_<int64_t>* _vx /*type*/);
+static int64_t _ed(int64_t _vy /*me_*/);
+static double _ee(double _vz /*me_*/);
+static int64_t _fs(int64_t _wa /*n*/);
+static Array_<Array_<char16_t>*>* _fw(Array_<Array_<char16_t>*>* _wb /*n*/, Array_<Array_<char16_t>*>* _wc /*m*/);
+static void _lk(_lj* _wd /*me*/);
+static void _ll(_lj* _we /*me*/);
+static int64_t _lm(_lj* _wf /*me*/, _lj* _wg /*t*/);
+static _lj* _ln(_lj* _wh /*me*/);
+static Array_<uint8_t>* _lo(_lj* _wj /*me*/);
+static _lj* _lp(_lj* _wl /*me*/, Array_<uint8_t>* _wm /*bin*/, int64_t* _wn /*idx*/);
+static Array_<char16_t>* _lq(_lj* _wp /*me*/);
+static void _lr(_li* _wq);
+static _li* _ls(_li* _wr);
+static Array_<uint8_t>* _lt(_li* _wt);
+static _li* _lu(_li* _wv, Array_<uint8_t>* _ww, int64_t* _wx);
+static void _lx(_lw* _wz);
+static _lw* _ly(_lw* _xa);
+static Array_<uint8_t>* _lz(_lw* _xc);
+static _lw* _ma(_lw* _xe, Array_<uint8_t>* _xf, int64_t* _xg);
+static void _md(_mc* _xi /*me*/);
+static int64_t _me(_mc* _xk /*me*/);
+static void _mf(_mc* _xl);
+static _mc* _mg(_mc* _xm);
+static Array_<uint8_t>* _mh(_mc* _xo);
+static _mc* _mi(_mc* _xr, Array_<uint8_t>* _xs, int64_t* _xt);
+static int64_t _ml(_mk* _xv /*me*/);
+static void _mm(_mk* _xw);
+static _mk* _mn(_mk* _xx);
+static Array_<uint8_t>* _mo(_mk* _xz);
+static _mk* _mp(_mk* _yc, Array_<uint8_t>* _yd, int64_t* _ye);
+template<typename T_, typename C_> static void _mx(T_ _yg /*me_*/, Array_<int64_t>* _yh /*type*/, C_ _yi /*item*/);
+template<typename T_> static void _my(T_ _yj /*me_*/, Array_<int64_t>* _yk /*type*/);
+template<typename T_, typename C_> static void _mz(T_ _yl /*me_*/, Array_<int64_t>* _ym /*type*/, C_ _yn /*item*/);
+template<typename T_> static void _na(T_ _yo /*me_*/, Array_<int64_t>* _yp /*type*/);
+template<typename T_> static bool _nc(T_ _yq /*me_*/, Array_<int64_t>* _yr /*type*/);
+template<typename T_, typename R_> static R_ _nd(T_ _ys /*me_*/, Array_<int64_t>* _yt /*type*/);
+template<typename T_> static void _ne(T_ _yu /*me_*/, Array_<int64_t>* _yv /*type*/);
+template<typename T_> static void _nf(T_ _yw /*me_*/, Array_<int64_t>* _yx /*type*/);
+template<typename T_> static void _nj(T_ _yy /*me_*/, Array_<int64_t>* _yz /*type*/);
+template<typename T_, typename C_> static void _nn(T_ _za /*me_*/, Array_<int64_t>* _zb /*type*/, C_ _zc /*item*/);
+template<typename T_, typename R_> static R_ _no(T_ _zd /*me_*/, Array_<int64_t>* _ze /*type*/);
+template<typename T_, typename R_> static R_ _nq(T_ _zf /*me_*/, Array_<int64_t>* _zg /*type*/);
+template<typename T_, typename C_> static void _nw(T_ _zh /*me_*/, Array_<int64_t>* _zi /*type*/, C_ _zj /*item*/);
+template<typename T_, typename R_> static R_ _nx(T_ _zk /*me_*/, Array_<int64_t>* _zl /*type*/);
+template<typename T_, typename R_> static R_ _nz(T_ _zm /*me_*/, Array_<int64_t>* _zn /*type*/);
+template<typename T_, typename K_, typename V_> static void _of(T_ _zo /*me_*/, Array_<int64_t>* _zp /*type*/, K_ _zq /*key*/, V_ _zr /*item*/);
+template<typename T_, typename C_, typename R_> static R_ _om(T_ _zs /*me_*/, Array_<int64_t>* _zt /*type*/, C_ _zu /*key*/, bool* _zv /*existed*/);
+template<typename T_> static T_ _qy(T_ _zw /*me_*/, Array_<int64_t>* _zx /*type*/, T_ _zy /*n*/);
+template<typename T_> static T_ _qz(T_ _zz /*me_*/, Array_<int64_t>* _aaa /*type*/, T_ _aab /*n*/);
+template<typename T_> static T_ _ra(T_ _aac /*me_*/, Array_<int64_t>* _aad /*type*/, T_ _aae /*n*/);
+template<typename T_> static T_ _rb(T_ _aaf /*me_*/, Array_<int64_t>* _aag /*type*/);
+template<typename T_> static T_ _rc(T_ _aah /*me_*/, Array_<int64_t>* _aai /*type*/, int64_t _aaj /*n*/);
+template<typename T_> static T_ _rd(T_ _aak /*me_*/, Array_<int64_t>* _aal /*type*/, int64_t _aam /*n*/);
+template<typename T_> static T_ _re(T_ _aan /*me_*/, Array_<int64_t>* _aao /*type*/, int64_t _aap /*n*/);
+template<typename T_, typename C_> static int64_t _rp(T_ _aaq /*me_*/, Array_<int64_t>* _aar /*type*/, C_ _aas /*item*/, int64_t _aat /*start*/);
+template<typename T_, typename C_> static int64_t _rq(T_ _aau /*me_*/, Array_<int64_t>* _aav /*type*/, C_ _aaw /*item*/, int64_t _aax /*start*/);
+template<typename T_> static T_ _rr(T_ _aay /*me_*/, Array_<int64_t>* _aaz /*type*/, int64_t _aba /*start*/, int64_t _abb /*len*/);
+template<typename T_> static void _rv(T_ _abc /*me_*/, Array_<int64_t>* _abd /*type*/);
+template<typename T_> static void _rz(T_ _abe /*me_*/, Array_<int64_t>* _abf /*type*/);
+static double _se(double _abg /*x*/);
+static double _sf(double _abh /*x*/);
+static double _sg(double _abi /*x*/);
+static double _sh(double _abj /*x*/);
+static double _si(double _abk /*x*/);
+static double _sj(double _abl /*x*/);
+static double _sk(double _abm /*base*/, double _abn /*x*/);
+static void _so(double* _abo /*x*/, double* _abp /*y*/, double _abq /*centerX*/, double _abr /*centerY*/, double _abs /*angle*/);
+static double _sp(double _abz /*x*/, double _aca /*y*/, double _acb /*centerX*/, double _acc /*centerY*/);
+static double _sq(double _acd /*x*/, double _ace /*y*/, double _acf /*centerX*/, double _acg /*centerY*/);
+static bool _su(double* _ach /*x*/, double _aci /*target*/, double _acj /*vel*/);
+static double _sz(double _acv /*x*/);
+static double _ta(double _acw /*x*/);
+static double _tb(double _acx /*x*/, int64_t _acy /*precision*/);
+static Array_<char16_t>* _td(Array_<char16_t>* _add /*me_*/);
+static Array_<char16_t>* _te(Array_<char16_t>* _adn /*me_*/);
+static Array_<char16_t>* _tf(Array_<char16_t>* _adx /*me_*/);
+static Array_<char16_t>* _tg(Array_<char16_t>* _aey /*me_*/);
+static Array_<char16_t>* _th(Array_<char16_t>* _afq /*me_*/);
+static Array_<char16_t>* _tk(int64_t _agi /*a*/, int64_t* _agj /*b*/, double _agk /*c*/, double* _agl /*d*/, char16_t* _agm /*e*/);
+static bool _tu(double _agn /*n1*/, double _ago /*n2*/);
+static char16_t _tw(char16_t _agu /*me_*/, int64_t _agv /*n*/);
+static int64_t _ua(_tz* _agw /*me*/, _lj* _agx /*t*/);
+static void _ub(_tz* _agy);
+static _tz* _uc(_tz* _agz);
+static Array_<uint8_t>* _ud(_tz* _ahb);
+static _tz* _ue(_tz* _ahe, Array_<uint8_t>* _ahf, int64_t* _ahg);
+static void _um(_ul* _ahi);
+static _ul* _un(_ul* _ahj);
+static Array_<uint8_t>* _uo(_ul* _ahl);
+static _ul* _up(_ul* _ahp, Array_<uint8_t>* _ahq, int64_t* _ahr);
+template<typename T_, typename C_> static Array_<C_>* _vh(T_ _aht /*me_*/, Array_<int64_t>* _ahu /*type*/);
+static Array_<Array_<char16_t>*>* _vo(Array_<char16_t>* _ahv /*me_*/, Array_<char16_t>* _ahw /*delimiter*/);
+static int64_t _aib(Array_<char16_t>* _aie /*me_*/, Array_<char16_t>* _aif /*pattern*/, int64_t _aig /*start*/);
 static int64_t argc_;
 static char** argv_;
 static Array_<char16_t>* _m;
@@ -166,7 +177,7 @@ Y = 8;
 _lw::_lw(): _lj(){
 Y = 16;
 }
-_mc::_mc(): _lj(), _wz(){
+_mc::_mc(): _lj(), _xj(){
 Y = 24;
 _md(this);
 }
@@ -175,6 +186,9 @@ Y = 33;
 }
 _tz::_tz(): _lj(), _uf(){
 Y = 42;
+}
+_ul::_ul(): _lj(), _uq(), _ur(){
+Y = 50;
 }
 // $
 static void _a(){
@@ -1283,7 +1297,7 @@ while(!((_su)((&_sw), (10.0), (2.0)))){
 }
 // test12
 static void _aa(){
-_uj _tj; // x
+_ut _tj; // x
 int64_t _tl; // a
 double _tm; // b
 char16_t _tn; // c
@@ -1293,6 +1307,8 @@ _tz* _ty; // a
 _tz* _ug; // b
 _tz* _uh; // c
 Array_<_tz*>* _ui; // d
+_ul* _uk; // a
+_ul* _us; // b
 int64_t _ts;
 (_ai)((((_td)((new Array_<char16_t>(6, u'\u0061', u'\u0042', u'\u0063', u'\u0044', u'\u0065', u'\u0046'))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
 (_ai)((((_te)((new Array_<char16_t>(6, u'\u0061', u'\u0042', u'\u0063', u'\u0044', u'\u0065', u'\u0046'))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
@@ -1326,477 +1342,463 @@ for(_tr = (1LL), _ts = (10LL); _tr <= _ts; _tr += (1LL)){
 (((_ui)->At(3LL))->_uf) = (4LL);
 _rz<Array_<_tz*>*>((_ui), (new Array_<int64_t>(1, (0LL))));
 (_ai)(((((((((_aj<int64_t>((((_ui)->At(0LL))->_uf), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>((((_ui)->At(1LL))->_uf), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>((((_ui)->At(2LL))->_uf), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>((((_ui)->At(3LL))->_uf), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_uk) = (new _ul());
+((_uk)->_uq) = (5LL);
+((_uk)->_ur) = (new Array_<char16_t>(3, u'\u0061', u'\u0062', u'\u0063'));
+(_us) = (copy_(_uk));
+(_ai)(((((((_aj<int64_t>(((_us)->_uq), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<bool>((cmp_(((_uk)->_ur), ((_us)->_ur)) == 0), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<bool>((eqAddr_(((_uk)->_ur), ((_us)->_ur))), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
 }
 // test13
 static void _ab(){
 }
 // test14
 static void _ac(){
-Array_<int64_t>* _um; // a
-Array_<Array_<Array_<char16_t>*>*>* _uo; // a
-double _uq; // x
-int64_t _us; // a
-Array_<char16_t>* _ut; // b
-List_<int64_t>* _uv; // n
-Array_<int64_t>* _uw; // m
-List_<Array_<char16_t>*>* _uz; // n
-Array_<Array_<char16_t>*>* _va; // m
-Array_<char16_t>* _vc; // s
-Array_<Array_<char16_t>*>* _vd; // ts
-int64_t _vi;
-int64_t _vj;
+Array_<int64_t>* _uw; // a
+Array_<Array_<Array_<char16_t>*>*>* _uy; // a
+double _va; // x
+int64_t _vc; // a
+Array_<char16_t>* _vd; // b
+List_<int64_t>* _vf; // n
+Array_<int64_t>* _vg; // m
+List_<Array_<char16_t>*>* _vj; // n
+Array_<Array_<char16_t>*>* _vk; // m
+Array_<char16_t>* _vm; // s
+Array_<Array_<char16_t>*>* _vn; // ts
+int64_t _vs;
+int64_t _vt;
 (_ai)((new Array_<char16_t>(15, u'\u004C', u'\u0069', u'\u006E', u'\u0065', u'\u0020', u'\u0062', u'\u0072', u'\u0065', u'\u0061', u'\u006B', u'\u0069', u'\u006E', u'\u0067', u'\u002E', u'\u000A')));
 (_ai)((new Array_<char16_t>(17, u'\u0043', u'\u006F', u'\u006D', u'\u006D', u'\u0065', u'\u006E', u'\u0074', u'\u0020', u'\u0074', u'\u0065', u'\u0073', u'\u0074', u'\u0020', u'\u0023', u'\u0031', u'\u002E', u'\u000A')));
-(_um) = (newArray_<int64_t, Array_<int64_t>*>(1, (3LL)));
-((_um)->At(0LL)) = (1LL);
-((_um)->At(1LL)) = (2LL);
-((_um)->At(2LL)) = (3LL);
-(_ai)(((((((((_aj<int64_t>(((_um)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_um)->At(0LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_um)->At(1LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_um)->At(2LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_uo) = (newArray_<char16_t, Array_<Array_<Array_<char16_t>*>*>*>(3, (3LL), (2LL), (4LL)));
-(_ai)(((((((_aj<int64_t>(((_uo)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>((((_uo)->At(0LL))->Len()), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((((_uo)->At(0LL))->At(0LL))->Len()), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_uq) = (3.14159);
-(_ai)(((_aj<double>((_uq), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_us) = (0LL);
-(_ut) = (nullptr);
-(_us) = (5LL);
-(_ut) = (new Array_<char16_t>(3, u'\u0061', u'\u0062', u'\u0063'));
-(_ai)(((_aj<int64_t>((_us), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_ai)(((_ut)->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_uv) = (new List_<int64_t>());
-_mx<List_<int64_t>*, int64_t>((_uv), (new Array_<int64_t>(1, (0LL))), (3LL));
-_mx<List_<int64_t>*, int64_t>((_uv), (new Array_<int64_t>(1, (0LL))), (4LL));
-_mx<List_<int64_t>*, int64_t>((_uv), (new Array_<int64_t>(1, (0LL))), (5LL));
-(_uw) = (_ux<List_<int64_t>*, int64_t>((_uv), (new Array_<int64_t>(1, (0LL)))));
+(_uw) = (newArray_<int64_t, Array_<int64_t>*>(1, (3LL)));
+((_uw)->At(0LL)) = (1LL);
+((_uw)->At(1LL)) = (2LL);
+((_uw)->At(2LL)) = (3LL);
 (_ai)(((((((((_aj<int64_t>(((_uw)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_uw)->At(0LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_uw)->At(1LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_uw)->At(2LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_uz) = (new List_<Array_<char16_t>*>());
-_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_uz), (new Array_<int64_t>(1, (0LL))), (new Array_<char16_t>(2, u'\u0061', u'\u0062')));
-_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_uz), (new Array_<int64_t>(1, (0LL))), (new Array_<char16_t>(2, u'\u0063', u'\u0064')));
-_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_uz), (new Array_<int64_t>(1, (0LL))), (new Array_<char16_t>(2, u'\u0065', u'\u0066')));
-(_va) = (_ux<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_uz), (new Array_<int64_t>(1, (0LL)))));
-(_ai)(((((((((_aj<int64_t>(((_va)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat((_va)->At(0LL)))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat((_va)->At(1LL)))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat((_va)->At(2LL)))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-(_vc) = (new Array_<char16_t>(15, u'\u0061', u'\u0062', u'\u0078', u'\u0078', u'\u0063', u'\u0064', u'\u0065', u'\u0078', u'\u0078', u'\u0066', u'\u0078', u'\u0078', u'\u0078', u'\u0078', u'\u0067'));
-(_vd) = ((_ve)((_vc), (new Array_<char16_t>(2, u'\u0078', u'\u0078'))));
-(_ai)(((_aj<int64_t>(((_vd)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
-for(_vi = (0LL), _vj = (((_vd)->Len()) - (1LL)); _vi <= _vj; _vi += (1LL)){
-(_ai)((((_vd)->At(_vi))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_uy) = (newArray_<char16_t, Array_<Array_<Array_<char16_t>*>*>*>(3, (3LL), (2LL), (4LL)));
+(_ai)(((((((_aj<int64_t>(((_uy)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>((((_uy)->At(0LL))->Len()), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((((_uy)->At(0LL))->At(0LL))->Len()), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_va) = (3.14159);
+(_ai)(((_aj<double>((_va), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_vc) = (0LL);
+(_vd) = (nullptr);
+(_vc) = (5LL);
+(_vd) = (new Array_<char16_t>(3, u'\u0061', u'\u0062', u'\u0063'));
+(_ai)(((_aj<int64_t>((_vc), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_ai)(((_vd)->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_vf) = (new List_<int64_t>());
+_mx<List_<int64_t>*, int64_t>((_vf), (new Array_<int64_t>(1, (0LL))), (3LL));
+_mx<List_<int64_t>*, int64_t>((_vf), (new Array_<int64_t>(1, (0LL))), (4LL));
+_mx<List_<int64_t>*, int64_t>((_vf), (new Array_<int64_t>(1, (0LL))), (5LL));
+(_vg) = (_vh<List_<int64_t>*, int64_t>((_vf), (new Array_<int64_t>(1, (0LL)))));
+(_ai)(((((((((_aj<int64_t>(((_vg)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_vg)->At(0LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_vg)->At(1LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(_aj<int64_t>(((_vg)->At(2LL)), (new Array_<int64_t>(1, (0LL))))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_vj) = (new List_<Array_<char16_t>*>());
+_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_vj), (new Array_<int64_t>(1, (0LL))), (new Array_<char16_t>(2, u'\u0061', u'\u0062')));
+_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_vj), (new Array_<int64_t>(1, (0LL))), (new Array_<char16_t>(2, u'\u0063', u'\u0064')));
+_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_vj), (new Array_<int64_t>(1, (0LL))), (new Array_<char16_t>(2, u'\u0065', u'\u0066')));
+(_vk) = (_vh<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_vj), (new Array_<int64_t>(1, (0LL)))));
+(_ai)(((((((((_aj<int64_t>(((_vk)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat((_vk)->At(0LL)))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat((_vk)->At(1LL)))->Cat(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat((_vk)->At(2LL)))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+(_vm) = (new Array_<char16_t>(15, u'\u0061', u'\u0062', u'\u0078', u'\u0078', u'\u0063', u'\u0064', u'\u0065', u'\u0078', u'\u0078', u'\u0066', u'\u0078', u'\u0078', u'\u0078', u'\u0078', u'\u0067'));
+(_vn) = ((_vo)((_vm), (new Array_<char16_t>(2, u'\u0078', u'\u0078'))));
+(_ai)(((_aj<int64_t>(((_vn)->Len()), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
+for(_vs = (0LL), _vt = (((_vn)->Len()) - (1LL)); _vs <= _vt; _vs += (1LL)){
+(_ai)((((_vn)->At(_vs))->Cat(new Array_<char16_t>(1, u'\u000A'))));
 }
 (_ai)(((_aj<char16_t>((u'\u006E'), (new Array_<int64_t>(1, (0LL)))))->Cat(new Array_<char16_t>(1, u'\u000A'))));
 (_ai)((new Array_<char16_t>(9, u'\u0030', u'\u0030', u'\u0054', u'\u0065', u'\u0073', u'\u0074', u'\u0030', u'\u0030', u'\u000A')));
 }
 // print
-static void _ai(Array_<char16_t>* _vl /*str*/){
-if(_vl == nullptr){
+static void _ai(Array_<char16_t>* _vv /*str*/){
+if(_vv == nullptr){
 std::cout << "(null)";
 return;
 }
-std::u16string s_ = _vl->B;
+std::u16string s_ = _vv->B;
 const std::string& t_ = utf16ToUtf8_(s_);
 std::cout << t_ << std::flush;
 }
 // _toStr
-template<typename T_> static Array_<char16_t>* _aj(T_ _vm /*me_*/, Array_<int64_t>* _vn /*type*/){
-return toStr_(_vm);
+template<typename T_> static Array_<char16_t>* _aj(T_ _vw /*me_*/, Array_<int64_t>* _vx /*type*/){
+return toStr_(_vw);
 }
 // _absInt
-static int64_t _ed(int64_t _vo /*me_*/){
-return ((_vo) >= (0LL)) ? (_vo) : (-(_vo));
+static int64_t _ed(int64_t _vy /*me_*/){
+return ((_vy) >= (0LL)) ? (_vy) : (-(_vy));
 }
 // _absFloat
-static double _ee(double _vp /*me_*/){
-return ((_vp) >= (0.0)) ? (_vp) : (-(_vp));
+static double _ee(double _vz /*me_*/){
+return ((_vz) >= (0.0)) ? (_vz) : (-(_vz));
 }
 // f
-static int64_t _fs(int64_t _vq /*n*/){
-return ((_vq) == (0LL)) ? (1LL) : ((_vq) * ((_fs)(((_vq) - (1LL)))));
+static int64_t _fs(int64_t _wa /*n*/){
+return ((_wa) == (0LL)) ? (1LL) : ((_wa) * ((_fs)(((_wa) - (1LL)))));
 }
 // g
-static Array_<Array_<char16_t>*>* _fw(Array_<Array_<char16_t>*>* _vr /*n*/, Array_<Array_<char16_t>*>* _vs /*m*/){
-return new Array_<Array_<char16_t>*>(2, ((_vr)->At(0LL)), ((_vs)->At(0LL)));
+static Array_<Array_<char16_t>*>* _fw(Array_<Array_<char16_t>*>* _wb /*n*/, Array_<Array_<char16_t>*>* _wc /*m*/){
+return new Array_<Array_<char16_t>*>(2, ((_wb)->At(0LL)), ((_wc)->At(0LL)));
 }
 // ctor
-static void _lk(_lj* _vt /*me*/){
+static void _lk(_lj* _wd /*me*/){
 }
 // _dtor
-static void _ll(_lj* _vu /*me*/){
+static void _ll(_lj* _we /*me*/){
 }
 // cmp
-static int64_t _lm(_lj* _vv /*me*/, _lj* _vw /*t*/){
+static int64_t _lm(_lj* _wf /*me*/, _lj* _wg /*t*/){
 throw 3910598660LL;
 }
 // _copy
-static _lj* _ln(_lj* _vx /*me*/){
-_lj* _vy;
-(_vy) = (new _lj());
-return as_<_lj>(classTable_, (_vy), 0);
+static _lj* _ln(_lj* _wh /*me*/){
+_lj* _wi;
+(_wi) = (new _lj());
+return as_<_lj>(classTable_, (_wi), 0);
 }
 // _toBin
-static Array_<uint8_t>* _lo(_lj* _vz /*me*/){
-Array_<uint8_t>* _wa;
-(_wa) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
-return _wa;
-}
-// _fromBin
-static _lj* _lp(_lj* _wb /*me*/, Array_<uint8_t>* _wc /*bin*/, int64_t* _wd /*idx*/){
-_lj* _we;
-(_we) = (new _lj());
-return _we;
-}
-// toStr
-static Array_<char16_t>* _lq(_lj* _wf /*me*/){
-return new Array_<char16_t>(0);
-}
-// _dtor
-static void _lr(_li* _wg){
-}
-// _copy
-static _li* _ls(_li* _wh){
-_li* _wi;
-(_wi) = (new _li());
-return as_<_li>(classTable_, (_wi), 8);
-}
-// _toBin
-static Array_<uint8_t>* _lt(_li* _wj){
+static Array_<uint8_t>* _lo(_lj* _wj /*me*/){
 Array_<uint8_t>* _wk;
 (_wk) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
 return _wk;
 }
 // _fromBin
-static _li* _lu(_li* _wl, Array_<uint8_t>* _wm, int64_t* _wn){
-_li* _wo;
-(_wo) = (new _li());
+static _lj* _lp(_lj* _wl /*me*/, Array_<uint8_t>* _wm /*bin*/, int64_t* _wn /*idx*/){
+_lj* _wo;
+(_wo) = (new _lj());
 return _wo;
 }
+// toStr
+static Array_<char16_t>* _lq(_lj* _wp /*me*/){
+return new Array_<char16_t>(0);
+}
 // _dtor
-static void _lx(_lw* _wp){
+static void _lr(_li* _wq){
 }
 // _copy
-static _lw* _ly(_lw* _wq){
-_lw* _wr;
-(_wr) = (new _lw());
-return as_<_lw>(classTable_, (_wr), 16);
+static _li* _ls(_li* _wr){
+_li* _ws;
+(_ws) = (new _li());
+return as_<_li>(classTable_, (_ws), 8);
 }
 // _toBin
-static Array_<uint8_t>* _lz(_lw* _ws){
-Array_<uint8_t>* _wt;
-(_wt) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
-return _wt;
+static Array_<uint8_t>* _lt(_li* _wt){
+Array_<uint8_t>* _wu;
+(_wu) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
+return _wu;
 }
 // _fromBin
-static _lw* _ma(_lw* _wu, Array_<uint8_t>* _wv, int64_t* _ww){
-_lw* _wx;
-(_wx) = (new _lw());
-return _wx;
+static _li* _lu(_li* _wv, Array_<uint8_t>* _ww, int64_t* _wx){
+_li* _wy;
+(_wy) = (new _li());
+return _wy;
+}
+// _dtor
+static void _lx(_lw* _wz){
+}
+// _copy
+static _lw* _ly(_lw* _xa){
+_lw* _xb;
+(_xb) = (new _lw());
+return as_<_lw>(classTable_, (_xb), 16);
+}
+// _toBin
+static Array_<uint8_t>* _lz(_lw* _xc){
+Array_<uint8_t>* _xd;
+(_xd) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
+return _xd;
+}
+// _fromBin
+static _lw* _ma(_lw* _xe, Array_<uint8_t>* _xf, int64_t* _xg){
+_lw* _xh;
+(_xh) = (new _lw());
+return _xh;
 }
 // ctor
-static void _md(_mc* _wy /*me*/){
-((_wy)->_wz) = (5LL);
+static void _md(_mc* _xi /*me*/){
+((_xi)->_xj) = (5LL);
 }
 // f
-static int64_t _me(_mc* _xa /*me*/){
-return (_xa)->_wz;
+static int64_t _me(_mc* _xk /*me*/){
+return (_xk)->_xj;
 }
 // _dtor
-static void _mf(_mc* _xb){
+static void _mf(_mc* _xl){
 }
 // _copy
-static _mc* _mg(_mc* _xc){
-_mc* _xd;
-(_xd) = (new _mc());
-((_xd)->_wz) = ((_xc)->_wz);
-return as_<_mc>(classTable_, (_xd), 24);
+static _mc* _mg(_mc* _xm){
+_mc* _xn;
+(_xn) = (new _mc());
+((_xn)->_xj) = ((_xm)->_xj);
+return as_<_mc>(classTable_, (_xn), 24);
 }
 // _toBin
-static Array_<uint8_t>* _mh(_mc* _xe){
-Array_<uint8_t>* _xf;
-(_xf) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
-(_xf) = ((_xf)->Cat(toBin_((_xe)->_wz)));
-return _xf;
+static Array_<uint8_t>* _mh(_mc* _xo){
+Array_<uint8_t>* _xp;
+(_xp) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
+(_xp) = ((_xp)->Cat(toBin_((_xo)->_xj)));
+return _xp;
 }
 // _fromBin
-static _mc* _mi(_mc* _xh, Array_<uint8_t>* _xi, int64_t* _xj){
-_mc* _xk;
-(_xk) = (new _mc());
-((_xk)->_wz) = (fromBin_<int64_t>((_xi), (*_xj)));
-return _xk;
+static _mc* _mi(_mc* _xr, Array_<uint8_t>* _xs, int64_t* _xt){
+_mc* _xu;
+(_xu) = (new _mc());
+((_xu)->_xj) = (fromBin_<int64_t>((_xs), (*_xt)));
+return _xu;
 }
 // f
-static int64_t _ml(_mk* _xl /*me*/){
+static int64_t _ml(_mk* _xv /*me*/){
 return 1234LL;
 }
 // _dtor
-static void _mm(_mk* _xm){
+static void _mm(_mk* _xw){
 }
 // _copy
-static _mk* _mn(_mk* _xn){
-_mk* _xo;
-(_xo) = (new _mk());
-((_xo)->_wz) = ((_xn)->_wz);
-return as_<_mk>(classTable_, (_xo), 33);
+static _mk* _mn(_mk* _xx){
+_mk* _xy;
+(_xy) = (new _mk());
+((_xy)->_xj) = ((_xx)->_xj);
+return as_<_mk>(classTable_, (_xy), 33);
 }
 // _toBin
-static Array_<uint8_t>* _mo(_mk* _xp){
-Array_<uint8_t>* _xq;
-(_xq) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
-(_xq) = ((_xq)->Cat(toBin_((_xp)->_wz)));
-return _xq;
+static Array_<uint8_t>* _mo(_mk* _xz){
+Array_<uint8_t>* _ya;
+(_ya) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
+(_ya) = ((_ya)->Cat(toBin_((_xz)->_xj)));
+return _ya;
 }
 // _fromBin
-static _mk* _mp(_mk* _xs, Array_<uint8_t>* _xt, int64_t* _xu){
-_mk* _xv;
-(_xv) = (new _mk());
-((_xv)->_wz) = (fromBin_<int64_t>((_xt), (*_xu)));
-return _xv;
+static _mk* _mp(_mk* _yc, Array_<uint8_t>* _yd, int64_t* _ye){
+_mk* _yf;
+(_yf) = (new _mk());
+((_yf)->_xj) = (fromBin_<int64_t>((_yd), (*_ye)));
+return _yf;
 }
 // _addList
-template<typename T_, typename C_> static void _mx(T_ _xw /*me_*/, Array_<int64_t>* _xx /*type*/, C_ _xy /*item*/){
-_xw->B.push_back(_xy);
+template<typename T_, typename C_> static void _mx(T_ _yg /*me_*/, Array_<int64_t>* _yh /*type*/, C_ _yi /*item*/){
+_yg->B.push_back(_yi);
 }
 // _head
-template<typename T_> static void _my(T_ _xz /*me_*/, Array_<int64_t>* _ya /*type*/){
-_xz->I = _xz->B.begin();
+template<typename T_> static void _my(T_ _yj /*me_*/, Array_<int64_t>* _yk /*type*/){
+_yj->I = _yj->B.begin();
 }
 // _ins
-template<typename T_, typename C_> static void _mz(T_ _yb /*me_*/, Array_<int64_t>* _yc /*type*/, C_ _yd /*item*/){
-_yb->B.insert(_yb->I, _yd);
+template<typename T_, typename C_> static void _mz(T_ _yl /*me_*/, Array_<int64_t>* _ym /*type*/, C_ _yn /*item*/){
+_yl->B.insert(_yl->I, _yn);
 }
 // _tail
-template<typename T_> static void _na(T_ _ye /*me_*/, Array_<int64_t>* _yf /*type*/){
-_ye->I = _ye->B.end();
---_ye->I;
-}
-// _term
-template<typename T_> static bool _nc(T_ _yg /*me_*/, Array_<int64_t>* _yh /*type*/){
-return _yg->I == _yg->B.end();
-}
-// _getList
-template<typename T_, typename R_> static R_ _nd(T_ _yi /*me_*/, Array_<int64_t>* _yj /*type*/){
-return *_yi->I;
-}
-// _next
-template<typename T_> static void _ne(T_ _yk /*me_*/, Array_<int64_t>* _yl /*type*/){
-++_yk->I;
-}
-// _del
-template<typename T_> static void _nf(T_ _ym /*me_*/, Array_<int64_t>* _yn /*type*/){
-auto& i_ = _ym->I++;
-_ym->B.erase(i_);
-}
-// _prev
-template<typename T_> static void _nj(T_ _yo /*me_*/, Array_<int64_t>* _yp /*type*/){
-if(_yo->I == _yo->B.begin())
+template<typename T_> static void _na(T_ _yo /*me_*/, Array_<int64_t>* _yp /*type*/){
 _yo->I = _yo->B.end();
-else
 --_yo->I;
 }
+// _term
+template<typename T_> static bool _nc(T_ _yq /*me_*/, Array_<int64_t>* _yr /*type*/){
+return _yq->I == _yq->B.end();
+}
+// _getList
+template<typename T_, typename R_> static R_ _nd(T_ _ys /*me_*/, Array_<int64_t>* _yt /*type*/){
+return *_ys->I;
+}
+// _next
+template<typename T_> static void _ne(T_ _yu /*me_*/, Array_<int64_t>* _yv /*type*/){
+++_yu->I;
+}
+// _del
+template<typename T_> static void _nf(T_ _yw /*me_*/, Array_<int64_t>* _yx /*type*/){
+auto& i_ = _yw->I++;
+_yw->B.erase(i_);
+}
+// _prev
+template<typename T_> static void _nj(T_ _yy /*me_*/, Array_<int64_t>* _yz /*type*/){
+if(_yy->I == _yy->B.begin())
+_yy->I = _yy->B.end();
+else
+--_yy->I;
+}
 // _addStack
-template<typename T_, typename C_> static void _nn(T_ _yq /*me_*/, Array_<int64_t>* _yr /*type*/, C_ _ys /*item*/){
-_yq->B.push(_ys);
+template<typename T_, typename C_> static void _nn(T_ _za /*me_*/, Array_<int64_t>* _zb /*type*/, C_ _zc /*item*/){
+_za->B.push(_zc);
 }
 // _peekStack
-template<typename T_, typename R_> static R_ _no(T_ _yt /*me_*/, Array_<int64_t>* _yu /*type*/){
-return _yt->B.top();
+template<typename T_, typename R_> static R_ _no(T_ _zd /*me_*/, Array_<int64_t>* _ze /*type*/){
+return _zd->B.top();
 }
 // _getStack
-template<typename T_, typename R_> static R_ _nq(T_ _yv /*me_*/, Array_<int64_t>* _yw /*type*/){
-R_ r_ = _yv->B.top();
-_yv->B.pop();
+template<typename T_, typename R_> static R_ _nq(T_ _zf /*me_*/, Array_<int64_t>* _zg /*type*/){
+R_ r_ = _zf->B.top();
+_zf->B.pop();
 return r_;
 }
 // _addQueue
-template<typename T_, typename C_> static void _nw(T_ _yx /*me_*/, Array_<int64_t>* _yy /*type*/, C_ _yz /*item*/){
-_yx->B.push(_yz);
+template<typename T_, typename C_> static void _nw(T_ _zh /*me_*/, Array_<int64_t>* _zi /*type*/, C_ _zj /*item*/){
+_zh->B.push(_zj);
 }
 // _peekQueue
-template<typename T_, typename R_> static R_ _nx(T_ _za /*me_*/, Array_<int64_t>* _zb /*type*/){
-return _za->B.front();
+template<typename T_, typename R_> static R_ _nx(T_ _zk /*me_*/, Array_<int64_t>* _zl /*type*/){
+return _zk->B.front();
 }
 // _getQueue
-template<typename T_, typename R_> static R_ _nz(T_ _zc /*me_*/, Array_<int64_t>* _zd /*type*/){
-R_ r_ = _zc->B.front();
-_zc->B.pop();
+template<typename T_, typename R_> static R_ _nz(T_ _zm /*me_*/, Array_<int64_t>* _zn /*type*/){
+R_ r_ = _zm->B.front();
+_zm->B.pop();
 return r_;
 }
 // _addDict
-template<typename T_, typename K_, typename V_> static void _of(T_ _ze /*me_*/, Array_<int64_t>* _zf /*type*/, K_ _zg /*key*/, V_ _zh /*item*/){
-_ze->Add(_zg, _zh);
+template<typename T_, typename K_, typename V_> static void _of(T_ _zo /*me_*/, Array_<int64_t>* _zp /*type*/, K_ _zq /*key*/, V_ _zr /*item*/){
+_zo->Add(_zq, _zr);
 }
 // _getDict
-template<typename T_, typename C_, typename R_> static R_ _om(T_ _zi /*me_*/, Array_<int64_t>* _zj /*type*/, C_ _zk /*key*/, bool* _zl /*existed*/){
-return dictSearch_(_zi->B, _zk, _zl);
+template<typename T_, typename C_, typename R_> static R_ _om(T_ _zs /*me_*/, Array_<int64_t>* _zt /*type*/, C_ _zu /*key*/, bool* _zv /*existed*/){
+return dictSearch_(_zs->B, _zu, _zv);
 }
 // _or
-template<typename T_> static T_ _qy(T_ _zm /*me_*/, Array_<int64_t>* _zn /*type*/, T_ _zo /*n*/){
-return _zm | _zo;
+template<typename T_> static T_ _qy(T_ _zw /*me_*/, Array_<int64_t>* _zx /*type*/, T_ _zy /*n*/){
+return _zw | _zy;
 }
 // _and
-template<typename T_> static T_ _qz(T_ _zp /*me_*/, Array_<int64_t>* _zq /*type*/, T_ _zr /*n*/){
-return _zp & _zr;
+template<typename T_> static T_ _qz(T_ _zz /*me_*/, Array_<int64_t>* _aaa /*type*/, T_ _aab /*n*/){
+return _zz & _aab;
 }
 // _xor
-template<typename T_> static T_ _ra(T_ _zs /*me_*/, Array_<int64_t>* _zt /*type*/, T_ _zu /*n*/){
-return _zs ^ _zu;
+template<typename T_> static T_ _ra(T_ _aac /*me_*/, Array_<int64_t>* _aad /*type*/, T_ _aae /*n*/){
+return _aac ^ _aae;
 }
 // _not
-template<typename T_> static T_ _rb(T_ _zv /*me_*/, Array_<int64_t>* _zw /*type*/){
-return ~_zv;
+template<typename T_> static T_ _rb(T_ _aaf /*me_*/, Array_<int64_t>* _aag /*type*/){
+return ~_aaf;
 }
 // _shl
-template<typename T_> static T_ _rc(T_ _zx /*me_*/, Array_<int64_t>* _zy /*type*/, int64_t _zz /*n*/){
-return _zx << _zz;
+template<typename T_> static T_ _rc(T_ _aah /*me_*/, Array_<int64_t>* _aai /*type*/, int64_t _aaj /*n*/){
+return _aah << _aaj;
 }
 // _shr
-template<typename T_> static T_ _rd(T_ _aaa /*me_*/, Array_<int64_t>* _aab /*type*/, int64_t _aac /*n*/){
-return _aaa >> _aac;
+template<typename T_> static T_ _rd(T_ _aak /*me_*/, Array_<int64_t>* _aal /*type*/, int64_t _aam /*n*/){
+return _aak >> _aam;
 }
 // _sar
-template<typename T_> static T_ _re(T_ _aad /*me_*/, Array_<int64_t>* _aae /*type*/, int64_t _aaf /*n*/){
-return sar_(_aad, _aaf);
+template<typename T_> static T_ _re(T_ _aan /*me_*/, Array_<int64_t>* _aao /*type*/, int64_t _aap /*n*/){
+return sar_(_aan, _aap);
 }
 // _findArray
-template<typename T_, typename C_> static int64_t _rp(T_ _aag /*me_*/, Array_<int64_t>* _aah /*type*/, C_ _aai /*item*/, int64_t _aaj /*start*/){
-if(_aaj == -1) _aaj = 0;
-if(_aaj < 0) return -1;
-for(int64_t i_ = _aaj; i_ < _aag->L; i_++){
-if(_aag->B[i_] == _aai) return i_;
+template<typename T_, typename C_> static int64_t _rp(T_ _aaq /*me_*/, Array_<int64_t>* _aar /*type*/, C_ _aas /*item*/, int64_t _aat /*start*/){
+if(_aat == -1) _aat = 0;
+if(_aat < 0) return -1;
+for(int64_t i_ = _aat; i_ < _aaq->L; i_++){
+if(_aaq->B[i_] == _aas) return i_;
 }
 return -1;
 }
 // _findLastArray
-template<typename T_, typename C_> static int64_t _rq(T_ _aak /*me_*/, Array_<int64_t>* _aal /*type*/, C_ _aam /*item*/, int64_t _aan /*start*/){
-if(_aan == -1) _aan = _aak->L - 1;
-if(_aan >= _aak->L) return -1;
-for(int64_t i_ = _aan; i_ >= 0; i_--){
-if(_aak->B[i_] == _aam) return i_;
+template<typename T_, typename C_> static int64_t _rq(T_ _aau /*me_*/, Array_<int64_t>* _aav /*type*/, C_ _aaw /*item*/, int64_t _aax /*start*/){
+if(_aax == -1) _aax = _aau->L - 1;
+if(_aax >= _aau->L) return -1;
+for(int64_t i_ = _aax; i_ >= 0; i_--){
+if(_aau->B[i_] == _aaw) return i_;
 }
 return -1;
 }
 // _sub
-template<typename T_> static T_ _rr(T_ _aao /*me_*/, Array_<int64_t>* _aap /*type*/, int64_t _aaq /*start*/, int64_t _aar /*len*/){
-return sub_(_aao, _aaq, _aar);
+template<typename T_> static T_ _rr(T_ _aay /*me_*/, Array_<int64_t>* _aaz /*type*/, int64_t _aba /*start*/, int64_t _abb /*len*/){
+return sub_(_aay, _aba, _abb);
 }
 // _reverse
-template<typename T_> static void _rv(T_ _aas /*me_*/, Array_<int64_t>* _aat /*type*/){
-reverse_(_aas);
+template<typename T_> static void _rv(T_ _abc /*me_*/, Array_<int64_t>* _abd /*type*/){
+reverse_(_abc);
 }
 // _sortArray
-template<typename T_> static void _rz(T_ _aau /*me_*/, Array_<int64_t>* _aav /*type*/){
-sort_(_aau);
+template<typename T_> static void _rz(T_ _abe /*me_*/, Array_<int64_t>* _abf /*type*/){
+sort_(_abe);
 }
 // cos
-static double _se(double _aaw /*x*/){
-return std::cos(_aaw);
+static double _se(double _abg /*x*/){
+return std::cos(_abg);
 }
 // sin
-static double _sf(double _aax /*x*/){
-return std::sin(_aax);
+static double _sf(double _abh /*x*/){
+return std::sin(_abh);
 }
 // tan
-static double _sg(double _aay /*x*/){
-return std::tan(_aay);
+static double _sg(double _abi /*x*/){
+return std::tan(_abi);
 }
 // sqrt
-static double _sh(double _aaz /*x*/){
-return std::sqrt(_aaz);
+static double _sh(double _abj /*x*/){
+return std::sqrt(_abj);
 }
 // exp
-static double _si(double _aba /*x*/){
-return std::exp(_aba);
+static double _si(double _abk /*x*/){
+return std::exp(_abk);
 }
 // ln
-static double _sj(double _abb /*x*/){
-return std::log(_abb);
+static double _sj(double _abl /*x*/){
+return std::log(_abl);
 }
 // log
-static double _sk(double _abc /*base*/, double _abd /*x*/){
-return ((_sj)((_abd))) / ((_sj)((_abc)));
+static double _sk(double _abm /*base*/, double _abn /*x*/){
+return ((_sj)((_abn))) / ((_sj)((_abm)));
 }
 // rot
-static void _so(double* _abe /*x*/, double* _abf /*y*/, double _abg /*centerX*/, double _abh /*centerY*/, double _abi /*angle*/){
-double _abj; // x2
-double _abk; // y2
-double _abl; // cosTheta
-double _abm; // sinTheta
-double _abn; // x3
-double _abo; // y3
-(_abj) = ((*_abe) - (_abg));
-(_abk) = ((*_abf) - (_abh));
-(_abl) = ((_se)((_abi)));
-(_abm) = ((_sf)((_abi)));
-(_abn) = (((_abj) * (_abl)) - ((_abk) * (_abm)));
-(_abo) = (((_abj) * (_abm)) + ((_abk) * (_abl)));
-(*_abe) = ((_abn) + (_abg));
-(*_abf) = ((_abo) + (_abh));
+static void _so(double* _abo /*x*/, double* _abp /*y*/, double _abq /*centerX*/, double _abr /*centerY*/, double _abs /*angle*/){
+double _abt; // x2
+double _abu; // y2
+double _abv; // cosTheta
+double _abw; // sinTheta
+double _abx; // x3
+double _aby; // y3
+(_abt) = ((*_abo) - (_abq));
+(_abu) = ((*_abp) - (_abr));
+(_abv) = ((_se)((_abs)));
+(_abw) = ((_sf)((_abs)));
+(_abx) = (((_abt) * (_abv)) - ((_abu) * (_abw)));
+(_aby) = (((_abt) * (_abw)) + ((_abu) * (_abv)));
+(*_abo) = ((_abx) + (_abq));
+(*_abp) = ((_aby) + (_abr));
 }
 // invRot
-static double _sp(double _abp /*x*/, double _abq /*y*/, double _abr /*centerX*/, double _abs /*centerY*/){
-double r_ = std::atan2(_abq - _abs, _abp - _abr);
+static double _sp(double _abz /*x*/, double _aca /*y*/, double _acb /*centerX*/, double _acc /*centerY*/){
+double r_ = std::atan2(_aca - _acc, _abz - _acb);
 return r_ < 0.0 ? r_ + 2.0 * 3.14159265358979323846 : r_;
 }
 // dist
-static double _sq(double _abt /*x*/, double _abu /*y*/, double _abv /*centerX*/, double _abw /*centerY*/){
-return std::hypot(_abt - _abv, _abu - _abw);
+static double _sq(double _acd /*x*/, double _ace /*y*/, double _acf /*centerX*/, double _acg /*centerY*/){
+return std::hypot(_acd - _acf, _ace - _acg);
 }
 // chase
-static bool _su(double* _abx /*x*/, double _aby /*target*/, double _abz /*vel*/){
-if((*_abx) == (_aby)){
+static bool _su(double* _ach /*x*/, double _aci /*target*/, double _acj /*vel*/){
+if((*_ach) == (_aci)){
 return true;
 }
-if((*_abx) < (_aby)){
-(*_abx) = ((*_abx) + (_abz));
-if((*_abx) >= (_aby)){
-(*_abx) = (_aby);
+if((*_ach) < (_aci)){
+(*_ach) = ((*_ach) + (_acj));
+if((*_ach) >= (_aci)){
+(*_ach) = (_aci);
 return true;
 }
 }
 else{
-(*_abx) = ((*_abx) - (_abz));
-if((*_abx) <= (_aby)){
-(*_abx) = (_aby);
+(*_ach) = ((*_ach) - (_acj));
+if((*_ach) <= (_aci)){
+(*_ach) = (_aci);
 return true;
 }
 }
 return false;
 }
 // floor
-static double _sz(double _acl /*x*/){
-return std::floor(_acl);
+static double _sz(double _acv /*x*/){
+return std::floor(_acv);
 }
 // ceil
-static double _ta(double _acm /*x*/){
-return std::ceil(_acm);
+static double _ta(double _acw /*x*/){
+return std::ceil(_acw);
 }
 // round
-static double _tb(double _acn /*x*/, int64_t _aco /*precision*/){
-double _acs; // p
-if((_aco) == (0LL)){
-return ((_acn) >= (0.0)) ? ((_sz)(((_acn) + (0.5)))) : (-((_sz)(((-(_acn)) + (0.5)))));
+static double _tb(double _acx /*x*/, int64_t _acy /*precision*/){
+double _adc; // p
+if((_acy) == (0LL)){
+return ((_acx) >= (0.0)) ? ((_sz)(((_acx) + (0.5)))) : (-((_sz)(((-(_acx)) + (0.5)))));
 }
 else{
-(_acs) = (pow((10.0), (static_cast<double>(_aco))));
-return ((_acn) >= (0.0)) ? (((_sz)((((_acn) * (_acs)) + (0.5)))) / (_acs)) : ((-((_sz)((((-(_acn)) * (_acs)) + (0.5))))) / (_acs));
+(_adc) = (pow((10.0), (static_cast<double>(_acy))));
+return ((_acx) >= (0.0)) ? (((_sz)((((_acx) * (_adc)) + (0.5)))) / (_adc)) : ((-((_sz)((((-(_acx)) * (_adc)) + (0.5))))) / (_adc));
 }
 }
 // _lower
-static Array_<char16_t>* _td(Array_<char16_t>* _act /*me_*/){
-Array_<char16_t>* _acu; // s
-int64_t _acy;
-int64_t _acz;
-if(!(!eqAddr_((_act), (nullptr)))){
-throw 0xE9170000U;
-}
-(_acu) = (newArray_<char16_t, Array_<char16_t>*>(1, ((_act)->Len())));
-for(_acy = (0LL), _acz = (((_act)->Len()) - (1LL)); _acy <= _acz; _acy += (1LL)){
-if(((u'\u0041') <= ((_act)->At(_acy))) && (((_act)->At(_acy)) <= (u'\u005A'))){
-((_acu)->At(_acy)) = (static_cast<char16_t>(((static_cast<uint64_t>((_act)->At(_acy))) - (0x0000000000000041ULL)) + (0x0000000000000061ULL)));
-}
-else{
-((_acu)->At(_acy)) = ((_act)->At(_acy));
-}
-}
-return _acu;
-}
-// _upper
-static Array_<char16_t>* _te(Array_<char16_t>* _add /*me_*/){
+static Array_<char16_t>* _td(Array_<char16_t>* _add /*me_*/){
 Array_<char16_t>* _ade; // s
 int64_t _adi;
 int64_t _adj;
@@ -1805,8 +1807,8 @@ throw 0xE9170000U;
 }
 (_ade) = (newArray_<char16_t, Array_<char16_t>*>(1, ((_add)->Len())));
 for(_adi = (0LL), _adj = (((_add)->Len()) - (1LL)); _adi <= _adj; _adi += (1LL)){
-if(((u'\u0061') <= ((_add)->At(_adi))) && (((_add)->At(_adi)) <= (u'\u007A'))){
-((_ade)->At(_adi)) = (static_cast<char16_t>(((static_cast<uint64_t>((_add)->At(_adi))) - (0x0000000000000061ULL)) + (0x0000000000000041ULL)));
+if(((u'\u0041') <= ((_add)->At(_adi))) && (((_add)->At(_adi)) <= (u'\u005A'))){
+((_ade)->At(_adi)) = (static_cast<char16_t>(((static_cast<uint64_t>((_add)->At(_adi))) - (0x0000000000000041ULL)) + (0x0000000000000061ULL)));
 }
 else{
 ((_ade)->At(_adi)) = ((_add)->At(_adi));
@@ -1814,187 +1816,234 @@ else{
 }
 return _ade;
 }
-// _trim
-static Array_<char16_t>* _tf(Array_<char16_t>* _adn /*me_*/){
-int64_t _ado; // f
+// _upper
+static Array_<char16_t>* _te(Array_<char16_t>* _adn /*me_*/){
+Array_<char16_t>* _ado; // s
 int64_t _ads;
-uint64_t _adu; // c
-int64_t _adz; // l
-int64_t _aed;
-uint64_t _aef; // c
-Array_<char16_t>* _aei; // r
-int64_t _aem;
 int64_t _adt;
-int64_t _aee;
-int64_t _aen;
 if(!(!eqAddr_((_adn), (nullptr)))){
 throw 0xE9170000U;
 }
-(_ado) = (-1LL);
+(_ado) = (newArray_<char16_t, Array_<char16_t>*>(1, ((_adn)->Len())));
 for(_ads = (0LL), _adt = (((_adn)->Len()) - (1LL)); _ads <= _adt; _ads += (1LL)){
-(_adu) = (static_cast<uint64_t>((_adn)->At(_ads)));
-if(!(((((0x0000000000000009ULL) <= (_adu)) && ((_adu) <= (0x000000000000000DULL))) || ((_adu) == (0x0000000000000020ULL))) || ((_adu) == (0x00000000000000A0ULL)))){
-(_ado) = (_ads);
-break;
+if(((u'\u0061') <= ((_adn)->At(_ads))) && (((_adn)->At(_ads)) <= (u'\u007A'))){
+((_ado)->At(_ads)) = (static_cast<char16_t>(((static_cast<uint64_t>((_adn)->At(_ads))) - (0x0000000000000061ULL)) + (0x0000000000000041ULL)));
+}
+else{
+((_ado)->At(_ads)) = ((_adn)->At(_ads));
 }
 }
-if((_ado) == (-1LL)){
-return _adn;
+return _ado;
 }
-(_adz) = (-1LL);
-for(_aed = (((_adn)->Len()) - (1LL)), _aee = (0LL); _aed >= _aee; _aed += (-1LL)){
-(_aef) = (static_cast<uint64_t>((_adn)->At(_aed)));
-if(!(((((0x0000000000000009ULL) <= (_aef)) && ((_aef) <= (0x000000000000000DULL))) || ((_aef) == (0x0000000000000020ULL))) || ((_aef) == (0x00000000000000A0ULL)))){
-(_adz) = (_aed);
-break;
-}
-}
-(_aei) = (newArray_<char16_t, Array_<char16_t>*>(1, (((_adz) - (_ado)) + (1LL))));
-for(_aem = (0LL), _aen = ((_adz) - (_ado)); _aem <= _aen; _aem += (1LL)){
-((_aei)->At(_aem)) = ((_adn)->At((_ado) + (_aem)));
-}
-return _aei;
-}
-// _trimLeft
-static Array_<char16_t>* _tg(Array_<char16_t>* _aeo /*me_*/){
-int64_t _aep; // f
-int64_t _aet;
-uint64_t _aev; // c
-Array_<char16_t>* _afa; // r
-int64_t _afe;
-int64_t _aeu;
-int64_t _aff;
-if(!(!eqAddr_((_aeo), (nullptr)))){
+// _trim
+static Array_<char16_t>* _tf(Array_<char16_t>* _adx /*me_*/){
+int64_t _ady; // f
+int64_t _aec;
+uint64_t _aee; // c
+int64_t _aej; // l
+int64_t _aen;
+uint64_t _aep; // c
+Array_<char16_t>* _aes; // r
+int64_t _aew;
+int64_t _aed;
+int64_t _aeo;
+int64_t _aex;
+if(!(!eqAddr_((_adx), (nullptr)))){
 throw 0xE9170000U;
 }
-(_aep) = (-1LL);
-for(_aet = (0LL), _aeu = (((_aeo)->Len()) - (1LL)); _aet <= _aeu; _aet += (1LL)){
-(_aev) = (static_cast<uint64_t>((_aeo)->At(_aet)));
-if(!(((((0x0000000000000009ULL) <= (_aev)) && ((_aev) <= (0x000000000000000DULL))) || ((_aev) == (0x0000000000000020ULL))) || ((_aev) == (0x00000000000000A0ULL)))){
-(_aep) = (_aet);
+(_ady) = (-1LL);
+for(_aec = (0LL), _aed = (((_adx)->Len()) - (1LL)); _aec <= _aed; _aec += (1LL)){
+(_aee) = (static_cast<uint64_t>((_adx)->At(_aec)));
+if(!(((((0x0000000000000009ULL) <= (_aee)) && ((_aee) <= (0x000000000000000DULL))) || ((_aee) == (0x0000000000000020ULL))) || ((_aee) == (0x00000000000000A0ULL)))){
+(_ady) = (_aec);
 break;
 }
 }
-if((_aep) == (-1LL)){
-return _aeo;
+if((_ady) == (-1LL)){
+return _adx;
 }
-(_afa) = (newArray_<char16_t, Array_<char16_t>*>(1, (((_aeo)->Len()) - (_aep))));
-for(_afe = (0LL), _aff = ((((_aeo)->Len()) - (_aep)) - (1LL)); _afe <= _aff; _afe += (1LL)){
-((_afa)->At(_afe)) = ((_aeo)->At((_aep) + (_afe)));
+(_aej) = (-1LL);
+for(_aen = (((_adx)->Len()) - (1LL)), _aeo = (0LL); _aen >= _aeo; _aen += (-1LL)){
+(_aep) = (static_cast<uint64_t>((_adx)->At(_aen)));
+if(!(((((0x0000000000000009ULL) <= (_aep)) && ((_aep) <= (0x000000000000000DULL))) || ((_aep) == (0x0000000000000020ULL))) || ((_aep) == (0x00000000000000A0ULL)))){
+(_aej) = (_aen);
+break;
 }
-return _afa;
+}
+(_aes) = (newArray_<char16_t, Array_<char16_t>*>(1, (((_aej) - (_ady)) + (1LL))));
+for(_aew = (0LL), _aex = ((_aej) - (_ady)); _aew <= _aex; _aew += (1LL)){
+((_aes)->At(_aew)) = ((_adx)->At((_ady) + (_aew)));
+}
+return _aes;
+}
+// _trimLeft
+static Array_<char16_t>* _tg(Array_<char16_t>* _aey /*me_*/){
+int64_t _aez; // f
+int64_t _afd;
+uint64_t _aff; // c
+Array_<char16_t>* _afk; // r
+int64_t _afo;
+int64_t _afe;
+int64_t _afp;
+if(!(!eqAddr_((_aey), (nullptr)))){
+throw 0xE9170000U;
+}
+(_aez) = (-1LL);
+for(_afd = (0LL), _afe = (((_aey)->Len()) - (1LL)); _afd <= _afe; _afd += (1LL)){
+(_aff) = (static_cast<uint64_t>((_aey)->At(_afd)));
+if(!(((((0x0000000000000009ULL) <= (_aff)) && ((_aff) <= (0x000000000000000DULL))) || ((_aff) == (0x0000000000000020ULL))) || ((_aff) == (0x00000000000000A0ULL)))){
+(_aez) = (_afd);
+break;
+}
+}
+if((_aez) == (-1LL)){
+return _aey;
+}
+(_afk) = (newArray_<char16_t, Array_<char16_t>*>(1, (((_aey)->Len()) - (_aez))));
+for(_afo = (0LL), _afp = ((((_aey)->Len()) - (_aez)) - (1LL)); _afo <= _afp; _afo += (1LL)){
+((_afk)->At(_afo)) = ((_aey)->At((_aez) + (_afo)));
+}
+return _afk;
 }
 // _trimRight
-static Array_<char16_t>* _th(Array_<char16_t>* _afg /*me_*/){
-int64_t _afh; // l
-int64_t _afl;
-uint64_t _afn; // c
-Array_<char16_t>* _afs; // r
+static Array_<char16_t>* _th(Array_<char16_t>* _afq /*me_*/){
+int64_t _afr; // l
+int64_t _afv;
+uint64_t _afx; // c
+Array_<char16_t>* _agc; // r
+int64_t _agg;
 int64_t _afw;
-int64_t _afm;
-int64_t _afx;
-(_afh) = (-1LL);
-for(_afl = (((_afg)->Len()) - (1LL)), _afm = (0LL); _afl >= _afm; _afl += (-1LL)){
-(_afn) = (static_cast<uint64_t>((_afg)->At(_afl)));
-if(!(((((0x0000000000000009ULL) <= (_afn)) && ((_afn) <= (0x000000000000000DULL))) || ((_afn) == (0x0000000000000020ULL))) || ((_afn) == (0x00000000000000A0ULL)))){
-(_afh) = (_afl);
+int64_t _agh;
+(_afr) = (-1LL);
+for(_afv = (((_afq)->Len()) - (1LL)), _afw = (0LL); _afv >= _afw; _afv += (-1LL)){
+(_afx) = (static_cast<uint64_t>((_afq)->At(_afv)));
+if(!(((((0x0000000000000009ULL) <= (_afx)) && ((_afx) <= (0x000000000000000DULL))) || ((_afx) == (0x0000000000000020ULL))) || ((_afx) == (0x00000000000000A0ULL)))){
+(_afr) = (_afv);
 break;
 }
 }
-if((_afh) == (-1LL)){
-return _afg;
+if((_afr) == (-1LL)){
+return _afq;
 }
-(_afs) = (newArray_<char16_t, Array_<char16_t>*>(1, ((_afh) + (1LL))));
-for(_afw = (0LL), _afx = (_afh); _afw <= _afx; _afw += (1LL)){
-((_afs)->At(_afw)) = ((_afg)->At(_afw));
+(_agc) = (newArray_<char16_t, Array_<char16_t>*>(1, ((_afr) + (1LL))));
+for(_agg = (0LL), _agh = (_afr); _agg <= _agh; _agg += (1LL)){
+((_agc)->At(_agg)) = ((_afq)->At(_agg));
 }
-return _afs;
+return _agc;
 }
 // f
-static Array_<char16_t>* _tk(int64_t _afy /*a*/, int64_t* _afz /*b*/, double _aga /*c*/, double* _agb /*d*/, char16_t* _agc /*e*/){
-(*_afz) = (5LL);
-(*_agb) = (3.5);
-(*_agc) = (u'\u005A');
+static Array_<char16_t>* _tk(int64_t _agi /*a*/, int64_t* _agj /*b*/, double _agk /*c*/, double* _agl /*d*/, char16_t* _agm /*e*/){
+(*_agj) = (5LL);
+(*_agl) = (3.5);
+(*_agm) = (u'\u005A');
 return new Array_<char16_t>(1, u'\u0041');
 }
 // same
-static bool _tu(double _agd /*n1*/, double _age /*n2*/){
-double _agf; // max
-(_agf) = (1.0);
-if((_agf) < (_agd)){
-(_agf) = (_agd);
+static bool _tu(double _agn /*n1*/, double _ago /*n2*/){
+double _agp; // max
+(_agp) = (1.0);
+if((_agp) < (_agn)){
+(_agp) = (_agn);
 }
-if((_agf) < (_age)){
-(_agf) = (_age);
+if((_agp) < (_ago)){
+(_agp) = (_ago);
 }
-return ((_ee)(((_agd) - (_age)))) <= ((2.22045e-16) * (_agf));
+return ((_ee)(((_agn) - (_ago)))) <= ((2.22045e-16) * (_agp));
 }
 // _offset
-static char16_t _tw(char16_t _agk /*me_*/, int64_t _agl /*n*/){
-return static_cast<char16_t>((static_cast<uint64_t>(_agk)) + (static_cast<uint64_t>(_agl)));
+static char16_t _tw(char16_t _agu /*me_*/, int64_t _agv /*n*/){
+return static_cast<char16_t>((static_cast<uint64_t>(_agu)) + (static_cast<uint64_t>(_agv)));
 }
 // cmp
-static int64_t _ua(_tz* _agm /*me*/, _lj* _agn /*t*/){
-return ((_agm)->_uf) - ((as_<_tz>(classTable_, (_agn), 42))->_uf);
+static int64_t _ua(_tz* _agw /*me*/, _lj* _agx /*t*/){
+return ((_agw)->_uf) - ((as_<_tz>(classTable_, (_agx), 42))->_uf);
 }
 // _dtor
-static void _ub(_tz* _ago){
+static void _ub(_tz* _agy){
 }
 // _copy
-static _tz* _uc(_tz* _agp){
-_tz* _agq;
-(_agq) = (new _tz());
-((_agq)->_uf) = ((_agp)->_uf);
-return as_<_tz>(classTable_, (_agq), 42);
+static _tz* _uc(_tz* _agz){
+_tz* _aha;
+(_aha) = (new _tz());
+((_aha)->_uf) = ((_agz)->_uf);
+return as_<_tz>(classTable_, (_aha), 42);
 }
 // _toBin
-static Array_<uint8_t>* _ud(_tz* _agr){
-Array_<uint8_t>* _ags;
-(_ags) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
-(_ags) = ((_ags)->Cat(toBin_((_agr)->_uf)));
-return _ags;
+static Array_<uint8_t>* _ud(_tz* _ahb){
+Array_<uint8_t>* _ahc;
+(_ahc) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
+(_ahc) = ((_ahc)->Cat(toBin_((_ahb)->_uf)));
+return _ahc;
 }
 // _fromBin
-static _tz* _ue(_tz* _agu, Array_<uint8_t>* _agv, int64_t* _agw){
-_tz* _agx;
-(_agx) = (new _tz());
-((_agx)->_uf) = (fromBin_<int64_t>((_agv), (*_agw)));
-return _agx;
+static _tz* _ue(_tz* _ahe, Array_<uint8_t>* _ahf, int64_t* _ahg){
+_tz* _ahh;
+(_ahh) = (new _tz());
+((_ahh)->_uf) = (fromBin_<int64_t>((_ahf), (*_ahg)));
+return _ahh;
+}
+// _dtor
+static void _um(_ul* _ahi){
+((_ahi)->_ur) = (nullptr);
+}
+// _copy
+static _ul* _un(_ul* _ahj){
+_ul* _ahk;
+(_ahk) = (new _ul());
+((_ahk)->_uq) = ((_ahj)->_uq);
+((_ahk)->_ur) = (copy_((_ahj)->_ur));
+return as_<_ul>(classTable_, (_ahk), 50);
+}
+// _toBin
+static Array_<uint8_t>* _uo(_ul* _ahl){
+Array_<uint8_t>* _ahm;
+(_ahm) = (newArray_<uint8_t, Array_<uint8_t>*>(1, (8LL)));
+(_ahm) = ((_ahm)->Cat(toBin_((_ahl)->_uq)));
+(_ahm) = ((_ahm)->Cat(toBin_((_ahl)->_ur)));
+return _ahm;
+}
+// _fromBin
+static _ul* _up(_ul* _ahp, Array_<uint8_t>* _ahq, int64_t* _ahr){
+_ul* _ahs;
+(_ahs) = (new _ul());
+((_ahs)->_uq) = (fromBin_<int64_t>((_ahq), (*_ahr)));
+((_ahs)->_ur) = (fromBin_<Array_<char16_t>*>((_ahq), (*_ahr)));
+return _ahs;
 }
 // _toArray
-template<typename T_, typename C_> static Array_<C_>* _ux(T_ _agy /*me_*/, Array_<int64_t>* _agz /*type*/){
-return toArray_<C_>(_agy);}
+template<typename T_, typename C_> static Array_<C_>* _vh(T_ _aht /*me_*/, Array_<int64_t>* _ahu /*type*/){
+return toArray_<C_>(_aht);}
 // _split
-static Array_<Array_<char16_t>*>* _ve(Array_<char16_t>* _aha /*me_*/, Array_<char16_t>* _ahb /*delimiter*/){
-List_<Array_<char16_t>*>* _ahc; // result
-int64_t _ahd; // p
-int64_t _ahf; // p2
-(_ahc) = (new List_<Array_<char16_t>*>());
-(_ahd) = (0LL);
+static Array_<Array_<char16_t>*>* _vo(Array_<char16_t>* _ahv /*me_*/, Array_<char16_t>* _ahw /*delimiter*/){
+List_<Array_<char16_t>*>* _ahx; // result
+int64_t _ahy; // p
+int64_t _aia; // p2
+(_ahx) = (new List_<Array_<char16_t>*>());
+(_ahy) = (0LL);
 while(true){
-(_ahf) = ((_ahg)((_aha), (_ahb), (_ahd)));
-if((_ahf) == (-1LL)){
-_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_ahc), (new Array_<int64_t>(1, (0LL))), (_rr<Array_<char16_t>*>((_aha), (new Array_<int64_t>(1, (0LL))), (_ahd), (-1LL))));
-return _ux<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_ahc), (new Array_<int64_t>(1, (0LL))));
+(_aia) = ((_aib)((_ahv), (_ahw), (_ahy)));
+if((_aia) == (-1LL)){
+_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_ahx), (new Array_<int64_t>(1, (0LL))), (_rr<Array_<char16_t>*>((_ahv), (new Array_<int64_t>(1, (0LL))), (_ahy), (-1LL))));
+return _vh<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_ahx), (new Array_<int64_t>(1, (0LL))));
 }
-_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_ahc), (new Array_<int64_t>(1, (0LL))), (_rr<Array_<char16_t>*>((_aha), (new Array_<int64_t>(1, (0LL))), (_ahd), ((_ahf) - (_ahd)))));
-(_ahd) = ((_ahf) + ((_ahb)->Len()));
+_mx<List_<Array_<char16_t>*>*, Array_<char16_t>*>((_ahx), (new Array_<int64_t>(1, (0LL))), (_rr<Array_<char16_t>*>((_ahv), (new Array_<int64_t>(1, (0LL))), (_ahy), ((_aia) - (_ahy)))));
+(_ahy) = ((_aia) + ((_ahw)->Len()));
 }
 }
 // _findStr
-static int64_t _ahg(Array_<char16_t>* _ahj /*me_*/, Array_<char16_t>* _ahk /*pattern*/, int64_t _ahl /*start*/){
-int64_t _ahp;
-int64_t _ahu;
-int64_t _ahq;
-int64_t _ahv;
-for(_ahp = (0LL), _ahq = (((_ahj)->Len()) - ((_ahk)->Len())); _ahp <= _ahq; _ahp += (1LL)){
-for(_ahu = (0LL), _ahv = ((_ahk)->Len()); _ahu <= _ahv; _ahu += (1LL)){
-if(((_ahj)->At((_ahp) + (_ahu))) != ((_ahk)->At(_ahu))){
-goto _aho;
+static int64_t _aib(Array_<char16_t>* _aie /*me_*/, Array_<char16_t>* _aif /*pattern*/, int64_t _aig /*start*/){
+int64_t _aik;
+int64_t _aip;
+int64_t _ail;
+int64_t _aiq;
+for(_aik = (0LL), _ail = (((_aie)->Len()) - ((_aif)->Len())); _aik <= _ail; _aik += (1LL)){
+for(_aip = (0LL), _aiq = ((_aif)->Len()); _aip <= _aiq; _aip += (1LL)){
+if(((_aie)->At((_aik) + (_aip))) != ((_aif)->At(_aip))){
+goto _aij;
 }
 }
-return _ahp;
-_aho:;
+return _aik;
+_aij:;
 }
 return -1LL;
 }
@@ -2052,6 +2101,14 @@ classTable_[46] = reinterpret_cast<int64_t>(_uc);
 classTable_[47] = reinterpret_cast<int64_t>(_ud);
 classTable_[48] = reinterpret_cast<int64_t>(_ue);
 classTable_[49] = reinterpret_cast<int64_t>(_lq);
+classTable_[50] = 0;
+classTable_[51] = reinterpret_cast<int64_t>(_lk);
+classTable_[52] = reinterpret_cast<int64_t>(_um);
+classTable_[53] = reinterpret_cast<int64_t>(_lm);
+classTable_[54] = reinterpret_cast<int64_t>(_un);
+classTable_[55] = reinterpret_cast<int64_t>(_uo);
+classTable_[56] = reinterpret_cast<int64_t>(_up);
+classTable_[57] = reinterpret_cast<int64_t>(_lq);
 init_();
 _a();
 return 0;

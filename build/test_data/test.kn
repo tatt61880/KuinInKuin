@@ -1188,8 +1188,6 @@ func test12()
 		do cui@print(d[0].n.toStr() ~ ", " ~ d[1].n.toStr() ~ ", " ~ d[2].n.toStr() ~ ", " ~ d[3].n.toStr() ~ "\n")
 	end block
 	
-	; TODO:
-	{
 	block
 		class C()
 			+var i: int
@@ -1202,7 +1200,6 @@ func test12()
 		var b: C :: ##a
 		do cui@print(b.i.toStr() ~ ", " ~ (a.s = b.s).toStr() ~ ", " ~ (a.s =& b.s).toStr() ~ "\n")
 	end block
-	}
 end func
 
 func test13()

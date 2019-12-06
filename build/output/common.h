@@ -364,10 +364,7 @@ static T* copy_(T* t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
-	Class_* r = new Class_();
-	Class_* s = reinterpret_cast<Class_*(*)(Class_*)>(classTable_[r->Y + 4])(t);
-	delete r;
-	return static_cast<T*>(s);
+	return static_cast<T*>(reinterpret_cast<Class_*(*)(Class_*)>(classTable_[t->Y + 4])(t));
 }
 static int64_t copy_(int64_t t) noexcept { return t; }
 static char16_t copy_(char16_t t) noexcept { return t; }
