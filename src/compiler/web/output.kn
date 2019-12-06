@@ -991,7 +991,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 				do @buildExpr(items.get())
 				do @codes.add("))}")
 			else
-				do @codes.add("(function A_(n){if(n.length===1)return{S:R_(\"\\0\",n[0])};else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a;}})([")
+				do @codes.add("(function A_(n){if(n.length===1)return{S:R_(\"\\0\",n[0])};else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a;}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
@@ -1012,7 +1012,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 				do @buildExpr(items.get())
 				do @codes.add(").fill(\{@getDefaultValue(ast.itemType)})")
 			else
-				do @codes.add("(function A_(n){if(n.length===1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)})else{let a=new Array(n[0]),m=n.shift(),i;for(i=0;i<n[0];i++)a[i]=A_(m);return a}})([")
+				do @codes.add("(function A_(n){if(n.length===1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)});else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)

@@ -1145,7 +1145,8 @@ func test12()
 		var a: int
 		var b: float
 		var c: char
-		do cui@print(x(a, &a, b, &b, &c) ~ ", " ~ a.toStr() ~ ", " ~ b.toStr() ~ ", " ~ c.toStr() ~ "\n")
+		var d: []char :: x(a, &a, b, &b, &c)
+		do cui@print(d ~ ", " ~ a.toStr() ~ ", " ~ b.toStr() ~ ", " ~ c.toStr() ~ "\n")
 	end block
 	
 	block

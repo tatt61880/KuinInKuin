@@ -305,8 +305,8 @@ func [d0000.knd] _replace(me_: []char, old: []char, new: []char): []char
 end func
 
 func _findStr(me_: []char, pattern: []char, start: int): int
-	for i(0, ^me_ - ^pattern)
-		for j(0, ^pattern)
+	for i(start, ^me_ - ^pattern)
+		for j(0, ^pattern - 1)
 			if(me_[i + j] <> pattern[j])
 				skip i
 			end if
@@ -317,8 +317,8 @@ func _findStr(me_: []char, pattern: []char, start: int): int
 end func
 
 func _findStrLast(me_: []char, pattern: []char, start: int): int
-	for i(^me_ - ^pattern, 0, -1)
-		for j(0, ^pattern)
+	for i(start < ^me_ - ^pattern ?(start, ^me_ - ^pattern), 0, -1)
+		for j(0, ^pattern - 1)
 			if(me_[i + j] <> pattern[j])
 				skip i
 			end if

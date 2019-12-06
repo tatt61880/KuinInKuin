@@ -567,3 +567,20 @@ false, false, true, false
 5, true, false
 -- Test 13 --
 -- Test 14 --
+Line breaking.
+Comment test #1.
+3, 1, 2, 3
+3, 2, 4
+3.14159
+5
+abc
+3, 3, 4, 5
+3, ab, cd, ef
+5
+ab
+cde
+f
+
+g
+n
+00Test00
