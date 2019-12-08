@@ -23,7 +23,7 @@ end class
 
 class TmpVar()
 	+var identifier: []char
-	+var type: \ast@AstType
+	+var type: []char
 end class
 
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
@@ -196,7 +196,7 @@ func buildFunc(ast: \ast@AstFunc)
 		do @tmpVars.head()
 		while(!@tmpVars.term())
 			var tmpVar: @TmpVar :: @tmpVars.get()
-			do @codes.ins("\{@getType(tmpVar.type)} \{tmpVar.identifier};\n")
+			do @codes.ins("\{tmpVar.type} \{tmpVar.identifier};\n")
 			do @tmpVars.del()
 		end while
 	end if
@@ -525,7 +525,7 @@ func buildFor(ast: \ast@AstStatFor, breakStat: \ast@AstStat, skipStat: \ast@AstS
 		do info.alreadyWritten :: true
 		do @localVars.add(ast.blockVar)
 	end if
-	var endId: []char :: @addTmpVar(ast.cond.type)
+	var endId: []char :: @addTmpVar(@getType(ast.cond.type))
 	do @codes.add("for(\{info.id} = (")
 	do @buildExpr(ast.start)
 	do @codes.add("), \{endId} = (")
@@ -928,8 +928,8 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add("))")
 		end if
 	case %swap
-		var tmpVar: []char :: @addTmpVar(type)
-		do @codes.add("\{tmpVar} = (")
+		var tmpVar: []char :: @addTmpVar(@getType(type))
+		do @codes.add("(\{tmpVar} = (")
 		do @buildExpr(ast.children0)
 		do @codes.add("), (")
 		do @buildExpr(ast.children0)
@@ -937,7 +937,7 @@ func buildExpr2(ast: \ast@AstExpr2)
 		do @buildExpr(ast.children1)
 		do @codes.add("), (")
 		do @buildExpr(ast.children1)
-		do @codes.add(") = (\{tmpVar})")
+		do @codes.add(") = (\{tmpVar}))")
 	default
 		assert false
 	end switch
@@ -1034,18 +1034,20 @@ end func
 
 func buildExprToBin(ast: \ast@AstExprToBin)
 	assert ast.varKind <> %unknown
-	do @codes.add("toBin_(")
+	var tmp: []char :: @addTmpVar(@getType(ast.child.type))
+	do @codes.add("(\{tmp} = (")
 	do @buildExpr(ast.child)
-	do @codes.add(")")
+	do @codes.add("), toBin_(&\{tmp}))")
 end func
 
 func buildExprFromBin(ast: \ast@AstExprFromBin)
 	assert ast.varKind <> %unknown
-	do @codes.add("fromBin_<\{@getType(ast.childType)}>((")
+	var type: []char :: @getType(ast.childType)
+	do @codes.add("fromBin_((")
 	do @buildExpr(ast.child)
 	do @codes.add("), (")
 	do @buildExpr(ast.offset)
-	do @codes.add("))")
+	do @codes.add("), (\{type})(0))")
 end func
 
 func buildExprCall(ast: \ast@AstExprCall)
@@ -1116,8 +1118,8 @@ func buildExprCall(ast: \ast@AstExprCall)
 			end if
 			if(item.skipVar)
 				assert item.refVar
-				var tmp: []char :: @addTmpVar(item.arg.type)
-				do @codes.add("std::memset(&\{tmp}, 0, sizeof(\{@getType(item.arg.type)})), &\{tmp}")
+				var tmp: []char :: @addTmpVar(@getType(item.arg.type))
+				do @codes.add("(std::memset(&\{tmp}, 0, sizeof(\{@getType(item.arg.type)})), &\{tmp})")
 			else
 				if(item.refVar)
 					do @codes.add("&")
@@ -1479,7 +1481,7 @@ end func
 	ret ast.extra $ @CppInfo
 end func
 
-func addTmpVar(type: \ast@AstType): []char
+func addTmpVar(type: []char): []char
 	var tmpVar: @TmpVar :: #@TmpVar
 	do tmpVar.identifier :: @getId()
 	do tmpVar.type :: type
