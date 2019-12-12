@@ -1,5 +1,6 @@
-#include <cmath>
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <codecvt>
 #include <cstdarg>
 #include <cstring>
