@@ -93,7 +93,7 @@
 	case "del"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("auto& i_ = \{me_.id}->I++;\n")
+		do codes.add("auto i_ = \{me_.id}->I++;\n")
 		do codes.add("\{me_.id}->B.erase(i_);\n")
 	case "dist"
 		do args.head()
@@ -171,7 +171,7 @@
 		var callback: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
 		var data: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("return dictForEach_(\{me_.id}->B, static_cast<bool(*)(K_, V_, Class_*)>(\{callback.id}), \{data.id});\n")
+		do codes.add("return dictForEach_(\{me_.id}->B, reinterpret_cast<bool(*)(K_, V_, Class_*)>(\{callback.id}), \{data.id});\n")
 	case "getDict"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -205,7 +205,7 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("int64_t i_ = 0;\n")
-		do codes.add("for(auto& t_ = \{me_.id}->B.begin(); t_ != \{me_.id}->B.end(); ++t_){\n")
+		do codes.add("for(auto t_ = \{me_.id}->B.begin(); t_ != \{me_.id}->B.end(); ++t_){\n")
 		do codes.add("if(t_ == \{me_.id}->I) return i_;\n")
 		do codes.add("i_++;\n")
 		do codes.add("}\n")

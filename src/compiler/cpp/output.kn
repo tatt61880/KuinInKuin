@@ -76,7 +76,7 @@ func buildFunc(ast: \ast@AstFunc)
 		elif(ast.funcOption.and(%rch) = %rch)
 			do template :: "template<typename T_, typename R_> "
 		elif(ast.funcOption.and(%kvf) = %kvf)
-			do template :: "template<typename T_, typename K_, typename V_> "
+			do template :: "template<typename T_, typename K_, typename V_, typename F_> "
 		elif(ast.funcOption.and(%rac) = %rac)
 			do template :: "template<typename T_, typename C_> "
 		elif(ast.funcOption.and(%rak) = %rak)
@@ -131,7 +131,7 @@ func buildFunc(ast: \ast@AstFunc)
 				do arg :~ "T_"
 			elif(ast.funcOption.and(%kvf) = %kvf & idx = 2)
 				assert \ast@isInt(item.type)
-				do arg :~ "const void*"
+				do arg :~ "F_"
 			else
 				do arg :~ "\{@getType(item.type)}"
 			end if
@@ -441,17 +441,17 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 					end if
 				else
 					if(\ast@isRef(ast.cond.type))
-						do @codes.add("cmp_(\{info.id}, (")
+						do @codes.add("(cmp_(\{info.id}, (")
 						do @buildExpr(exprs.expr0)
 						do @codes.add(")) >= 0 && cmp_(\{info.id}, (")
 						do @buildExpr(exprs.expr1)
-						do @codes.add(")) <= 0")
+						do @codes.add(")) <= 0)")
 					else
-						do @codes.add("(")
+						do @codes.add("((")
 						do @buildExpr(exprs.expr0)
 						do @codes.add(") <= \{info.id} && \{info.id} <= (")
 						do @buildExpr(exprs.expr1)
-						do @codes.add(")")
+						do @codes.add("))")
 					end if
 				end if
 				do items2.next()
@@ -594,11 +594,11 @@ func buildTry(ast: \ast@AstStatTry, breakStat: \ast@AstStat, skipStat: \ast@AstS
 					do @buildExpr(exprs.expr0)
 					do @codes.add(")")
 				else
-					do @codes.add("(")
+					do @codes.add("((")
 					do @buildExpr(exprs.expr0)
 					do @codes.add(") <= \{info.id} && \{info.id} <= (")
 					do @buildExpr(exprs.expr1)
-					do @codes.add(")")
+					do @codes.add("))")
 				end if
 				do items2.next()
 			end while
@@ -737,7 +737,7 @@ func buildExpr1(ast: \ast@AstExpr1)
 		do @buildExpr(ast.child)
 		do @codes.add(")")
 	case %copy
-		do @codes.add("copy_(")
+		do @codes.add("copy_<\{@getType(ast.child.type)}>()(")
 		do @buildExpr(ast.child)
 		do @codes.add(")")
 	case %len
@@ -1034,20 +1034,18 @@ end func
 
 func buildExprToBin(ast: \ast@AstExprToBin)
 	assert ast.varKind <> %unknown
-	var tmp: []char :: @addTmpVar(@getType(ast.child.type))
-	do @codes.add("(\{tmp} = (")
+	do @codes.add("toBin_<\{@getType(ast.child.type)}>()((")
 	do @buildExpr(ast.child)
-	do @codes.add("), toBin_(&\{tmp}))")
+	do @codes.add("))")
 end func
 
 func buildExprFromBin(ast: \ast@AstExprFromBin)
 	assert ast.varKind <> %unknown
-	var type: []char :: @getType(ast.childType)
-	do @codes.add("fromBin_((")
+	do @codes.add("fromBin_<\{@getType(ast.childType)}>()((")
 	do @buildExpr(ast.child)
 	do @codes.add("), (")
 	do @buildExpr(ast.offset)
-	do @codes.add("), (\{type})(0))")
+	do @codes.add("))")
 end func
 
 func buildExprCall(ast: \ast@AstExprCall)
@@ -1084,7 +1082,9 @@ func buildExprCall(ast: \ast@AstExprCall)
 		elif(funcType.funcOption.and(%rch) = %rch)
 			do template :: "<\{@getType(meType)}, \{@getType(funcType.ret_)}>"
 		elif(funcType.funcOption.and(%kvf) = %kvf)
-			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}>"
+			do items.next()
+			do items.next()
+			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}, \{@getType(items.get().arg.type)}>"
 		elif(funcType.funcOption.and(%rac) = %rac)
 			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeGen).itemType)}>"
 		elif(funcType.funcOption.and(%rak) = %rak)
