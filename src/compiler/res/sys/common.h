@@ -274,7 +274,7 @@ template<typename T> void* newArrayRec_(int64_t n, int64_t x, const int64_t* b) 
 	{
 		Array_<void*>* r = new Array_<void*>();
 		r->L = b[x];
-		r->B = reinterpret_cast<void**>(new T[static_cast<size_t>(b[x])]);
+		r->B = new void*[static_cast<size_t>(b[x])];
 		for (int64_t i = 0; i < b[x]; i++)
 			r->B[i] = newArrayRec_<T>(n, x + 1, b);
 		return r;
