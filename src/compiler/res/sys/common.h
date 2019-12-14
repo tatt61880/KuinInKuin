@@ -44,9 +44,7 @@ template<typename T> struct Array_ : public Ref_ {
 		va_list l;
 		va_start(l, n);
 		for (int64_t i = 0; i < n; i++)
-		{
-			B[i] = (T)va_arg(l, int64_t);
-		}
+			B[i] = va_arg(l, T);
 		va_end(l);
 		if (bufLen_<T>() > 0)
 			B[n] = 0;
