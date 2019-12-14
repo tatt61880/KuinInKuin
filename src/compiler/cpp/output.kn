@@ -1277,7 +1277,9 @@ func write(resFiles: list<[]char>)
 	if(\option@extra.get("merge", &))
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
 		do writer.writeStr("#include <cstdint>\n")
-		if(^@classTable <> 0)
+		if(^@classTable = 0)
+			do writer.writeStr("static int64_t classTable_[1];\n")
+		else
 			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
 		end if
 		var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
