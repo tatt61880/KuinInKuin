@@ -1044,7 +1044,14 @@ func buildExprFromBin(ast: \ast@AstExprFromBin)
 	do @codes.add("fromBin_<\{@getType(ast.childType)}>()((")
 	do @buildExpr(ast.child)
 	do @codes.add("), (")
-	do @buildExpr(ast.offset)
+	if(ast.offset.typeId.and(%exprValue) = %exprValue)
+		var tmp: []char :: @addTmpVar(@getType(ast.offset.type))
+		do @codes.add("\{tmp} = (")
+		do @buildExpr(ast.offset)
+		do @codes.add("), \{tmp}")
+	else
+		do @buildExpr(ast.offset)
+	end if
 	do @codes.add("))")
 end func
 

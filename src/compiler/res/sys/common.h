@@ -568,24 +568,49 @@ template<typename T> struct toBin_<List_<T>*> { Array_<uint8_t>* operator()(List
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
 	int64_t s = static_cast<int64_t>(v->B.size());
 	Array_<uint8_t>* r = makeBin_(&s, sizeof(int64_t));
-	for (auto& i : v->B)
-		mergeBin_(r, toBin_<T>()(&*i));
+	int64_t c = 0, d = -1;
+	for (auto i = v->B.begin(); i != v->B.end(); ++i, ++c) if (i == v->I) { d = c; break; }
+	mergeBin_(r, makeBin_(&d, sizeof(int64_t)));
+	for (auto& n : v->B)
+		mergeBin_(r, toBin_<T>()(n));
 	return r;
 }};
 template<typename T> struct toBin_<Stack_<T>*> { Array_<uint8_t>* operator()(Stack_<T>* v) noexcept {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
 	int64_t s = static_cast<int64_t>(v->B.size());
+	std::stack<T> b;
 	Array_<uint8_t>* r = makeBin_(&s, sizeof(int64_t));
-	for (auto& i : v->B)
-		mergeBin_(r, toBin_<T>()(&*i));
+	while (!v->B.empty())
+	{
+		b.push(v->B.top());
+		v->B.pop();
+	}
+	while (!b.empty())
+	{
+		T n = b.top();
+		mergeBin_(r, toBin_<T>()(n));
+		v->B.push(n);
+		b.pop();
+	}
 	return r;
 }};
 template<typename T> struct toBin_<Queue_<T>*> { Array_<uint8_t>* operator()(Queue_<T>* v) noexcept {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
 	int64_t s = static_cast<int64_t>(v->B.size());
+	std::queue<T> b;
 	Array_<uint8_t>* r = makeBin_(&s, sizeof(int64_t));
-	for (auto& i : v->B)
-		mergeBin_(r, toBin_<T>()(&*i));
+	while (!v->B.empty())
+	{
+		T n = v->B.front();
+		b.push(n);
+		mergeBin_(r, toBin_<T>()(n));
+		v->B.pop();
+	}
+	while (!b.empty())
+	{
+		v->B.push(b.front());
+		b.pop();
+	}
 	return r;
 }};
 template<typename T1, typename T2> struct toBin_<Dict_<T1, T2>*> { Array_<uint8_t>* operator()(Dict_<T1, T2>* v) noexcept {
@@ -598,7 +623,9 @@ template<typename T> struct toBin_<T*> { Array_<uint8_t>* operator()(T* v) noexc
 	if (std::is_class<T>::value)
 	{
 		if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-		return reinterpret_cast<Array_<uint8_t>*(*)(Class_*)>(classTable_[v->Y + 5])(v);
+		Array_<uint8_t>* r = makeBin_(&v->Y, sizeof(int64_t));
+		mergeBin_(r, reinterpret_cast<Array_<uint8_t>*(*)(Class_*)>(classTable_[v->Y + 5])(v));
+		return r;
 	}
 	else
 	{
@@ -617,50 +644,92 @@ template<> struct toBin_<uint64_t> { Array_<uint8_t>* operator()(uint64_t v) noe
 
 template<typename T> struct fromBin_ {};
 
-template<typename T> struct fromBin_<Array_<T>*> { Array_<T>* operator()(Array_<uint8_t>* b, int64_t o) noexcept {
+template<typename T> struct fromBin_<Array_<T>*> { Array_<T>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
+	o += sizeof(int64_t);
 	if (l == -1) return nullptr;
 	Array_<T>* r = new Array_<T>();
 	r->L = l;
-	r->B = new T[static_cast<size_t>(l)];
+	r->B = new T[static_cast<size_t>(l) + bufLen_<T>()];
 	for (int64_t i = 0; i < l; i++)
 		r->B[i] = fromBin_<T>()(b, o);
+	if (bufLen_<T>() > 0)
+		r->B[l] = 0;
 	return r;
 }};
-template<typename T> struct fromBin_<List_<T>*> { List_<T>* operator()(Array_<uint8_t>* b, int64_t o) noexcept {
-	// TODO:
-	return nullptr;
+template<typename T> struct fromBin_<List_<T>*> { List_<T>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
+	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
+	o += sizeof(int64_t);
+	if (l == -1) return nullptr;
+	List_<T>* r = new List_<T>();
+	int64_t d = *reinterpret_cast<int64_t*>(b->B + o);
+	o += sizeof(int64_t);
+	for (int64_t i = 0; i < l; i++)
+	{
+		r->B.push_back(fromBin_<T>()(b, o));
+		if (i == d)
+		{
+			auto e = r->B.end();
+			--e;
+			r->I = e;
+		}
+	}
+	return r;
 }};
-template<typename T> struct fromBin_<Stack_<T>*> { Stack_<T>* operator()(Array_<uint8_t>* b, int64_t o) noexcept {
-	// TODO:
-	return nullptr;
+template<typename T> struct fromBin_<Stack_<T>*> { Stack_<T>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
+	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
+	o += sizeof(int64_t);
+	if (l == -1) return nullptr;
+	Stack_<T>* r = new Stack_<T>();
+	for (int64_t i = 0; i < l; i++)
+		r->B.push(fromBin_<T>()(b, o));
+	return r;
 }};
-template<typename T> struct fromBin_<Queue_<T>*> { Queue_<T>* operator()(Array_<uint8_t>* b, int64_t o) noexcept {
-	// TODO:
-	return nullptr;
+template<typename T> struct fromBin_<Queue_<T>*> { Queue_<T>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
+	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
+	o += sizeof(int64_t);
+	if (l == -1) return nullptr;
+	Queue_<T>* r = new Queue_<T>();
+	for (int64_t i = 0; i < l; i++)
+		r->B.push(fromBin_<T>()(b, o));
+	return r;
 }};
-template<typename T1, typename T2> struct fromBin_<Dict_<T1, T2>*> { Dict_<T1, T2>* operator()(Array_<uint8_t>* b, int64_t o) noexcept {
-	// TODO:
-	return nullptr;
+template<typename T1, typename T2> struct fromBin_<Dict_<T1, T2>*> { Dict_<T1, T2>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
+	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
+	o += sizeof(int64_t);
+	if (l == -1) return nullptr;
+	Dict_<T1, T2>* r = new Dict_<T1, T2>();
+	r->L = l;
+	for (int64_t i = 0; i < l; i++)
+	{
+		T1 k = fromBin_<T1>()(b, o);
+		T2 v = fromBin_<T2>()(b, o);
+		r->Add(k, v);
+	}
+	return r;
 }};
-template<typename T> struct fromBin_<T*> { T* operator()(Array_<uint8_t>* b, int64_t o) noexcept {
+template<typename T> struct fromBin_<T*> { T* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
 	if (std::is_class<T>::value)
 	{
 		int64_t y = *reinterpret_cast<int64_t*>(b->B + o);
+		o += sizeof(int64_t);
 		if (y == -1) return nullptr;
-		return reinterpret_cast<T*>(reinterpret_cast<Class_*(*)(Class_*)>(classTable_[y + 4])(nullptr));
+		return reinterpret_cast<T*>(reinterpret_cast<Class_*(*)(Class_*, Array_<uint8_t>*, int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
 	}
 	else
+	{
+		o += sizeof(void*);
 		return nullptr;
+	}
 }};
-template<> struct fromBin_<int64_t> { int64_t operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<int64_t*>(b->B + o); } };
-template<> struct fromBin_<double> { double operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<double*>(b->B + o); } };
-template<> struct fromBin_<char16_t> { char16_t operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<char16_t*>(b->B + o); } };
-template<> struct fromBin_<bool> { bool operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<bool*>(b->B + o); } };
-template<> struct fromBin_<uint8_t> { uint8_t operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<uint8_t*>(b->B + o); } };
-template<> struct fromBin_<uint16_t> { uint16_t operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<uint16_t*>(b->B + o); } };
-template<> struct fromBin_<uint32_t> { uint32_t operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<uint32_t*>(b->B + o); } };
-template<> struct fromBin_<uint64_t> { uint64_t operator()(Array_<uint8_t>* b, int64_t o) noexcept { return *reinterpret_cast<uint64_t*>(b->B + o); } };
+template<> struct fromBin_<int64_t> { int64_t operator()(Array_<uint8_t>* b, int64_t& o) noexcept { int64_t r = *reinterpret_cast<int64_t*>(b->B + o); o += sizeof(int64_t); return r; } };
+template<> struct fromBin_<double> { double operator()(Array_<uint8_t>* b, int64_t& o) noexcept { double r = *reinterpret_cast<double*>(b->B + o); o += sizeof(double); return r; } };
+template<> struct fromBin_<char16_t> { char16_t operator()(Array_<uint8_t>* b, int64_t& o) noexcept { char16_t r = *reinterpret_cast<char16_t*>(b->B + o); o += sizeof(char16_t); return r; } };
+template<> struct fromBin_<bool> { bool operator()(Array_<uint8_t>* b, int64_t& o) noexcept { bool r = *reinterpret_cast<bool*>(b->B + o); o += sizeof(bool); return r; } };
+template<> struct fromBin_<uint8_t> { uint8_t operator()(Array_<uint8_t>* b, int64_t& o) noexcept { uint8_t r = *reinterpret_cast<uint8_t*>(b->B + o); o += sizeof(uint8_t); return r; } };
+template<> struct fromBin_<uint16_t> { uint16_t operator()(Array_<uint8_t>* b, int64_t& o) noexcept { uint16_t r = *reinterpret_cast<uint16_t*>(b->B + o); o += sizeof(uint16_t); return r; } };
+template<> struct fromBin_<uint32_t> { uint32_t operator()(Array_<uint8_t>* b, int64_t& o) noexcept { uint32_t r = *reinterpret_cast<uint32_t*>(b->B + o); o += sizeof(uint32_t); return r; } };
+template<> struct fromBin_<uint64_t> { uint64_t operator()(Array_<uint8_t>* b, int64_t& o) noexcept { uint64_t r = *reinterpret_cast<uint64_t*>(b->B + o); o += sizeof(uint64_t); return r; } };
 
 template<typename T> Array_<T>* sub_(Array_<T>* a, int64_t start, int64_t len) noexcept {
 	if (len == -1)

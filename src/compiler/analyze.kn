@@ -825,7 +825,7 @@ func rebuildClass(ast: \ast@AstClass)
 							block
 								var value: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
 								do @initAstExpr(value, %exprValuePrim, ast.pos)
-								do value.value :: 8b64
+								do value.value :: 0b64
 								block
 									var prim: \ast@AstTypePrim :: #\ast@AstTypePrim
 									do @initAst(prim, %typePrim, ast.pos)

@@ -943,7 +943,10 @@ func test10()
 		do n2.add(3)
 		do n2.add(5)
 		do n.add(n2)
+		do n.head()
+		do n.get().head()
 		var m: list<list<int>> :: ##n
+		do cui@print(n.get().get().toStr() ~ ", " ~ m.get().get().toStr() ~ "\n")
 		do n.head()
 		do n.get().head()
 		do m.head()
@@ -1204,8 +1207,6 @@ func test12()
 end func
 
 func test13()
-	; TODO:
-	{
 	block
 		var n: int :: 123456789012
 		var m: int
@@ -1312,9 +1313,12 @@ func test13()
 		do n.add('a')
 		do n.add('b')
 		do n.add('c')
+		do n.head()
+		do n.next()
 		var bin: []bit8 :: n $> []bit8
 		do @dump(bin)
 		do m :: bin $< list<char>
+		do cui@print(m.get().toStr() ~ "\n")
 		do m.head()
 		while(!m.term())
 			do cui@print(m.get().toStr() ~ "\n")
@@ -1390,7 +1394,6 @@ func test13()
 		do m :: bin $< C
 		do cui@print(m.a.toStr() ~ ", " ~ m.b ~ "\n")
 	end block
-	}
 end func
 
 func test14()
