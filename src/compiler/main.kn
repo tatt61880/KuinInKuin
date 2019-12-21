@@ -1,6 +1,6 @@
 const major: int :: 2019
-const minor: int :: 10
-const micro: int :: 17
+const minor: int :: 12
+const micro: int :: 22
 
 func main()
 	if(!\option@acquireOption())
