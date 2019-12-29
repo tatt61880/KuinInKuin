@@ -257,6 +257,8 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return ~\{me_.id};\n")
+	case "now"
+		do codes.add("return std::time(nullptr);\n")
 	case "or"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

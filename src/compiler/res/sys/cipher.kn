@@ -1,0 +1,5 @@
++func encrypt(data: []bit8, key: []bit8): []bit8
+end func
+
++func decrypt(data: []bit8, key: []bit8): []bit8
+end func

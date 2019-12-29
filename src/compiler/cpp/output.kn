@@ -1356,7 +1356,7 @@ func write(resFiles: list<[]char>)
 			end while
 		end block
 		do writer.writeStr("init_();\n")
-		do writer.writeStr("_a();\n")
+		do writer.writeStr("k_a();\n")
 		do writer.writeStr("return 0;\n")
 		do writer.writeStr("}\n")
 	end func
@@ -1462,7 +1462,7 @@ func getId(): []char
 		break loop
 	end while
 	do @uniqueId :: newId
-	ret "_" ~ curId
+	ret "k_" ~ curId
 end func
 
 +func getInfo(ast: \ast@Ast): @CppInfo

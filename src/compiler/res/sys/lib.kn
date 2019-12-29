@@ -3,10 +3,10 @@
 +const intMin: int :: -9223372036854775807 - 1
 +const intMax: int :: 9223372036854775807
 
-+func [__raw, cmdLine] cmdLine(): [][]char
++func[__raw, cmdLine]cmdLine(): [][]char
 end func
 
-+func [_exit_code] exitCode(code: int)
++func[_exit_code]exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
 			throw excpt@dbgArgOutDomain
@@ -15,89 +15,89 @@ end func
 end func
 
 +class Rnd()
-	*func [d0000.knd, _rndDtor, __frc] _dtor()
+	*func[d0000.knd, _rndDtor, __frc]_dtor()
 	end func
-
-	+func [d0000.knd, _rndRnd] rnd(min: int, max: int): int
+	
+	+func[d0000.knd, _rndRnd]rnd(min: int, max: int): int
 	end func
-
-	+func [d0000.knd, _rndRndFloat] rndFloat(min: float, max: float): float
+	
+	+func[d0000.knd, _rndRndFloat]rndFloat(min: float, max: float): float
 	end func
-
-	+func [d0000.knd, _rndRndBit64] rndBit64(): bit64
+	
+	+func[d0000.knd, _rndRndBit64]rndBit64(): bit64
 	end func
-
+	
 	var rndState: int
 end class
 
-+func [d0000.knd, _makeRnd, __mki] makeRnd(me2: @Rnd, seed: int): @Rnd
++func[d0000.knd, _makeRnd, __mki]makeRnd(me2: @Rnd, seed: int): @Rnd
 end func
 
-+func [__raw, rnd] rnd(min: int, max: int): int
++func[__raw, rnd]rnd(min: int, max: int): int
 end func
 
-+func [__raw, rndFloat] rndFloat(min: float, max: float): float
++func[__raw, rndFloat]rndFloat(min: float, max: float): float
 end func
 
-+func [d0000.knd, _rndBit64] rndBit64(): bit64
++func[d0000.knd, _rndBit64]rndBit64(): bit64
 end func
 
-+func [d0000.knd, _rndUuid] rndUuid(): []char
++func[d0000.knd, _rndUuid]rndUuid(): []char
 end func
 
-+func [__raw, cos] cos(x: float): float
++func[__raw, cos]cos(x: float): float
 end func
 
-+func [__raw, sin] sin(x: float): float
++func[__raw, sin]sin(x: float): float
 end func
 
-+func [__raw, tan] tan(x: float): float
++func[__raw, tan]tan(x: float): float
 end func
 
-+func [__raw, acos] acos(x: float): float
++func[__raw, acos]acos(x: float): float
 end func
 
-+func [__raw, asin] asin(x: float): float
++func[__raw, asin]asin(x: float): float
 end func
 
-+func [__raw, atan] atan(x: float): float
++func[__raw, atan]atan(x: float): float
 end func
 
-+func [__raw, cosh] cosh(x: float): float
++func[__raw, cosh]cosh(x: float): float
 end func
 
-+func [__raw, sinh] sinh(x: float): float
++func[__raw, sinh]sinh(x: float): float
 end func
 
-+func [__raw, tanh] tanh(x: float): float
++func[__raw, tanh]tanh(x: float): float
 end func
 
-+func [__raw, acosh] acosh(x: float): float
++func[__raw, acosh]acosh(x: float): float
 end func
 
-+func [__raw, asinh] asinh(x: float): float
++func[__raw, asinh]asinh(x: float): float
 end func
 
-+func [__raw, atanh] atanh(x: float): float
++func[__raw, atanh]atanh(x: float): float
 end func
 
-+func [__raw, sqrt] sqrt(x: float): float
++func[__raw, sqrt]sqrt(x: float): float
 end func
 
-+func [__raw, exp] exp(x: float): float
++func[__raw, exp]exp(x: float): float
 end func
 
-+func [__raw, ln] ln(x: float): float
++func[__raw, ln]ln(x: float): float
 end func
 
 +func log(base: float, x: float): float
 	ret @ln(x) / @ln(base)
 end func
 
-+func [__raw, floor] floor(x: float): float
++func[__raw, floor]floor(x: float): float
 end func
 
-+func [__raw, ceil] ceil(x: float): float
++func[__raw, ceil]ceil(x: float): float
 end func
 
 +func round(x: float, precision: int): float
@@ -120,10 +120,10 @@ end func
 	do y :: y3 + centerY
 end func
 
-+func [__raw, invRot] invRot(x: float, y: float, centerX: float, centerY: float): float
++func[__raw, invRot]invRot(x: float, y: float, centerX: float, centerY: float): float
 end func
 
-+func [__raw, dist] dist(x: float, y: float, centerX: float, centerY: float): float
++func[__raw, dist]dist(x: float, y: float, centerX: float, centerY: float): float
 end func
 
 +func chase(x: &float, target: float, vel: float): bool
@@ -154,7 +154,7 @@ end func
 	if(max < n2)
 		do max :: n2
 	end if
-	ret (n1 - n2).abs() <= 2.220446049250313e-16 * max
+	ret(n1 - n2).abs() <= 2.220446049250313e-16 * max
 end func
 
 +func toRad(degree: float): float
@@ -173,10 +173,10 @@ end func
 		end if
 		do p :+ 1
 	end while
-	ret ^s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0))
+	ret ^ s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0))
 end func
 
-+func [d0000.knd, _cmpEx] cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
++func[d0000.knd, _cmpEx]cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
 end func
 
 +func min(n1: int, n2: int): int
@@ -195,117 +195,131 @@ end func
 	ret n1 >= n2 ?(n1, n2)
 end func
 
-+func [d0000.knd, _levenshtein] levenshtein(s1: []char, s2: []char): int
++func[d0000.knd, _levenshtein]levenshtein(s1: []char, s2: []char): int
 end func
 
-+func [d0000.knd, _lerp] lerp(first: float, last: float, rate: float): float
++func[d0000.knd, _lerp]lerp(first: float, last: float, rate: float): float
 end func
 
-+func [d0000.knd, _qerp] qerp(first: float, last: float, easeIn: bool, rate: float): float
++func[d0000.knd, _qerp]qerp(first: float, last: float, easeIn: bool, rate: float): float
 end func
 
-+func [d0000.knd, _cerp] cerp(first: float, last: float, rate: float): float
++func[d0000.knd, _cerp]cerp(first: float, last: float, rate: float): float
 end func
 
-+func [d0000.knd, _hermite] hermite(pos: []float, rate: float): float
++func[d0000.knd, _hermite]hermite(pos: []float, rate: float): float
 end func
 
 +class BmSearch()
-	*func [d0000.knd, _bmSearchDtor, __frc] _dtor()
+	*func[d0000.knd, _bmSearchDtor, __frc]_dtor()
 	end func
-
-	+func [d0000.knd, _bmSearchFind] find(text: []char, start: int): int
+	
+	+func[d0000.knd, _bmSearchFind]find(text: []char, start: int): int
 	end func
-
+	
 	var pattern: int
 	var dists: int
 	var len: int
 end class
 
-+func [d0000.knd, _makeBmSearch, __mki] makeBmSearch(me2: @BmSearch, pattern: []char): @BmSearch
++func[d0000.knd, _makeBmSearch, __mki]makeBmSearch(me2: @BmSearch, pattern: []char): @BmSearch
 end func
 
-+func [d0000.knd, _hash] hash(data: []bit8): []bit8
++func[__raw, sysTime]sysTime(): int
 end func
 
-+func [d0000.knd, _encrypt] encrypt(data: []bit8, key: []bit8): []bit8
++func[__raw, now]now(): int
 end func
 
-+func [d0000.knd, _decrypt] decrypt(data: []bit8, key: []bit8): []bit8
++func intToDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
+	var t: int :: time + 719468 * 86400
+	var a: int :: t / 86400
+	var b: int :: (a >= 0 ?(a, a - 146096)) / 146097
+	var c: int :: a - b * 146097
+	var d: int :: (c - c / 1460 + c / 36524 - c / 146096) / 365
+	var e: int :: c - (365 * d + d / 4 - d / 100)
+	var f: int :: (5 * e + 2) / 153
+	do day :: e - (153 * f + 2) / 5 + 1
+	do month :: f + (f < 10 ?(3, -9))
+	do year :: d + b * 400 + (month <= 2 ?(1, 0))
+	var s: int :: t % 86400
+	do hour :: s / 3600
+	do s :- hour * 3600
+	do minute :: s / 60
+	do second :: s - minute * 60
+	var g: int :: a - 719468
+	ret g >= -4 ?((g + 4) % 7, (g + 5) % 7 + 6)
 end func
 
-+func [__raw, sysTime] sysTime(): int
++func dateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
+	assert 1 <= month & month <= 12 & 1 <= day & day <= 31 & 0 <= hour & hour <= 23 & 0 <= minute & minute <= 59 & 0 <= second & second <= 59
+	var a: int :: year - (month <= 2 ?(1, 0))
+	var b: int :: (a >= 0 ?(a, a - 399)) / 400
+	var c: int :: a - b * 400
+	var d: int :: (153 * (month + (month > 2 ?(-3, 9))) + 2) / 5 + day - 1
+	ret(b * 146097 + c * 365 + c / 4 - c / 100 + d - 719468) * 86400 + hour * 3600 + minute * 60 + second
 end func
 
-+func [d0000.knd, _now] now(): int
++func[d0000.knd, _intToLocalDate]intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
 end func
 
-+func [d0000.knd, _intToDate] intToDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
++func[d0000.knd, _localDateToInt]localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
 end func
 
-+func [d0000.knd, _dateToInt] dateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
++func[d0000.knd]sleep(ms: int)
 end func
 
-+func [d0000.knd, _intToLocalDate] intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
++func[d0000.knd, _countUp]countUp(min: int, max: int): []int
 end func
 
-+func [d0000.knd, _localDateToInt] localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
-end func
-
-+func [d0000.knd] sleep(ms: int)
-end func
-
-+func [d0000.knd, _countUp] countUp(min: int, max: int): []int
-end func
-
-+func [__raw, addr] addr(class_: kuin@Class): bit64
++func[__raw, addr]addr(class_: kuin@Class): bit64
 end func
 
 +class Int()
 	+*func cmp(t: @Int): int
-		ret (me.value - t.value).sign()
+		ret(me.value - t.value).sign()
 	end func
-
+	
 	+*func toStr(): []char
 		ret me.value.toStr()
 	end func
-
+	
 	+var value: int
 end class
 
 +class Float()
 	+*func cmp(t: @Float): int
-		ret (me.value - t.value).sign() $ int
+		ret(me.value - t.value).sign() $ int
 	end func
-
+	
 	+*func toStr(): []char
 		ret me.value.toStr()
 	end func
-
+	
 	+var value: float
 end class
 
 +class Bool()
 	+*func cmp(t: @Bool): int
-		ret (me.value $ int - t.value $ int).sign()
+		ret(me.value $ int - t.value $ int).sign()
 	end func
-
+	
 	+*func toStr(): []char
 		ret me.value.toStr()
 	end func
-
+	
 	+var value: bool
 end class
 
 +class Char()
 	+*func cmp(t: @Char): int
-		ret (me.value $ int - t.value $ int).sign()
+		ret(me.value $ int - t.value $ int).sign()
 	end func
-
+	
 	+*func toStr(): []char
 		ret me.value.toStr()
 	end func
-
+	
 	+var value: char
 end class
 
@@ -313,10 +327,10 @@ end class
 	+*func cmp(t: @Str): int
 		ret @cmp(me.value, t.value)
 	end func
-
+	
 	+*func toStr(): []char
 		ret me.value
 	end func
-
+	
 	+var value: []char
 end class

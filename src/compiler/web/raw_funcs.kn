@@ -141,8 +141,8 @@
 		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var item: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do codes.add("let a_=0,b_=\{me_.id}.length-1,c_,m_,f_;\n")
-		do codes.add("switch(\{meType.id}[0]){\n")
+		do codes.add("let a_=0,b_=\{meType.id}[1]===\{%char_ $ \convert@RuntimeTypeId $ int}?\{me_.id}.S.length-1:\{me_.id}.length-1,c_,m_,f_;\n")
+		do codes.add("switch(\{meType.id}[1]){\n")
 		do codes.add("case \{%int_ $ \convert@RuntimeTypeId $ int}:\n")
 		do codes.add("case \{%float_ $ \convert@RuntimeTypeId $ int}:\n")
 		do codes.add("case \{%char_ $ \convert@RuntimeTypeId $ int}:\n")
@@ -156,13 +156,16 @@
 		do codes.add("case \{%array $ \convert@RuntimeTypeId $ int}:\n") {TODO:}
 		do codes.add("f_=function(a,b){return a.S>b.S?1:a.S<b.S?-1:0};\n")
 		do codes.add("break;\n")
+		do codes.add("case \{%class_ $ \convert@RuntimeTypeId $ int}:\n")
+		do codes.add("f_=a_<=b_?CT_[\{me_.id}[0].Y_+\{%cmp $ \convert@MethodOffset $ int}]:null;\n")
+		do codes.add("break;\n")
 		do codes.add("default:\n")
 		; TODO:
 		do codes.add("break;\n")
 		do codes.add("}\n")
 		do codes.add("while (a_<=b_){\n")
-		do codes.add("c_=~~((a_+b_)/2);\n")
-		do codes.add("m_=f_(\{item.id},\{me_.id}[c_]);\n")
+		do codes.add("c_=Math.floor((a_+b_)/2);\n")
+		do codes.add("m_=f_(\{item.id},\{meType.id}[1]===\{%char_ $ \convert@RuntimeTypeId $ int}?\{me_.id}.S.charCodeAt(c_):\{me_.id}[c_]);\n")
 		do codes.add("if(m_<0)b_=c_-1;\n")
 		do codes.add("else if(m_>0)a_=c_+1;\n")
 		do codes.add("else return c_;\n")
@@ -311,6 +314,8 @@
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return ~\{me_.id};\n")
+	case "now"
+		do codes.add("return Math.floor(new Date().getTime()/1000);\n")
 	case "or"
 		do args.head()
 		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
@@ -344,7 +349,7 @@
 		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do args.next()
 		var max: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do codes.add("return ~~(Math.random()*(\{max.id}-\{min.id}+1))+\{min.id};\n")
+		do codes.add("return Math.floor(Math.random()*(\{max.id}-\{min.id}+1))+\{min.id};\n")
 	case "rndFloat"
 		do args.head()
 		var min: \web\output@WebInfo :: \web\output@getInfo(args.get())

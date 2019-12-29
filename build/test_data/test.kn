@@ -1,5 +1,5 @@
 func main()
-	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14]
+	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14, @test15, @test16]
 	for i(0, ^funcs - 1)
 		do cui@print("-- Test \{i + 1} --\n")
 		do funcs[i]()
@@ -1489,5 +1489,65 @@ func test14()
 	block
 		do cui@print('\u006E'.toStr() ~ "\n")
 		do cui@print("00\u0054\u0065\u0073\u007400" ~ "\n")
+	end block
+end func
+
+func test15()
+	do cui@print(lib@cosh(1.5).toStr() ~ "\n")
+	do cui@print(lib@sinh(1.5).toStr() ~ "\n")
+	do cui@print(lib@tanh(1.5).toStr() ~ "\n")
+	do cui@print(lib@same(lib@acos(lib@cos(0.5)), 0.5).toStr() ~ "\n")
+	do cui@print(lib@same(lib@asin(lib@sin(0.5)), 0.5).toStr() ~ "\n")
+	do cui@print(lib@same(lib@atan(lib@tan(0.5)), 0.5).toStr() ~ "\n")
+	do cui@print(lib@same(lib@acosh(lib@cosh(0.5)), 0.5).toStr() ~ "\n")
+	do cui@print(lib@same(lib@asinh(lib@sinh(0.5)), 0.5).toStr() ~ "\n")
+	do cui@print(lib@same(lib@atanh(lib@tanh(0.5)), 0.5).toStr() ~ "\n")
+end func
+
+var x: int :: 5678
+
+func test16()
+	block
+		var time: int :: 1485120859
+
+		var year: int
+		var month: int
+		var day: int
+		var hour: int
+		var minute: int
+		var second: int
+		var dayOfWeek: int :: lib@intToDate(time, &year, &month, &day, &hour, &minute, &second)
+		do cui@print(year.toStr() ~ ", " ~ month.toStr() ~ ", " ~ day.toStr() ~ ", " ~ hour.toStr() ~ ", " ~ minute.toStr() ~ ", " ~ second.toStr() ~ ", " ~ dayOfWeek.toStr() ~ "\n")
+		var time2: int :: lib@dateToInt(year, month, day, hour, minute, second)
+		do cui@print(time2.toStr() ~ ", " ~ (time = time2).toStr() ~ "\n")
+	end block
+
+	block
+		var i: int :: 1234
+		var f: float :: 3.14159
+		var s: []char :: "abc"
+		do cui@print("i=\{i}, f=\{f}, s=\{s}, @x=\{@x}." ~ "\n")
+	end block
+
+	block
+		do cui@print(["ab", "cd", "ef"].join("xx") ~ "\n")
+	end block
+
+	block
+		do cui@print(lib@intMax.toStr() ~ ", " ~ lib@intMin.toStr() ~ "\n")
+	end block
+
+	{
+	block
+		do cui@print((0x12b8).endian().toStr() ~ "\n")
+		do cui@print((0x1234b16).endian().toStr() ~ "\n")
+		do cui@print((0x12345678b32).endian().toStr() ~ "\n")
+		do cui@print((0x12345678ABCDEF01b64).endian().toStr() ~ "\n")
+	end block
+	}
+
+	block
+		do cui@print("abcdefg".findBin('f').toStr() ~ "\n")
+		do cui@print("abcdefg".findBin('h').toStr() ~ "\n")
 	end block
 end func
