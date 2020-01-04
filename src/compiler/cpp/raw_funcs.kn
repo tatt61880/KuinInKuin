@@ -105,6 +105,10 @@
 		do args.next()
 		var centerY: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return std::hypot(\{x.id} - \{centerX.id}, \{y.id} - \{centerY.id});\n")
+	case "endian"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return endian_(\{me_.id});\n")
 	case "exp"
 		do args.head()
 		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

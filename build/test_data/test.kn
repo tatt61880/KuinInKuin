@@ -1537,14 +1537,12 @@ func test16()
 		do cui@print(lib@intMax.toStr() ~ ", " ~ lib@intMin.toStr() ~ "\n")
 	end block
 
-	{
 	block
 		do cui@print((0x12b8).endian().toStr() ~ "\n")
 		do cui@print((0x1234b16).endian().toStr() ~ "\n")
 		do cui@print((0x12345678b32).endian().toStr() ~ "\n")
 		do cui@print((0x12345678ABCDEF01b64).endian().toStr() ~ "\n")
 	end block
-	}
 
 	block
 		do cui@print("abcdefg".findBin('f').toStr() ~ "\n")

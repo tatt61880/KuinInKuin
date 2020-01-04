@@ -932,6 +932,19 @@ static uint8_t sar_(uint8_t me_, int64_t n) { return static_cast<uint8_t>(static
 static uint16_t sar_(uint16_t me_, int64_t n) { return static_cast<uint16_t>(static_cast<int16_t>(me_) >> n); }
 static uint32_t sar_(uint32_t me_, int64_t n) { return static_cast<uint32_t>(static_cast<int32_t>(me_) >> n); }
 static uint64_t sar_(uint64_t me_, int64_t n) { return static_cast<uint64_t>(static_cast<int64_t>(me_) >> n); }
+static uint8_t endian_(uint8_t me_) { return me_; }
+static uint16_t endian_(uint16_t me_) { return ((me_ & 0x00ff) << 8) | ((me_ & 0xff00) >> 8); }
+static uint32_t endian_(uint32_t me_)
+{
+	me_ = ((me_ & 0x00ff00ff) << 8) | ((me_ & 0xff00ff00) >> 8);
+	return ((me_ & 0x0000ffff) << 16) | ((me_ & 0xffff0000) >> 16);
+}
+static uint64_t endian_(uint64_t me_)
+{
+	me_ = ((me_ & 0x00ff00ff00ff00ff) << 8) | ((me_ & 0xff00ff00ff00ff00) >> 8);
+	me_ = ((me_ & 0x0000ffff0000ffff) << 16) | ((me_ & 0xffff0000ffff0000) >> 16);
+	return ((me_ & 0x00000000ffffffff) << 32) | ((me_ & 0xffffffff00000000) >> 32);
+}
 
 struct reader_ {
 	reader_() noexcept : F(new std::ifstream()) {}

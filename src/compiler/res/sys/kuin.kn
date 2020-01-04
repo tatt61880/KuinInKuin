@@ -117,7 +117,7 @@ end func
 func [__any, __rme, __raw, sar] _sar(me_: int, type: []int, n: int): int
 end func
 
-func [__any, __rme] _endian(me_: int, type: []int): int
+func [__any, __rme, __raw, endian] _endian(me_: int, type: []int): int
 end func
 
 func [__any, __rme, __raw, sub] _sub(me_: int, type: []int, start: int, len: int): int

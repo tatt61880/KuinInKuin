@@ -106,6 +106,18 @@
 		var centerY: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("let x_=\{x.id}-\{centerX.id},y_=\{y.id}-\{centerY.id};\n")
 		do codes.add("return Math.sqrt(x_*x_+y_*y_);\n")
+	case "endian"
+		do args.head()
+		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do args.next()
+		var meType: \web\output@WebInfo :: \web\output@getInfo(args.get())
+		do codes.add("switch(\{meType.id}[0]){\n")
+		do codes.add("case \{%bit8_ $ \convert@RuntimeTypeId $ int}:return \{me_.id};\n")
+		do codes.add("case \{%bit16_ $ \convert@RuntimeTypeId $ int}:return((\{me_.id}&0x00ff)<<8)|((\{me_.id}&0xff00)>>>8);\n")
+		do codes.add("default:\n")
+		do codes.add("\{me_.id}=((\{me_.id}&0x00ff00ff)<<8)|((\{me_.id}&0xff00ff00)>>8);\n")
+		do codes.add("return ((\{me_.id}&0x0000ffff)<<16)|((\{me_.id}&0xffff0000)>>16);\n")
+		do codes.add("}\n")
 	case "exp"
 		do args.head()
 		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
