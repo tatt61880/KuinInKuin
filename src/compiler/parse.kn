@@ -313,8 +313,6 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 		end if
 	end block
 	
-	; TODO:
-	{
 	if(overritten)
 		var statVar: \ast@AstStatVar :: #\ast@AstStatVar
 		do @initAst(statVar, %statVar, ast.pos, null, false)
@@ -330,22 +328,9 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 				do arg.expr :: null
 				do @addScopeName(arg, false)
 				block
-					var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
-					do @initAst(type, %typeFunc, ast.pos, null, false)
-					do type.funcOption :: ast.funcOption
-					do type.funcAttr :: ast.funcAttr
-					do type.args :: #list<\ast@AstTypeFuncArg>
-					do type.ret_ :: ast.ret_
-					var args: list<\ast@AstArg> :: ast.args
-					do args.head()
-					while(!args.term())
-						var data: \ast@AstArg :: args.get()
-						var arg2: \ast@AstTypeFuncArg :: #\ast@AstTypeFuncArg
-						do arg2.arg :: data.type
-						do arg2.refVar :: data.refVar
-						do type.args.add(arg2)
-						do args.next()
-					end while
+					var type: \ast@AstTypePrim :: #\ast@AstTypePrim
+					do @initAst(type, %typePrim, ast.pos, null, false)
+					do type.kind :: %int_ {TODO: When the type is null, an error occurs, so temporary 'int' is set.}
 					do arg.type :: type
 				end block
 				do var_.arg :: arg
@@ -354,7 +339,6 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 		end block
 		do ast.stats.add(statVar)
 	end if
-	}
 	
 	while loop(true)
 		var stat: \ast@AstStat :: @parseStat(ast)

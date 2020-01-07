@@ -1137,26 +1137,50 @@ func rebuildStat(ast: \ast@AstStat, retType: \ast@AstType, parentFunc: \ast@AstF
 		var arg: \ast@AstArg :: ast2.def.arg
 		if(arg.name <>& null & arg.name = "super")
 			assert parentFunc <>& null & parentFunc.name <>& null
-			assert arg.type.typeId = %typeFunc
-			var args: list<\ast@AstTypeFuncArg> :: (arg.type $ \ast@AstTypeFunc).args
-			do args.head()
-			var refClass: \ast@AstClass :: args.get().arg.refItem $ \ast@AstClass
-			assert refClass.typeId = %class_
-			var items: list<\ast@AstClassItem> :: refClass.items
-			do items.head()
-			while loop(!items.term())
-				var item: \ast@AstClassItem :: items.get()
-				if(item.def.name <>& null & item.def.name = parentFunc.name)
-					assert item.override
-					var astRef: \ast@AstExpr :: #\ast@AstExpr
-					do @initAstExpr(astRef, %exprRef, ast.pos)
-					do astRef.refItem :: item.parentItem.def
-					do arg.expr :: astRef
-					break loop
-				end if
-				do items.next()
-			end while
-			assert !items.term()
+			assert \ast@isInt(arg.type)
+			block
+				var idx: int :: parentFunc.args.idx()
+				do parentFunc.args.head()
+				var refClass: \ast@AstClass :: parentFunc.args.get().type.refItem $ \ast@AstClass
+				do parentFunc.args.moveOffset(idx)
+				assert refClass.typeId = %class_
+				var superFunc: \ast@AstFunc :: null
+				var items: list<\ast@AstClassItem> :: refClass.items
+				do items.head()
+				while loop(!items.term())
+					var item: \ast@AstClassItem :: items.get()
+					if(item.def.name <>& null & item.def.name = parentFunc.name)
+						assert item.override
+						do superFunc :: item.parentItem.def $ \ast@AstFunc
+						break loop
+					end if
+					do items.next()
+				end while
+				assert superFunc <>& null
+				
+				var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
+				do @initAst(type, %typeFunc, ast.pos)
+				do type.funcOption :: superFunc.funcOption
+				do type.funcAttr :: superFunc.funcAttr
+				do type.args :: #list<\ast@AstTypeFuncArg>
+				do type.ret_ :: superFunc.ret_
+				var args2: list<\ast@AstArg> :: superFunc.args
+				do args2.head()
+				while(!args2.term())
+					var data: \ast@AstArg :: args2.get()
+					var arg2: \ast@AstTypeFuncArg :: #\ast@AstTypeFuncArg
+					do arg2.arg :: data.type
+					do arg2.refVar :: data.refVar
+					do type.args.add(arg2)
+					do args2.next()
+				end while
+				do arg.type :: type
+				
+				var astRef: \ast@AstExpr :: #\ast@AstExpr
+				do @initAstExpr(astRef, %exprRef, ast.pos)
+				do astRef.refItem :: superFunc
+				do arg.expr :: astRef
+			end block
 		end if
 		if(arg.expr =& null)
 			do arg.expr :: @makeExprDefaultValue(arg.type, arg.pos) $ \ast@AstExpr

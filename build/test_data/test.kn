@@ -1,5 +1,5 @@
 func main()
-	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14, @test15, @test16]
+	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14, @test15, @test16, @test17, @test18]
 	for i(0, ^funcs - 1)
 		do cui@print("-- Test \{i + 1} --\n")
 		do funcs[i]()
@@ -1547,5 +1547,185 @@ func test16()
 	block
 		do cui@print("abcdefg".findBin('f').toStr() ~ "\n")
 		do cui@print("abcdefg".findBin('h').toStr() ~ "\n")
+	end block
+end func
+
+func test17()
+	block
+		var n: float :: 2.0
+		do cui@print((-2 ^ 4).toStr() ~ "\n")
+		do cui@print((-n ^ 4.0).toStr() ~ "\n")
+		do cui@print(n $ int.toStr() ~ "\n")
+	end block
+
+	block
+		var n: int :: 5
+		do cui@print("\{"\{n+2}" ~ "a"}" ~ "\n")
+	end block
+
+	block
+		class C()
+			+var a: int
+			+var b: int
+		end class
+
+		var l: list<C> :: #list<C>
+		do l.add(#C)
+		var c: C :: #C
+		do c.a :: 3
+		do c.b :: 5
+		do l.add(c)
+		do l.head()
+		do l.next()
+		var l2: list<C> :: ##l
+		do cui@print(l2.get().b.toStr() ~ "\n")
+		var l3: list<C> :: l $> []bit8 $< list<C>
+		do cui@print(l3.get().b.toStr() ~ "\n")
+	end block
+
+	block
+		class C1()
+		end class
+		class C2(C1)
+		end class
+		var c1: C1 :: (#C2) $ C1
+		do cui@print((c1 =$ C1).toStr() ~ "\n")
+		do cui@print((c1 =$ C2).toStr() ~ "\n")
+	end block
+
+	block
+		var a: []char :: #[5]char
+		var x: char :: 'x'
+		do a.fill(x)
+		do cui@print(a ~ "\n")
+		do a.fill('y')
+		do cui@print(a ~ "\n")
+	end block
+
+	block
+		var a: [][]char :: #[5][]char
+		var x: []char :: "x"
+		do a.fill(x)
+		do cui@print(a[0] ~ "\n")
+		do a.fill("y")
+		do cui@print(a[0] ~ "\n")
+	end block
+
+	block
+		do cui@print(file@fileName("abc/def.txt") ~ "\n")
+		do cui@print(file@fileName("abc/") ~ "\n")
+		do cui@print(file@fileName("abcdef.txt") ~ "\n")
+		do cui@print(file@fileName("ab/cd/ef.txt") ~ "\n")
+		do cui@print(file@fileName("ab/cd/") ~ "\n")
+		do cui@print(file@delExt("abc/def.txt") ~ "\n")
+		do cui@print(file@delExt("abc/") ~ "\n")
+		do cui@print(file@delExt("abcdef.txt") ~ "\n")
+		do cui@print(file@delExt("ab/cd/ef.txt") ~ "\n")
+		do cui@print(file@delExt("ab/cd/") ~ "\n")
+		do cui@print(file@delExt("a.txt") ~ "\n")
+		do cui@print(file@delExt("a.") ~ "\n")
+	end block
+end func
+
+class C()
+	+var value: int
+end class
+
+func test18()
+	block
+		class ObjA()
+			+func f(str: []char): int
+				do cui@print("A" ~ str ~ "\n")
+				ret 1
+			end func
+		end class
+
+		class ObjB(ObjA)
+			+*func f(str: []char): int
+				do super(me, str)
+				do cui@print("B" ~ str ~ "\n")
+				ret 2
+			end func
+		end class
+
+		class ObjC(ObjB)
+			+*func f(str: []char): int
+				do super(me, str)
+				do cui@print("C" ~ str ~ "\n")
+				ret 3
+			end func
+		end class
+
+		do cui@print((#ObjC).f("X").toStr() ~ "\n")
+	end block
+
+	block
+		enum Color
+			red :: 1
+			green :: 2
+			blue :: 4
+		end enum
+
+		var c1: Color :: %red
+		do c1 :: c1.or(%green)
+		var c2: Color :: %green
+		do c2 :: c2.or(%blue)
+		do cui@print((c1.and(c2) = %green).toStr() ~ "\n")
+	end block
+
+	block
+		var d: dict<[]char, []char> :: #dict<[]char, []char>
+		do d.add("a", "A")
+		do d.add("a", "A")
+		do d.add("a", "A")
+		do d.add("a", null)
+		do d.add("a", null)
+		do d.add("a", null)
+		do d.add("c", "C")
+		do d.add("b", "B")
+		var c: @C :: #@C
+		do c.value :: 100
+		do cui@print(d.forEach(callback, c).toStr() ~ "\n")
+
+		func callback(key: []char, value: []char, data: kuin@Class): bool
+			do cui@print(key ~ ", " ~ (value =& null ?("null", value)) ~ "\n")
+			do cui@print((data $ @C).value.toStr() ~ "\n")
+			ret !(value <>& null & value = "B")
+		end func
+	end block
+
+	block
+		var a: list<[]char> :: #list<[]char>
+		do a.add("abc")
+		do a.add(null)
+		do a.add("def")
+		do a.head()
+		while(!a.term())
+			var b: []char :: a.get()
+			do cui@print((b =& null ?("null", b)) ~ "\n")
+			do a.del()
+		end while
+	end block
+
+	block
+		var a: stack<[]char> :: #stack<[]char>
+		do a.add("abc")
+		do a.add(null)
+		do a.add("def")
+		while(^a <> 0)
+			var b: []char :: a.get()
+			do cui@print((b =& null ?("null", b)) ~ "\n")
+		end while
+	end block
+
+	block
+		var a: queue<[]char> :: #queue<[]char>
+		do a.add("abc")
+		do a.add(null)
+		do a.add("def")
+		while(^a <> 0)
+			var b: []char :: a.get()
+			do cui@print((b =& null ?("null", b)) ~ "\n")
+		end while
 	end block
 end func
