@@ -25,5 +25,5 @@ end func
 +func [d0002.knd, _inputStr] inputStr(): []char
 end func
 
-+func [d0002.knd, _input] input(): []char
++func [__raw, cui_input] input(): []char
 end func

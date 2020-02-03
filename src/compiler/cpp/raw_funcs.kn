@@ -455,6 +455,17 @@
 		do codes.add("std::u16string s_ = \{str.id}->B;\n")
 		do codes.add("const std::string& t_ = utf16ToUtf8_(s_);\n")
 		do codes.add("std::cout << t_ << std::flush;\n")
+	case "cui_input"
+		do codes.add("std::string s8;\n")
+		do codes.add("std::getline(std::cin,s8);\n")
+		do codes.add("std::u16string s16 = utf8ToUtf16_(s8);\n")
+		do codes.add("Array_<char16_t>* r = new Array_<char16_t>();\n")
+		do codes.add("r->L = static_cast<int64_t>(s16.size());\n")
+		do codes.add("r->B = new char16_t[s16.size() + 1];\n")
+		do codes.add("int64_t p = 0;\n")
+		do codes.add("for (char c : s16) r->B[p++] = c;\n")
+		do codes.add("r->B[s16.size()] = 0;\n")
+		do codes.add("return r;\n")
 	case "file_copyFile"
 		do args.head()
 		var dst: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
