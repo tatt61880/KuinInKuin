@@ -13,7 +13,7 @@ end func
 +func [d0002.knd, _inputLetter] inputLetter(): char
 end func
 
-+func [d0002.knd, _inputInt] inputInt(): int
++func [__raw, cui_inputInt] inputInt(): int
 end func
 
 +func [d0002.knd, _inputFloat] inputFloat(): float

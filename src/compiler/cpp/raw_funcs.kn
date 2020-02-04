@@ -466,6 +466,10 @@
 		do codes.add("for (char c : s16) r->B[p++] = c;\n")
 		do codes.add("r->B[s16.size()] = 0;\n")
 		do codes.add("return r;\n")
+	case "cui_inputInt"
+		do codes.add("int64_t n;\n")
+		do codes.add("if(!(std::cin>>n))throw \{excpt@invalidDataFmt $ bit32}U;\n")
+		do codes.add("return n;\n")
 	case "file_copyFile"
 		do args.head()
 		var dst: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
