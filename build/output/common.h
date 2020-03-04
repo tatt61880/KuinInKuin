@@ -1057,6 +1057,12 @@ static void init_() {
 	rY_ = 362436069;
 	rZ_ = 521288629 * t;
 	rW_ = 88675123 * (rZ_ >> 1);
+
+	setlocale(LC_ALL, "");
 }
 
-Array_<char16_t> delimiter_(3,',',' ','\n');
+static wchar_t ReadIo_()
+{
+	wchar_t c = fgetwc(stdin);
+	return c;
+}
