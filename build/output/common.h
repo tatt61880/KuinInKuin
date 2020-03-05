@@ -560,14 +560,13 @@ static Array_<char16_t>* toStr_(uint64_t v) noexcept {
 }
 static Array_<char16_t>* toStr_(Array_<char16_t>* v) noexcept {
 	std::u16string s = v->B;
-	const std::string& t = utf16ToUtf8_(s);
 	Array_<char16_t>* r = new Array_<char16_t>();
-	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->L = static_cast<int64_t>(s.size());
+	r->B = new char16_t[s.size() + 1];
 	int64_t p = 0;
-	for (char c : t)
+	for (char16_t c : s)
 		r->B[p++] = c;
-	r->B[t.size()] = 0;
+	r->B[s.size()] = 0;
 	return r;
 }
 
