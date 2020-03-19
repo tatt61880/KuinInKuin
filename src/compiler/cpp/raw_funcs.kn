@@ -451,6 +451,8 @@
 		do args.next()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id} ^ \{n.id};\n")
+	case "cui_inputLetter"
+		do codes.add("return ReadIo_();\n")
 	case "cui_print"
 		do args.head()
 		var str: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -461,11 +463,6 @@
 		do codes.add("std::u16string s_ = \{str.id}->B;\n")
 		do codes.add("const std::string& t_ = utf16ToUtf8_(s_);\n")
 		do codes.add("std::cout << t_ << std::flush;\n")
-	case "cui_inputLetter"
-		do codes.add("wchar_t c_ = ReadIo_();\n")
-		;do codes.add("if (c_ == WEOF)\n")
-		;do codes.add("throw \{excpt@invalidDataFmt $ bit32}U;\n")
-		do codes.add("return (char16_t)c_;\n")
 	case "math_gamma"
 		do args.head()
 		var n_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -684,10 +681,7 @@
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
 		do codes.add("reader_* r_ = reinterpret_cast<reader_*>(\{me_.id}->\{handle.id});\n")
-		do codes.add("char16_t c_ = readUtf8_(r_->F);\n")
-		;do codes.add("if (c_ == 0xffff)\n")
-		;do codes.add("throw \{excpt@invalidDataFmt $ bit32}U;\n")
-		do codes.add("return c_;\n")
+		do codes.add("return readUtf8_(r_->F);\n")
 	case "file_readerSetPos"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
