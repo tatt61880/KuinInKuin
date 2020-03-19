@@ -118,6 +118,8 @@
 		do codes.add("\{me_.id}=((\{me_.id}&0x00ff00ff)<<8)|((\{me_.id}&0xff00ff00)>>8);\n")
 		do codes.add("return ((\{me_.id}&0x0000ffff)<<16)|((\{me_.id}&0xffff0000)>>16);\n")
 		do codes.add("}\n")
+	case "exitCode"
+		; Do nothing.
 	case "exp"
 		do args.head()
 		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
