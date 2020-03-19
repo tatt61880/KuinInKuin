@@ -511,15 +511,10 @@ static Array_<char16_t>* toStr_(uint64_t v) noexcept {
 	return r;
 }
 static Array_<char16_t>* toStr_(Array_<char16_t>* v) noexcept {
-	std::u16string s = v->B;
-	const std::string& t = utf16ToUtf8_(s);
 	Array_<char16_t>* r = new Array_<char16_t>();
-	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
-	int64_t p = 0;
-	for (char c : t)
-		r->B[p++] = c;
-	r->B[t.size()] = 0;
+	r->L = v->L;
+	r->B = new char16_t[static_cast<size_t>(v->L) + 1];
+	memcpy(r->B, v->B, sizeof(char16_t) * (static_cast<size_t>(v->L) + 1));
 	return r;
 }
 
@@ -1045,4 +1040,7 @@ static void init_() {
 	rY_ = 362436069;
 	rZ_ = 521288629 * t;
 	rW_ = 88675123 * (rZ_ >> 1);
+	setlocale(LC_ALL, "");
 }
+
+static char16_t ReadIo_() { return static_cast<char16_t>(fgetwc(stdin)); }

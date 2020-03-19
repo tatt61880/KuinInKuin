@@ -539,6 +539,8 @@
 		do args.next()
 		var n: \web\output@WebInfo :: \web\output@getInfo(args.get())
 		do codes.add("return \{me_.id}^\{n.id};\n")
+	case "cui_inputLetter"
+		; TODO:
 	case "cui_print"
 		do args.head()
 		var str: \web\output@WebInfo :: \web\output@getInfo(args.get())

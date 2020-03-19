@@ -449,6 +449,8 @@
 		do args.next()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id} ^ \{n.id};\n")
+	case "cui_inputLetter"
+		do codes.add("return ReadIo_();\n")
 	case "cui_print"
 		do args.head()
 		var str: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
