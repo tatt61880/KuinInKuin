@@ -44,8 +44,16 @@ template<typename T> struct Array_ : public Ref_ {
 		B = new T[static_cast<size_t>(n + bufLen_<T>())];
 		va_list l;
 		va_start(l, n);
-		for (int64_t i = 0; i < n; i++)
-			B[i] = va_arg(l, T);
+		if (sizeof(T) < sizeof(int))
+		{
+			for (int64_t i = 0; i < n; i++)
+				B[i] = static_cast<T>(va_arg(l, int));
+		}
+		else
+		{
+			for (int64_t i = 0; i < n; i++)
+				B[i] = va_arg(l, T);
+		}
 		va_end(l);
 		if (bufLen_<T>() > 0)
 			B[n] = 0;
@@ -63,18 +71,6 @@ template<typename T> struct Array_ : public Ref_ {
 	int64_t L;
 	T* B;
 };
-template<>
-Array_<char16_t>::Array_(int64_t n, ...) noexcept : Ref_() {
-	L = n;
-	B = new char16_t[static_cast<size_t>(n + bufLen_<char16_t>())];
-	va_list l;
-	va_start(l, n);
-	for (int64_t i = 0; i < n; i++)
-		B[i] = va_arg(l, int);
-	va_end(l);
-	if (bufLen_<char16_t>() > 0)
-		B[n] = 0;
-}
 template<typename T> struct List_ : public Ref_ {
 	List_() noexcept : Ref_(), B(), I(B.end()) {}
 	int64_t Len() noexcept { return static_cast<int64_t>(B.size()); }
