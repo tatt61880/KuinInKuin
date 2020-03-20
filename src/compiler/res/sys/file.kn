@@ -55,7 +55,7 @@ end enum
 	
 	+func readInt(): int
 		var s: []char :: me.readStr()
-		var b: bool :: false
+		var b: bool
 		var r: int :: s.toInt(&b)
 		if(!b)
 			throw excpt@invalidDataFmt
@@ -65,7 +65,7 @@ end enum
 	
 	+func readFloat(): float
 		var s: []char :: me.readStr()
-		var b: bool :: false
+		var b: bool
 		var r: float :: s.toFloat(&b)
 		if(!b)
 			throw excpt@invalidDataFmt

@@ -49,7 +49,7 @@ end func
 
 +func inputInt(): int
 	var s: []char :: @inputStr()
-	var b: bool :: false
+	var b: bool
 	var r: int :: s.toInt(&b)
 	if(!b)
 		throw excpt@invalidDataFmt
@@ -59,7 +59,7 @@ end func
 
 +func inputFloat(): float
 	var s: []char :: @inputStr()
-	var b: bool :: false
+	var b: bool
 	var r: float :: s.toFloat(&b)
 	if(!b)
 		throw excpt@invalidDataFmt
