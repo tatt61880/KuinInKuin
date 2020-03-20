@@ -713,6 +713,18 @@
 		do codes.add("return \{me_.id};\n")
 	case "cui_inputLetter"
 		; TODO:
+	case "max"
+		; TODO:
+	case "min"
+		; TODO:
+	case "repeat"
+		; TODO:
+	case "toStrFmtFloat"
+		; TODO:
+	case "toStrFmtInt"
+		; TODO:
+	case "exist"
+		; TODO:
 	case "math_bellmanFord"
 		; TODO:
 	case "math_dijkstra"
