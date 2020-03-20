@@ -1,29 +1,47 @@
-func [d0002.knd, _init] _init()
+const strBufSize: int :: 1024
+var delimiters: []char :: " ,\n"
+
+func[d0002.knd, _init]_init()
 end func
 
-func [d0002.knd] _fin()
+func[d0002.knd]_fin()
 end func
 
-+func [d0002.knd, _delimiter] delimiter(delimiters: []char)
++func delimiter(delimiters_: []char)
+	do @delimiters :: delimiters_
 end func
 
-+func [__raw, cui_print] print(str: []char)
++func[__raw, cui_print]print(str: []char)
 end func
 
-+func [d0002.knd, _inputLetter] inputLetter(): char
++func[d0002.knd, _inputLetter]inputLetter(): char
 end func
 
-+func [d0002.knd, _inputInt] inputInt(): int
++func inputInt(): int
+	var s: []char :: @inputStr()
+	var b: bool
+	var r: int :: s.toInt(&b)
+	if(!b)
+		throw excpt@invalidDataFmt
+	end if
+	ret r
 end func
 
-+func [d0002.knd, _inputFloat] inputFloat(): float
++func inputFloat(): float
+	var s: []char :: @inputStr()
+	var b: bool
+	var r: float :: s.toFloat(&b)
+	if(!b)
+		throw excpt@invalidDataFmt
+	end if
+	ret r
 end func
 
-+func [d0002.knd, _inputChar] inputChar(): char
++func[d0002.knd, _inputChar]inputChar(): char
 end func
 
-+func [d0002.knd, _inputStr] inputStr(): []char
++func[d0002.knd, _inputStr]inputStr(): []char
 end func
 
-+func [d0002.knd, _input] input(): []char
++func[d0002.knd, _input]input(): []char
 end func

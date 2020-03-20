@@ -450,7 +450,7 @@
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id} ^ \{n.id};\n")
 	case "cui_inputLetter"
-		do codes.add("return ReadIo_();\n")
+		do codes.add("return static_cast<char16_t>(fgetwc(stdin));\n")
 	case "cui_print"
 		do args.head()
 		var str: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
