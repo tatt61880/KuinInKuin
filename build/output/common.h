@@ -44,8 +44,16 @@ template<typename T> struct Array_ : public Ref_ {
 		B = new T[static_cast<size_t>(n + bufLen_<T>())];
 		va_list l;
 		va_start(l, n);
-		for (int64_t i = 0; i < n; i++)
-			B[i] = va_arg(l, T);
+		if (sizeof(T) < sizeof(int))
+		{
+			for (int64_t i = 0; i < n; i++)
+				B[i] = static_cast<T>(va_arg(l, int));
+		}
+		else
+		{
+			for (int64_t i = 0; i < n; i++)
+				B[i] = va_arg(l, T);
+		}
 		va_end(l);
 		if (bufLen_<T>() > 0)
 			B[n] = 0;

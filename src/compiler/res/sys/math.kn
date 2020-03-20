@@ -1,0 +1,86 @@
++func gcd(a: int, b: int): int
+	if(a = 0)
+		if(b = 0)
+			throw excpt@dbgArgOutDomain
+		end if
+		ret b
+	end if
+	if(b = 0)
+		ret a
+	end if
+	if(a < 0)
+		do a :: -a
+	end if
+	if(b < 0)
+		do b :: -b
+	end if
+	if(b > a)
+		do a :$ b
+	end if
+	var r: int
+	while loop(true)
+		do r :: a % b
+		if(r = 0)
+			ret b
+		end if
+		do a :: b
+		do b :: r
+	end while
+end func
+
++func lcm(a: int, b: int): int
+	if(a = 0)
+		if(b = 0)
+			throw excpt@dbgArgOutDomain
+		end if
+		ret 0
+	end if
+	if(b = 0)
+		ret 0
+	end if
+	if(a < 0)
+		do a :: -a
+	end if
+	if(b < 0)
+		do b :: -b
+	end if
+	ret a / @gcd(a, b) * b
+end func
+
++func modPow(value: int, exponent: int, modulus: int): int
+	if(value < 0 | exponent < 0 | modulus < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	ret @modPowUnsigned(value $ bit64, exponent $ bit64, modulus $ bit64) $ int
+end func
+
++func modMul(a: int, b: int, modulus: int): int
+	if(a < 0 | b < 0 | modulus < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	ret @modMulUnsigned(a $ bit64, b $ bit64, modulus $ bit64) $ int
+end func
+
+func modPowUnsigned(value: bit64, exponent: bit64, modulus: bit64): bit64
+	var w: bit64 :: 1b64
+	while(exponent > 0b64)
+		if(exponent.and(1b64) <> 0b64)
+			do w :: modMulUnsigned(w, value, modulus)
+		end if
+		do value :: modMulUnsigned(value, value, modulus)
+		do exponent :: exponent.shr(1)
+	end while
+	ret w
+end func
+
+func modMulUnsigned(a: bit64, b: bit64, modulus: bit64): bit64
+	var w: bit64 :: 0
+	while(a > 0b64)
+		if(a.and(1b64) <> 0b64)
+			do w :: (w + b) % modulus
+		end if
+		do b :: b.shl(1) % modulus
+		do a :: a.shr(1)
+	end while
+	ret w
+end func
