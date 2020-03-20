@@ -1050,5 +1050,3 @@ static void init_() {
 	rW_ = 88675123 * (rZ_ >> 1);
 	setlocale(LC_ALL, "");
 }
-
-static char16_t ReadIo_() { return static_cast<char16_t>(fgetwc(stdin)); }
