@@ -688,7 +688,6 @@ template<> struct toBin_<uint32_t> { Array_<uint8_t>* operator()(uint32_t v) noe
 template<> struct toBin_<uint64_t> { Array_<uint8_t>* operator()(uint64_t v) noexcept { return makeBin_(&v, sizeof(v)); } };
 
 template<typename T> struct fromBin_ {};
-
 template<typename T> struct fromBin_<Array_<T>*> { Array_<T>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
@@ -838,6 +837,17 @@ template<typename T> max_(Array_<T>* a) noexcept {
 		if (cmp_(r, a->B[i]) < 0)
 			r = a->B[i];
 	}
+	return r;
+}
+
+template<typename T> repeat_(Array_<T>* a, int64_t n) noexcept {
+	Array_<T>* r = new Array_<T>();
+	r->L = a->L * n;
+	r->B = new T[static_cast<size_t>(r->L) + bufLen_<T>()];
+	for (int64_t i = 0; i < n; i++)
+		memcpy(r->B + i * a->L, a->B, sizeof(T) * static_cast<size_t>(a->L));
+	if (bufLen_<T>() > 0)
+		r->B[r->L] = 0;
 	return r;
 }
 

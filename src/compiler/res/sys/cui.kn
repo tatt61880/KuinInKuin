@@ -37,11 +37,78 @@ end func
 	ret r
 end func
 
-+func[d0002.knd, _inputChar]inputChar(): char
++func inputChar(): char
+	while loop(true)
+		var c: char :: @inputCharWithDelimiter()
+		if(c <> '\0')
+			if(c = '\uFFFF')
+				throw excpt@invalidDataFmt
+			end if
+			ret c
+		end if
+	end while
 end func
 
-+func[d0002.knd, _inputStr]inputStr(): []char
++func inputStr(): []char
+	var buf: []char :: #[@strBufSize]char
+	var ptr: int :: 0
+	while loop(true)
+		var c: char :: @inputCharWithDelimiter()
+		if(c = '\uFFFF')
+			if(^buf = 0)
+				throw excpt@invalidDataFmt
+			end if
+			break loop
+		end if
+		if(c = '\0')
+			if(^buf = 0)
+				skip loop
+			end if
+			break loop
+		end if
+		if(ptr = ^buf)
+			do buf :~ #[@strBufSize]char
+		end if
+		do buf[ptr] :: c
+		do ptr :+ 1
+	end while
+	ret buf.sub(0, ptr)
 end func
 
-+func[d0002.knd, _input]input(): []char
++func input(): []char
+	var buf: []char :: #[@strBufSize]char
+	var ptr: int :: 0
+	while loop(true)
+		var c: char :: @inputLetter()
+		if(c = '\u000D')
+			skip loop
+		end if
+		if(c = '\uFFFF')
+			break loop
+		end if
+		if(c = '\n')
+			break loop
+		end if
+		if(ptr = ^buf)
+			do buf :~ #[@strBufSize]char
+		end if
+		do buf[ptr] :: c
+		do ptr :+ 1
+	end while
+	ret buf.sub(0, ptr)
+end func
+
+func inputCharWithDelimiter(): char
+	while loop(true)
+		var c: char :: @inputLetter()
+		for i(0, ^@delimiters - 1)
+			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
+				ret '\0'
+			end if
+		end for
+		if(c = '\u000D')
+			skip loop
+		end if
+		ret c
+	end while
 end func

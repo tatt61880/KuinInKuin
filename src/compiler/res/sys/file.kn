@@ -54,27 +54,65 @@ end enum
 		ret r
 	end func
 	
-	+func[d0000.knd, _readerReadChar]readChar(): char
-		ret '\0' { TODO: }
+	+func readChar(): char
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c <> '\0')
+				if(c = '\uFFFF')
+					throw excpt@invalidDataFmt
+				end if
+				ret c
+			end if
+		end while
 	end func
 	
-	+func[d0000.knd, _readerReadStr]readStr(): []char
-		ret null { TODO: }
+	+func readStr(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c = '\uFFFF')
+				if(^buf = 0)
+					throw excpt@invalidDataFmt
+				end if
+				break loop
+			end if
+			if(c = '\0')
+				if(^buf = 0)
+					skip loop
+				end if
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
 	end func
 	
 	+func readLine(): []char
-		var buf: []char :: ""
-		while loop(!me.term())
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
 			var c: char :: me.readLetter()
 			if(c = '\u000D')
 				skip loop
 			end if
+			if(c = '\uFFFF')
+				break loop
+			end if
 			if(c = '\n')
 				break loop
 			end if
-			do buf :~ c.toStr()
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
 		end while
-		ret buf
+		ret buf.sub(0, ptr)
 	end func
 	
 	+func[d0000.knd, _readerFileSize]fileSize(): int
@@ -82,6 +120,21 @@ end enum
 	end func
 	
 	+func[__raw, file_readerTerm]term(): bool
+	end func
+	
+	func readCharWithDelimiters(): char
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					ret '\0'
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			ret c
+		end while
 	end func
 	
 	var handle: int
