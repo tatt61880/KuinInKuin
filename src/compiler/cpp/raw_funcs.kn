@@ -109,6 +109,17 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return endian_(\{me_.id});\n")
+	case "exist"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return dictExist_(\{me_.id}->B, \{key.id});\n")
+	case "exitCode"
+		do args.head()
+		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("exitCode_ = \{n.id};\n")
 	case "exp"
 		do args.head()
 		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -185,13 +196,6 @@
 		do args.next()
 		var existed: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return dictSearch_(\{me_.id}->B, \{key.id}, \{existed.id});\n")
-	case "exist"
-		do args.head()
-		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do args.next()
-		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("bool exist=false;auto _=dictSearch_(\{me_.id}->B, \{key.id}, &exist);return exist;\n")
 	case "getList"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -246,22 +250,11 @@
 	case "max"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do codes.add("auto r_=\{me_.id}->B[0]; for(int64_t i_ = 1; i_ < \{me_.id}->L; i_++) r_=std::max(r_,\{me_.id}->B[i_]); return r_;\n")
+		do codes.add("return max_(\{me_.id});")
 	case "min"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do codes.add("auto r_=\{me_.id}->B[0]; for(int64_t i_ = 1; i_ < \{me_.id}->L; i_++) r_=std::min(r_,\{me_.id}->B[i_]); return r_;\n")
-	case "repeat"
-		do args.head()
-		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do args.next()
-		var len_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("typedef typename std::remove_reference<decltype(\{me_.id}->B[0])>::type Elem_;\n")
-		do codes.add("Array_<Elem_> *r_=new Array_<Elem_>(); r_->L=\{me_.id}->L*\{len_.id}; r_->B=new Elem_[r_->L+1]; r_->B[r_->L]=0;\n")
-		do codes.add("for(int64_t j_=0;j_<\{len_.id};j_++)for(int64_t i_=0;i_<\{me_.id}->L;i_++)r_->B[j_*\{me_.id}->L + i_]=\{me_.id}->B[i_]; return r_;\n")
+		do codes.add("return min_(\{me_.id});")
 	case "moveOffset"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -276,6 +269,9 @@
 		do codes.add("}else{\n")
 		do codes.add("for(int64_t i_ = 0; i_ > \{offset.id}; i_--){\n")
 		do codes.add("if(\{me_.id}->I == \{me_.id}->B.end()) break;\n")
+		do codes.add("if(\{me_.id}->I == \{me_.id}->B.begin())\n")
+		do codes.add("\{me_.id}->I = \{me_.id}->B.end();\n")
+		do codes.add("else\n")
 		do codes.add("--\{me_.id}->I;\n")
 		do codes.add("}\n")
 		do codes.add("}\n")
@@ -311,6 +307,13 @@
 		do codes.add("\{me_.id}->I = \{me_.id}->B.end();\n")
 		do codes.add("else\n")
 		do codes.add("--\{me_.id}->I;\n")
+	case "repeat"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var len_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return repeat_(\{me_.id}, \{len_.id});\n")
 	case "reverse"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -328,6 +331,7 @@
 		var max: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return rndFloat_(\{min.id}, \{max.id});\n")
 	case "rndRaw"
+		; TODO: Refactoring.
 		do codes.add("return (int64_t)xs128_();\n")
 	case "sar"
 		do args.head()
@@ -473,6 +477,8 @@
 		do args.next()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return \{me_.id} ^ \{n.id};\n")
+	case "cui_inputLetter"
+		do codes.add("return static_cast<char16_t>(fgetwc(stdin));\n")
 	case "cui_print"
 		do args.head()
 		var str: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -483,12 +489,8 @@
 		do codes.add("std::u16string s_ = \{str.id}->B;\n")
 		do codes.add("const std::string& t_ = utf16ToUtf8_(s_);\n")
 		do codes.add("std::cout << t_ << std::flush;\n")
-	case "cui_inputLetter"
-		do codes.add("wchar_t c_ = ReadIo_();\n")
-		;do codes.add("if (c_ == WEOF)\n")
-		;do codes.add("throw \{excpt@invalidDataFmt $ bit32}U;\n")
-		do codes.add("return (char16_t)c_;\n")
 	case "toStrFmtInt"
+		; TODO: Refactoring.
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
@@ -557,6 +559,7 @@
 		do codes.add("result->L=len;\n")
 		do codes.add("return result;\n")
 	case "toStrFmtFloat"
+		; TODO: Refactoring.
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
@@ -642,10 +645,12 @@
 		do codes.add("result->B[len]=0;\n")
 		do codes.add("result->L=len;\n")
 	case "math_gamma"
+		; TODO: Refactoring.
 		do args.head()
 		var n_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return tgamma(\{n_.id});\n")
 	case "math_dijkstra"
+		; TODO: Refactoring.
 		do args.head()
 		var from_nodes_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
@@ -751,6 +756,7 @@
 		do codes.add("\n")
 		do codes.add("return result;\n")
 	case "math_bellmanFord"
+		; TODO: Refactoring.
 		do args.head()
 		var from_nodes_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
@@ -859,10 +865,7 @@
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
 		do codes.add("reader_* r_ = reinterpret_cast<reader_*>(\{me_.id}->\{handle.id});\n")
-		do codes.add("char16_t c_ = readUtf8_(r_->F);\n")
-		;do codes.add("if (c_ == 0xffff)\n")
-		;do codes.add("throw \{excpt@invalidDataFmt $ bit32}U;\n")
-		do codes.add("return c_;\n")
+		do codes.add("return readUtf8_(r_->F);\n")
 	case "file_readerSetPos"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -934,10 +937,6 @@
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
 		do codes.add("writer_* r_ = reinterpret_cast<writer_*>(\{me_.id}->\{handle.id});\n")
 		do codes.add("writeUtf8_(r_->F, \{n.id});\n")
-	case "exit_code"
-		do args.head()
-		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("exit_code_ = \{n.id};\n")
 	case "wnd_editBaseGetText"
 		; TODO:
 	case "wnd_makeEditMulti"

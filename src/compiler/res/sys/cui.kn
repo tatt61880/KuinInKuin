@@ -1,55 +1,25 @@
-;;; in Kuin, file is always UTF-8 but cui depends on machine's locale, so fgetwc(stdin) must be used.
-
-var STACK_STRING_BUF_SIZE: int :: 1024
+const strBufSize: int :: 1024
 var delimiters: []char :: " ,\n"
 
-func [d0002.knd, _init] _init()
+func[d0002.knd, _init]_init()
 end func
 
-func [d0002.knd] _fin()
+func[d0002.knd]_fin()
 end func
 
 +func delimiter(delimiters_: []char)
 	do @delimiters :: delimiters_
 end func
 
-+func [__raw, cui_print] print(str: []char)
++func[__raw, cui_print]print(str: []char)
 end func
 
-+func [__raw, cui_inputLetter] inputLetter(): char
-end func
-
-func _inputChar(): char
-	while loop(true)
-		var c: char :: @inputLetter()
-		for i(0, ^@delimiters-1)
-			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
-				do c :: '\0'
-				break i
-			end if
-		end for
-		if(c = '\u000D')
-			skip loop
-		end if
-		if(c = '\uFFFF')
-			throw excpt@invalidDataFmt
-		end if
-		ret c
-	end while
-end func
-
-+func inputChar(): char
-	while loop(true)
-		var c: char :: @_inputChar()
-		if(c <> '\0')
-			ret c
-		end if
-	end while
++func[__raw, cui_inputLetter]inputLetter(): char
 end func
 
 +func inputInt(): int
 	var s: []char :: @inputStr()
-	var b: bool :: false
+	var b: bool
 	var r: int :: s.toInt(&b)
 	if(!b)
 		throw excpt@invalidDataFmt
@@ -59,7 +29,7 @@ end func
 
 +func inputFloat(): float
 	var s: []char :: @inputStr()
-	var b: bool :: false
+	var b: bool
 	var r: float :: s.toFloat(&b)
 	if(!b)
 		throw excpt@invalidDataFmt
@@ -67,12 +37,23 @@ end func
 	ret r
 end func
 
-+func inputStr(): []char
-	var buf: []char :: #[@STACK_STRING_BUF_SIZE]char
-	var ptr: int :: 0
-	var c: char :: '\0'
++func inputChar(): char
 	while loop(true)
-		do c :: @_inputChar()
+		var c: char :: @inputCharWithDelimiter()
+		if(c <> '\0')
+			if(c = '\uFFFF')
+				throw excpt@invalidDataFmt
+			end if
+			ret c
+		end if
+	end while
+end func
+
++func inputStr(): []char
+	var buf: []char :: #[@strBufSize]char
+	var ptr: int :: 0
+	while loop(true)
+		var c: char :: @inputCharWithDelimiter()
 		if(c = '\uFFFF')
 			if(^buf = 0)
 				throw excpt@invalidDataFmt
@@ -86,50 +67,48 @@ end func
 			break loop
 		end if
 		if(ptr = ^buf)
-			var tmp: []char :: #[^buf + @STACK_STRING_BUF_SIZE]char
-			for i(0,ptr-1)
-				do tmp[i] :: buf[i]
-			end for
-			do buf :: tmp
+			do buf :~ #[@strBufSize]char
 		end if
 		do buf[ptr] :: c
 		do ptr :+ 1
 	end while
-	var result: []char :: #[ptr]char
-	for i(0,ptr-1)
-		do result[i] :: buf[i]
-	end for
-	ret result
+	ret buf.sub(0, ptr)
 end func
 
 +func input(): []char
-	var buf: []char :: #[@STACK_STRING_BUF_SIZE]char
+	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0
-	var c: char :: '\0'
 	while loop(true)
-		do c :: @inputLetter()
-		if(c = '\uFFFF')
-			break loop
-		end if
+		var c: char :: @inputLetter()
 		if(c = '\u000D')
 			skip loop
+		end if
+		if(c = '\uFFFF')
+			break loop
 		end if
 		if(c = '\n')
 			break loop
 		end if
 		if(ptr = ^buf)
-			var tmp: []char :: #[^buf + @STACK_STRING_BUF_SIZE]char
-			for i(0,ptr-1)
-				do tmp[i] :: buf[i]
-			end for
-			do buf :: tmp
+			do buf :~ #[@strBufSize]char
 		end if
 		do buf[ptr] :: c
 		do ptr :+ 1
 	end while
-	var result: []char :: #[ptr]char
-	for i(0,ptr-1)
-		do result[i] :: buf[i]
-	end for
-	ret result
+	ret buf.sub(0, ptr)
+end func
+
+func inputCharWithDelimiter(): char
+	while loop(true)
+		var c: char :: @inputLetter()
+		for i(0, ^@delimiters - 1)
+			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
+				ret '\0'
+			end if
+		end for
+		if(c = '\u000D')
+			skip loop
+		end if
+		ret c
+	end while
 end func
