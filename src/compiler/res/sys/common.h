@@ -39,21 +39,14 @@ struct Class_ : public Ref_ {
 };
 template<typename T> struct Array_ : public Ref_ {
 	Array_() noexcept : Ref_(), L(), B() {}
+	// TODO: Refactoring.
 	explicit Array_(int64_t n, ...) noexcept : Ref_() {
 		L = n;
 		B = new T[static_cast<size_t>(n + bufLen_<T>())];
 		va_list l;
 		va_start(l, n);
-		if (sizeof(T) < sizeof(int))
-		{
-			for (int64_t i = 0; i < n; i++)
-				B[i] = static_cast<T>(va_arg(l, int));
-		}
-		else
-		{
-			for (int64_t i = 0; i < n; i++)
-				B[i] = va_arg(l, T);
-		}
+		for (int64_t i = 0; i < n; i++)
+			B[i] = va_arg(l, T);
 		va_end(l);
 		if (bufLen_<T>() > 0)
 			B[n] = 0;
@@ -71,6 +64,54 @@ template<typename T> struct Array_ : public Ref_ {
 	int64_t L;
 	T* B;
 };
+template<>
+Array_<char16_t>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new char16_t[static_cast<size_t>(n + bufLen_<char16_t>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<char16_t>() > 0)
+		B[n] = 0;
+}
+template<>
+Array_<unsigned char>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new unsigned char[static_cast<unsigned char>(n + bufLen_<unsigned char>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<unsigned char>() > 0)
+		B[n] = 0;
+}
+template<>
+Array_<unsigned short>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new unsigned short[static_cast<unsigned short>(n + bufLen_<unsigned short>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<unsigned short>() > 0)
+		B[n] = 0;
+}
+template<>
+Array_<bool>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new bool[static_cast<size_t>(n + bufLen_<bool>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<bool>() > 0)
+		B[n] = 0;
+}
 template<typename T> struct List_ : public Ref_ {
 	List_() noexcept : Ref_(), B(), I(B.end()) {}
 	int64_t Len() noexcept { return static_cast<int64_t>(B.size()); }
@@ -776,6 +817,30 @@ static bool is_(const int64_t* y, Class_* c, int64_t o) noexcept {
 	}
 }
 
+template<typename T> min_(Array_<T>* a) noexcept {
+	if (a->L == 0)
+		return (T)0;
+	T r = a->B[0];
+	for (int64_t i = 0; i < a->L; i++)
+	{
+		if (cmp_(r, a->B[i]) > 0)
+			r = a->B[i];
+	}
+	return r;
+}
+
+template<typename T> max_(Array_<T>* a) noexcept {
+	if (a->L == 0)
+		return (T)0;
+	T r = a->B[0];
+	for (int64_t i = 0; i < a->L; i++)
+	{
+		if (cmp_(r, a->B[i]) < 0)
+			r = a->B[i];
+	}
+	return r;
+}
+
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a) noexcept {
 	if (n == nullptr)
 	{
@@ -868,6 +933,20 @@ template<typename T1, typename T2> bool dictForEach_(dictImpl_<T1, T2>* r, bool(
 	if (!dictForEach_<T1, T2>(r->CR, f, p))
 		return false;
 	return true;
+}
+template<typename T1, typename T2> bool dictExist_(dictImpl_<T1, T2>* r, T1 k) noexcept {
+	dictImpl_<T1, T2>* n = r;
+	while (n != nullptr)
+	{
+		int64_t c = cmp_(k, n->K);
+		if (c == 0)
+			return true;
+		if (c < 0)
+			n = n->CL;
+		else
+			n = n->CR;
+	}
+	return false;
 }
 
 static bool eqAddr_(const Ref_* a, const Ref_* b) noexcept { return a == b; }

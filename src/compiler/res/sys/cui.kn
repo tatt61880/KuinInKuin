@@ -14,7 +14,7 @@ end func
 +func[__raw, cui_print]print(str: []char)
 end func
 
-+func[d0002.knd, _inputLetter]inputLetter(): char
++func[__raw, cui_inputLetter]inputLetter(): char
 end func
 
 +func inputInt(): int

@@ -109,6 +109,13 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return endian_(\{me_.id});\n")
+	case "exist"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return dictExist_(\{me_.id}->B, \{key.id});\n")
 	case "exitCode"
 		do args.head()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -240,6 +247,14 @@
 		do args.head()
 		var x: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return std::log(\{x.id});\n")
+	case "max"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return max_(\{me_.id});")
+	case "min"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return min_(\{me_.id});")
 	case "moveOffset"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
