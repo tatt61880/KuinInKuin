@@ -17,7 +17,7 @@
 
 template<typename T> size_t bufLen_() noexcept { return 0; }
 template<> size_t bufLen_<char16_t>() noexcept { return 1; }
-static int exitCode_ = 0;
+static int64_t exitCode_ = 0;
 
 struct Ref_;
 struct Class_;
@@ -816,7 +816,7 @@ static bool is_(const int64_t* y, Class_* c, int64_t o) noexcept {
 	}
 }
 
-template<typename T> min_(Array_<T>* a) noexcept {
+template<typename T> T min_(Array_<T>* a) noexcept {
 	if (a->L == 0)
 		return (T)0;
 	T r = a->B[0];
@@ -828,7 +828,7 @@ template<typename T> min_(Array_<T>* a) noexcept {
 	return r;
 }
 
-template<typename T> max_(Array_<T>* a) noexcept {
+template<typename T> T max_(Array_<T>* a) noexcept {
 	if (a->L == 0)
 		return (T)0;
 	T r = a->B[0];
@@ -840,7 +840,7 @@ template<typename T> max_(Array_<T>* a) noexcept {
 	return r;
 }
 
-template<typename T> repeat_(Array_<T>* a, int64_t n) noexcept {
+template<typename T> Array_<T>* repeat_(Array_<T>* a, int64_t n) noexcept {
 	Array_<T>* r = new Array_<T>();
 	r->L = a->L * n;
 	r->B = new T[static_cast<size_t>(r->L) + bufLen_<T>()];
