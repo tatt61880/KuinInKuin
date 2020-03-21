@@ -17,18 +17,6 @@ end func
 +func[__raw, cui_inputLetter]inputLetter(): char
 end func
 
-+func inputChar(): char
-	while loop(true)
-		var c: char :: @inputCharWithDelimiter()
-		if(c <> '\0')
-			if(c = '\uFFFF')
-				throw excpt@invalidDataFmt
-			end if
-			ret c
-		end if
-	end while
-end func
-
 +func inputInt(): int
 	var s: []char :: @inputStr()
 	var b: bool
@@ -47,6 +35,18 @@ end func
 		throw excpt@invalidDataFmt
 	end if
 	ret r
+end func
+
++func inputChar(): char
+	while loop(true)
+		var c: char :: @inputCharWithDelimiter()
+		if(c <> '\0')
+			if(c = '\uFFFF')
+				throw excpt@invalidDataFmt
+			end if
+			ret c
+		end if
+	end while
 end func
 
 +func inputStr(): []char
