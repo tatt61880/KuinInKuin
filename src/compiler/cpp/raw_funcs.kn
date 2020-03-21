@@ -109,6 +109,13 @@
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return endian_(\{me_.id});\n")
+	case "exist"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("return dictExist_(\{me_.id}->B, \{key.id});\n")
 	case "exitCode"
 		do args.head()
 		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -189,13 +196,6 @@
 		do args.next()
 		var existed: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return dictSearch_(\{me_.id}->B, \{key.id}, \{existed.id});\n")
-	case "exist"
-		do args.head()
-		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do args.next()
-		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("bool exist=false;auto _=dictSearch_(\{me_.id}->B, \{key.id}, &exist);return exist;\n")
 	case "getList"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -250,22 +250,11 @@
 	case "max"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do codes.add("auto r_=\{me_.id}->B[0]; for(int64_t i_ = 1; i_ < \{me_.id}->L; i_++) r_=std::max(r_,\{me_.id}->B[i_]); return r_;\n")
+		do codes.add("return max_(\{me_.id});")
 	case "min"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do codes.add("auto r_=\{me_.id}->B[0]; for(int64_t i_ = 1; i_ < \{me_.id}->L; i_++) r_=std::min(r_,\{me_.id}->B[i_]); return r_;\n")
-	case "repeat"
-		do args.head()
-		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do args.next()
-		do args.next()
-		var len_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("typedef typename std::remove_reference<decltype(\{me_.id}->B[0])>::type Elem_;\n")
-		do codes.add("Array_<Elem_> *r_=new Array_<Elem_>(); r_->L=\{me_.id}->L*\{len_.id}; r_->B=new Elem_[r_->L+1]; r_->B[r_->L]=0;\n")
-		do codes.add("for(int64_t j_=0;j_<\{len_.id};j_++)for(int64_t i_=0;i_<\{me_.id}->L;i_++)r_->B[j_*\{me_.id}->L + i_]=\{me_.id}->B[i_]; return r_;\n")
+		do codes.add("return min_(\{me_.id});")
 	case "moveOffset"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -315,6 +304,15 @@
 		do codes.add("\{me_.id}->I = \{me_.id}->B.end();\n")
 		do codes.add("else\n")
 		do codes.add("--\{me_.id}->I;\n")
+	case "repeat"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var len_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("typedef typename std::remove_reference<decltype(\{me_.id}->B[0])>::type Elem_;\n")
+		do codes.add("Array_<Elem_> *r_=new Array_<Elem_>(); r_->L=\{me_.id}->L*\{len_.id}; r_->B=new Elem_[r_->L+1]; r_->B[r_->L]=0;\n")
+		do codes.add("for(int64_t j_=0;j_<\{len_.id};j_++)for(int64_t i_=0;i_<\{me_.id}->L;i_++)r_->B[j_*\{me_.id}->L + i_]=\{me_.id}->B[i_]; return r_;\n")
 	case "reverse"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

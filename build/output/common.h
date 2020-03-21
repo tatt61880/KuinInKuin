@@ -39,6 +39,7 @@ struct Class_ : public Ref_ {
 };
 template<typename T> struct Array_ : public Ref_ {
 	Array_() noexcept : Ref_(), L(), B() {}
+	// TODO: Refactoring.
 	explicit Array_(int64_t n, ...) noexcept : Ref_() {
 		L = n;
 		B = new T[static_cast<size_t>(n + bufLen_<T>())];
@@ -687,7 +688,6 @@ template<> struct toBin_<uint32_t> { Array_<uint8_t>* operator()(uint32_t v) noe
 template<> struct toBin_<uint64_t> { Array_<uint8_t>* operator()(uint64_t v) noexcept { return makeBin_(&v, sizeof(v)); } };
 
 template<typename T> struct fromBin_ {};
-
 template<typename T> struct fromBin_<Array_<T>*> { Array_<T>* operator()(Array_<uint8_t>* b, int64_t& o) noexcept {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
@@ -816,6 +816,30 @@ static bool is_(const int64_t* y, Class_* c, int64_t o) noexcept {
 	}
 }
 
+template<typename T> min_(Array_<T>* a) noexcept {
+	if (a->L == 0)
+		return (T)0;
+	T r = a->B[0];
+	for (int64_t i = 0; i < a->L; i++)
+	{
+		if (cmp_(r, a->B[i]) > 0)
+			r = a->B[i];
+	}
+	return r;
+}
+
+template<typename T> max_(Array_<T>* a) noexcept {
+	if (a->L == 0)
+		return (T)0;
+	T r = a->B[0];
+	for (int64_t i = 0; i < a->L; i++)
+	{
+		if (cmp_(r, a->B[i]) < 0)
+			r = a->B[i];
+	}
+	return r;
+}
+
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a) noexcept {
 	if (n == nullptr)
 	{
@@ -908,6 +932,20 @@ template<typename T1, typename T2> bool dictForEach_(dictImpl_<T1, T2>* r, bool(
 	if (!dictForEach_<T1, T2>(r->CR, f, p))
 		return false;
 	return true;
+}
+template<typename T1, typename T2> bool dictExist_(dictImpl_<T1, T2>* r, T1 k) noexcept {
+	dictImpl_<T1, T2>* n = r;
+	while (n != nullptr)
+	{
+		int64_t c = cmp_(k, n->K);
+		if (c == 0)
+			return true;
+		if (c < 0)
+			n = n->CL;
+		else
+			n = n->CR;
+	}
+	return false;
 }
 
 static bool eqAddr_(const Ref_* a, const Ref_* b) noexcept { return a == b; }
