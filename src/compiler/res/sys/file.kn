@@ -1,3 +1,6 @@
+; TODO: Unknown error when putting constant in class.
+const strBufSize: int :: 1024
+
 +enum Origin
 	head
 	cur
@@ -5,7 +8,6 @@
 end enum
 
 +class Reader()
-	const strBufSize: int :: 1024
 	
 	*func ctor()
 		do me.delimiters :: " ,\n"
@@ -67,7 +69,7 @@ end enum
 	end func
 	
 	+func readStr(): []char
-		var buf: []char :: #[strBufSize]char
+		var buf: []char :: #[@strBufSize]char
 		var ptr: int :: 0
 		while loop(true)
 			var c: char :: me.readCharWithDelimiters()
@@ -84,7 +86,7 @@ end enum
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[strBufSize]char
+				do buf :~ #[@strBufSize]char
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
@@ -93,7 +95,7 @@ end enum
 	end func
 	
 	+func readLine(): []char
-		var buf: []char :: #[strBufSize]char
+		var buf: []char :: #[@strBufSize]char
 		var ptr: int :: 0
 		while loop(true)
 			var c: char :: me.readLetter()
@@ -107,7 +109,7 @@ end enum
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[strBufSize]char
+				do buf :~ #[@strBufSize]char
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
