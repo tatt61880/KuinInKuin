@@ -840,6 +840,17 @@ template<typename T> max_(Array_<T>* a) noexcept {
 	return r;
 }
 
+template<typename T> repeat_(Array_<T>* a, int64_t n) noexcept {
+	Array_<T>* r = new Array_<T>();
+	r->L = a->L * n;
+	r->B = new T[static_cast<size_t>(r->L) + bufLen_<T>()];
+	for (int64_t i = 0; i < n; i++)
+		memcpy(r->B + i * a->L, a->B, sizeof(T) * static_cast<size_t>(a->L));
+	if (bufLen_<T>() > 0)
+		r->B[r->L] = 0;
+	return r;
+}
+
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a) noexcept {
 	if (n == nullptr)
 	{

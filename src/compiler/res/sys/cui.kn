@@ -1,5 +1,3 @@
-;;; in Kuin, file is always UTF-8 but cui depends on machine's locale, so fgetwc(stdin) must be used.
-
 const strBufSize: int :: 1024
 var delimiters: []char :: " ,\n"
 
@@ -19,29 +17,13 @@ end func
 +func[__raw, cui_inputLetter]inputLetter(): char
 end func
 
-func _inputChar(): char
-	while loop(true)
-		var c: char :: @inputLetter()
-		for i(0, ^@delimiters - 1)
-			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
-				do c :: '\0'
-				break i
-			end if
-		end for
-		if(c = '\u000D')
-			skip loop
-		end if
-		if(c = '\uFFFF')
-			throw excpt@invalidDataFmt
-		end if
-		ret c
-	end while
-end func
-
 +func inputChar(): char
 	while loop(true)
-		var c: char :: @_inputChar()
+		var c: char :: @inputCharWithDelimiter()
 		if(c <> '\0')
+			if(c = '\uFFFF')
+				throw excpt@invalidDataFmt
+			end if
 			ret c
 		end if
 	end while
@@ -70,9 +52,8 @@ end func
 +func inputStr(): []char
 	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0
-	var c: char :: '\0'
 	while loop(true)
-		do c :: @_inputChar()
+		var c: char :: @inputCharWithDelimiter()
 		if(c = '\uFFFF')
 			if(^buf = 0)
 				throw excpt@invalidDataFmt
@@ -97,14 +78,13 @@ end func
 +func input(): []char
 	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0
-	var c: char :: '\0'
 	while loop(true)
-		do c :: @inputLetter()
-		if(c = '\uFFFF')
-			break loop
-		end if
+		var c: char :: @inputLetter()
 		if(c = '\u000D')
 			skip loop
+		end if
+		if(c = '\uFFFF')
+			break loop
 		end if
 		if(c = '\n')
 			break loop
@@ -116,4 +96,19 @@ end func
 		do ptr :+ 1
 	end while
 	ret buf.sub(0, ptr)
+end func
+
+func inputCharWithDelimiter(): char
+	while loop(true)
+		var c: char :: @inputLetter()
+		for i(0, ^@delimiters - 1)
+			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
+				ret '\0'
+			end if
+		end for
+		if(c = '\u000D')
+			skip loop
+		end if
+		ret c
+	end while
 end func
