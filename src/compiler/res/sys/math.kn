@@ -62,6 +62,7 @@ end func
 end func
 
 +func prime(n: int): bool
+	; TODO: Refactoring.
 	if(n <= 1)
 		ret false
 	end if
@@ -158,6 +159,7 @@ end func
 end func
 
 +func primeFactors(n: int): []int
+	; TODO: Refactoring.
 	var result: []int :: #[0]int
 	while loop(n > 1)
 		var factor: int :: @findFactor(n)
@@ -176,6 +178,7 @@ end func
 end func
 
 +func factInt(n: int): int
+	; TODO: Refactoring.
 	if(n < 0)
 		throw excpt@dbgArgOutDomain
 	end if
@@ -190,6 +193,7 @@ end func
 end func
 
 +func fibonacci(n: int): int
+	; TODO: Refactoring.
 	if(n < 0)
 		throw excpt@dbgArgOutDomain
 	end if
@@ -210,6 +214,7 @@ end func
 end func
 
 +func knapsack(weights: []int, values: []int, maxWeight: int, reuse: bool): int
+	; TODO: Refactoring.
 	var dp: []int :: #[maxWeight + 1]int
 	if(reuse)
 		for i(0, ^weights - 1)
@@ -250,6 +255,7 @@ func[__raw, rndRaw]rndRaw(): int
 end func
 
 func findFactor(n: int): int
+	; TODO: Refactoring.
 	; Pollard's rho algorithm.
 	var n2: int :: n
 	while(true)
@@ -301,6 +307,7 @@ func findFactor(n: int): int
 	end while
 end func
 
+; TODO: Refactoring.
 var sieve: []bool
 var sieveInit: bool :: false
 
