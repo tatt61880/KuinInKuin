@@ -10,6 +10,7 @@ var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
 var classTable: list<[]char>
+var gc: bool
 
 +class CppInfo(\ast@HasType)
 	+var id: []char
@@ -27,6 +28,7 @@ class TmpVar()
 end class
 
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
+	do @gc :: !\option@extra.get("nogc", &)
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
@@ -1287,12 +1289,7 @@ end func
 func write(resFiles: list<[]char>)
 	if(\option@extra.get("merge", &))
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
-		do writer.writeStr("#include <cstdint>\n")
-		if(^@classTable = 0)
-			do writer.writeStr("static int64_t classTable_[1];\n")
-		else
-			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
-		end if
+		do writeCommonCode(writer)
 		var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
 		while(!reader.term())
 			var s: []char :: reader.readLine()
@@ -1305,16 +1302,45 @@ func write(resFiles: list<[]char>)
 		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
 		
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+		do writeCommonCode(writer)
+		do writer.writeStr("#include \"common.h\"\n")
+		do writeCpp(writer, resFiles)
+		do writer.fin()
+	end if
+	
+	func writeCommonCode(writer: file@Writer)
 		do writer.writeStr("#include <cstdint>\n")
 		if(^@classTable = 0)
 			do writer.writeStr("static int64_t classTable_[1];\n")
 		else
 			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
 		end if
-		do writer.writeStr("#include \"common.h\"\n")
-		do writeCpp(writer, resFiles)
-		do writer.fin()
-	end if
+		if(@gc)
+			; TODO:
+		else
+			do writer.writeStr("struct MemList_{\n")
+			do writer.writeStr("void* B_;\n")
+			do writer.writeStr("MemList_* N_;\n")
+			do writer.writeStr("};\n")
+			do writer.writeStr("static MemList_* TopMem_ = nullptr;\n")
+			do writer.writeStr("static MemList_* CurMem_ = nullptr;\n")
+			do writer.writeStr("static void* CurMemBuf_ = nullptr;\n")
+			do writer.writeStr("template<typename T, typename... A>\n")
+			do writer.writeStr("static T* new_(A... a){\n")
+			do writer.writeStr("if (static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) >= static_cast<uint8_t*>(CurMem_->B_) + 32 * 1024 * 1024){\n")
+			do writer.writeStr("MemList_* n_ = new MemList_();\n")
+			do writer.writeStr("n_->B_ = new uint8_t[32 * 1024 * 1024];\n")
+			do writer.writeStr("n_->N_ = nullptr;\n")
+			do writer.writeStr("CurMem_->N_ = n_;\n")
+			do writer.writeStr("CurMem_ = n_;\n")
+			do writer.writeStr("CurMemBuf_ = CurMem_->B_;\n")
+			do writer.writeStr("}\n")
+			do writer.writeStr("T* r_ = static_cast<T*>(CurMemBuf_);\n")
+			do writer.writeStr("CurMemBuf_ = static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) + (7 - ((sizeof(T) + 7) & 0x07));\n")
+			do writer.writeStr("return new(r_)T(a_...);\n")
+			do writer.writeStr("}\n")
+		end if
+	end func
 	
 	func writeCpp(writer: file@Writer, resFiles: list<[]char>)
 		do writer.writeStr("namespace {\n")
@@ -1353,6 +1379,15 @@ func write(resFiles: list<[]char>)
 		do writer.writeStr("int main(int c_, char** v_){\n")
 		do writer.writeStr("argc_ = static_cast<int64_t>(c_) - 1;\n")
 		do writer.writeStr("argv_ = v_ + 1;\n")
+		if(!@gc)
+			do writer.writeStr("{\n")
+			do writer.writeStr("CurMem_ = new MemList_();\n")
+			do writer.writeStr("CurMem_->B_ = new uint8_t[32 * 1024 * 1024];\n")
+			do writer.writeStr("CurMem_->N_ = nullptr;\n")
+			do writer.writeStr("TopMem_ = CurMem_;\n")
+			do writer.writeStr("CurMemBuf_ = CurMem_->B_;\n")
+			do writer.writeStr("}\n")
+		end if
 		block
 			do @classTable.head()
 			while(!@classTable.term())
@@ -1363,6 +1398,17 @@ func write(resFiles: list<[]char>)
 		end block
 		do writer.writeStr("init_();\n")
 		do writer.writeStr("k_a();\n")
+		if(!@gc)
+			do writer.writeStr("{\n")
+			do writer.writeStr("MemList_* p_ = TopMem_;\n")
+			do writer.writeStr("while (p_ != nullptr){\n")
+			do writer.writeStr("MemList_* p2_ = p_;\n")
+			do writer.writeStr("delete[] p_->B_;\n")
+			do writer.writeStr("p_ = p_->N_;\n")
+			do writer.writeStr("delete p2_;\n")
+			do writer.writeStr("}\n")
+			do writer.writeStr("}\n")
+		end if
 		do writer.writeStr("return static_cast<int>(exitCode_);\n")
 		do writer.writeStr("}\n")
 	end func
