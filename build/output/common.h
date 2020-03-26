@@ -19,7 +19,6 @@ template<typename T> size_t bufLen_() { return 0; }
 template<> size_t bufLen_<char16_t>() { return 1; }
 static int64_t exitCode_ = 0;
 
-struct Ref_;
 struct Class_;
 template<typename T> struct Array_;
 template<typename T> struct List_;
@@ -28,34 +27,33 @@ template<typename T> struct Queue_;
 template<typename T1, typename T2> struct Dict_;
 template<typename T1, typename T2> struct dictImpl_;
 
-struct Ref_ {
-	Ref_() : R(0LL) {}
-	bool EqAddr(const Ref_* t) { return this == t; }
-	int64_t R;
-};
-struct Class_ : public Ref_ {
-	Class_() : Ref_(), Y(0LL) {}
+struct Class_ {
+	Class_() : Y(0LL) {}
 	int64_t Y;
 };
-template<typename T> struct Array_ : public Ref_ {
-	Array_() : Ref_(), L(), B() {}
-	// TODO: Refactoring.
-	explicit Array_(int64_t n, ...) : Ref_() {
-		L = n;
-		B = new T[static_cast<size_t>(n + bufLen_<T>())];
-		va_list l;
-		va_start(l, n);
-		for (int64_t i = 0; i < n; i++)
-			B[i] = va_arg(l, T);
-		va_end(l);
+template<typename T> struct Array_ {
+	Array_() : L(), B() {}
+	template<typename... A>
+	explicit Array_(A... a) {
+		L = sizeof...(a);
+		B = newPrimArray_(static_cast<size_t>(sizeof...(a) + bufLen_<T>()), T);
+		BufferCopy(B, std::forward<A>(a)...);
 		if (bufLen_<T>() > 0)
-			B[n] = 0;
+			B[sizeof...(a)] = 0;
 	}
-	Array_<T>* Cat(const Array_<T>* t) {
-		Array_<T>* r = new Array_<T>();
-		r->B = new T[static_cast<size_t>(L + t->L + bufLen_<T>())];
-		memcpy(r->B, B, sizeof(T) * static_cast<size_t>(L));
-		memcpy(r->B + L, t->B, sizeof(T) * static_cast<size_t>(t->L + bufLen_<T>()));
+	void BufferCopy(T* b) {}
+	template<typename A, typename... B>
+	void BufferCopy(T* b, A h, B... t) {
+		*b = h;
+		BufferCopy(b + 1, std::forward<B>(t)...);
+	}
+	type_(Array_<T>) Cat(const Array_<T>* t) {
+		type_(Array_<T>) r = new_(Array_<T>)();
+		r->B = newPrimArray_(static_cast<size_t>(L + t->L + bufLen_<T>()), T);
+		for (int64_t i = 0; i < L; i++)
+			r->B[i] = B[i];
+		for (int64_t i = 0; i < static_cast<int64_t>(t->L + bufLen_<T>()); i++)
+			r->B[L + i] = t->B[i];
 		r->L = L + t->L;
 		return r;
 	}
@@ -64,75 +62,27 @@ template<typename T> struct Array_ : public Ref_ {
 	int64_t L;
 	T* B;
 };
-template<>
-Array_<char16_t>::Array_(int64_t n, ...) : Ref_() {
-	L = n;
-	B = new char16_t[static_cast<size_t>(n + bufLen_<char16_t>())];
-	va_list l;
-	va_start(l, n);
-	for (int64_t i = 0; i < n; i++)
-		B[i] = va_arg(l, int);
-	va_end(l);
-	if (bufLen_<char16_t>() > 0)
-		B[n] = 0;
-}
-template<>
-Array_<unsigned char>::Array_(int64_t n, ...) : Ref_() {
-	L = n;
-	B = new unsigned char[static_cast<unsigned char>(n + bufLen_<unsigned char>())];
-	va_list l;
-	va_start(l, n);
-	for (int64_t i = 0; i < n; i++)
-		B[i] = va_arg(l, int);
-	va_end(l);
-	if (bufLen_<unsigned char>() > 0)
-		B[n] = 0;
-}
-template<>
-Array_<unsigned short>::Array_(int64_t n, ...) : Ref_() {
-	L = n;
-	B = new unsigned short[static_cast<unsigned short>(n + bufLen_<unsigned short>())];
-	va_list l;
-	va_start(l, n);
-	for (int64_t i = 0; i < n; i++)
-		B[i] = va_arg(l, int);
-	va_end(l);
-	if (bufLen_<unsigned short>() > 0)
-		B[n] = 0;
-}
-template<>
-Array_<bool>::Array_(int64_t n, ...) : Ref_() {
-	L = n;
-	B = new bool[static_cast<size_t>(n + bufLen_<bool>())];
-	va_list l;
-	va_start(l, n);
-	for (int64_t i = 0; i < n; i++)
-		B[i] = va_arg(l, int);
-	va_end(l);
-	if (bufLen_<bool>() > 0)
-		B[n] = 0;
-}
-template<typename T> struct List_ : public Ref_ {
-	List_() : Ref_(), B(), I(B.end()) {}
+template<typename T> struct List_ {
+	List_() : B(), I(B.end()) {}
 	int64_t Len() { return static_cast<int64_t>(B.size()); }
 	std::list<T> B;
 	typename std::list<T>::iterator I;
 };
-template<typename T> struct Stack_ : public Ref_ {
-	Stack_() : Ref_(), B() {}
+template<typename T> struct Stack_ {
+	Stack_() : B() {}
 	int64_t Len() { return static_cast<int64_t>(B.size()); }
 	std::stack<T> B;
 };
-template<typename T> struct Queue_ : public Ref_ {
-	Queue_() : Ref_(), B() {}
+template<typename T> struct Queue_ {
+	Queue_() : B() {}
 	int64_t Len() { return static_cast<int64_t>(B.size()); }
 	std::queue<T> B;
 };
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a);
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n);
 template<typename T1, typename T2> void dictToBinRec_(Array_<uint8_t>* a, dictImpl_<T1, T2>* d);
-template<typename T1, typename T2> struct Dict_ : public Ref_ {
-	Dict_() : Ref_(), L(0LL), B(nullptr) {}
+template<typename T1, typename T2> struct Dict_ {
+	Dict_() : L(0LL), B(nullptr) {}
 	int64_t Len() { return L; }
 	void Add(T1 k, T2 v) {
 		bool a;
@@ -277,7 +227,7 @@ static bool copyFile_(const char16_t* d, const char16_t* s) {
 		return false;
 	}
 	ssize_t r = 1;
-	char* buf = new char[65536];
+	char* buf = newPrimArray_(65536, char);
 	while (r > 0 && (r = ::read(i, buf, 65536)) > 0)
 	{
 		ssize_t z, w = 0;
@@ -295,7 +245,7 @@ static bool copyFile_(const char16_t* d, const char16_t* s) {
 		r = -1;
 	if (::close(o) < 0)
 		r = -1;
-	delete[] buf;
+	delPrimArray_(buf);
 	return r >= 0;
 }
 static bool moveFile_(const char16_t* d, const char16_t* s) {
@@ -310,41 +260,43 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 #   define BOOST_MOVE_FILE(OLD,NEW)()
 #endif
 
-template<typename T> void* newArrayRec_(int64_t n, int64_t x, const int64_t* b) {
-	if (x == n - 1)
-	{
-		Array_<T>* r = new Array_<T>();
-		r->L = b[x];
-		size_t s = static_cast<size_t>(b[x] + bufLen_<T>());
-		r->B = new T[s];
-		memset(r->B, 0, sizeof(T) * s);
+template<typename T> struct newArraysRec_{
+	T operator()() { throw 0; }
+	template<typename A, typename... B> T operator()(A h, B... t) { throw 0; }
+};
+template<typename T> struct newArraysRec_<type_(Array_<T>)> {
+	type_(Array_<T>) operator()() { throw 0; }
+	template<typename A, typename... B> type_(Array_<T>) operator()(A h, B... t) {
+		type_(Array_<T>) r = new_(Array_<T>)();
+		r->L = h;
+		r->B = newPrimArray_(static_cast<size_t>(h + bufLen_<T>()), T);
+		if (sizeof...(t) == 0)
+			memset(r->B, 0, sizeof(T) * static_cast<size_t>(h + bufLen_<T>()));
+		else
+		{
+			for (int64_t i = 0; i < h; i++)
+				r->B[i] = newArraysRec_<T>()(std::forward<B>(t)...);
+		}
 		return r;
 	}
-	{
-		Array_<void*>* r = new Array_<void*>();
-		r->L = b[x];
-		r->B = new void*[static_cast<size_t>(b[x])];
-		for (int64_t i = 0; i < b[x]; i++)
-			r->B[i] = newArrayRec_<T>(n, x + 1, b);
-		return r;
-	}
-}
-template<typename T, typename R> R newArray_(int64_t n, ...) {
-	if (n > 64)
+};
+template<typename T, typename... A> T newArrays_(A... a) {
+	if (sizeof...(a) > 64)
 		return nullptr;
-	int64_t b[64];
-	va_list l;
-	va_start(l, n);
-	for (int64_t i = 0; i < n; i++)
-		b[i] = va_arg(l, int64_t);
-	va_end(l);
-	return static_cast<R>(newArrayRec_<T>(n, 0, b));
+	return newArraysRec_<T>()(std::forward<A>(a)...);
+}
+static char16_t emptyStrInstance_[] = { 0 };
+type_(Array_<char16_t>) emptyStr_() {
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
+	r->L = 0;
+	r->B = emptyStrInstance_;
+	return r;
 }
 
-template<typename T> Array_<T>* toArray_(List_<T>* l) {
-	Array_<T>* a = new Array_<T>();
+template<typename T> type_(Array_<T>) toArray_(List_<T>* l) {
+	type_(Array_<T>) a = new_(Array_<T>)();
 	a->L = l->Len();
-	a->B = new T[static_cast<size_t>(a->L) + bufLen_<T>()];
+	a->B = newPrimArray_(static_cast<size_t>(a->L) + bufLen_<T>(), T);
 	int64_t i = 0;
 	for (auto& e : l->B)
 	{
@@ -357,22 +309,22 @@ template<typename T> Array_<T>* toArray_(List_<T>* l) {
 }
 
 template<typename T> struct copy_ {};
-template<typename T> struct copy_<Array_<T>*> { Array_<T>* operator()(Array_<T>* t) {
+template<typename T> struct copy_<type_(Array_<T>)> { type_(Array_<T>) operator()(type_(Array_<T>) t) {
 	if (t == nullptr)
 		return nullptr;
-	Array_<T>* r = new Array_<T>();
+	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = t->L;
-	r->B = new T[static_cast<size_t>(t->L) + bufLen_<T>()];
+	r->B = newPrimArray_(static_cast<size_t>(t->L) + bufLen_<T>(), T);
 	for (int64_t i = 0; i < t->L; i++)
 		r->B[i] = copy_<T>()(t->B[i]);
 	if (bufLen_<T>() > 0)
 		r->B[r->L] = 0;
 	return r;
 }};
-template<typename T> struct copy_<List_<T>*> { List_<T>* operator()(List_<T>* t) {
+template<typename T> struct copy_<type_(List_<T>)> { type_(List_<T>) operator()(type_(List_<T>) t) {
 	if (t == nullptr)
 		return nullptr;
-	List_<T>* r = new List_<T>();
+	type_(List_<T>) r = new_(List_<T>)();
 	for (auto i = t->B.begin(); i != t->B.end(); ++i)
 	{
 		r->B.push_back(copy_<T>()(*i));
@@ -385,10 +337,10 @@ template<typename T> struct copy_<List_<T>*> { List_<T>* operator()(List_<T>* t)
 	}
 	return r;
 }};
-template<typename T> struct copy_<Stack_<T>*> { Stack_<T>* operator()(Stack_<T>* t) {
+template<typename T> struct copy_<type_(Stack_<T>)> { type_(Stack_<T>) operator()(type_(Stack_<T>) t) {
 	if (t == nullptr)
 		return nullptr;
-	Stack_<T>* r = new Stack_<T>();
+	type_(Stack_<T>) r = new_(Stack_<T>)();
 	std::stack<T> b;
 	while (!t->B.empty())
 	{
@@ -403,10 +355,10 @@ template<typename T> struct copy_<Stack_<T>*> { Stack_<T>* operator()(Stack_<T>*
 	}
 	return r;
 }};
-template<typename T> struct copy_<Queue_<T>*> { Queue_<T>* operator()(Queue_<T>* t) {
+template<typename T> struct copy_<type_(Queue_<T>)> { type_(Queue_<T>) operator()(type_(Queue_<T>) t) {
 	if (t == nullptr)
 		return nullptr;
-	Queue_<T>* r = new Queue_<T>();
+	type_(Queue_<T>) r = new_(Queue_<T>)();
 	std::queue<T> b;
 	while (!t->B.empty())
 	{
@@ -421,20 +373,20 @@ template<typename T> struct copy_<Queue_<T>*> { Queue_<T>* operator()(Queue_<T>*
 	}
 	return r;
 }};
-template<typename T1, typename T2> struct copy_<Dict_<T1, T2>*> { Dict_<T1, T2>* operator()(Dict_<T1, T2>* t) {
+template<typename T1, typename T2> struct copy_<type_(Dict_<T1, T2>)> { type_(Dict_<T1, T2>) operator()(type_(Dict_<T1, T2>) t) {
 	if (t == nullptr)
 		return nullptr;
-	Dict_<T1, T2>* r = new Dict_<T1, T2>();
+	type_(Dict_<T1, T2>) r = new_(Dict_<T1, T2>)();
 	r->L = t->L;
 	r->B = dictCopyRec_<T1, T2>(t->B);
 	return r;
 }};
-template<typename T> struct copy_<T*> { T* operator()(T* t) {
+template<typename T> struct copy_<type_(T)> { type_(T) operator()(type_(T) t) {
 	if (std::is_class<T>::value)
 	{
 		if (t == nullptr)
 			return nullptr;
-		return reinterpret_cast<T*>(reinterpret_cast<Class_*(*)(Class_*)>(classTable_[t->Y + 4])(t));
+		return reinterpret_cast<type_(T)>(reinterpret_cast<type_(Class_)(*)(type_(Class_))>(classTable_[t->Y + 4])(t));
 	}
 	else
 		return t;
@@ -448,33 +400,33 @@ template<> struct copy_ <uint16_t> { uint16_t operator()(uint16_t t) { return t;
 template<> struct copy_ <uint32_t> { uint32_t operator()(uint32_t t) { return t; } };
 template<> struct copy_ <uint64_t> { uint64_t operator()(uint64_t t) { return t; } };
 
-static Array_<char16_t>* toStr_(int64_t v) {
+static type_(Array_<char16_t>) toStr_(int64_t v) {
 	std::stringstream s;
 	s << v;
 	const std::string& t = s.str();
-	Array_<char16_t>* r = new Array_<char16_t>();
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->B = newPrimArray_(t.size() + 1, char16_t);
 	int64_t p = 0;
 	for (char c : t)
 		r->B[p++] = c;
 	r->B[t.size()] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(char16_t v) {
-	Array_<char16_t>* r = new Array_<char16_t>();
+static type_(Array_<char16_t>) toStr_(char16_t v) {
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(1);
-	r->B = new char16_t[2];
+	r->B = newPrimArray_(2, char16_t);
 	r->B[0] = v;
 	r->B[1] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(bool v) {
-	Array_<char16_t>* r = new Array_<char16_t>();
+static type_(Array_<char16_t>) toStr_(bool v) {
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	if (v)
 	{
 		r->L = static_cast<int64_t>(4);
-		r->B = new char16_t[5];
+		r->B = newPrimArray_(5, char16_t);
 		r->B[0] = 't';
 		r->B[1] = 'r';
 		r->B[2] = 'u';
@@ -484,7 +436,7 @@ static Array_<char16_t>* toStr_(bool v) {
 	else
 	{
 		r->L = static_cast<int64_t>(5);
-		r->B = new char16_t[6];
+		r->B = newPrimArray_(6, char16_t);
 		r->B[0] = 'f';
 		r->B[1] = 'a';
 		r->B[2] = 'l';
@@ -494,80 +446,76 @@ static Array_<char16_t>* toStr_(bool v) {
 	}
 	return r;
 }
-static Array_<char16_t>* toStr_(double v) {
+static type_(Array_<char16_t>) toStr_(double v) {
 	std::stringstream s;
 	s << std::setprecision(16) << v;
 	const std::string& t = s.str();
-	Array_<char16_t>* r = new Array_<char16_t>();
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->B = newPrimArray_(t.size() + 1, char16_t);
 	int64_t p = 0;
 	for (char c : t)
 		r->B[p++] = c;
 	r->B[t.size()] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(uint8_t v) {
+static type_(Array_<char16_t>) toStr_(uint8_t v) {
 	std::stringstream s;
 	s << "0x" << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << static_cast<uint16_t>(v);
 	const std::string& t = s.str();
-	Array_<char16_t>* r = new Array_<char16_t>();
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->B = newPrimArray_(t.size() + 1, char16_t);
 	int64_t p = 0;
 	for (char c : t)
 		r->B[p++] = c;
 	r->B[t.size()] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(uint16_t v) {
+static type_(Array_<char16_t>) toStr_(uint16_t v) {
 	std::stringstream s;
 	s << "0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << v;
 	const std::string& t = s.str();
-	Array_<char16_t>* r = new Array_<char16_t>();
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->B = newPrimArray_(t.size() + 1, char16_t);
 	int64_t p = 0;
 	for (char c : t)
 		r->B[p++] = c;
 	r->B[t.size()] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(uint32_t v) {
+static type_(Array_<char16_t>) toStr_(uint32_t v) {
 	std::stringstream s;
 	s << "0x" << std::uppercase << std::setfill('0') << std::setw(8) << std::hex << v;
 	const std::string& t = s.str();
-	Array_<char16_t>* r = new Array_<char16_t>();
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->B = newPrimArray_(t.size() + 1, char16_t);
 	int64_t p = 0;
 	for (char c : t)
 		r->B[p++] = c;
 	r->B[t.size()] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(uint64_t v) {
+static type_(Array_<char16_t>) toStr_(uint64_t v) {
 	std::stringstream s;
 	s << "0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << v;
 	const std::string& t = s.str();
-	Array_<char16_t>* r = new Array_<char16_t>();
+	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->B = newPrimArray_(t.size() + 1, char16_t);
 	int64_t p = 0;
 	for (char c : t)
 		r->B[p++] = c;
 	r->B[t.size()] = 0;
 	return r;
 }
-static Array_<char16_t>* toStr_(Array_<char16_t>* v) {
-	Array_<char16_t>* r = new Array_<char16_t>();
-	r->L = v->L;
-	r->B = new char16_t[static_cast<size_t>(v->L) + 1];
-	memcpy(r->B, v->B, sizeof(char16_t) * (static_cast<size_t>(v->L) + 1));
-	return r;
+static type_(Array_<char16_t>) toStr_(type_(Array_<char16_t>) v) {
+	return v;
 }
 
-static int64_t cmp_(Array_<char16_t>* a, Array_<char16_t>* b) {
+static int64_t cmp_(type_(Array_<char16_t>) a, type_(Array_<char16_t>) b) {
 	int64_t p = 0;
 	while (p < a->L && p < b->L)
 	{
@@ -577,7 +525,7 @@ static int64_t cmp_(Array_<char16_t>* a, Array_<char16_t>* b) {
 	}
 	return a->L > b->L ? 1 : (a->L < b->L ? -1 : 0);
 }
-static int64_t cmp_(Class_* a, Class_* b) { return reinterpret_cast<int64_t(*)(Class_*, Class_*)>(classTable_[a->Y + 3])(a, b); }
+static int64_t cmp_(type_(Class_) a, type_(Class_) b) { return reinterpret_cast<int64_t(*)(type_(Class_), type_(Class_))>(classTable_[a->Y + 3])(a, b); }
 static int64_t cmp_(int64_t a, int64_t b) { return a - b; }
 static int64_t cmp_(char16_t a, char16_t b) { return static_cast<int64_t>(a) - static_cast<int64_t>(b); }
 static int64_t cmp_(double a, double b) { return a > b ? 1LL : (a < b ? -1LL : 0LL); }
@@ -586,33 +534,33 @@ static int64_t cmp_(uint16_t a, uint16_t b) { return static_cast<int64_t>(a) - s
 static int64_t cmp_(uint32_t a, uint32_t b) { return static_cast<int64_t>(a) - static_cast<int64_t>(b); }
 static int64_t cmp_(uint64_t a, uint64_t b) { return a > b ? 1LL : (a < b ? -1LL : 0LL); }
 
-static Array_<uint8_t>* makeBin_(const void* v, size_t s) {
-	Array_<uint8_t>* r = new Array_<uint8_t>();
+static type_(Array_<uint8_t>) makeBin_(const void* v, size_t s) {
+	type_(Array_<uint8_t>) r = new_(Array_<uint8_t>)();
 	r->L = s;
-	r->B = new uint8_t[s];
+	r->B = newPrimArray_(s, uint8_t);
 	memcpy(r->B, v, s);
 	return r;
 }
-static void mergeBin_(Array_<uint8_t>* a, const Array_<uint8_t>* b) {
+static void mergeBin_(type_(Array_<uint8_t>) a, const type_(Array_<uint8_t>) b) {
 	int64_t l = a->L + b->L;
-	uint8_t* d = new uint8_t[static_cast<size_t>(l)];
+	uint8_t* d = newPrimArray_(static_cast<size_t>(l), uint8_t);
 	memcpy(d, a->B, static_cast<size_t>(a->L));
 	memcpy(d + a->L, b->B, static_cast<size_t>(b->L));
 	a->L = l;
 	a->B = d;
 }
 template<typename T> struct toBin_ {};
-template<typename T> struct toBin_<Array_<T>*> { Array_<uint8_t>* operator()(Array_<T>* v) {
+template<typename T> struct toBin_<type_(Array_<T>)> { type_(Array_<uint8_t>) operator()(type_(Array_<T>) v) {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-	Array_<uint8_t>* r = makeBin_(&v->L, sizeof(int64_t));
+	type_(Array_<uint8_t>) r = makeBin_(&v->L, sizeof(int64_t));
 	for (int64_t i = 0; i < v->L; i++)
 		mergeBin_(r, toBin_<T>()(v->B[i]));
 	return r;
 }};
-template<typename T> struct toBin_<List_<T>*> { Array_<uint8_t>* operator()(List_<T>* v) {
+template<typename T> struct toBin_<type_(List_<T>)> { type_(Array_<uint8_t>) operator()(type_(List_<T>) v) {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
 	int64_t s = static_cast<int64_t>(v->B.size());
-	Array_<uint8_t>* r = makeBin_(&s, sizeof(int64_t));
+	type_(Array_<uint8_t>) r = makeBin_(&s, sizeof(int64_t));
 	int64_t c = 0, d = -1;
 	for (auto i = v->B.begin(); i != v->B.end(); ++i, ++c) if (i == v->I) { d = c; break; }
 	mergeBin_(r, makeBin_(&d, sizeof(int64_t)));
@@ -620,11 +568,11 @@ template<typename T> struct toBin_<List_<T>*> { Array_<uint8_t>* operator()(List
 		mergeBin_(r, toBin_<T>()(n));
 	return r;
 }};
-template<typename T> struct toBin_<Stack_<T>*> { Array_<uint8_t>* operator()(Stack_<T>* v) {
+template<typename T> struct toBin_<type_(Stack_<T>)> { type_(Array_<uint8_t>) operator()(type_(Stack_<T>) v) {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
 	int64_t s = static_cast<int64_t>(v->B.size());
 	std::stack<T> b;
-	Array_<uint8_t>* r = makeBin_(&s, sizeof(int64_t));
+	type_(Array_<uint8_t>) r = makeBin_(&s, sizeof(int64_t));
 	while (!v->B.empty())
 	{
 		b.push(v->B.top());
@@ -639,11 +587,11 @@ template<typename T> struct toBin_<Stack_<T>*> { Array_<uint8_t>* operator()(Sta
 	}
 	return r;
 }};
-template<typename T> struct toBin_<Queue_<T>*> { Array_<uint8_t>* operator()(Queue_<T>* v) {
+template<typename T> struct toBin_<type_(Queue_<T>)> { type_(Array_<uint8_t>) operator()(type_(Queue_<T>) v) {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
 	int64_t s = static_cast<int64_t>(v->B.size());
 	std::queue<T> b;
-	Array_<uint8_t>* r = makeBin_(&s, sizeof(int64_t));
+	type_(Array_<uint8_t>) r = makeBin_(&s, sizeof(int64_t));
 	while (!v->B.empty())
 	{
 		T n = v->B.front();
@@ -658,18 +606,18 @@ template<typename T> struct toBin_<Queue_<T>*> { Array_<uint8_t>* operator()(Que
 	}
 	return r;
 }};
-template<typename T1, typename T2> struct toBin_<Dict_<T1, T2>*> { Array_<uint8_t>* operator()(Dict_<T1, T2>* v) {
+template<typename T1, typename T2> struct toBin_<type_(Dict_<T1, T2>)> { type_(Array_<uint8_t>) operator()(type_(Dict_<T1, T2>) v) {
 	if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-	Array_<uint8_t>* r = makeBin_(&v->L, sizeof(int64_t));
+	type_(Array_<uint8_t>) r = makeBin_(&v->L, sizeof(int64_t));
 	dictToBinRec_<T1, T2>(r, v->B);
 	return r;
 }};
-template<typename T> struct toBin_<T*> { Array_<uint8_t>* operator()(T* v) {
+template<typename T> struct toBin_<type_(T)> { type_(Array_<uint8_t>) operator()(type_(T) v) {
 	if (std::is_class<T>::value)
 	{
 		if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-		Array_<uint8_t>* r = makeBin_(&v->Y, sizeof(int64_t));
-		mergeBin_(r, reinterpret_cast<Array_<uint8_t>*(*)(Class_*)>(classTable_[v->Y + 5])(v));
+		type_(Array_<uint8_t>) r = makeBin_(&v->Y, sizeof(int64_t));
+		mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[v->Y + 5])(v));
 		return r;
 	}
 	else
@@ -678,34 +626,34 @@ template<typename T> struct toBin_<T*> { Array_<uint8_t>* operator()(T* v) {
 		return makeBin_(&p, sizeof(p));
 	}
 }};
-template<> struct toBin_<int64_t> { Array_<uint8_t>* operator()(int64_t v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<double> { Array_<uint8_t>* operator()(double v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<char16_t> { Array_<uint8_t>* operator()(char16_t v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<bool> { Array_<uint8_t>* operator()(bool v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<uint8_t> { Array_<uint8_t>* operator()(uint8_t v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<uint16_t> { Array_<uint8_t>* operator()(uint16_t v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<uint32_t> { Array_<uint8_t>* operator()(uint32_t v) { return makeBin_(&v, sizeof(v)); } };
-template<> struct toBin_<uint64_t> { Array_<uint8_t>* operator()(uint64_t v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<int64_t> { type_(Array_<uint8_t>) operator()(int64_t v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<double> { type_(Array_<uint8_t>) operator()(double v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<char16_t> { type_(Array_<uint8_t>) operator()(char16_t v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<bool> { type_(Array_<uint8_t>) operator()(bool v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<uint8_t> { type_(Array_<uint8_t>) operator()(uint8_t v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<uint16_t> { type_(Array_<uint8_t>) operator()(uint16_t v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<uint32_t> { type_(Array_<uint8_t>) operator()(uint32_t v) { return makeBin_(&v, sizeof(v)); } };
+template<> struct toBin_<uint64_t> { type_(Array_<uint8_t>) operator()(uint64_t v) { return makeBin_(&v, sizeof(v)); } };
 
 template<typename T> struct fromBin_ {};
-template<typename T> struct fromBin_<Array_<T>*> { Array_<T>* operator()(Array_<uint8_t>* b, int64_t& o) {
+template<typename T> struct fromBin_<type_(Array_<T>)> { type_(Array_<T>) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
 	if (l == -1) return nullptr;
-	Array_<T>* r = new Array_<T>();
+	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = l;
-	r->B = new T[static_cast<size_t>(l) + bufLen_<T>()];
+	r->B = newPrimArray_(static_cast<size_t>(l) + bufLen_<T>(), T);
 	for (int64_t i = 0; i < l; i++)
 		r->B[i] = fromBin_<T>()(b, o);
 	if (bufLen_<T>() > 0)
 		r->B[l] = 0;
 	return r;
 }};
-template<typename T> struct fromBin_<List_<T>*> { List_<T>* operator()(Array_<uint8_t>* b, int64_t& o) {
+template<typename T> struct fromBin_<type_(List_<T>)> { type_(List_<T>) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
 	if (l == -1) return nullptr;
-	List_<T>* r = new List_<T>();
+	type_(List_<T>) r = new_(List_<T>)();
 	int64_t d = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
 	for (int64_t i = 0; i < l; i++)
@@ -720,29 +668,29 @@ template<typename T> struct fromBin_<List_<T>*> { List_<T>* operator()(Array_<ui
 	}
 	return r;
 }};
-template<typename T> struct fromBin_<Stack_<T>*> { Stack_<T>* operator()(Array_<uint8_t>* b, int64_t& o) {
+template<typename T> struct fromBin_<type_(Stack_<T>)> { type_(Stack_<T>) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
 	if (l == -1) return nullptr;
-	Stack_<T>* r = new Stack_<T>();
+	type_(Stack_<T>) r = new_(Stack_<T>)();
 	for (int64_t i = 0; i < l; i++)
 		r->B.push(fromBin_<T>()(b, o));
 	return r;
 }};
-template<typename T> struct fromBin_<Queue_<T>*> { Queue_<T>* operator()(Array_<uint8_t>* b, int64_t& o) {
+template<typename T> struct fromBin_<type_(Queue_<T>)> { type_(Queue_<T>) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
 	if (l == -1) return nullptr;
-	Queue_<T>* r = new Queue_<T>();
+	type_(Queue_<T>) r = new_(Queue_<T>)();
 	for (int64_t i = 0; i < l; i++)
 		r->B.push(fromBin_<T>()(b, o));
 	return r;
 }};
-template<typename T1, typename T2> struct fromBin_<Dict_<T1, T2>*> { Dict_<T1, T2>* operator()(Array_<uint8_t>* b, int64_t& o) {
+template<typename T1, typename T2> struct fromBin_<type_(Dict_<T1, T2>)> { type_(Dict_<T1, T2>) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
 	int64_t l = *reinterpret_cast<int64_t*>(b->B + o);
 	o += sizeof(int64_t);
 	if (l == -1) return nullptr;
-	Dict_<T1, T2>* r = new Dict_<T1, T2>();
+	type_(Dict_<T1, T2>) r = new_(Dict_<T1, T2>)();
 	r->L = l;
 	for (int64_t i = 0; i < l; i++)
 	{
@@ -752,13 +700,13 @@ template<typename T1, typename T2> struct fromBin_<Dict_<T1, T2>*> { Dict_<T1, T
 	}
 	return r;
 }};
-template<typename T> struct fromBin_<T*> { T* operator()(Array_<uint8_t>* b, int64_t& o) {
+template<typename T> struct fromBin_<type_(T)> { type_(T) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
 	if (std::is_class<T>::value)
 	{
 		int64_t y = *reinterpret_cast<int64_t*>(b->B + o);
 		o += sizeof(int64_t);
 		if (y == -1) return nullptr;
-		return reinterpret_cast<T*>(reinterpret_cast<Class_*(*)(Class_*, Array_<uint8_t>*, int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
+		return reinterpret_cast<type_(T)>(reinterpret_cast<type_(Class_)(*)(type_(Class_), type_(Array_<uint8_t>), int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
 	}
 	else
 	{
@@ -766,23 +714,23 @@ template<typename T> struct fromBin_<T*> { T* operator()(Array_<uint8_t>* b, int
 		return nullptr;
 	}
 }};
-template<> struct fromBin_<int64_t> { int64_t operator()(Array_<uint8_t>* b, int64_t& o) { int64_t r = *reinterpret_cast<int64_t*>(b->B + o); o += sizeof(int64_t); return r; } };
-template<> struct fromBin_<double> { double operator()(Array_<uint8_t>* b, int64_t& o) { double r = *reinterpret_cast<double*>(b->B + o); o += sizeof(double); return r; } };
-template<> struct fromBin_<char16_t> { char16_t operator()(Array_<uint8_t>* b, int64_t& o) { char16_t r = *reinterpret_cast<char16_t*>(b->B + o); o += sizeof(char16_t); return r; } };
-template<> struct fromBin_<bool> { bool operator()(Array_<uint8_t>* b, int64_t& o) { bool r = *reinterpret_cast<bool*>(b->B + o); o += sizeof(bool); return r; } };
-template<> struct fromBin_<uint8_t> { uint8_t operator()(Array_<uint8_t>* b, int64_t& o) { uint8_t r = *reinterpret_cast<uint8_t*>(b->B + o); o += sizeof(uint8_t); return r; } };
-template<> struct fromBin_<uint16_t> { uint16_t operator()(Array_<uint8_t>* b, int64_t& o) { uint16_t r = *reinterpret_cast<uint16_t*>(b->B + o); o += sizeof(uint16_t); return r; } };
-template<> struct fromBin_<uint32_t> { uint32_t operator()(Array_<uint8_t>* b, int64_t& o) { uint32_t r = *reinterpret_cast<uint32_t*>(b->B + o); o += sizeof(uint32_t); return r; } };
-template<> struct fromBin_<uint64_t> { uint64_t operator()(Array_<uint8_t>* b, int64_t& o) { uint64_t r = *reinterpret_cast<uint64_t*>(b->B + o); o += sizeof(uint64_t); return r; } };
+template<> struct fromBin_<int64_t> { int64_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { int64_t r = *reinterpret_cast<int64_t*>(b->B + o); o += sizeof(int64_t); return r; } };
+template<> struct fromBin_<double> { double operator()(type_(Array_<uint8_t>) b, int64_t& o) { double r = *reinterpret_cast<double*>(b->B + o); o += sizeof(double); return r; } };
+template<> struct fromBin_<char16_t> { char16_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { char16_t r = *reinterpret_cast<char16_t*>(b->B + o); o += sizeof(char16_t); return r; } };
+template<> struct fromBin_<bool> { bool operator()(type_(Array_<uint8_t>) b, int64_t& o) { bool r = *reinterpret_cast<bool*>(b->B + o); o += sizeof(bool); return r; } };
+template<> struct fromBin_<uint8_t> { uint8_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint8_t r = *reinterpret_cast<uint8_t*>(b->B + o); o += sizeof(uint8_t); return r; } };
+template<> struct fromBin_<uint16_t> { uint16_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint16_t r = *reinterpret_cast<uint16_t*>(b->B + o); o += sizeof(uint16_t); return r; } };
+template<> struct fromBin_<uint32_t> { uint32_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint32_t r = *reinterpret_cast<uint32_t*>(b->B + o); o += sizeof(uint32_t); return r; } };
+template<> struct fromBin_<uint64_t> { uint64_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint64_t r = *reinterpret_cast<uint64_t*>(b->B + o); o += sizeof(uint64_t); return r; } };
 
-template<typename T> Array_<T>* sub_(Array_<T>* a, int64_t start, int64_t len) {
+template<typename T> type_(Array_<T>) sub_(type_(Array_<T>) a, int64_t start, int64_t len) {
 	if (len == -1)
 		len = a->L - start;
 	if (start < 0 || len < 0 || start + len > a->L)
 		return nullptr;
-	Array_<T>* r = new Array_<T>();
+	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = len;
-	r->B = new T[static_cast<size_t>(len + bufLen_<T>())];
+	r->B = newPrimArray_(static_cast<size_t>(len + bufLen_<T>()), T);
 	for (int64_t i = 0; i < len; i++)
 		r->B[i] = a->B[start + i];
 	if (bufLen_<T>() > 0)
@@ -790,21 +738,21 @@ template<typename T> Array_<T>* sub_(Array_<T>* a, int64_t start, int64_t len) {
 	return r;
 }
 
-template<typename T> T* as_(const int64_t* y, Class_* c, int64_t o) {
+template<typename T> type_(T) as_(const int64_t* y, type_(Class_) c, int64_t o) {
 	if (c == nullptr)
 		return nullptr;
 	int64_t m = c->Y;
 	for (; ; )
 	{
 		if (m == o)
-			return reinterpret_cast<T*>(c);
+			return reinterpret_cast<type_(T)>(c);
 		if (m == 0)
 			return nullptr;
 		m = y[m];
 	}
 }
 
-static bool is_(const int64_t* y, Class_* c, int64_t o) {
+static bool is_(const int64_t* y, type_(Class_) c, int64_t o) {
 	int64_t m = c->Y;
 	for (; ; )
 	{
@@ -816,7 +764,7 @@ static bool is_(const int64_t* y, Class_* c, int64_t o) {
 	}
 }
 
-template<typename T> T min_(Array_<T>* a) {
+template<typename T> T min_(type_(Array_<T>) a) {
 	if (a->L == 0)
 		return (T)0;
 	T r = a->B[0];
@@ -828,7 +776,7 @@ template<typename T> T min_(Array_<T>* a) {
 	return r;
 }
 
-template<typename T> T max_(Array_<T>* a) {
+template<typename T> T max_(type_(Array_<T>) a) {
 	if (a->L == 0)
 		return (T)0;
 	T r = a->B[0];
@@ -840,12 +788,15 @@ template<typename T> T max_(Array_<T>* a) {
 	return r;
 }
 
-template<typename T> Array_<T>* repeat_(Array_<T>* a, int64_t n) {
-	Array_<T>* r = new Array_<T>();
+template<typename T> type_(Array_<T>) repeat_(type_(Array_<T>) a, int64_t n) {
+	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = a->L * n;
-	r->B = new T[static_cast<size_t>(r->L) + bufLen_<T>()];
+	r->B = newPrimArray_(static_cast<size_t>(r->L) + bufLen_<T>(), T);
 	for (int64_t i = 0; i < n; i++)
-		memcpy(r->B + i * a->L, a->B, sizeof(T) * static_cast<size_t>(a->L));
+	{
+		for (int64_t j = 0; j < a->L; j++)
+			r->B[i * a->L + j] = a->B[j];
+	}
 	if (bufLen_<T>() > 0)
 		r->B[r->L] = 0;
 	return r;
@@ -855,7 +806,7 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, 
 	if (n == nullptr)
 	{
 		*a = true;
-		return new dictImpl_<T1, T2>(k, v);
+		return newPrim_(dictImpl_<T1, T2>)(k, v);
 	}
 	{
 		int64_t c = cmp_(k, n->K);
@@ -901,13 +852,13 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n) {
 	if (n == nullptr)
 		return nullptr;
-	dictImpl_<T1, T2>* r = new dictImpl_<T1, T2>(copy_<T1>()(n->K), copy_<T2>()(n->V));
+	dictImpl_<T1, T2>* r = newPrim_(dictImpl_<T1, T2>)(copy_<T1>()(n->K), copy_<T2>()(n->V));
 	r->R = n->R;
 	r->CL = dictCopyRec_(n->CL);
 	r->CR = dictCopyRec_(n->CR);
 	return r;
 }
-template<typename T1, typename T2> void dictToBinRec_(Array_<uint8_t>* a, dictImpl_<T1, T2>* d) {
+template<typename T1, typename T2> void dictToBinRec_(type_(Array_<uint8_t>) a, dictImpl_<T1, T2>* d) {
 	if (d->CL != nullptr)
 		dictToBinRec_(a, d->CL);
 	mergeBin_(a, toBin_<T1>()(d->K));
@@ -933,7 +884,7 @@ template<typename T1, typename T2> T2 dictSearch_(dictImpl_<T1, T2>* r, T1 k, bo
 	*f = false;
 	return (T2)0;
 }
-template<typename T1, typename T2> bool dictForEach_(dictImpl_<T1, T2>* r, bool(*f)(T1, T2, Class_*), Class_* p) {
+template<typename T1, typename T2> bool dictForEach_(dictImpl_<T1, T2>* r, bool(*f)(T1, T2, type_(Class_)), type_(Class_) p) {
 	if (r == nullptr)
 		return true;
 	if (!dictForEach_<T1, T2>(r->CL, f, p))
@@ -959,7 +910,7 @@ template<typename T1, typename T2> bool dictExist_(dictImpl_<T1, T2>* r, T1 k) {
 	return false;
 }
 
-static bool eqAddr_(const Ref_* a, const Ref_* b) { return a == b; }
+static bool eqAddr_(const void* a, const void* b) { return a == b; }
 
 static uint32_t rX_, rY_, rZ_, rW_;
 static uint32_t xs128_() {
@@ -1018,9 +969,9 @@ static int64_t powI_(int64_t a, int64_t b) {
 	return r;
 }
 
-template<typename T> void reverse_(Array_<T>* me) { std::reverse<T*>(me->B, me->B + me->L); }
+template<typename T> void reverse_(type_(Array_<T>) me) { std::reverse<T*>(me->B, me->B + me->L); }
 template<typename T> bool sortCmp_(const T& a, const T& b) { return cmp_(a, b) < 0; }
-template<typename T> void sort_(Array_<T>* me) { std::sort<T*, bool(*)(const T&, const T&)>(me->B, me->B + me->L, sortCmp_<T>); }
+template<typename T> void sort_(type_(Array_<T>) me) { std::sort<T*, bool(*)(const T&, const T&)>(me->B, me->B + me->L, sortCmp_<T>); }
 static uint8_t sar_(uint8_t me_, int64_t n) { return static_cast<uint8_t>(static_cast<int8_t>(me_) >> n); }
 static uint16_t sar_(uint16_t me_, int64_t n) { return static_cast<uint16_t>(static_cast<int16_t>(me_) >> n); }
 static uint32_t sar_(uint32_t me_, int64_t n) { return static_cast<uint32_t>(static_cast<int32_t>(me_) >> n); }
@@ -1040,12 +991,12 @@ static uint64_t endian_(uint64_t me_)
 }
 
 struct reader_ {
-	reader_() : F(new std::ifstream()) {}
+	reader_() : F(newPrim_(std::ifstream)()) {}
 	std::ifstream* F;
 };
 
 struct writer_ {
-	writer_() : F(new std::ofstream()) {}
+	writer_() : F(newPrim_(std::ofstream)()) {}
 	std::ofstream* F;
 };
 

@@ -965,36 +965,42 @@ func buildExprNew(ast: \ast@AstExprNew)
 	if(\ast@isClass(ast.itemType))
 		var class_: \ast@AstClass :: ast.itemType.refItem $ \ast@AstClass
 		var id: []char :: @refClass(class_)
-		do @codes.add("new \{id}()")
+		do @codes.add("new_(\{id})()")
 	else
 		if(ast.itemType.typeId = %typeGen)
 			var gen: \ast@AstTypeGen :: ast.itemType $ \ast@AstTypeGen
 			switch(gen.kind)
 			case %list_
-				do @codes.add("new List_<\{@getType(gen.itemType)}>()")
+				do @codes.add("new_(List_<\{@getType(gen.itemType)}>)()")
 			case %stack_
-				do @codes.add("new Stack_<\{@getType(gen.itemType)}>()")
+				do @codes.add("new_(Stack_<\{@getType(gen.itemType)}>)()")
 			case %queue_
-				do @codes.add("new Queue_<\{@getType(gen.itemType)}>()")
+				do @codes.add("new_(Queue_<\{@getType(gen.itemType)}>)()")
 			default
 				assert false
 			end switch
 		else
 			assert ast.itemType.typeId = %typeDict
 			var dict_: \ast@AstTypeDict :: ast.itemType $ \ast@AstTypeDict
-			do @codes.add("new Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>()")
+			do @codes.add("new_(Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>)()")
 		end if
 	end if
 end func
 
 func buildExprNewArray(ast: \ast@AstExprNewArray)
 	assert ast.varKind <> %unknown
-	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{@getType(ast.type)}>(\{^ast.idces}")
+	do @codes.add("newArrays_<\{@getType(ast.type)}>(")
 	block
+		var first: bool :: true
 		var items: list<\ast@AstExpr> :: ast.idces
 		do items.head()
 		while(!items.term())
-			do @codes.add(", (")
+			if(first)
+				do first :: false
+				do @codes.add("(")
+			else
+				do @codes.add(", (")
+			end if
 			do @buildExpr(items.get())
 			do @codes.add(")")
 			do items.next()
@@ -1222,12 +1228,19 @@ end func
 
 func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
-	var s: []char :: "new Array_<char16_t>(\{^value}"
-	for i(0, ^value - 1)
-		do s :~ ", u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
-	end for
-	do s :~ ")"
-	do @codes.add(s)
+	if(^value = 0)
+		do @codes.add("emptyStr_()")
+	else
+		var s: []char :: "new_(Array_<char16_t>)("
+		for i(0, ^value - 1)
+			if(i <> 0)
+				do s :~ ", "
+			end if
+			do s :~ "u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
+		end for
+		do s :~ ")"
+		do @codes.add(s)
+	end if
 end func
 
 func buildExprValueFloat(ast: \ast@AstExprValueFloat)
@@ -1243,11 +1256,18 @@ end func
 
 func buildExprValueArray(ast: \ast@AstExprValueArray)
 	; Note that constant string values are handled by 'ExprValueStr'.
-	do @codes.add("new Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>(\{^ast.values}")
+	do @codes.add("new_(Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>)(")
+	var first: bool :: true
 	var items: list<\ast@AstExpr> :: ast.values
+	assert ^ items > 0
 	do items.head()
 	while(!items.term())
-		do @codes.add(", (")
+		if(first)
+			do first :: false
+			do @codes.add("(")
+		else
+			do @codes.add(", (")
+		end if
 		do @buildExpr(items.get())
 		do @codes.add(")")
 		do items.next()
@@ -1316,12 +1336,20 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
 		end if
 		if(@gc)
-			do writer.writeStr("#include <memory>")
-			do writer.writeStr("#define new_(x) std::make_shared<x>")
-			do writer.writeStr("#define type_(x) std::shared_ptr<x>")
+			do writer.writeStr("#include <memory>\n")
+			do writer.writeStr("#define new_(...) std::make_shared<__VA_ARGS__>\n")
+			do writer.writeStr("#define type_(...) std::shared_ptr<__VA_ARGS__>\n")
+			do writer.writeStr("#define newPrim_(...) new __VA_ARGS__\n")
+			do writer.writeStr("#define delPrim_(x) delete x\n")
+			do writer.writeStr("#define newPrimArray_(x, ...) new ...[x]\n")
+			do writer.writeStr("#define delPrimArray_(x) delete[] x\n")
 		else
-			do writer.writeStr("#define new_(x) newImpl_<x>\n")
-			do writer.writeStr("#define type_(x) x*\n")
+			do writer.writeStr("#define new_(...) newImpl_<__VA_ARGS__>\n")
+			do writer.writeStr("#define type_(...) __VA_ARGS__*\n")
+			do writer.writeStr("#define newPrim_(...) newImpl_<__VA_ARGS__>\n")
+			do writer.writeStr("#define delPrim_(x)\n")
+			do writer.writeStr("#define newPrimArray_(x, __VA_ARGS__) newArrayImpl_<__VA_ARGS__>(x)\n")
+			do writer.writeStr("#define delPrimArray_(x)\n")
 			do writer.writeStr("struct MemList_{\n")
 			do writer.writeStr("void* B_;\n")
 			do writer.writeStr("MemList_* N_;\n")
@@ -1329,9 +1357,9 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("static MemList_* TopMem_ = nullptr;\n")
 			do writer.writeStr("static MemList_* CurMem_ = nullptr;\n")
 			do writer.writeStr("static void* CurMemBuf_ = nullptr;\n")
-			do writer.writeStr("template<typename T, typename... A>\n")
-			do writer.writeStr("static T* newImpl_(A... a){\n")
-			do writer.writeStr("if (static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) >= static_cast<uint8_t*>(CurMem_->B_) + 32 * 1024 * 1024){\n")
+			do writer.writeStr("template<typename T>\n")
+			do writer.writeStr("static T* newArrayImpl_(size_t n){\n")
+			do writer.writeStr("if (static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) * n >= static_cast<uint8_t*>(CurMem_->B_) + 32 * 1024 * 1024){\n")
 			do writer.writeStr("MemList_* n_ = new MemList_();\n")
 			do writer.writeStr("n_->B_ = new uint8_t[32 * 1024 * 1024];\n")
 			do writer.writeStr("n_->N_ = nullptr;\n")
@@ -1340,8 +1368,12 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("CurMemBuf_ = CurMem_->B_;\n")
 			do writer.writeStr("}\n")
 			do writer.writeStr("T* r_ = static_cast<T*>(CurMemBuf_);\n")
-			do writer.writeStr("CurMemBuf_ = static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) + (7 - ((sizeof(T) + 7) & 0x07));\n")
-			do writer.writeStr("return new(r_)T(a_...);\n")
+			do writer.writeStr("CurMemBuf_ = static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) * n + (7 - ((sizeof(T) * n + 7) & 0x07));\n")
+			do writer.writeStr("return r_;\n")
+			do writer.writeStr("}\n")
+			do writer.writeStr("template<typename T, typename... A>\n")
+			do writer.writeStr("static T* newImpl_(A... a){\n")
+			do writer.writeStr("return new(newArrayImpl_<T>(1))T(a...);\n")
 			do writer.writeStr("}\n")
 		end if
 	end func
@@ -1424,13 +1456,13 @@ func getType(type: \ast@AstType): []char
 	end if
 	switch(type.typeId)
 	case %typeArray
-		ret "Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>*"
+		ret "type_(Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>)"
 	case %typeBit
 		ret "uint\{(type $ \ast@AstTypeBit).size * 8}_t"
 	case %typeFunc
 		var func_: \ast@AstTypeFunc :: type $ \ast@AstTypeFunc
 		var id: []char :: @getId()
-		do @funcPrototypes.add("typedef \{@getType(func_.ret_)}(*\{id})(")
+		do @funcPrototypes.add("using \{id} = \{@getType(func_.ret_)}(*)(")
 		block
 			var arg: []char :: ""
 			var first: bool :: true
@@ -1456,17 +1488,17 @@ func getType(type: \ast@AstType): []char
 		var gen: \ast@AstTypeGen :: type $ \ast@AstTypeGen
 		switch(gen.kind)
 		case %list_
-			ret "List_<\{@getType(gen.itemType)}>*"
+			ret "type_(List_<\{@getType(gen.itemType)}>)"
 		case %stack_
-			ret "Stack_<\{@getType(gen.itemType)}>*"
+			ret "type_(Stack_<\{@getType(gen.itemType)}>)"
 		case %queue_
-			ret "Queue_<\{@getType(gen.itemType)}>*"
+			ret "type_(Queue_<\{@getType(gen.itemType)}>)"
 		default
 			assert false
 		end switch
 	case %typeDict
 		var dict_: \ast@AstTypeDict :: type $ \ast@AstTypeDict
-		ret "Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>*"
+		ret "type_(Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>)"
 	case %typePrim
 		var prim: \ast@AstTypePrim :: type $ \ast@AstTypePrim
 		switch(prim.kind)
@@ -1486,7 +1518,7 @@ func getType(type: \ast@AstType): []char
 		if(ref.typeId = %class_)
 			do @refClass(ref $ \ast@AstClass)
 			var info: @CppInfo :: @getInfo(ref)
-			ret info.id ~ "*"
+			ret "type_(" ~ info.id ~ ")"
 		else
 			assert ref.typeId = %enum_
 			ret "int64_t"
