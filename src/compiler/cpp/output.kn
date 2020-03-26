@@ -28,7 +28,7 @@ class TmpVar()
 end class
 
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
-	do @gc :: !\option@extra.get("nogc", &)
+	do @gc :: \option@extra.get("gc", &)
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
