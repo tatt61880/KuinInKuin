@@ -10,6 +10,7 @@ var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
 var classTable: list<[]char>
+var gc: bool
 
 +class CppInfo(\ast@HasType)
 	+var id: []char
@@ -27,6 +28,7 @@ class TmpVar()
 end class
 
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
+	do @gc :: \option@extra.get("gc", &)
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
@@ -94,11 +96,11 @@ func buildFunc(ast: \ast@AstFunc)
 	elif(ast.funcOption.and(%rme) = %rme)
 		do retType :: "T_"
 	elif(ast.funcOption.and(%rac) = %rac)
-		do retType :: "Array_<C_>*"
+		do retType :: "type_(Array_<C_>)"
 	elif(ast.funcOption.and(%rak) = %rak)
-		do retType :: "Array_<K_>*"
+		do retType :: "type_(Array_<K_>)"
 	elif(ast.funcOption.and(%rav) = %rav)
-		do retType :: "Array_<V_>*"
+		do retType :: "type_(Array_<V_>)"
 	else
 		do retType :: @getType(ast.ret_)
 	end if
@@ -162,12 +164,12 @@ func buildFunc(ast: \ast@AstFunc)
 				var arg2: \ast@AstArg :: ast.args.get()
 				if(arg2.type.refItem <>& null & arg2.type.refItem.typeId = %class_)
 					var members: list<\ast@AstClassItem> :: (arg2.type.refItem $ \ast@AstClass).items
-					do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, members)
+					do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, members, @gc)
 					do hasMembers :: true
 				end if
 			end if
 			if(!hasMembers)
-				do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null)
+				do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null, @gc)
 			end if
 			do @codes.add("}\n")
 		end if
@@ -230,16 +232,7 @@ func buildClass(ast: \ast@AstClass)
 			do items.next()
 		end while
 	end block
-	do @classFuncs.add("{\n")
-	do @classFuncs.add("Y = \{info.classTableOffset};\n")
-	block
-		var ctor: \ast@AstFunc :: findFunc(ast, "ctor")
-		if(ctor <>& null)
-			var ctorInfo: @CppInfo :: @getInfo(ctor)
-			do @classFuncs.add("\{ctorInfo.id}(this);\n")
-		end if
-	end block
-	do @classFuncs.add("}\n")
+	do @classFuncs.add("{ Y = \{info.classTableOffset}; }\n")
 	; TODO: Destructor.
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
@@ -259,19 +252,6 @@ func buildClass(ast: \ast@AstClass)
 		end while
 	end block
 	do @classDefs.add("};\n")
-	
-	func findFunc(ast: \ast@AstClass, name: []char): \ast@AstFunc
-		var items: list<\ast@AstClassItem> :: ast.items
-		do items.head()
-		while(!items.term())
-			var item: \ast@AstClassItem :: items.get()
-			if(item.def.typeId = %func_ & item.def.name = name)
-				ret item.def $ \ast@AstFunc
-			end if
-			do items.next()
-		end while
-		ret null
-	end func
 end func
 
 func buildStats(stats: list<\ast@AstStat>, breakStat: \ast@AstStat, skipStat: \ast@AstStat)
@@ -860,17 +840,17 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add(")")
 		end if
 	case %eqRef
-		do @codes.add("eqAddr_((")
+		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add("), (")
+		do @codes.add(") == (")
 		do @buildExpr(ast.children1)
-		do @codes.add("))")
+		do @codes.add(")")
 	case %nEqRef
-		do @codes.add("!eqAddr_((")
+		do @codes.add("(")
 		do @buildExpr(ast.children0)
-		do @codes.add("), (")
+		do @codes.add(") != (")
 		do @buildExpr(ast.children1)
-		do @codes.add("))")
+		do @codes.add(")")
 	case %cat
 		do @codes.add("(")
 		do @buildExpr(ast.children0)
@@ -963,36 +943,49 @@ func buildExprNew(ast: \ast@AstExprNew)
 	if(\ast@isClass(ast.itemType))
 		var class_: \ast@AstClass :: ast.itemType.refItem $ \ast@AstClass
 		var id: []char :: @refClass(class_)
-		do @codes.add("new \{id}()")
+		var ctor: \ast@AstFunc :: @findFunc(class_, "ctor")
+		if(ctor =& null)
+			do @codes.add("new_(\{id})()")
+		else
+			var tmpVar: []char :: @addTmpVar("type_(\{id})")
+			var ctorInfo: @CppInfo :: @getInfo(ctor)
+			do @codes.add("(\{tmpVar} = new_(\{id})(), \{ctorInfo.id}(\{tmpVar}), \{tmpVar})")
+		end if
 	else
 		if(ast.itemType.typeId = %typeGen)
 			var gen: \ast@AstTypeGen :: ast.itemType $ \ast@AstTypeGen
 			switch(gen.kind)
 			case %list_
-				do @codes.add("new List_<\{@getType(gen.itemType)}>()")
+				do @codes.add("new_(List_<\{@getType(gen.itemType)}>)()")
 			case %stack_
-				do @codes.add("new Stack_<\{@getType(gen.itemType)}>()")
+				do @codes.add("new_(Stack_<\{@getType(gen.itemType)}>)()")
 			case %queue_
-				do @codes.add("new Queue_<\{@getType(gen.itemType)}>()")
+				do @codes.add("new_(Queue_<\{@getType(gen.itemType)}>)()")
 			default
 				assert false
 			end switch
 		else
 			assert ast.itemType.typeId = %typeDict
 			var dict_: \ast@AstTypeDict :: ast.itemType $ \ast@AstTypeDict
-			do @codes.add("new Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>()")
+			do @codes.add("new_(Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>)()")
 		end if
 	end if
 end func
 
 func buildExprNewArray(ast: \ast@AstExprNewArray)
 	assert ast.varKind <> %unknown
-	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{@getType(ast.type)}>(\{^ast.idces}")
+	do @codes.add("newArrays_<\{@getType(ast.type)}>(")
 	block
+		var first: bool :: true
 		var items: list<\ast@AstExpr> :: ast.idces
 		do items.head()
 		while(!items.term())
-			do @codes.add(", (")
+			if(first)
+				do first :: false
+				do @codes.add("(")
+			else
+				do @codes.add(", (")
+			end if
 			do @buildExpr(items.get())
 			do @codes.add(")")
 			do items.next()
@@ -1220,12 +1213,19 @@ end func
 
 func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
-	var s: []char :: "new Array_<char16_t>(\{^value}"
-	for i(0, ^value - 1)
-		do s :~ ", u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
-	end for
-	do s :~ ")"
-	do @codes.add(s)
+	if(^value = 0)
+		do @codes.add("emptyStr_()")
+	else
+		var s: []char :: "new_(Array_<char16_t>)("
+		for i(0, ^value - 1)
+			if(i <> 0)
+				do s :~ ", "
+			end if
+			do s :~ "u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
+		end for
+		do s :~ ")"
+		do @codes.add(s)
+	end if
 end func
 
 func buildExprValueFloat(ast: \ast@AstExprValueFloat)
@@ -1241,11 +1241,18 @@ end func
 
 func buildExprValueArray(ast: \ast@AstExprValueArray)
 	; Note that constant string values are handled by 'ExprValueStr'.
-	do @codes.add("new Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>(\{^ast.values}")
+	do @codes.add("new_(Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>)(")
+	var first: bool :: true
 	var items: list<\ast@AstExpr> :: ast.values
+	assert ^ items > 0
 	do items.head()
 	while(!items.term())
-		do @codes.add(", (")
+		if(first)
+			do first :: false
+			do @codes.add("(")
+		else
+			do @codes.add(", (")
+		end if
 		do @buildExpr(items.get())
 		do @codes.add(")")
 		do items.next()
@@ -1287,12 +1294,7 @@ end func
 func write(resFiles: list<[]char>)
 	if(\option@extra.get("merge", &))
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
-		do writer.writeStr("#include <cstdint>\n")
-		if(^@classTable = 0)
-			do writer.writeStr("static int64_t classTable_[1];\n")
-		else
-			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
-		end if
+		do writeCommonCode(writer)
 		var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
 		while(!reader.term())
 			var s: []char :: reader.readLine()
@@ -1305,16 +1307,63 @@ func write(resFiles: list<[]char>)
 		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
 		
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+		do writeCommonCode(writer)
+		do writer.writeStr("#include \"common.h\"\n")
+		do writeCpp(writer, resFiles)
+		do writer.fin()
+	end if
+	
+	func writeCommonCode(writer: file@Writer)
 		do writer.writeStr("#include <cstdint>\n")
 		if(^@classTable = 0)
 			do writer.writeStr("static int64_t classTable_[1];\n")
 		else
 			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
 		end if
-		do writer.writeStr("#include \"common.h\"\n")
-		do writeCpp(writer, resFiles)
-		do writer.fin()
-	end if
+		if(@gc)
+			do writer.writeStr("#include <memory>\n")
+			do writer.writeStr("#define new_(...) std::make_shared<__VA_ARGS__>\n")
+			do writer.writeStr("#define type_(...) std::shared_ptr<__VA_ARGS__>\n")
+			do writer.writeStr("#define newPrim_(...) new __VA_ARGS__\n")
+			do writer.writeStr("#define delPrim_(x) delete x\n")
+			do writer.writeStr("#define newPrimArray_(x, ...) new __VA_ARGS__[x]\n")
+			do writer.writeStr("#define delPrimArray_(x) delete[] x\n")
+			do writer.writeStr("#define dcast_(...) std::dynamic_pointer_cast<__VA_ARGS__>\n")
+		else
+			do writer.writeStr("#define new_(...) newImpl_<__VA_ARGS__>\n")
+			do writer.writeStr("#define type_(...) __VA_ARGS__*\n")
+			do writer.writeStr("#define newPrim_(...) newImpl_<__VA_ARGS__>\n")
+			do writer.writeStr("#define delPrim_(x)\n")
+			do writer.writeStr("#define newPrimArray_(x, __VA_ARGS__) newArrayImpl_<__VA_ARGS__>(x)\n")
+			do writer.writeStr("#define delPrimArray_(x)\n")
+			do writer.writeStr("#define dcast_(...) reinterpret_cast<__VA_ARGS__*>\n")
+			do writer.writeStr("struct MemList_{\n")
+			do writer.writeStr("void* B_;\n")
+			do writer.writeStr("MemList_* N_;\n")
+			do writer.writeStr("};\n")
+			do writer.writeStr("static MemList_* TopMem_ = nullptr;\n")
+			do writer.writeStr("static MemList_* CurMem_ = nullptr;\n")
+			do writer.writeStr("static void* CurMemBuf_ = nullptr;\n")
+			do writer.writeStr("template<typename T>\n")
+			do writer.writeStr("static T* newArrayImpl_(size_t n){\n")
+			do writer.writeStr("if (static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) * n >= static_cast<uint8_t*>(CurMem_->B_) + 32 * 1024 * 1024){\n")
+			do writer.writeStr("MemList_* n_ = new MemList_();\n")
+			do writer.writeStr("n_->B_ = new uint8_t[32 * 1024 * 1024];\n")
+			do writer.writeStr("n_->N_ = nullptr;\n")
+			do writer.writeStr("CurMem_->N_ = n_;\n")
+			do writer.writeStr("CurMem_ = n_;\n")
+			do writer.writeStr("CurMemBuf_ = CurMem_->B_;\n")
+			do writer.writeStr("}\n")
+			do writer.writeStr("T* r_ = static_cast<T*>(CurMemBuf_);\n")
+			do writer.writeStr("CurMemBuf_ = static_cast<uint8_t*>(CurMemBuf_) + sizeof(T) * n + (7 - ((sizeof(T) * n + 7) & 0x07));\n")
+			do writer.writeStr("return r_;\n")
+			do writer.writeStr("}\n")
+			do writer.writeStr("template<typename T, typename... A>\n")
+			do writer.writeStr("static T* newImpl_(A... a){\n")
+			do writer.writeStr("return new(newArrayImpl_<T>(1))T(a...);\n")
+			do writer.writeStr("}\n")
+		end if
+	end func
 	
 	func writeCpp(writer: file@Writer, resFiles: list<[]char>)
 		do writer.writeStr("namespace {\n")
@@ -1353,6 +1402,15 @@ func write(resFiles: list<[]char>)
 		do writer.writeStr("int main(int c_, char** v_){\n")
 		do writer.writeStr("argc_ = static_cast<int64_t>(c_) - 1;\n")
 		do writer.writeStr("argv_ = v_ + 1;\n")
+		if(!@gc)
+			do writer.writeStr("{\n")
+			do writer.writeStr("CurMem_ = new MemList_();\n")
+			do writer.writeStr("CurMem_->B_ = new uint8_t[32 * 1024 * 1024];\n")
+			do writer.writeStr("CurMem_->N_ = nullptr;\n")
+			do writer.writeStr("TopMem_ = CurMem_;\n")
+			do writer.writeStr("CurMemBuf_ = CurMem_->B_;\n")
+			do writer.writeStr("}\n")
+		end if
 		block
 			do @classTable.head()
 			while(!@classTable.term())
@@ -1363,6 +1421,17 @@ func write(resFiles: list<[]char>)
 		end block
 		do writer.writeStr("init_();\n")
 		do writer.writeStr("k_a();\n")
+		if(!@gc)
+			do writer.writeStr("{\n")
+			do writer.writeStr("MemList_* p_ = TopMem_;\n")
+			do writer.writeStr("while (p_ != nullptr){\n")
+			do writer.writeStr("MemList_* p2_ = p_;\n")
+			do writer.writeStr("delete[] p_->B_;\n")
+			do writer.writeStr("p_ = p_->N_;\n")
+			do writer.writeStr("delete p2_;\n")
+			do writer.writeStr("}\n")
+			do writer.writeStr("}\n")
+		end if
 		do writer.writeStr("return static_cast<int>(exitCode_);\n")
 		do writer.writeStr("}\n")
 	end func
@@ -1374,13 +1443,13 @@ func getType(type: \ast@AstType): []char
 	end if
 	switch(type.typeId)
 	case %typeArray
-		ret "Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>*"
+		ret "type_(Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>)"
 	case %typeBit
 		ret "uint\{(type $ \ast@AstTypeBit).size * 8}_t"
 	case %typeFunc
 		var func_: \ast@AstTypeFunc :: type $ \ast@AstTypeFunc
 		var id: []char :: @getId()
-		do @funcPrototypes.add("typedef \{@getType(func_.ret_)}(*\{id})(")
+		do @funcPrototypes.add("using \{id} = \{@getType(func_.ret_)}(*)(")
 		block
 			var arg: []char :: ""
 			var first: bool :: true
@@ -1406,17 +1475,17 @@ func getType(type: \ast@AstType): []char
 		var gen: \ast@AstTypeGen :: type $ \ast@AstTypeGen
 		switch(gen.kind)
 		case %list_
-			ret "List_<\{@getType(gen.itemType)}>*"
+			ret "type_(List_<\{@getType(gen.itemType)}>)"
 		case %stack_
-			ret "Stack_<\{@getType(gen.itemType)}>*"
+			ret "type_(Stack_<\{@getType(gen.itemType)}>)"
 		case %queue_
-			ret "Queue_<\{@getType(gen.itemType)}>*"
+			ret "type_(Queue_<\{@getType(gen.itemType)}>)"
 		default
 			assert false
 		end switch
 	case %typeDict
 		var dict_: \ast@AstTypeDict :: type $ \ast@AstTypeDict
-		ret "Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>*"
+		ret "type_(Dict_<\{@getType(dict_.itemTypeKey)}, \{@getType(dict_.itemTypeValue)}>)"
 	case %typePrim
 		var prim: \ast@AstTypePrim :: type $ \ast@AstTypePrim
 		switch(prim.kind)
@@ -1436,7 +1505,7 @@ func getType(type: \ast@AstType): []char
 		if(ref.typeId = %class_)
 			do @refClass(ref $ \ast@AstClass)
 			var info: @CppInfo :: @getInfo(ref)
-			ret info.id ~ "*"
+			ret "type_(" ~ info.id ~ ")"
 		else
 			assert ref.typeId = %enum_
 			ret "int64_t"
@@ -1594,4 +1663,17 @@ func refClass(ast: \ast@AstClass): []char
 		do @classTable.add("classTable_[\{^@classTable}] = reinterpret_cast<int64_t>(\{info.id});\n")
 		ret true
 	end func
+end func
+
+func findFunc(ast: \ast@AstClass, name: []char): \ast@AstFunc
+	var items: list<\ast@AstClassItem> :: ast.items
+	do items.head()
+	while(!items.term())
+		var item: \ast@AstClassItem :: items.get()
+		if(item.def.typeId = %func_ & item.def.name = name)
+			ret item.def $ \ast@AstFunc
+		end if
+		do items.next()
+	end while
+	ret null
 end func
