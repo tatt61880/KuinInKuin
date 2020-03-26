@@ -29,6 +29,7 @@ template<typename T1, typename T2> struct dictImpl_;
 
 struct Class_ {
 	Class_() : Y(0LL) {}
+	virtual ~Class_() {}
 	int64_t Y;
 };
 template<typename T> struct Array_ {
@@ -80,7 +81,7 @@ template<typename T> struct Queue_ {
 };
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a);
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n);
-template<typename T1, typename T2> void dictToBinRec_(Array_<uint8_t>* a, dictImpl_<T1, T2>* d);
+template<typename T1, typename T2> void dictToBinRec_(type_(Array_<uint8_t>) a, dictImpl_<T1, T2>* d);
 template<typename T1, typename T2> struct Dict_ {
 	Dict_() : L(0LL), B(nullptr) {}
 	int64_t Len() { return L; }
@@ -293,7 +294,7 @@ type_(Array_<char16_t>) emptyStr_() {
 	return r;
 }
 
-template<typename T> type_(Array_<T>) toArray_(List_<T>* l) {
+template<typename T> type_(Array_<T>) toArray_(type_(List_<T>) l) {
 	type_(Array_<T>) a = new_(Array_<T>)();
 	a->L = l->Len();
 	a->B = newPrimArray_(static_cast<size_t>(a->L) + bufLen_<T>(), T);
@@ -386,7 +387,7 @@ template<typename T> struct copy_<type_(T)> { type_(T) operator()(type_(T) t) {
 	{
 		if (t == nullptr)
 			return nullptr;
-		return reinterpret_cast<type_(T)>(reinterpret_cast<type_(Class_)(*)(type_(Class_))>(classTable_[t->Y + 4])(t));
+		return dcast_(T)(reinterpret_cast<type_(Class_)(*)(type_(Class_))>(classTable_[t->Y + 4])(t));
 	}
 	else
 		return t;
@@ -706,7 +707,7 @@ template<typename T> struct fromBin_<type_(T)> { type_(T) operator()(type_(Array
 		int64_t y = *reinterpret_cast<int64_t*>(b->B + o);
 		o += sizeof(int64_t);
 		if (y == -1) return nullptr;
-		return reinterpret_cast<type_(T)>(reinterpret_cast<type_(Class_)(*)(type_(Class_), type_(Array_<uint8_t>), int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
+		return dcast_(T)(reinterpret_cast<type_(Class_)(*)(type_(Class_), type_(Array_<uint8_t>), int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
 	}
 	else
 	{
@@ -745,7 +746,7 @@ template<typename T> type_(T) as_(const int64_t* y, type_(Class_) c, int64_t o) 
 	for (; ; )
 	{
 		if (m == o)
-			return reinterpret_cast<type_(T)>(c);
+			return dcast_(T)(c);
 		if (m == 0)
 			return nullptr;
 		m = y[m];
@@ -909,8 +910,6 @@ template<typename T1, typename T2> bool dictExist_(dictImpl_<T1, T2>* r, T1 k) {
 	}
 	return false;
 }
-
-static bool eqAddr_(const void* a, const void* b) { return a == b; }
 
 static uint32_t rX_, rY_, rZ_, rW_;
 static uint32_t xs128_() {

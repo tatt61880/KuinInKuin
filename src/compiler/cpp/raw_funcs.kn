@@ -1,4 +1,4 @@
-+func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>)
++func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>, gc: bool)
 	switch(attr)
 	case "acos"
 		do args.head()
@@ -11,7 +11,11 @@
 	case "addr"
 		do args.head()
 		var class_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("return reinterpret_cast<uint64_t>(\{class_.id});\n")
+		if(gc)
+			do codes.add("return \{class_.id} == nullptr ? 0 : reinterpret_cast<uint64_t>(\{class_.id}.get());\n")
+		else
+			do codes.add("return reinterpret_cast<uint64_t>(\{class_.id});\n")
+		end if
 	case "addDict"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
@@ -186,7 +190,7 @@
 		var callback: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do args.next()
 		var data: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("return dictForEach_(\{me_.id}->B, reinterpret_cast<bool(*)(K_, V_, Class_*)>(\{callback.id}), \{data.id});\n")
+		do codes.add("return dictForEach_(\{me_.id}->B, reinterpret_cast<bool(*)(K_, V_, type_(Class_))>(\{callback.id}), \{data.id});\n")
 	case "getDict"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
