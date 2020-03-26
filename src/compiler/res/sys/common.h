@@ -47,7 +47,7 @@ template<typename T> struct Array_ {
 		*b = h;
 		BufferCopy(b + 1, std::forward<B>(t)...);
 	}
-	type_(Array_<T>) Cat(const Array_<T>* t) {
+	type_(Array_<T>) Cat(const type_(Array_<T>) t) {
 		type_(Array_<T>) r = new_(Array_<T>)();
 		r->B = newPrimArray_(static_cast<size_t>(L + t->L + bufLen_<T>()), T);
 		for (int64_t i = 0; i < L; i++)

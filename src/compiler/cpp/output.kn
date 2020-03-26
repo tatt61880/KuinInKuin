@@ -1341,7 +1341,7 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("#define type_(...) std::shared_ptr<__VA_ARGS__>\n")
 			do writer.writeStr("#define newPrim_(...) new __VA_ARGS__\n")
 			do writer.writeStr("#define delPrim_(x) delete x\n")
-			do writer.writeStr("#define newPrimArray_(x, ...) new ...[x]\n")
+			do writer.writeStr("#define newPrimArray_(x, ...) new __VA_ARGS__[x]\n")
 			do writer.writeStr("#define delPrimArray_(x) delete[] x\n")
 		else
 			do writer.writeStr("#define new_(...) newImpl_<__VA_ARGS__>\n")
