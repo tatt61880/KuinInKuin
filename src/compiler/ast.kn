@@ -36,6 +36,7 @@
 	statBreak :: 0x0211
 	statSkip :: 0x0212
 	statAssert :: 0x0213
+	statExcode :: 0x0214
 	type :: 0x0400
 	typeNullable :: 0x00010400
 	typeArray :: 0x00010401
@@ -272,6 +273,10 @@ end class
 
 +class AstStatAssert(@AstStat)
 	+var cond: @AstExpr
+end class
+
++class AstStatExcode(@AstStat)
+	+var code: @AstExpr
 end class
 
 +class AstType(@Ast)

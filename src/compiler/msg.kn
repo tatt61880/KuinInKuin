@@ -129,6 +129,7 @@ end enum
 	allElementsAreEnum
 	allElementsAreNull
 	inaccessibleElement
+	excodeMustBeStrConst
 	
 	_nonErrs :: 0x00030000
 	success
@@ -966,6 +967,13 @@ end enum
 			ret "アクセスできない要素「\{args[0]}」にアクセスしました。"
 		default
 			ret "Accessed inaccessible element '\{args[0]}'."
+		end switch
+	case %excodeMustBeStrConst
+		switch(@lang)
+		case %ja
+			ret "「excode」文の式は「[]char」型の定数でなければなりません。"
+		default
+			ret "The expression of the 'excode' statement must be a constant of '[]char' type."
 		end switch
 	case %success
 		switch(@lang)

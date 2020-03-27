@@ -102,3 +102,47 @@ func makeTypeIdRecursion(type: \ast@AstType, output: list<int>)
 	assert \ast@isClass(type)
 	do output.add(%class_ $ @RuntimeTypeId $ int)
 end func
+
++func parseExcode(ast: \ast@AstStatExcode, func_: \ast@AstFunc, getIdCodeFunc: func<(\ast@AstArg): []char>): []char
+	var ptr: int :: 0
+	var code: []char :: (ast.code $ \ast@AstExprValueStr).value
+	var s: []char :: ""
+	var args: list<\ast@AstArg> :: func_.args
+	var argsIdx: int :: args.idx()
+	while(ptr < ^code)
+		var pos: int :: code.find('`', ptr)
+		if(pos = ptr)
+			do ptr :+ 1
+			var value: []char :: parseValue(code, &ptr)
+			var success: bool
+			var value2: int :: value.toInt(&success)
+			if(success & value2 < ^args)
+				do args.head()
+				do args.moveOffset(value2)
+				do s :~ getIdCodeFunc(args.get())
+			end if
+		elif(pos = -1)
+			do s :~ code.sub(ptr, -1)
+			do ptr :: ^code
+		else
+			do s :~ code.sub(ptr, pos - ptr)
+			do ptr :: pos
+		end if
+	end while
+	do args.head()
+	do args.moveOffset(argsIdx)
+	ret s
+	
+	func parseValue(code: []char, ptr: &int): []char
+		var pos: int :: code.find('`', ptr)
+		var value: []char
+		if(pos = -1)
+			do value :: code.sub(ptr, -1)
+			do ptr :: ^code
+		else
+			do value :: code.sub(ptr, pos - ptr)
+			do ptr :: pos + 1
+		end if
+		ret value
+	end func
+end func

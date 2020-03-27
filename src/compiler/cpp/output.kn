@@ -11,6 +11,7 @@ var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
 var classTable: list<[]char>
 var gc: bool
+var curFunc: \ast@AstFunc
 
 +class CppInfo(\ast@HasType)
 	+var id: []char
@@ -48,6 +49,7 @@ const nonGcBufSize: []char :: "32 * 1024 * 1024"
 	while(^@funcs > 0 | ^@classes > 0)
 		while(^@funcs > 0)
 			var func_: \ast@AstFunc :: @funcs.get()
+			do @curFunc :: func_
 			do @buildFunc(func_)
 		end while
 		while(^@classes > 0)
@@ -285,6 +287,8 @@ func buildStats(stats: list<\ast@AstStat>, breakStat: \ast@AstStat, skipStat: \a
 			do @buildSkip(stat $ \ast@AstStat, skipStat)
 		case %statAssert
 			do @buildAssert(stat $ \ast@AstStatAssert)
+		case %statExcode
+			do @buildExcode(stat $ \ast@AstStatExcode)
 		default
 			assert false
 		end switch
@@ -666,6 +670,14 @@ func buildAssert(ast: \ast@AstStatAssert)
 	do @codes.add("if(!(")
 	do @buildExpr(ast.cond)
 	do @codes.add(")){\nthrow \{excpt@dbgAssertFailed $ bit32}U;\n}\n")
+end func
+
+func buildExcode(ast: \ast@AstStatExcode)
+	do @codes.add(\convert@parseExcode(ast, @curFunc, getIdCode))
+	
+	func getIdCode(arg: \ast@AstArg): []char
+		ret @getInfo(arg).id
+	end func
 end func
 
 func buildExpr(ast: \ast@AstExpr)

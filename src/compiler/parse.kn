@@ -662,6 +662,8 @@ func parseStat(block_: \ast@Ast): \ast@AstStat
 		do ast :: @parseStatSkip()
 	case "assert"
 		do ast :: @parseStatAssert()
+	case "excode"
+		do ast :: @parseStatExcode()
 	default
 		do \err@err(%incorrectBlockOrSentence, \pos@make(@srcName, row, col), [id])
 		do @readUntilRet(@read())
@@ -1228,6 +1230,14 @@ func parseStatAssert(): \ast@AstStat
 	var ast: \ast@AstStatAssert :: #\ast@AstStatAssert
 	do @initAst(ast, %statAssert, @makePos(), null, false)
 	do ast.cond :: @parseExpr()
+	do @assertNextChar('\n', true)
+	ret ast
+end func
+
+func parseStatExcode(): \ast@AstStat
+	var ast: \ast@AstStatExcode :: #\ast@AstStatExcode
+	do @initAst(ast, %statExcode, @makePos(), null, false)
+	do ast.code :: @parseExpr()
 	do @assertNextChar('\n', true)
 	ret ast
 end func
@@ -2042,7 +2052,20 @@ func parseExprValue(): \ast@AstExpr
 			case "dbg"
 				ret @makePrimValue(pos, %bool_, \option@rls ?(0b64, 1b64))
 			case "env"
-				ret @makePrimValue(pos, %int_, \option@env_ $ bit64)
+				var env_: []char
+				switch(\option@env_)
+				case %cui
+					do env_ :: "cui"
+				case %wnd
+					do env_ :: "wnd"
+				case %web
+					do env_ :: "web"
+				case %cpp
+					do env_ :: "cpp"
+				default
+					assert false
+				end switch
+				ret @makeStrValue(pos, env_)
 			default
 				var ast: \ast@AstExpr :: #\ast@AstExpr
 				do @initAstExpr(ast, %exprRef, pos)
@@ -2346,6 +2369,7 @@ func isReserved(name: []char): bool
 		|"end",
 		|"enum",
 		|"env",
+		|"excode",
 		|"false",
 		|"finally",
 		|"float",

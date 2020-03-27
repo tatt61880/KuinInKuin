@@ -1229,6 +1229,8 @@ func rebuildStat(ast: \ast@AstStat, retType: \ast@AstType, parentFunc: \ast@AstF
 		do ast :: @rebuildSkip(ast $ \ast@AstStat, retType, parentFunc)
 	case %statAssert
 		do ast :: @rebuildAssert(ast $ \ast@AstStatAssert)
+	case %statExcode
+		do ast :: @rebuildExcode(ast $ \ast@AstStatExcode)
 	default
 		assert false
 	end switch
@@ -1608,6 +1610,18 @@ func rebuildAssert(ast: \ast@AstStatAssert): \ast@AstStat
 	do ast.cond :: @rebuildExpr(ast.cond, false)
 	if(ast.cond <>& null & !\ast@isBool(ast.cond.type))
 		do \err@err(%assertCondMustBeBool, ast.cond.pos, null)
+	end if
+	ret ast
+end func
+
+func rebuildExcode(ast: \ast@AstStatExcode): \ast@AstStat
+	if(ast.extra <>& null)
+		ret ast.extra $ \ast@AstStat
+	end if
+	do ast.extra :: ast
+	do ast.code :: @rebuildExpr(ast.code, false)
+	if(ast.code.typeId <> %exprValueStr)
+		do \err@err(%excodeMustBeStrConst, ast.code.pos, null)
 	end if
 	ret ast
 end func
