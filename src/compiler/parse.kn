@@ -2739,7 +2739,7 @@ func parseDummyBlock(outStat: &\ast@AstStat, outTypeId: &\ast@TypeId, typeId: \a
 			end switch
 		case %statCatch
 			switch(stat.typeId)
-			case %statCatch, %statFinally, %statElIf
+			case %statCatch, %statFinally, %statEnd
 				do endFlag :: true
 			end switch
 		case %statFinally
