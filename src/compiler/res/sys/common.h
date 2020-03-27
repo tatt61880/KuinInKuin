@@ -42,6 +42,9 @@ template<typename T> struct Array_ {
 		if (bufLen_<T>() > 0)
 			B[sizeof...(a)] = 0;
 	}
+	~Array_() {
+		delPrimArray_(B);
+	}
 	void BufferCopy(T* b) {}
 	template<typename A, typename... B>
 	void BufferCopy(T* b, A h, B... t) {
@@ -82,8 +85,12 @@ template<typename T> struct Queue_ {
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a);
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n);
 template<typename T1, typename T2> void dictToBinRec_(type_(Array_<uint8_t>) a, dictImpl_<T1, T2>* d);
+template<typename T1, typename T2> void dictFreeRec_(dictImpl_<T1, T2>* n);
 template<typename T1, typename T2> struct Dict_ {
 	Dict_() : L(0LL), B(nullptr) {}
+	~Dict_() {
+		dictFreeRec_<T1, T2>(B);
+	}
 	int64_t Len() { return L; }
 	void Add(T1 k, T2 v) {
 		bool a;
@@ -286,11 +293,11 @@ template<typename T, typename... A> T newArrays_(A... a) {
 		return nullptr;
 	return newArraysRec_<T>()(std::forward<A>(a)...);
 }
-static char16_t emptyStrInstance_[] = { 0 };
 type_(Array_<char16_t>) emptyStr_() {
 	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
 	r->L = 0;
-	r->B = emptyStrInstance_;
+	r->B = newPrimArray_(1, char16_t);
+	r->B[0] = 0;
 	return r;
 }
 
@@ -909,6 +916,13 @@ template<typename T1, typename T2> bool dictExist_(dictImpl_<T1, T2>* r, T1 k) {
 			n = n->CR;
 	}
 	return false;
+}
+template<typename T1, typename T2> void dictFreeRec_(dictImpl_<T1, T2>* n) {
+	if (n == nullptr)
+		return;
+	dictFreeRec_<T1, T2>(n->CL);
+	dictFreeRec_<T1, T2>(n->CR);
+	delPrim_(n);
 }
 
 static uint32_t rX_, rY_, rZ_, rW_;
