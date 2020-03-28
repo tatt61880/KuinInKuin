@@ -19,14 +19,6 @@ template<typename T> size_t bufLen_() { return 0; }
 template<> size_t bufLen_<char16_t>() { return 1; }
 static int64_t exitCode_ = 0;
 
-struct Class_;
-template<typename T> struct Array_;
-template<typename T> struct List_;
-template<typename T> struct Stack_;
-template<typename T> struct Queue_;
-template<typename T1, typename T2> struct Dict_;
-template<typename T1, typename T2> struct dictImpl_;
-
 struct Class_ {
 	Class_() : Y(0LL) {}
 	virtual ~Class_() {}
@@ -82,6 +74,7 @@ template<typename T> struct Queue_ {
 	int64_t Len() { return static_cast<int64_t>(B.size()); }
 	std::queue<T> B;
 };
+template<typename T1, typename T2> struct dictImpl_;
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a);
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n);
 template<typename T1, typename T2> void dictToBinRec_(type_(Array_<uint8_t>) a, dictImpl_<T1, T2>* d);
@@ -1036,8 +1029,7 @@ static char16_t readUtf8_(std::ifstream* f) {
 	else
 		return 0xffff;
 	u = static_cast<uint64_t>(c);
-	for (int64_t i = 0; i < l; i++)
-	{
+	for (int64_t i = 0; i < l; i++) {
 		if (!f->get(c) || (c & 0xc0) != 0x80)
 			return 0xffff;
 		u = (u << 6) | static_cast<uint64_t>(c & 0x3f);
@@ -1052,47 +1044,36 @@ static void writeUtf8_(std::ofstream* f, char16_t c) {
 	size_t size;
 	if ((c >> 7) == 0)
 		u = c, size = 1;
-	else
-	{
+	else {
 		u = static_cast<uint64_t>(0x80 | (c & 0x3f)) << 8;
 		c >>= 6;
 		if ((c >> 5) == 0)
 			u |= 0xc0 | c, size = 2;
-		else
-		{
+		else {
 			u = (u | 0x80 | (c & 0x3f)) << 8;
 			c >>= 6;
 			if ((c >> 4) == 0)
 				u |= 0xe0 | c, size = 3;
-			else
-			{
+			else {
 				u = (u | 0x80 | (c & 0x3f)) << 8;
 				c >>= 6;
 				if ((c >> 3) == 0)
 					u |= 0xf0 | c, size = 4;
-				else
-				{
+				else {
 					u = (u | 0x80 | (c & 0x3f)) << 8;
 					c >>= 6;
 					if ((c >> 2) == 0)
 						u |= 0xf8 | c, size = 5;
-					else
-					{
+					else {
 						u = (u | 0x80 | (c & 0x3f)) << 8;
 						c >>= 6;
-						if ((c >> 1) == 0)
-							u |= 0xfc | c, size = 6;
-						else
-							return;
+						if ((c >> 1) == 0) u |= 0xfc | c, size = 6; else return;
 					}
 				}
 			}
 		}
 	}
-	if (size == 1 && u == 0x0a)
-		f->write(newLine_, static_cast<std::streamsize>(sizeof(newLine_)));
-	else
-		f->write(reinterpret_cast<char*>(&u), static_cast<std::streamsize>(size));
+	if (size == 1 && u == 0x0a) f->write(newLine_, static_cast<std::streamsize>(sizeof(newLine_))); else f->write(reinterpret_cast<char*>(&u), static_cast<std::streamsize>(size));
 }
 
 static void init_() {

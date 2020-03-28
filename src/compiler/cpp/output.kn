@@ -28,7 +28,7 @@ class TmpVar()
 	+var type: []char
 end class
 
-const nonGcBufSize: []char :: "32 * 1024 * 1024"
+const nonGcBufSize: []char :: "0x2000000"
 
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
 	do @gc :: \option@extra.get("gc", &)
@@ -110,7 +110,20 @@ func buildFunc(ast: \ast@AstFunc)
 	end if
 	
 	var arg: []char :: ""
-	block
+	var dtor: bool :: false
+	if(ast.name <>& null & ast.name = "_dtor" & ^ast.args = 1)
+		var items: list<\ast@AstArg> :: ast.args
+		do items.head()
+		var me_: \ast@AstArg :: items.get()
+		if(!me_.refVar & \ast@isClass(me_.type))
+			var ref: \ast@Ast :: me_.type.refItem
+			do @refClass(ref $ \ast@AstClass)
+			var info2: @CppInfo :: @getInfo(ref)
+			do arg :: info2.id ~ "* " ~ @getInfo(me_).id
+			do dtor :: true
+		end if
+	end if
+	if(!dtor)
 		var idx: int :: 0
 		var items: list<\ast@AstArg> :: ast.args
 		do items.head()
@@ -151,7 +164,7 @@ func buildFunc(ast: \ast@AstFunc)
 			do items.next()
 			do idx :+ 1
 		end while
-	end block
+	end if
 	
 	if(ast.name <>& null)
 		do @codes.add("// \{ast.name}\n")
@@ -222,6 +235,7 @@ func buildClass(ast: \ast@AstClass)
 	end if
 	do @classDefs.add("class \{info.id} : public \{parentId}{\npublic:\n")
 	do @classDefs.add("\{info.id}();\n")
+	do @classDefs.add("virtual ~\{info.id}();\n")
 	do @classFuncs.add("\{info.id}::\{info.id}(): \{parentId}()")
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
@@ -237,7 +251,14 @@ func buildClass(ast: \ast@AstClass)
 		end while
 	end block
 	do @classFuncs.add("{ Y = \{info.classTableOffset}; }\n")
-	; TODO: Destructor.
+	block
+		var dtor: \ast@AstFunc :: @findFunc(ast, "_dtor")
+		assert dtor <>& null
+		var dtorInfo: @CppInfo :: @getInfo(dtor)
+		do @classFuncs.add("\{info.id}::~\{info.id}(){\n")
+		do @classFuncs.add("\{dtorInfo.id}(this);\n")
+		do @classFuncs.add("}\n")
+	end block
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
 		do items.head()
