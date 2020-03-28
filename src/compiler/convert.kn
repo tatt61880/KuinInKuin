@@ -122,10 +122,26 @@ end func
 		if(pos = ptr)
 			do ptr :+ 1
 			var value: []char :: parseValue(code, &ptr)
-			var success: bool
-			var value2: int :: value.toInt(&success)
-			if(success & value2 < ^args)
-				do s :~ getIdCodeFunc(args[value2])
+			if(^value >= 1 & value[0] = '.')
+				if(^args >= 1 & args[0].type.refItem <>& null & args[0].type.refItem.typeId = %class_)
+					var name: []char :: value.sub(1, -1)
+					var members: list<\ast@AstClassItem> :: (args[0].type.refItem $ \ast@AstClass).items
+					do members.head()
+					while loop(!members.term())
+						var def: \ast@Ast :: members.get().def
+						if(def.typeId = %var_ & (def $ \ast@AstVar).arg.name <>& null & (def $ \ast@AstVar).arg.name = name)
+							do s :~ getIdCodeFunc((def $ \ast@AstVar).arg)
+							break loop
+						end if
+						do members.next()
+					end while
+				end if
+			else
+				var success: bool
+				var value2: int :: value.toInt(&success)
+				if(success & value2 < ^args)
+					do s :~ getIdCodeFunc(args[value2])
+				end if
 			end if
 		elif(pos = -1)
 			do s :~ code.sub(ptr, -1)

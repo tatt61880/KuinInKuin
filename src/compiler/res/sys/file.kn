@@ -14,13 +14,41 @@ end enum
 	*func[d0000.knd, _readerDtor, __frc]_dtor()
 	end func
 	
-	+func[__raw, file_readerFin]fin()
+	+func fin()
+		if(env = "cpp")
+			excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "r_->F->close();\n"
+		elif(env = "web")
+			excode "`0`.`.handle`.F=null;\n"
+		end if
 	end func
 	
-	+func[__raw, file_readerSetPos]setPos(origin: @Origin, pos: int)
+	+func setPos(origin: @Origin, pos: int)
+		if(env = "cpp")
+			excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
+			excode "switch(`1`){\n"
+			excode "case 0:o_=std::ios_base::beg;break;\n"
+			excode "case 1:o_=std::ios_base::cur;break;\n"
+			excode "case 2:o_=std::ios_base::end;break;\n"
+			excode "}\n"
+			excode "r_->F->seekg(`2`,o_);\n"
+		elif(env = "web")
+			excode "switch(`1`){\n"
+			excode "case 0:`0`.`.handle`.I=`2`;break;\n"
+			excode "case 1:`0`.`.handle`.I+=`2`;break;\n"
+			excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+`2`;break;\n"
+			excode "}\n"
+		end if
 	end func
 	
-	+func[__raw, file_readerGetPos]getPos(): int
+	+func getPos(): int
+		if(env = "cpp")
+			excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+			excode "return static_cast<int64_t>(r_->F->tellp());\n"
+		elif(env = "web")
+			excode "return `0`.`.handle`.I;\n"
+		end if
 	end func
 	
 	+func delimiter(delimiters: []char)
@@ -31,7 +59,13 @@ end enum
 		ret null { TODO: }
 	end func
 	
-	+func[__raw, file_readerReadLetter]readLetter(): char
+	+func readLetter(): char
+		if(env = "cpp")
+			excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "return readUtf8_(r_->F);\n"
+		elif(env = "web")
+			excode "return `0`.`.handle`.F.charCodeAt(`0`.`.handle`.I++);\n"
+		end if
 	end func
 	
 	+func readInt(): int
@@ -119,7 +153,18 @@ end enum
 		ret 0 { TODO: }
 	end func
 	
-	+func[__raw, file_readerTerm]term(): bool
+	+func term(): bool
+		if(env = "cpp")
+			excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "char c_;\n"
+			excode "if(r_->F->get(c_)){\n"
+			excode "r_->F->seekg(-1,std::ios_base::cur);\n"
+			excode "return false;\n"
+			excode "}\n"
+			excode "return true;\n"
+		elif(env = "web")
+			excode "return `0`.`.handle`.I>=`0`.`.handle`.F.length;\n"
+		end if
 	end func
 	
 	func readCharWithDelimiters(): char
@@ -146,16 +191,60 @@ end class
 	*func[d0000.knd, _writerDtor, __frc]_dtor()
 	end func
 	
-	+func[__raw, file_writerFin]fin()
+	+func fin()
+		if(env = "cpp")
+			excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+			excode "r_->F->close();\n"
+		elif(env = "web")
+			excode "let d_=`0`.`.handle`.F.replace(/\\n/g, \"\\u000D\\n\");\n"
+			excode "if(O_&&O_.writeFile){O_.writeFile(`0`.`.handle`.P,d_);return;}\n"
+			excode "let b_=new Blob([d_]);\n"
+			excode "let l_=document.createElement(\"a\");\n"
+			excode "l_.download=`0`.`.handle`.P;\n"
+			excode "l_.href=(URL||webkitURL).createObjectURL(b_);\n"
+			excode "l_.setAttribute(\"style\",\"display:none\");\n"
+			excode "document.body.appendChild(l_);\n"
+			excode "l_.click();\n"
+			excode "document.body.removeChild(l_);\n"
+			excode "`0`.`.handle`.F=null;\n"
+		end if
 	end func
 	
-	+func[__raw, file_writerSetPos]setPos(origin: @Origin, pos: int)
+	+func setPos(origin: @Origin, pos: int)
+		if(env = "cpp")
+			excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+			excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
+			excode "switch(`1`){\n"
+			excode "case 0:o_=std::ios_base::beg;break;\n"
+			excode "case 1:o_=std::ios_base::cur;break;\n"
+			excode "case 2:o_=std::ios_base::end;break;\n"
+			excode "}\n"
+			excode "r_->F->seekp(`2`,o_);\n"
+		elif(env = "web")
+			excode "switch(`1`){\n"
+			excode "case 0:`0`.`.handle`.I=`2`;break;\n"
+			excode "case 1:`0`.`.handle`.I+=`2`;break;\n"
+			excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+`2`;break;\n"
+			excode "}\n"
+		end if
 	end func
 	
-	+func[__raw, file_writerGetPos]getPos(): int
+	+func getPos(): int
+		if(env = "cpp")
+			excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "return static_cast<int64_t>(r_->F->tellg());\n"
+		elif(env = "web")
+			excode "return `0`.`.handle`.I;\n"
+		end if
 	end func
 	
-	+func[__raw, file_writerWrite]write(bin: []bit8)
+	+func write(bin: []bit8)
+		if(env = "cpp")
+			excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+			excode "r_->F->write(reinterpret_cast<char*>(`1`->B),`1`->L);\n"
+		elif(env = "web")
+			; TODO:
+		end if
 	end func
 	
 	+func writeInt(n: int)
@@ -172,7 +261,17 @@ end class
 		end for
 	end func
 	
-	+func[__raw, file_writerWriteChar]writeChar(n: char)
+	+func writeChar(n: char)
+		if(env = "cpp")
+			excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+			excode "writeUtf8_(r_->F,`1`);\n"
+		elif(env = "web")
+			excode "if(`0`.`.handle`.I<`0`.`.handle`.F.length)\n"
+			excode "`0`.`.handle`.F=`0`.`.handle`.F.slice(0,`0`.`.handle`.I)+String.fromCharCode(`1`)+`0`.`.handle`.F.slice(`0`.`.handle`.I+1);\n"
+			excode "else\n"
+			excode "`0`.`.handle`.F+=String.fromCharCode(`1`);\n"
+			excode "`0`.`.handle`.I++;\n"
+		end if
 	end func
 	
 	+func writeStr(n: []char)
@@ -184,10 +283,44 @@ end class
 	var handle: int
 end class
 
-+func[__mki, __raw, file_makeReader]makeReader(me2: @Reader, path: []char): @Reader
++func[__mki]makeReader(me2: @Reader, path: []char): @Reader
+	if(env = "cpp")
+		excode "`0`->`.handle`=reinterpret_cast<int64_t>(newPrim_(reader_)());\n"
+		excode "std::u16string s_=`1`->B;\n"
+		excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "r_->F=newPrim_(std::ifstream)(t_.c_str(),std::ios::in|std::ios::binary);\n"
+		excode "if(!*r_->F)return nullptr;\n"
+		excode "return `0`;\n"
+	elif(env = "web")
+		excode "let f_=null,p_=`1`.S;\n"
+		excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+		excode "if(f_===null){\n"
+		excode "if(p_.length>=4&&p_[0]===\"r\"&&p_[1]===\"e\"&&p_[2]===\"s\"&&p_[3]===\"/\")\n"
+		excode "f_=F_(p_,true);\n"
+		excode "else{\n"
+		; TODO:
+		excode "}\n"
+		excode "}\n"
+		excode "if(f_===null)return null;\n"
+		excode "`0`.`.handle`={F:f_,I:0};\n"
+		excode "return `0`;\n"
+	end if
 end func
 
-+func[__mki, __raw, file_makeWriter]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
++func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+	if(env = "cpp")
+		excode "`0`->`.handle`=reinterpret_cast<int64_t>(newPrim_(writer_)());\n"
+		excode "std::u16string s_=`1`->B;\n"
+		excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "r_->F=newPrim_(std::ofstream)(t_.c_str(),std::ios::out|std::ios::binary|(`2`?std::ios::app:std::ios::trunc));\n"
+		excode "if(!*r_->F)return nullptr;\n"
+		excode "return `0`;\n"
+	elif(env = "web")
+		excode "`0`.`.handle`={F:\"\",I:0,P:`1`.S};\n"
+		excode "return `0`;\n"
+	end if
 end func
 
 +enum SysDir
@@ -202,10 +335,39 @@ end enum
 +func[d0000.knd, _makeDir]makeDir(path: []char): bool
 end func
 
-+func[__raw, file_forEach]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
++func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+	if(env = "cpp")
+		; TODO:
+		excode "return false;\n"
+	elif(env = "web")
+		excode "let f_,p_=`0`.S;\n"
+		excode "if(p_.length>=4&&p_[0]===\"r\"&&p_[1]===\"e\"&&p_[2]===\"s\"&&p_[3]===\"/\")\n"
+		excode "f_=FF_();\n"
+		excode "for(let i_=0;i_<f_.length;i_++){\n"
+		excode "if(f_[i_].slice(0,p_.length)===p_&&(`1`||f_[i_].slice(p_.length).indexOf(\"/\")===-1)){\n"
+		excode "if(!`2`({S:f_[i_]},f_[i_][f_[i_].length-1]==='/',`3`))return false"
+		excode "}\n"
+		excode "}\n"
+		excode "return true;\n"
+	end if
 end func
 
-+func[__raw, file_exist]exist(path: []char): bool
++func exist(path: []char): bool
+	if(env = "cpp")
+		; TODO:
+		excode "return false;\n"
+	elif(env = "web")
+		excode "let f_=false,p_=`0`.S;\n"
+		excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!==null;\n"
+		excode "if(f_===false){\n"
+		excode "if(p_.length>=4&&p_[0]===\"r\"&&p_[1]===\"e\"&&p_[2]===\"s\"&&p_[3]===\"/\")\n"
+		excode "f_=F_(p_,false);\n"
+		excode "else{\n"
+		; TODO:
+		excode "}\n"
+		excode "}\n"
+		excode "return f_;\n"
+	end if
 end func
 
 +func[d0000.knd, _delDir]delDir(path: []char): bool
