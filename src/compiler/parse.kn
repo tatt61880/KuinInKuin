@@ -313,7 +313,7 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 		end if
 	end block
 	
-	if(overritten)
+	if(overritten & ast.name <> "_dtor")
 		var statVar: \ast@AstStatVar :: #\ast@AstStatVar
 		do @initAst(statVar, %statVar, ast.pos, null, false)
 		block

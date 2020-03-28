@@ -164,8 +164,7 @@ func buildClass(ast: \ast@AstClass)
 				var arg: \ast@AstArg :: (item.def $ \ast@AstVar).arg
 				var info2: @WebInfo :: @getInfo(arg)
 				do @codes.add("\{info.id}.prototype.\{info2.id} = \{@getDefaultValue(arg.type)};\n")
-			else
-				assert item.def.typeId = %func_
+			elif(item.def.typeId = %func_)
 				do @funcs.add(item.def $ \ast@AstFunc)
 			end if
 			do items.next()
