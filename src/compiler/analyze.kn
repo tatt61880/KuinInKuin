@@ -1277,7 +1277,7 @@ func rebuildIf(ast: \ast@AstStatIf, retType: \ast@AstType, parentFunc: \ast@AstF
 		if((ast.cond $ \ast@AstExprValuePrim).value <> 0b64)
 			do stats :: ast.statBlock
 		end if
-		if(stats <>& null)
+		if(stats =& null)
 			var items: list<\ast@AstStatElIf> :: ast.elIfs
 			do items.head()
 			while loop(!items.term())

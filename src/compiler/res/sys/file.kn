@@ -8,7 +8,6 @@ const strBufSize: int :: 1024
 end enum
 
 +class Reader()
-	
 	*func ctor()
 		do me.delimiters :: " ,\n"
 	end func

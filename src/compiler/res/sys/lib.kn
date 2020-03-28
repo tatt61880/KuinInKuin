@@ -3,14 +3,38 @@
 +const intMin: int :: -9223372036854775807 - 1
 +const intMax: int :: 9223372036854775807
 
-+func[__raw, cmdLine]cmdLine(): [][]char
++func cmdLine(): [][]char
+	if(env = "cpp")
+		excode "auto a_=new_(Array_<type_(Array_<char16_t>)>)();\n"
+		excode "a_->L=argc_;\n"
+		excode "a_->B=newPrimArray_(static_cast<size_t>(argc_),type_(Array_<char16_t>));\n"
+		excode "for(int64_t i_=0;i_<argc_;i_++){\n"
+		excode "std::string s_=argv_[i_];\n"
+		excode "const std::u16string t_=utf8ToUtf16_(s_);\n"
+		excode "a_->B[i_]=new_(Array_<char16_t>)();\n"
+		excode "a_->B[i_]->L=static_cast<int64_t>(t_.size());\n"
+		excode "a_->B[i_]->B=newPrimArray_(t_.size()+1,char16_t);\n"
+		excode "std::memcpy(a_->B[i_]->B,t_.c_str(),sizeof(char16_t)*(t_.size()+1));\n"
+		excode "}\n"
+		excode "return a_;\n"
+	elif(env = "web")
+		excode "let r_=(O_&&O_.cmdLine)?O_.cmdLine:location.search.slice(1).split(\"&\");\n"
+		excode "if(r_.length===1&&r_[0]===\"\")return[];\n"
+		excode "for(let i_=0;i_<r_.length;i_++)\n"
+		excode "r_[i_]={S:r_[i_]};\n"
+		excode "return r_;\n"
+	end if
 end func
 
-+func[__raw, exitCode]exitCode(code: int)
++func exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
 			throw excpt@dbgArgOutDomain
 		end if
+	end if
+	if(env = "cpp")
+		excode "exitCode_=`0`;\n"
+	elif(env = "web")
 	end if
 end func
 
@@ -33,10 +57,20 @@ end class
 +func[d0000.knd, _makeRnd, __mki]makeRnd(me2: @Rnd, seed: int): @Rnd
 end func
 
-+func[__raw, rnd]rnd(min: int, max: int): int
++func rnd(min: int, max: int): int
+	if(env = "cpp")
+		excode "return rnd_(`0`,`1`);\n"
+	elif(env = "web")
+		excode "return Math.floor(Math.random()*(`1`-`0`+1))+`0`;\n"
+	end if
 end func
 
-+func[__raw, rndFloat]rndFloat(min: float, max: float): float
++func rndFloat(min: float, max: float): float
+	if(env = "cpp")
+		excode "return rndFloat_(`0`,`1`);\n"
+	elif(env = "web")
+		excode "return Math.random()*(`1`-`0`)+`0`;\n"
+	end if
 end func
 
 +func[d0000.knd, _rndBit64]rndBit64(): bit64
@@ -45,59 +79,144 @@ end func
 +func[d0000.knd, _rndUuid]rndUuid(): []char
 end func
 
-+func[__raw, cos]cos(x: float): float
++func cos(x: float): float
+	if(env = "cpp")
+		excode "return std::cos(`0`);\n"
+	elif(env = "web")
+		excode "return Math.cos(`0`);\n"
+	end if
 end func
 
-+func[__raw, sin]sin(x: float): float
++func sin(x: float): float
+	if(env = "cpp")
+		excode "return std::sin(`0`);\n"
+	elif(env = "web")
+		excode "return Math.sin(`0`);\n"
+	end if
 end func
 
-+func[__raw, tan]tan(x: float): float
++func tan(x: float): float
+	if(env = "cpp")
+		excode "return std::tan(`0`);\n"
+	elif(env = "web")
+		excode "return Math.tan(`0`);\n"
+	end if
 end func
 
-+func[__raw, acos]acos(x: float): float
++func acos(x: float): float
+	if(env = "cpp")
+		excode "return std::acos(`0`);\n"
+	elif(env = "web")
+		excode "return Math.acos(`0`);\n"
+	end if
 end func
 
-+func[__raw, asin]asin(x: float): float
++func asin(x: float): float
+	if(env = "cpp")
+		excode "return std::asin(`0`);\n"
+	elif(env = "web")
+		excode "return Math.asin(`0`);\n"
+	end if
 end func
 
-+func[__raw, atan]atan(x: float): float
++func atan(x: float): float
+	if(env = "cpp")
+		excode "return std::atan(`0`);\n"
+	elif(env = "web")
+		excode "return Math.atan(`0`);\n"
+	end if
 end func
 
-+func[__raw, cosh]cosh(x: float): float
++func cosh(x: float): float
+	if(env = "cpp")
+		excode "return std::cosh(`0`);\n"
+	elif(env = "web")
+		excode "return Math.cosh(`0`);\n"
+	end if
 end func
 
-+func[__raw, sinh]sinh(x: float): float
++func sinh(x: float): float
+	if(env = "cpp")
+		excode "return std::sinh(`0`);\n"
+	elif(env = "web")
+		excode "return Math.sinh(`0`);\n"
+	end if
 end func
 
-+func[__raw, tanh]tanh(x: float): float
++func tanh(x: float): float
+	if(env = "cpp")
+		excode "return std::tanh(`0`);\n"
+	elif(env = "web")
+		excode "return Math.tanh(`0`);\n"
+	end if
 end func
 
-+func[__raw, acosh]acosh(x: float): float
++func acosh(x: float): float
+	if(env = "cpp")
+		excode "return std::acosh(`0`);\n"
+	elif(env = "web")
+		excode "return Math.log(`0`+Math.sqrt(`0`*`0`-1));\n"
+	end if
 end func
 
-+func[__raw, asinh]asinh(x: float): float
++func asinh(x: float): float
+	if(env = "cpp")
+		excode "return std::asinh(`0`);\n"
+	elif(env = "web")
+		excode "return Math.log(`0`+Math.sqrt(`0`*`0`+1));\n"
+	end if
 end func
 
-+func[__raw, atanh]atanh(x: float): float
++func atanh(x: float): float
+	if(env = "cpp")
+		excode "return std::atanh(`0`);\n"
+	elif(env = "web")
+		excode "return 0.5*Math.log((1+`0`)/(1-`0`));\n"
+	end if
 end func
 
-+func[__raw, sqrt]sqrt(x: float): float
++func sqrt(x: float): float
+	if(env = "cpp")
+		excode "return std::sqrt(`0`);\n"
+	elif(env = "web")
+		excode "return Math.sqrt(`0`);\n"
+	end if
 end func
 
-+func[__raw, exp]exp(x: float): float
++func exp(x: float): float
+	if(env = "cpp")
+		excode "return std::exp(`0`);\n"
+	elif(env = "web")
+		excode "return Math.exp(`0`);\n"
+	end if
 end func
 
-+func[__raw, ln]ln(x: float): float
++func ln(x: float): float
+	if(env = "cpp")
+		excode "return std::log(`0`);\n"
+	elif(env = "web")
+		excode "return Math.log(`0`);\n"
+	end if
 end func
 
 +func log(base: float, x: float): float
 	ret @ln(x) / @ln(base)
 end func
 
-+func[__raw, floor]floor(x: float): float
++func floor(x: float): float
+	if(env = "cpp")
+		excode "return std::floor(`0`);\n"
+	elif(env = "web")
+		excode "return Math.floor(`0`);\n"
+	end if
 end func
 
-+func[__raw, ceil]ceil(x: float): float
++func ceil(x: float): float
+	if(env = "cpp")
+		excode "return std::ceil(`0`);\n"
+	elif(env = "web")
+		excode "return Math.ceil(`0`);\n"
+	end if
 end func
 
 +func round(x: float, precision: int): float
@@ -120,10 +239,23 @@ end func
 	do y :: y3 + centerY
 end func
 
-+func[__raw, invRot]invRot(x: float, y: float, centerX: float, centerY: float): float
++func invRot(x: float, y: float, centerX: float, centerY: float): float
+	if(env = "cpp")
+		excode "double r_=std::atan2(`1`-`3`,`0`-`2`);\n"
+		excode "return r_< 0.0?r_+2.0*3.14159265358979323846:r_;\n"
+	elif(env = "web")
+		excode "let r_=Math.atan2(`1`-`3`,`0`-`2`);\n"
+		excode "return r_<0.0?r_+2.0*Math.PI:r_;\n"
+	end if
 end func
 
-+func[__raw, dist]dist(x: float, y: float, centerX: float, centerY: float): float
++func dist(x: float, y: float, centerX: float, centerY: float): float
+	if(env = "cpp")
+		excode "return std::hypot(`0`-`2`,`1`-`3`);\n"
+	elif(env = "web")
+		excode "let x_=`0`-`2`,y_=`1`-`3`;\n"
+		excode "return Math.sqrt(x_*x_+y_*y_);\n"
+	end if
 end func
 
 +func chase(x: &float, target: float, vel: float): bool
@@ -225,10 +357,20 @@ end class
 +func[d0000.knd, _makeBmSearch, __mki]makeBmSearch(me2: @BmSearch, pattern: []char): @BmSearch
 end func
 
-+func[__raw, sysTime]sysTime(): int
++func sysTime(): int
+	if(env = "cpp")
+		excode "return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());\n"
+	elif(env = "web")
+		excode "return new Date().getTime();\n"
+	end if
 end func
 
-+func[__raw, now]now(): int
++func now(): int
+	if(env = "cpp")
+		excode "return std::time(nullptr);\n"
+	elif(env = "web")
+		excode "return Math.floor(new Date().getTime()/1000);\n"
+	end if
 end func
 
 +func intToDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int

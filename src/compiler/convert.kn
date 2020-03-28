@@ -107,8 +107,16 @@ end func
 	var ptr: int :: 0
 	var code: []char :: (ast.code $ \ast@AstExprValueStr).value
 	var s: []char :: ""
-	var args: list<\ast@AstArg> :: func_.args
-	var argsIdx: int :: args.idx()
+	var funcArgs: list<\ast@AstArg> :: func_.args
+	var argsIdx: int :: funcArgs.idx()
+	var args: []\ast@AstArg :: #[^funcArgs]\ast@AstArg
+	do funcArgs.head()
+	for i(0, ^args - 1)
+		do args[i] :: funcArgs.get()
+		do funcArgs.next()
+	end for
+	do funcArgs.head()
+	do funcArgs.moveOffset(argsIdx)
 	while(ptr < ^code)
 		var pos: int :: code.find('`', ptr)
 		if(pos = ptr)
@@ -117,9 +125,7 @@ end func
 			var success: bool
 			var value2: int :: value.toInt(&success)
 			if(success & value2 < ^args)
-				do args.head()
-				do args.moveOffset(value2)
-				do s :~ getIdCodeFunc(args.get())
+				do s :~ getIdCodeFunc(args[value2])
 			end if
 		elif(pos = -1)
 			do s :~ code.sub(ptr, -1)
@@ -129,8 +135,6 @@ end func
 			do ptr :: pos
 		end if
 	end while
-	do args.head()
-	do args.moveOffset(argsIdx)
 	ret s
 	
 	func parseValue(code: []char, ptr: &int): []char

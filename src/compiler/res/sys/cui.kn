@@ -11,7 +11,20 @@ end func
 	do @delimiters :: delimiters_
 end func
 
-+func[__raw, cui_print]print(str: []char)
++func print(str: []char)
+	if(env = "cpp")
+		excode "if(`0`==nullptr){\n"
+		excode "std::cout<<\"(null)\";\n"
+		excode "return;\n"
+		excode "}\n"
+		excode "std::u16string s_=`0`->B;\n"
+		excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+		excode "std::cout<<t_<<std::flush;\n"
+	elif(env = "web")
+		excode "if(`0`===null)`0`={S:\"(null)\"};\n"
+		excode "if(O_&&O_.print){O_.print(`0`.S);return;}\n"
+		excode "console.log(`0`.S);\n"
+	end if
 end func
 
 +func[__raw, cui_inputLetter]inputLetter(): char
