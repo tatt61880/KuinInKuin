@@ -727,6 +727,8 @@ func buildExpr(ast: \ast@AstExpr)
 		do @buildExprValuePrim(ast $ \ast@AstExprValuePrim)
 	case %exprValueStr
 		do @buildExprValueStr(ast $ \ast@AstExprValueStr)
+	case %exprValueBin
+		do @buildExprValueBin(ast $ \ast@AstExprValueBin)
 	case %exprValueFloat
 		do @buildExprValueFloat(ast $ \ast@AstExprValueFloat)
 	case %exprValueArray
@@ -742,7 +744,7 @@ func buildExpr1(ast: \ast@AstExpr1)
 	assert ast.varKind <> %unknown
 	switch(ast.kind)
 	case %plus
-		do @buildExpr(ast.child)
+		assert false
 	case %minus
 		do @codes.add("-(")
 		do @buildExpr(ast.child)
@@ -944,7 +946,7 @@ func buildExpr2(ast: \ast@AstExpr2)
 		end if
 	case %swap
 		var tmpVar: []char :: @addTmpVar(@getType(type))
-		do @codes.add("(\{tmpVar} = (")
+		do @codes.add("\{tmpVar} = (")
 		do @buildExpr(ast.children0)
 		do @codes.add("), (")
 		do @buildExpr(ast.children0)
@@ -952,7 +954,7 @@ func buildExpr2(ast: \ast@AstExpr2)
 		do @buildExpr(ast.children1)
 		do @codes.add("), (")
 		do @buildExpr(ast.children1)
-		do @codes.add(") = (\{tmpVar}))")
+		do @codes.add(") = (\{tmpVar})")
 	default
 		assert false
 	end switch
@@ -980,7 +982,7 @@ func buildExprNew(ast: \ast@AstExprNew)
 		else
 			var tmpVar: []char :: @addTmpVar("type_(\{id})")
 			var ctorInfo: @CppInfo :: @getInfo(ctor)
-			do @codes.add("(\{tmpVar} = new_(\{id})(), \{ctorInfo.id}(\{tmpVar}), \{tmpVar})")
+			do @codes.add("\{tmpVar} = new_(\{id})(), \{ctorInfo.id}(\{tmpVar}), \{tmpVar}")
 		end if
 	else
 		if(ast.itemType.typeId = %typeGen)
@@ -1154,7 +1156,7 @@ func buildExprCall(ast: \ast@AstExprCall)
 			if(item.skipVar)
 				assert item.refVar
 				var tmp: []char :: @addTmpVar(@getType(item.arg.type))
-				do @codes.add("(std::memset(&\{tmp}, 0, sizeof(\{@getType(item.arg.type)})), &\{tmp})")
+				do @codes.add("std::memset(&\{tmp}, 0, sizeof(\{@getType(item.arg.type)})), &\{tmp}")
 			else
 				if(item.refVar)
 					do @codes.add("&")
@@ -1257,6 +1259,19 @@ func buildExprValueStr(ast: \ast@AstExprValueStr)
 		do s :~ ")"
 		do @codes.add(s)
 	end if
+end func
+
+func buildExprValueBin(ast: \ast@AstExprValueBin)
+	var value: []bit8 :: ast.value
+	var s: []char :: "new_(Array_<uint8_t_t>)("
+	for i(0, ^value - 1)
+		if(i <> 0)
+			do s :~ ","
+		end if
+		do s :~ value[i].toStr()
+	end for
+	do s :~ ")"
+	do @codes.add(s)
 end func
 
 func buildExprValueFloat(ast: \ast@AstExprValueFloat)

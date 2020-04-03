@@ -1713,6 +1713,8 @@ func rebuildExpr(ast: \ast@AstExpr, nullable: bool): \ast@AstExpr
 		do ast :: @rebuildExprValuePrim(ast $ \ast@AstExprValuePrim)
 	case %exprValueStr
 		do ast :: @rebuildExprValueStr(ast $ \ast@AstExprValueStr)
+	case %exprValueBin
+		do ast :: @rebuildExprValueBin(ast $ \ast@AstExprValueBin)
 	case %exprValueEnumElement
 		do ast :: @rebuildExprValueEnumElement(ast $ \ast@AstExprValueEnumElement)
 	case %exprValueFloat
@@ -1748,11 +1750,8 @@ func rebuildExpr1(ast: \ast@AstExpr1): \ast@AstExpr
 	switch(ast.kind)
 	case %plus
 		if(\ast@isInt(childType) | \ast@isFloat(childType) | childType.typeId = %typeBit)
-			if(ast.child.typeId.and(%exprValue) = %exprValue)
-				do ast.extra :: ast.child
-				ret ast.extra $ \ast@AstExpr
-			end if
-			do ast.type :: childType
+			do ast.extra :: ast.child
+			ret ast.extra $ \ast@AstExpr
 		end if
 	case %minus
 		if(\ast@isInt(childType) | \ast@isFloat(childType))
@@ -2010,14 +2009,35 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 						default
 							assert false
 						end switch
-					else
-						assert \ast@isStr(children0Type)
+					elif(\ast@isStr(children0Type))
 						var cmp: int :: lib@cmp((ast.children0 $ \ast@AstExprValueStr).value, (ast.children1 $ \ast@AstExprValueStr).value)
 						switch(ast.kind)
 						case %eq
 							do value :: cmp = 0
 						case %nEq
 							do value :: cmp <> 0
+						default
+							assert false
+						end switch
+					else
+						assert \ast@isBin(children0Type)
+						var b1: []bit8 :: (ast.children0 $ \ast@AstExprValueBin).value
+						var b2: []bit8 :: (ast.children1 $ \ast@AstExprValueBin).value
+						var equal: bool :: false
+						if(^b1 = ^b2)
+							do equal :: true
+							for i(0, ^b1 - 1)
+								if(b1[i] <> b2[i])
+									do equal :: false
+									break i
+								end if
+							end for
+						end if
+						switch(ast.kind)
+						case %eq
+							do value :: equal
+						case %nEq
+							do value :: equal
 						default
 							assert false
 						end switch
@@ -2052,12 +2072,21 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 					if(\ast@isStr(ast.children0.type))
 						var s1: []char :: (ast.children0 $ \ast@AstExprValueStr).value
 						var s2: []char :: (ast.children1 $ \ast@AstExprValueStr).value
-						
 						var expr: \ast@AstExprValueStr :: #\ast@AstExprValueStr
 						do @initAstExpr(expr, %exprValueStr, ast.pos)
 						do expr.type :: ast.children0.type
 						do expr.value :: s1 ~ s2
 						do expr :: @rebuildExprValueStr(expr) $ \ast@AstExprValueStr
+						do ast.extra :: expr
+						ret ast.extra $ \ast@AstExpr
+					elif(\ast@isBin(ast.children0.type))
+						var b1: []bit8 :: (ast.children0 $ \ast@AstExprValueBin).value
+						var b2: []bit8 :: (ast.children1 $ \ast@AstExprValueBin).value
+						var expr: \ast@AstExprValueBin :: #\ast@AstExprValueBin
+						do @initAstExpr(expr, %exprValueBin, ast.pos)
+						do expr.type :: ast.children0.type
+						do expr.value :: b1 ~ b2
+						do expr :: @rebuildExprValueBin(expr) $ \ast@AstExprValueBin
 						do ast.extra :: expr
 						ret ast.extra $ \ast@AstExpr
 					end if
@@ -2989,6 +3018,16 @@ func rebuildExprValueStr(ast: \ast@AstExprValueStr): \ast@AstExpr
 	ret ast
 end func
 
+func rebuildExprValueBin(ast: \ast@AstExprValueBin): \ast@AstExpr
+	if(ast.extra <>& null)
+		ret ast.extra $ \ast@AstExpr
+	end if
+	do ast.extra :: ast
+	
+	do ast.varKind :: %value
+	ret ast
+end func
+
 func rebuildExprValueEnumElement(ast: \ast@AstExprValueEnumElement): \ast@AstExpr
 	if(ast.extra <>& null)
 		ret ast.extra $ \ast@AstExpr
@@ -3096,19 +3135,7 @@ func rebuildExprValueArray(ast: \ast@AstExprValueArray): \ast@AstExpr
 	
 	if(\ast@isStr(ast.type))
 		; Replace constants consisting only of characters with string literals.
-		var isConst: bool :: true
-		block
-			var items: list<\ast@AstExpr> :: ast.values
-			do items.head()
-			while loop(!items.term())
-				if(items.get().typeId.and(%exprValue) <> %exprValue)
-					do isConst :: false
-					break loop
-				end if
-				do items.next()
-			end while
-		end block
-		if(isConst)
+		if(chkConst(ast.values))
 			var ast2: \ast@AstExprValueStr :: #\ast@AstExprValueStr
 			do @initAstExpr(ast2, %exprValueStr, ast.pos)
 			do ast2.type :: ast.type
@@ -3128,8 +3155,41 @@ func rebuildExprValueArray(ast: \ast@AstExprValueArray): \ast@AstExpr
 		end if
 	end if
 	
+	if(\ast@isBin(ast.type))
+		; Replace constants consisting only of binaries with binary literals.
+		if(chkConst(ast.values))
+			var ast2: \ast@AstExprValueBin :: #\ast@AstExprValueBin
+			do @initAstExpr(ast2, %exprValueBin, ast.pos)
+			do ast2.type :: ast.type
+			var b: []bit8 :: #[^ast.values]bit8
+			var idx: int :: 0
+			var items: list<\ast@AstExpr> :: ast.values
+			do items.head()
+			while(!items.term())
+				do b[idx] :: (items.get() $ \ast@AstExprValuePrim).value $ bit8
+				do items.next()
+				do idx :+ 1
+			end while
+			do ast2.value :: b
+			do ast2 :: @rebuildExprValueBin(ast2) $ \ast@AstExprValueBin
+			do ast.extra :: ast2
+			ret ast.extra $ \ast@AstExpr
+		end if
+	end if
+	
 	do ast.varKind :: %value
 	ret ast
+	
+	func chkConst(values: list<\ast@AstExpr>): bool
+		do values.head()
+		while(!values.term())
+			if(values.get().typeId.and(%exprValue) <> %exprValue)
+				ret false
+			end if
+			do values.next()
+		end while
+		ret true
+	end func
 end func
 
 func rebuildExprRef(ast: \ast@AstExpr): \ast@AstExpr
@@ -3515,8 +3575,8 @@ func isComparable(type: \ast@AstType, lessOrGreater: bool): bool
 		ret true
 	end if
 	
-	; 'bool' can be just determined whether the values match.
-	if(!lessOrGreater & \ast@isBool(type))
+	; 'bool' and binaries can be just determined whether the values match.
+	if(!lessOrGreater & (\ast@isBool(type) | \ast@isBin(type)))
 		ret true
 	end if
 	ret false
