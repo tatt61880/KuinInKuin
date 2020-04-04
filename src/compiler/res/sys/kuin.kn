@@ -672,7 +672,7 @@ func[__any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &boo
 		excode "else\n"
 		excode "r_=`0`.get(`2`);\n"
 		excode "if(!(`3`.$=r_!==undefined)){\n"
-		excode "switch(DS_(`1`)){\n"
+		excode "switch(DT_(`1`.slice(1))[0]){\n"
 		excode "case 0x00:\n"
 		excode "case 0x01:\n"
 		excode "case 0x02:\n"
