@@ -274,8 +274,10 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 		do @localVars.add(ast.blockVar)
 	end if
 	var useSwitch: bool :: false
+	var switch64bit: bool :: false
 	if chk(\ast@isInt(ast.cond.type) | \ast@isChar(ast.cond.type) | \ast@isEnum(ast.cond.type) | ast.cond.type.typeId = %typeBit)
 		do useSwitch :: true
+		do switch64bit :: \ast@isInt(ast.cond.type) | \ast@isEnum(ast.cond.type) | ast.cond.type.typeId = %typeBit & (ast.cond.type $ \ast@AstTypeBit).size = 8
 		var items: list<\ast@AstStatCase> :: ast.cases
 		do items.head()
 		while(!items.term())
@@ -284,7 +286,11 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 			do items2.head()
 			while(!items2.term())
 				var exprs: \ast@ExprPair :: items2.get()
-				if(exprs.expr0.typeId.and(%exprValue) <> %exprValue | exprs.expr1 <>& null)
+				if(exprs.expr0.typeId <> %exprValuePrim | exprs.expr1 <>& null)
+					do useSwitch :: false
+					break chk
+				end if
+				if(switch64bit & (exprs.expr0 $ \ast@AstExprValuePrim).value.and(0xFFFFFFFF00000000b64) <> 0b64)
 					do useSwitch :: false
 					break chk
 				end if
@@ -300,7 +306,11 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 		if(infoMe.breakSkipLabel <>& null)
 			do @codes.add("\{infoMe.breakSkipLabel}:\n")
 		end if
-		do @codes.add("switch(\{info.id}){\n")
+		if(switch64bit)
+			do @codes.add("switch(\{info.id}[1]){\n")
+		else
+			do @codes.add("switch(\{info.id}){\n")
+		end if
 		block
 			var items: list<\ast@AstStatCase> :: ast.cases
 			do items.head()
@@ -308,14 +318,23 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 				var item: \ast@AstStatCase :: items.get()
 				var items2: list<\ast@ExprPair> :: item.conds
 				do items2.head()
-				while(!items2.term())
-					var exprs: \ast@ExprPair :: items2.get()
-					assert exprs.expr1 =& null
-					do @codes.add("case ")
-					do @buildExpr(exprs.expr0)
-					do @codes.add(":\n")
-					do items2.next()
-				end while
+				if(switch64bit)
+					while(!items2.term())
+						var exprs: \ast@ExprPair :: items2.get()
+						assert exprs.expr1 =& null
+						do @codes.add("case " ~ (exprs.expr0 $ \ast@AstExprValuePrim).value.toStr() ~ ":\n")
+						do items2.next()
+					end while
+				else
+					while(!items2.term())
+						var exprs: \ast@ExprPair :: items2.get()
+						assert exprs.expr1 =& null
+						do @codes.add("case ")
+						do @buildExpr(exprs.expr0)
+						do @codes.add(":\n")
+						do items2.next()
+					end while
+				end if
 				do @buildBlock(item.statBlock)
 				do @codes.add("break;\n")
 				do items.next()
@@ -360,16 +379,19 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 						do @codes.add(").S")
 					elif(\ast@isRef(ast.cond.type))
 						assert \ast@isClass(ast.cond.type)
-						do @codes.add("CT_[\{info.id}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{info.id},(")
+						if(tmp =& null)
+							do tmp :: @addTmpVar()
+						end if
+						do @codes.add("(\{tmp}=CT_[\{info.id}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{info.id},(")
 						do @buildExpr(exprs.expr0)
-						do @codes.add("))==0")
+						do @codes.add(")),!(\{tmp}[0]|\{tmp}[1]))")
 					elif(\ast@isInt(ast.cond.type) | \ast@isEnum(ast.cond.type) | ast.cond.type.typeId = %typeBit & (ast.cond.type $ \ast@AstTypeBit).size = 8)
 						if(tmp =& null)
 							do tmp :: @addTmpVar()
 						end if
-						do @codes.add("\{tmp}=(")
+						do @codes.add("(\{tmp}=(")
 						do @buildExpr(exprs.expr0)
-						do @codes.add("),\{info.id}[0]==\{tmp}&&\{info.id}[1]==\{tmp}")
+						do @codes.add("),\{info.id}[0]==\{tmp}[0]&&\{info.id}[1]==\{tmp}[1])")
 					else
 						do @codes.add("\{info.id}==(")
 						do @buildExpr(exprs.expr0)
@@ -384,11 +406,11 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 						do @codes.add(").S")
 					elif(\ast@isRef(ast.cond.type))
 						assert \ast@isClass(ast.cond.type)
-						do @codes.add("CT_[\{info.id}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{info.id},(")
+						do @codes.add("!(CT_[\{info.id}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{info.id},(")
 						do @buildExpr(exprs.expr0)
-						do @codes.add("))>=0&&CT_[\{info.id}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{info.id},(")
+						do @codes.add("))[0]&0x80000000)&&!(CT_[\{info.id}.Y_+\{%cmp $ \convert@MethodOffset $ int}]((")
 						do @buildExpr(exprs.expr1)
-						do @codes.add("))<=0")
+						do @codes.add("),\{info.id})[0]&0x80000000)")
 					elif(\ast@isInt(ast.cond.type) | \ast@isEnum(ast.cond.type))
 						do @codes.add("SC_(\{info.id},(")
 						do @buildExpr(exprs.expr0)
@@ -486,7 +508,7 @@ func buildFor(ast: \ast@AstStatFor)
 	else
 		do @codes.add(">=0")
 	end if
-	do @codes.add(";NA_(\{info.id},(")
+	do @codes.add(";\{info.id}=NA_(\{info.id},(")
 	do @buildExpr(ast.step)
 	do @codes.add("))){\n")
 	do @buildStats(ast.stats)
@@ -533,9 +555,9 @@ func buildTry(ast: \ast@AstStatTry)
 					if(tmp =& null)
 						do tmp :: @addTmpVar()
 					end if
-					do @codes.add("\{tmp}=(")
+					do @codes.add("(\{tmp}=(")
 					do @buildExpr(exprs.expr0)
-					do @codes.add("),\{info.id}[0]==\{tmp}[0]&&\{info.id}[1]==\{tmp}[1]")
+					do @codes.add("),\{info.id}[0]==\{tmp}[0]&&\{info.id}[1]==\{tmp}[1])")
 				else
 					do @codes.add("SC_(\{info.id},(")
 					do @buildExpr(exprs.expr0)
@@ -746,11 +768,11 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @buildExpr(ast2.idx)
 			do @codes.add("),(")
 			do @buildExpr(ast2.var_)
-			do @codes.add(").S.slice(0,\{tmpIdx})+String.fromCharCode(")
+			do @codes.add(").S.slice(0,\{tmpIdx}[1])+String.fromCharCode(")
 			do @buildExpr(ast.children1)
 			do @codes.add(")+(")
 			do @buildExpr(ast2.var_)
-			do @codes.add(").S.slice(\{tmpIdx}+1))")
+			do @codes.add(").S.slice(\{tmpIdx}[1]+1))")
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
@@ -784,7 +806,7 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @buildExpr(ast.children0)
 			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
 			do @buildExpr(ast.children1)
-			do @codes.add("))<0")
+			do @codes.add("))[0]&0x80000000")
 		elif(\ast@isInt(type) | \ast@isEnum(type))
 			do @codes.add("SC_((")
 			do @buildExpr(ast.children0)
@@ -815,10 +837,10 @@ func buildExpr2(ast: \ast@AstExpr2)
 			assert \ast@isClass(type)
 			var tmp: []char :: @addTmpVar()
 			do @codes.add("\{tmp}=(")
-			do @buildExpr(ast.children0)
-			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
 			do @buildExpr(ast.children1)
-			do @codes.add("))>0")
+			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
+			do @buildExpr(ast.children0)
+			do @codes.add("))[0]&0x80000000")
 		elif(\ast@isInt(type) | \ast@isEnum(type))
 			do @codes.add("SC_((")
 			do @buildExpr(ast.children0)
@@ -849,10 +871,10 @@ func buildExpr2(ast: \ast@AstExpr2)
 			assert \ast@isClass(type)
 			var tmp: []char :: @addTmpVar()
 			do @codes.add("\{tmp}=(")
-			do @buildExpr(ast.children0)
-			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
 			do @buildExpr(ast.children1)
-			do @codes.add("))<=0")
+			do @codes.add("),!(CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
+			do @buildExpr(ast.children0)
+			do @codes.add("))[0]&0x80000000)")
 		elif(\ast@isInt(type) | \ast@isEnum(type))
 			do @codes.add("SC_((")
 			do @buildExpr(ast.children0)
@@ -860,7 +882,7 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @buildExpr(ast.children1)
 			do @codes.add("))<=0")
 		elif(type.typeId = %typeBit & (type $ \ast@AstTypeBit).size = 8)
-			do @codes.add("SC_((")
+			do @codes.add("UC_((")
 			do @buildExpr(ast.children0)
 			do @codes.add("),(")
 			do @buildExpr(ast.children1)
@@ -884,9 +906,9 @@ func buildExpr2(ast: \ast@AstExpr2)
 			var tmp: []char :: @addTmpVar()
 			do @codes.add("\{tmp}=(")
 			do @buildExpr(ast.children0)
-			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
+			do @codes.add("),!(CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
 			do @buildExpr(ast.children1)
-			do @codes.add("))>=0")
+			do @codes.add("))[0]&0x80000000)")
 		elif(\ast@isInt(type) | \ast@isEnum(type))
 			do @codes.add("SC_((")
 			do @buildExpr(ast.children0)
@@ -918,9 +940,9 @@ func buildExpr2(ast: \ast@AstExpr2)
 			var tmp: []char :: @addTmpVar()
 			do @codes.add("\{tmp}=(")
 			do @buildExpr(ast.children0)
-			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
+			do @codes.add("),\{tmp}=CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
 			do @buildExpr(ast.children1)
-			do @codes.add("))==0")
+			do @codes.add(")),!(\{tmp}[0]|\{tmp}[1])")
 		elif(\ast@isInt(type) | \ast@isEnum(type) | type.typeId = %typeBit & (type $ \ast@AstTypeBit).size = 8)
 			var tmp1: []char :: @addTmpVar()
 			var tmp2: []char :: @addTmpVar()
@@ -948,9 +970,9 @@ func buildExpr2(ast: \ast@AstExpr2)
 			var tmp: []char :: @addTmpVar()
 			do @codes.add("\{tmp}=(")
 			do @buildExpr(ast.children0)
-			do @codes.add("),CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
+			do @codes.add("),\{tmp}=CT_[\{tmp}.Y_+\{%cmp $ \convert@MethodOffset $ int}](\{tmp},(")
 			do @buildExpr(ast.children1)
-			do @codes.add("))!=0")
+			do @codes.add(")),\{tmp}[0]|\{tmp}[1]")
 		elif(\ast@isInt(type) | \ast@isEnum(type) | type.typeId = %typeBit & (type $ \ast@AstTypeBit).size = 8)
 			var tmp1: []char :: @addTmpVar()
 			var tmp2: []char :: @addTmpVar()
@@ -1125,6 +1147,7 @@ func buildExpr2(ast: \ast@AstExpr2)
 	case %pow
 		if(\ast@isInt(type))
 			; TODO:
+			do @buildExpr(ast.children0)
 		else
 			do @codes.add("Math.pow((")
 			do @buildExpr(ast.children0)
@@ -1180,6 +1203,7 @@ func buildExprNew(ast: \ast@AstExprNew)
 			end switch
 		else
 			assert ast.itemType.typeId = %typeDict
+			; TODO: Do not use 'Map'.
 			do @codes.add("new Map()")
 		end if
 	end if
@@ -1213,9 +1237,9 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 			end if
 		else
 			if(^items = 1)
-				do @codes.add("new Array(")
+				do @codes.add("new Array((")
 				do @buildExpr(items.get())
-				do @codes.add(").fill(\{@getDefaultValue(ast.itemType)})")
+				do @codes.add(")[0]).fill(\{@getDefaultValue(ast.itemType)})")
 			else
 				do @codes.add("(function A_(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)});else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a}})([")
 				var first: bool :: true
@@ -1226,7 +1250,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 						do @codes.add(",(")
 					end if
 					do @buildExpr(items.get())
-					do @codes.add(")")
+					do @codes.add(")[0]")
 					do items.next()
 				end while
 				do @codes.add("])")
@@ -1271,7 +1295,7 @@ func buildExprAs(ast: \ast@AstExprAs)
 					var tmp: []char :: @addTmpVar()
 					do @codes.add("\{tmp}=(")
 					do @buildExpr(ast.child)
-					do @codes.add("),(\{tmp}[0]|\{tmp}[1])!=0")
+					do @codes.add("),\{tmp}[0]|\{tmp}[1]")
 				end if
 			elif(t1.typeId = %typeBit | \ast@isChar(t1))
 				if(\ast@isInt(t2) | \ast@isEnum(t2) | t2.typeId = %typeBit & (t2 $ \ast@AstTypeBit).size = 8)
@@ -1624,7 +1648,7 @@ func buildExprValueArray(ast: \ast@AstExprValueArray)
 			do @codes.add(",(")
 		end if
 		do @buildExpr(items.get())
-		do @codes.add(")[1]")
+		do @codes.add(")")
 		do items.next()
 	end while
 	do @codes.add("]")
@@ -1711,7 +1735,7 @@ func write(resFiles: list<[]char>)
 		end if
 		
 		if(^@classTable <> 0)
-			do writer.writeStr("let CT_ = new Array(\{^@classTable});\n")
+			do writer.writeStr("let CT_=new Array(\{^@classTable});\n")
 		end if
 		
 		do @globalVars.head()
@@ -1902,7 +1926,7 @@ func refClass(ast: \ast@AstClass): []char
 		if(info.classTableOffset = -1)
 			do info.classTableOffset :: ^@classTable
 		end if
-		do @classTable.add("CT_[\{info.classTableOffset}] = \{parentOffset};\n")
+		do @classTable.add("CT_[\{info.classTableOffset}]=\{parentOffset};\n")
 		var funcs: dict<int, \ast@AstFunc> :: #dict<int, \ast@AstFunc>
 		do setFuncOffsetRecursion(&, funcs, ast, false)
 		do funcs.forEach(addFuncPosCallback, null)
@@ -1943,7 +1967,7 @@ func refClass(ast: \ast@AstClass): []char
 	
 	func addFuncPosCallback(key: int, value: \ast@AstFunc, data: kuin@Class): bool
 		var info: @WebInfo :: @getInfo(value)
-		var s: []char :: "CT_[\{^@classTable}] = \{info.id};\n"
+		var s: []char :: "CT_[\{^@classTable}]=\{info.id};\n"
 		do @classTable.add(s)
 		ret true
 	end func
