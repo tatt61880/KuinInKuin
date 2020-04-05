@@ -35,9 +35,9 @@ end enum
 			excode "r_->F->seekg(`2`,o_);\n"
 		elif(env = "web")
 			excode "switch(`1`){\n"
-			excode "case 0:`0`.`.handle`.I=`2`;break;\n"
-			excode "case 1:`0`.`.handle`.I+=`2`;break;\n"
-			excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+`2`;break;\n"
+			excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
+			excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
+			excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
 			excode "}\n"
 		end if
 	end func
@@ -47,7 +47,8 @@ end enum
 			excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
 			excode "return static_cast<int64_t>(r_->F->tellp());\n"
 		elif(env = "web")
-			excode "return `0`.`.handle`.I;\n"
+			excode "let n_= `0`.`.handle`.I;\n"
+			excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 		end if
 	end func
 	
@@ -222,9 +223,9 @@ end class
 			excode "r_->F->seekp(`2`,o_);\n"
 		elif(env = "web")
 			excode "switch(`1`){\n"
-			excode "case 0:`0`.`.handle`.I=`2`;break;\n"
-			excode "case 1:`0`.`.handle`.I+=`2`;break;\n"
-			excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+`2`;break;\n"
+			excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
+			excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
+			excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
 			excode "}\n"
 		end if
 	end func
@@ -234,7 +235,8 @@ end class
 			excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 			excode "return static_cast<int64_t>(r_->F->tellg());\n"
 		elif(env = "web")
-			excode "return `0`.`.handle`.I;\n"
+			excode "let n_= `0`.`.handle`.I;\n"
+			excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 		end if
 	end func
 	
@@ -295,14 +297,14 @@ end class
 	elif(env = "web")
 		excode "let f_=null,p_=`1`.S;\n"
 		excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
-		excode "if(f_===null){\n"
-		excode "if(p_.length>=4&&p_[0]===\"r\"&&p_[1]===\"e\"&&p_[2]===\"s\"&&p_[3]===\"/\")\n"
+		excode "if(f_==null){\n"
+		excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
 		excode "f_=F_(p_,true);\n"
 		excode "else{\n"
 		; TODO:
 		excode "}\n"
 		excode "}\n"
-		excode "if(f_===null)return null;\n"
+		excode "if(f_==null)return null;\n"
 		excode "`0`.`.handle`={F:f_,I:0};\n"
 		excode "return `0`;\n"
 	end if
@@ -341,11 +343,11 @@ end func
 		excode "return false;\n"
 	elif(env = "web")
 		excode "let f_,p_=`0`.S;\n"
-		excode "if(p_.length>=4&&p_[0]===\"r\"&&p_[1]===\"e\"&&p_[2]===\"s\"&&p_[3]===\"/\")\n"
+		excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
 		excode "f_=FF_();\n"
 		excode "for(let i_=0;i_<f_.length;i_++){\n"
-		excode "if(f_[i_].slice(0,p_.length)===p_&&(`1`||f_[i_].slice(p_.length).indexOf(\"/\")===-1)){\n"
-		excode "if(!`2`({S:f_[i_]},f_[i_][f_[i_].length-1]==='/',`3`))return false"
+		excode "if(f_[i_].slice(0,p_.length)==p_&&(`1`||f_[i_].slice(p_.length).indexOf(\"/\")==-1)){\n"
+		excode "if(!`2`({S:f_[i_]},f_[i_][f_[i_].length-1]=='/',`3`))return false"
 		excode "}\n"
 		excode "}\n"
 		excode "return true;\n"
@@ -358,9 +360,9 @@ end func
 		excode "return false;\n"
 	elif(env = "web")
 		excode "let f_=false,p_=`0`.S;\n"
-		excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!==null;\n"
-		excode "if(f_===false){\n"
-		excode "if(p_.length>=4&&p_[0]===\"r\"&&p_[1]===\"e\"&&p_[2]===\"s\"&&p_[3]===\"/\")\n"
+		excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!=null;\n"
+		excode "if(f_==false){\n"
+		excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
 		excode "f_=F_(p_,false);\n"
 		excode "else{\n"
 		; TODO:

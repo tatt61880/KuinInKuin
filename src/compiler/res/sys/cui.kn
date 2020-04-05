@@ -21,7 +21,7 @@ end func
 		excode "const std::string&t_=utf16ToUtf8_(s_);\n"
 		excode "std::cout<<t_<<std::flush;\n"
 	elif(env = "web")
-		excode "if(`0`===null)`0`={S:\"(null)\"};\n"
+		excode "if(`0`==null)`0`={S:\"(null)\"};\n"
 		excode "if(O_&&O_.print){O_.print(`0`.S);return;}\n"
 		excode "console.log(`0`.S);\n"
 	end if

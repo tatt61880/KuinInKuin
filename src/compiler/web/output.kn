@@ -696,34 +696,34 @@ func buildExpr1(ast: \ast@AstExpr1)
 		if(type.typeId = %typeGen)
 			switch((type $ \ast@AstTypeGen).kind)
 			case %list_
-				do @codes.add("(")
+				do @codes.add("Uint32Array.from([0,(")
 				do @buildExpr(ast.child)
-				do @codes.add(").L")
+				do @codes.add(").L])")
 			case %stack_
-				do @codes.add("(")
+				do @codes.add("Uint32Array.from([0,(")
 				do @buildExpr(ast.child)
-				do @codes.add(").length")
+				do @codes.add(").length])")
 			case %queue_
-				do @codes.add("(")
+				do @codes.add("Uint32Array.from([0,(")
 				do @buildExpr(ast.child)
-				do @codes.add(").length")
+				do @codes.add(").length])")
 			default
 				assert false
 			end switch
 		elif(type.typeId = %typeDict)
-			do @codes.add("(")
+			do @codes.add("Uint32Array.from([0,(")
 			do @buildExpr(ast.child)
-			do @codes.add(").size")
+			do @codes.add(").size])")
 		else
 			assert type.typeId = %typeArray
 			if(\ast@isChar((type $ \ast@AstTypeArray).itemType))
-				do @codes.add("(")
+				do @codes.add("Uint32Array.from([0,(")
 				do @buildExpr(ast.child)
-				do @codes.add(").S.length")
+				do @codes.add(").S.length])")
 			else
-				do @codes.add("(")
+				do @codes.add("Uint32Array.from([0,(")
 				do @buildExpr(ast.child)
-				do @codes.add(").length")
+				do @codes.add(").length])")
 			end if
 		end if
 	default
@@ -1259,9 +1259,13 @@ func buildExprAs(ast: \ast@AstExprAs)
 					do @codes.add(")[1])&0xffff")
 				elif(\ast@isFloat(t2))
 					var tmp: []char :: @addTmpVar()
-					do @codes.add("\{tmp}=(")
+					if(t1.typeId = %typeBit)
+						do @codes.add("UF_((")
+					else
+						do @codes.add("SF_((")
+					end if
 					do @buildExpr(ast.child)
-					do @codes.add("),(\{tmp}[0]>>>31)*0x10000000000000000+(\{tmp}[0]+(\{tmp}[1]>>>31))*0x100000000+\{tmp}[1]")
+					do @codes.add("))")
 				else
 					assert \ast@isBool(t2)
 					var tmp: []char :: @addTmpVar()
@@ -1283,7 +1287,14 @@ func buildExprAs(ast: \ast@AstExprAs)
 					do @buildExpr(ast.child)
 					do @codes.add(")&0xffff")
 				elif(\ast@isFloat(t2))
-					do @buildExpr(ast.child)
+					if(t1.typeId = %typeBit & (t1 $ \ast@AstTypeBit).size = 4)
+						var tmp: []char :: @addTmpVar()
+						do @codes.add("\{tmp}=(")
+						do @buildExpr(ast.child)
+						do @codes.add("),(\{tmp}>>>31)*0x100000000+~~\{tmp}")
+					else
+						do @buildExpr(ast.child)
+					end if
 				else
 					assert \ast@isBool(t2)
 					do @codes.add("(")
@@ -1291,15 +1302,20 @@ func buildExprAs(ast: \ast@AstExprAs)
 					do @codes.add(")!=0")
 				end if
 			elif(\ast@isFloat(t1))
-				if(\ast@isInt(t2) | t2.typeId = %typeBit & (t2 $ \ast@AstTypeBit).size = 8)
-					var tmp: []char :: @addTmpVar()
-					do @codes.add("\{tmp}=(")
+				if(\ast@isInt(t2))
+					do @codes.add("NI_((")
 					do @buildExpr(ast.child)
-					do @codes.add("),Uint32Array.from([~~(\{tmp}/0x100000000),~~\{tmp}])")
+					do @codes.add("))")
 				elif(t2.typeId = %typeBit)
-					do @codes.add("(")
-					do @buildExpr(ast.child)
-					do @codes.add(")" ~ @roundBit((t2 $ \ast@AstTypeBit).size))
+					if((t2 $ \ast@AstTypeBit).size = 8)
+						do @codes.add("NI_((")
+						do @buildExpr(ast.child)
+						do @codes.add("))")
+					else
+						do @codes.add("(")
+						do @buildExpr(ast.child)
+						do @codes.add(")" ~ @roundBit((t2 $ \ast@AstTypeBit).size))
+					end if
 				else
 					assert \ast@isFloat(t2)
 					do @buildExpr(ast.child)
