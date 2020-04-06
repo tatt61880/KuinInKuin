@@ -130,6 +130,7 @@ end enum
 	allElementsAreNull
 	inaccessibleElement
 	excodeMustBeStrConst
+	dictKeyMustBeComparable
 	
 	_nonErrs :: 0x00030000
 	success
@@ -974,6 +975,13 @@ end enum
 			ret "「excode」文の式は「[]char」型の定数でなければなりません。"
 		default
 			ret "The expression of the 'excode' statement must be a constant of '[]char' type."
+		end switch
+	case %dictKeyMustBeComparable
+		switch(@lang)
+		case %ja
+			ret "「dict」型のキーは比較可能な型でなければなりません。"
+		default
+			ret "The key of 'dict' must be a comparable type."
 		end switch
 	case %success
 		switch(@lang)

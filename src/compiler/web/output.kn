@@ -153,8 +153,8 @@ func buildClass(ast: \ast@AstClass)
 		end if
 		do @codes.add("}\n")
 	end block
-	do @codes.add("\{info.id}.prototype = Object.create(\{parentId}.prototype);\n")
-	do @codes.add("\{info.id}.prototype.Y_ = \{info.classTableOffset};\n")
+	do @codes.add("\{info.id}.prototype=Object.create(\{parentId}.prototype);\n")
+	do @codes.add("\{info.id}.prototype.Y_=\{info.classTableOffset};\n")
 	block
 		var items: list<\ast@AstClassItem> :: ast.items
 		do items.head()
@@ -163,14 +163,13 @@ func buildClass(ast: \ast@AstClass)
 			if(item.def.typeId = %var_)
 				var arg: \ast@AstArg :: (item.def $ \ast@AstVar).arg
 				var info2: @WebInfo :: @getInfo(arg)
-				do @codes.add("\{info.id}.prototype.\{info2.id} = \{@getDefaultValue(arg.type)};\n")
+				do @codes.add("\{info.id}.prototype.\{info2.id}=\{@getDefaultValue(arg.type)};\n")
 			elif(item.def.typeId = %func_)
 				do @funcs.add(item.def $ \ast@AstFunc)
 			end if
 			do items.next()
 		end while
 	end block
-	; TODO: Destructor.
 	
 	func findFunc(ast: \ast@AstClass, name: []char): \ast@AstFunc
 		var items: list<\ast@AstClassItem> :: ast.items
@@ -735,7 +734,7 @@ func buildExpr1(ast: \ast@AstExpr1)
 		elif(type.typeId = %typeDict)
 			do @codes.add("Uint32Array.from([0,(")
 			do @buildExpr(ast.child)
-			do @codes.add(").size])")
+			do @codes.add(").L])")
 		else
 			assert type.typeId = %typeArray
 			if(\ast@isChar((type $ \ast@AstTypeArray).itemType))
@@ -1146,8 +1145,11 @@ func buildExpr2(ast: \ast@AstExpr2)
 		end if
 	case %pow
 		if(\ast@isInt(type))
-			; TODO:
+			do @codes.add("PI_((")
 			do @buildExpr(ast.children0)
+			do @codes.add("),(")
+			do @buildExpr(ast.children1)
+			do @codes.add("))")
 		else
 			do @codes.add("Math.pow((")
 			do @buildExpr(ast.children0)
@@ -1187,7 +1189,8 @@ func buildExprNew(ast: \ast@AstExprNew)
 	if(\ast@isClass(ast.itemType))
 		var class_: \ast@AstClass :: ast.itemType.refItem $ \ast@AstClass
 		var id: []char :: @refClass(class_)
-		do @codes.add("new \{id}()")
+		var tmp: []char :: @addTmpVar()
+		do @codes.add("(\{tmp}=new \{id}(),\{tmp}.A_=AD_++,\{tmp})") {A_ is an address.}
 	else
 		if(ast.itemType.typeId = %typeGen)
 			var gen: \ast@AstTypeGen :: ast.itemType $ \ast@AstTypeGen
@@ -1203,8 +1206,7 @@ func buildExprNew(ast: \ast@AstExprNew)
 			end switch
 		else
 			assert ast.itemType.typeId = %typeDict
-			; TODO: Do not use 'Map'.
-			do @codes.add("new Map()")
+			do @codes.add("{L:0,B:null}")
 		end if
 	end if
 end func
@@ -1218,7 +1220,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 			if(^items = 1)
 				do @codes.add("{S:R_(\"\\0\",(")
 				do @buildExpr(items.get())
-				do @codes.add("))}")
+				do @codes.add(")[1])}")
 			else
 				do @codes.add("(function A_(n){if(n.length==1)return{S:R_(\"\\0\",n[0])};else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a;}})([")
 				var first: bool :: true
@@ -1230,7 +1232,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 						do @codes.add(",(")
 					end if
 					do @buildExpr(items.get())
-					do @codes.add(")")
+					do @codes.add(")[1]")
 					do items.next()
 				end while
 				do @codes.add("])")
@@ -1239,7 +1241,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 			if(^items = 1)
 				do @codes.add("new Array((")
 				do @buildExpr(items.get())
-				do @codes.add(")[0]).fill(\{@getDefaultValue(ast.itemType)})")
+				do @codes.add(")[1]).fill(\{@getDefaultValue(ast.itemType)})")
 			else
 				do @codes.add("(function A_(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)});else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a}})([")
 				var first: bool :: true
@@ -1250,7 +1252,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 						do @codes.add(",(")
 					end if
 					do @buildExpr(items.get())
-					do @codes.add(")[0]")
+					do @codes.add(")[1]")
 					do items.next()
 				end while
 				do @codes.add("])")
@@ -1733,6 +1735,8 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr("\"use strict\";!function(f){let d=document;function h(){d.removeEventListener(\"DOMContentLoaded\",h);removeEventListener(\"load\",h);f()}\"complete\"===d.readyState||\"loading\"!==d.readyState&&!d.documentElement.doScroll?setTimeout(f):(d.addEventListener(\"DOMContentLoaded\",h),addEventListener(\"load\",h))}(function(){\n")
 			do writer.writeStr("let O_;\n")
 		end if
+		
+		do writer.writeStr("let AD_=1;\n") {Address counter.}
 		
 		if(^@classTable <> 0)
 			do writer.writeStr("let CT_=new Array(\{^@classTable});\n")

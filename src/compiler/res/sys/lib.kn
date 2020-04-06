@@ -421,7 +421,12 @@ end func
 +func[d0000.knd, _countUp]countUp(min: int, max: int): []int
 end func
 
-+func[__raw, addr]addr(class_: kuin@Class): bit64
++func addr(class_: kuin@Class): bit64
+	if(env = "cpp")
+		excode "return addr_(`0`);\n"
+	elif(env = "web")
+		excode "return Uint32Array.from([0,`0`.A_]);\n"
+	end if
 end func
 
 +class Int()

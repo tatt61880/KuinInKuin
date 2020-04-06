@@ -1317,7 +1317,7 @@ func rebuildSwitch(ast: \ast@AstStatSwitch, retType: \ast@AstType, parentFunc: \
 	
 	do ast.cond :: @rebuildExpr(ast.cond, false)
 	if(ast.cond <>& null)
-		if(!@isComparable(ast.cond.type, true))
+		if(!\ast@isComparable(ast.cond.type, true))
 			do \err@err(%switchCondMustBeComparable, ast.cond.pos, null)
 		end if
 		do ast.blockVar.type :: ast.cond.type
@@ -1671,6 +1671,9 @@ func rebuildType(ast: \ast@AstType, parentAlias: \ast@AstAlias): \ast@AstType
 	case %typeDict
 		var ast2: \ast@AstTypeDict :: ast $ \ast@AstTypeDict
 		do ast2.itemTypeKey :: @rebuildType(ast2.itemTypeKey, parentAlias)
+		if(!\ast@isComparable(ast2.itemTypeKey, true))
+			do \err@err(%dictKeyMustBeComparable, ast.pos, null)
+		end if
 		do ast2.itemTypeValue :: @rebuildType(ast2.itemTypeValue, parentAlias)
 	default
 		assert type = %none {Error}|type = %typeBit | type = %typePrim | type = %typeNull
@@ -1875,7 +1878,7 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 				do \err@err(%comparingNullByValue, ast.pos, null)
 				ret null
 			end if
-			if(@isComparable(ast.children0.type, true))
+			if(\ast@isComparable(ast.children0.type, true))
 				var type: \ast@AstTypePrim :: #\ast@AstTypePrim
 				do @initAst(type, %typePrim, ast.pos)
 				do type.kind :: %bool_
@@ -1970,7 +1973,7 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 				do \err@err(%comparingNullByValue, ast.pos, null)
 				ret null
 			end if
-			if(@isComparable(ast.children0.type, false))
+			if(\ast@isComparable(ast.children0.type, false))
 				var type: \ast@AstTypePrim :: #\ast@AstTypePrim
 				do @initAst(type, %typePrim, ast.pos)
 				do type.kind :: %bool_
@@ -2009,35 +2012,14 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 						default
 							assert false
 						end switch
-					elif(\ast@isStr(children0Type))
+					else
+						assert \ast@isStr(children0Type)
 						var cmp: int :: lib@cmp((ast.children0 $ \ast@AstExprValueStr).value, (ast.children1 $ \ast@AstExprValueStr).value)
 						switch(ast.kind)
 						case %eq
 							do value :: cmp = 0
 						case %nEq
 							do value :: cmp <> 0
-						default
-							assert false
-						end switch
-					else
-						assert \ast@isBin(children0Type)
-						var b1: []bit8 :: (ast.children0 $ \ast@AstExprValueBin).value
-						var b2: []bit8 :: (ast.children1 $ \ast@AstExprValueBin).value
-						var equal: bool :: false
-						if(^b1 = ^b2)
-							do equal :: true
-							for i(0, ^b1 - 1)
-								if(b1[i] <> b2[i])
-									do equal :: false
-									break i
-								end if
-							end for
-						end if
-						switch(ast.kind)
-						case %eq
-							do value :: equal
-						case %nEq
-							do value :: equal
 						default
 							assert false
 						end switch
@@ -3566,20 +3548,6 @@ func makeMeDot(class_: \ast@AstClass, arg: \ast@AstArg, name: []char): \ast@AstE
 		do ast.var_ :: me_
 	end block
 	ret ast
-end func
-
-func isComparable(type: \ast@AstType, lessOrGreater: bool): bool
-	; Note: 'null' itself is an incomparable type.
-	; The following types can be compared.
-	if(type.typeId = %typeBit | \ast@isInt(type) | \ast@isFloat(type) | \ast@isChar(type) | \ast@isEnum(type) | \ast@isClass(type) | \ast@isStr(type) | type.typeId = %typeEnumElement)
-		ret true
-	end if
-	
-	; 'bool' and binaries can be just determined whether the values match.
-	if(!lessOrGreater & (\ast@isBool(type) | \ast@isBin(type)))
-		ret true
-	end if
-	ret false
 end func
 
 func searchEnumElementValue(ast: \ast@AstExprValueEnumElement, enum_: \ast@AstEnum): bit64

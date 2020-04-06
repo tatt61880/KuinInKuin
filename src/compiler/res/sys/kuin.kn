@@ -240,11 +240,13 @@ func[__any, __rme]_endian(me_: int, type: []int): int
 		excode "case 0x04:return `0`;\n"
 		excode "case 0x05:return((`0`&0x00ff)<<8)|((`0`&0xff00)>>>8);\n"
 		excode "case 0x06:\n"
-		excode "`0`=((`0`&0x00ff00ff)<<8)|((`0`&0xff00ff00)>>8);\n"
-		excode "return((`0`&0x0000ffff)<<16)|((`0`&0xffff0000)>>16);\n"
+		excode "`0`=((`0`&0x00ff00ff)<<8)|((`0`&0xff00ff00)>>>8);\n"
+		excode "return((`0`&0x0000ffff)<<16)|((`0`&0xffff0000)>>>16);\n"
 		excode "default:\n"
-		excode "let r_=Uint32Array.from([((`0`[0]&0x00ff00ff)<<8)|((`0`[0]&0xff00ff00)>>8),((`0`[1]&0x00ff00ff)<<8)|((`0`[1]&0xff00ff00)>>8)])\n"
-		excode "r_[0]=((r_[1]&0x0000ffff)<<16)|((r_[1]&0xffff0000)>>16);r_[1]=((r_[0]&0x0000ffff)<<16)|((r_[0]&0xffff0000)>>16);\n"
+		excode "let r_=Uint32Array.from([((`0`[0]&0x00ff00ff)<<8)|((`0`[0]&0xff00ff00)>>>8),((`0`[1]&0x00ff00ff)<<8)|((`0`[1]&0xff00ff00)>>>8)])\n"
+		excode "let n_=((r_[1]&0x0000ffff)<<16)|((r_[1]&0xffff0000)>>>16);\n"
+		excode "r_[1]=((r_[0]&0x0000ffff)<<16)|((r_[0]&0xffff0000)>>>16);\n"
+		excode "r_[0]=n_;\n"
 		excode "return r_\n"
 		excode "}\n"
 	end if
@@ -281,13 +283,10 @@ func[__any]_sortArray(me_: int, type: []int)
 	elif(env = "web")
 		excode "if(`1`[1]==0x02)\n"
 		excode "`0`.S=`0`.S.split(\"\").sort().join(\"\");\n"
-		excode "else if(`1`[1]==0x81&&`1`[2]==0x02)\n"
+		excode "else if(`1`[1]==0x81)\n"
 		excode "`0`.sort();\n"
-		excode "else if(`1`[1]==0x86)\n"
-		excode "`0`.sort(function(a,b){let n=CT_[`0`[0].Y_+0x03](a,b);return(n[0]&0x80000000)?-1:(n[0]|n[1])?1:0});\n"
 		excode "else\n"
-		; TODO:
-		excode "`0`.sort(function(a,b){return a>b?1:a<b?-1:0;});\n"
+		excode "`0`.sort(CM_(`1`[1]));\n"
 	end if
 end func
 
@@ -299,16 +298,21 @@ func[__any, __tch]_findArray(me_: int, type: []int, item: int, start: int): int
 		excode "if(`3`==-1)`3`=0;\n"
 		excode "if(`3`<0)return -1;\n"
 		excode "for(int64_t i_=`3`;i_<`0`->L;i_++){\n"
-		excode "if(`0`->B[i_]==`2`)return i_;\n"
+		excode "if(cmp_(`0`->B[i_],`2`)==0)return i_;\n"
 		excode "}\n"
 		excode "return -1;\n"
 	elif(env = "web")
-		excode "let n;\n"
-		excode "if(`1`[0]==0x81&&`1`[1]==0x02)\n"
-		excode "n=`0`.S.indexOf(String.fromCharCode(`2`),~~`3`[1]==-1?0:~~`3`[1]);\n"
-		excode "else\n"
-		excode "n=`0`.indexOf(`2`,~~`3`[1]==-1?0:~~`3`[1]);\n"
-		excode "return Uint32Array.from([n<0?-1:0,n]);\n"
+		excode "let n_;\n"
+		excode "if(`1`[0]==0x81)\n"
+		excode "n_=`0`.S.indexOf(String.fromCharCode(`2`),~~`3`[1]==-1?0:~~`3`[1]);\n"
+		excode "else{\n"
+		excode "n_=-1;\n"
+		excode "let m_=CM_(`1`[1]);\n"
+		excode "for(let i_=~~`3`[1]==-1?0:~~`3`[1];i_<`0`.length;i_++){\n"
+		excode "if(m_(`0`[i_],`2`)==0){n_=i_;break};\n"
+		excode "}\n"
+		excode "}\n"
+		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 	end if
 end func
 
@@ -320,16 +324,21 @@ func[__any, __tch]_findLastArray(me_: int, type: []int, item: int, start: int): 
 		excode "if(`3`==-1)`3`=`0`->L-1;\n"
 		excode "if(`3`>=`0`->L)return -1;\n"
 		excode "for(int64_t i_=`3`;i_>=0;i_--){\n"
-		excode "if(`0`->B[i_]==`2`)return i_;\n"
+		excode "if(cmp_(`0`->B[i_],`2`)==0)return i_;\n"
 		excode "}\n"
 		excode "return -1;\n"
 	elif(env = "web")
-		excode "let n;\n"
-		excode "if(`1`[0]==0x81&&`1`[1]==0x02)\n"
-		excode "n=`0`.S.lastIndexOf(String.fromCharCode(`2`),~~`3`[1]==-1?`0`.S.length-1:~~`3`[1]);\n"
-		excode "else\n"
-		excode "n=`0`.lastIndexOf(`2`,~~`3`[1]==-1?`0`.S.length-1:~~`3`[1]);\n"
-		excode "return Uint32Array.from([n<0?-1:0,n]);\n"
+		excode "let n_;\n"
+		excode "if(`1`[0]==0x81)\n"
+		excode "n_=`0`.S.lastIndexOf(String.fromCharCode(`2`),~~`3`[1]==-1?`0`.S.length-1:~~`3`[1]);\n"
+		excode "else{\n"
+		excode "n_=-1;\n"
+		excode "let m_=CM_(`1`[1]);\n"
+		excode "for(let i_=~~`3`[1]==-1?`0`.length-1:~~`3`[1];i_>=0;i_--){\n"
+		excode "if(m_(`0`[i_],`2`)==0){n_=i_;break};\n"
+		excode "}\n"
+		excode "}\n"
+		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 	end if
 end func
 
@@ -348,29 +357,7 @@ func[__any, __tch]_findBin(me_: int, type: []int, item: int): int
 		excode "}\n"
 		excode "return -1;\n"
 	elif(env = "web")
-		excode "let a_=0,b_=`1`[1]==0x02?`0`.S.length-1:`0`.length-1,c_,m_,f_;\n"
-		excode "switch(`1`[1]){\n"
-		excode "case 0x00:\n"
-		excode "case 0x01:\n"
-		excode "case 0x02:\n"
-		excode "case 0x04:\n"
-		excode "case 0x05:\n"
-		excode "case 0x06:\n"
-		excode "case 0x07:\n"
-		excode "case 0x09:\n"
-		excode "f_=function(a,b){return a>b?1:a<b?-1:0};\n"
-		excode "break;\n"
-		excode "case 0x81:\n"
-		; TODO:
-		excode "f_=function(a,b){return a.S>b.S?1:a.S<b.S?-1:0};\n"
-		excode "break;\n"
-		excode "case 0x86:\n"
-		excode "f_=a_<=b_?CT_[`0`[0].Y_+0x02]:null;\n"
-		excode "break;\n"
-		excode "default:\n"
-		; TODO:
-		excode "break;\n"
-		excode "}\n"
+		excode "let a_=0,b_=`1`[1]==0x02?`0`.S.length-1:`0`.length-1,c_,m_,f_=CM_(`1`[1]);\n"
 		excode "while (a_<=b_){\n"
 		excode "c_=Math.floor((a_+b_)/2);\n"
 		excode "m_=f_(`2`,`1`[1]==0x02?`0`.S.charCodeAt(c_):`0`[c_]);\n"
@@ -685,10 +672,7 @@ func[__any, __tkv]_addDict(me_: int, type: []int, key: int, item: int)
 	if(env = "cpp")
 		excode "`0`->Add(`2`,`3`);\n"
 	elif(env = "web")
-		excode "if(`1`[1]==0x81&&`1`[2]==0x02)\n"
-		excode "`0`.set(`2`.S,`3`);\n"
-		excode "else\n"
-		excode "`0`.set(`2`,`3`);\n"
+		excode "DA_(`0`,`1`,`2`,`3`);\n"
 	end if
 end func
 
@@ -724,12 +708,13 @@ func[__any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &boo
 	if(env = "cpp")
 		excode "return dictSearch_(`0`->B,`2`,`3`);\n"
 	elif(env = "web")
-		excode "let r_;\n"
-		excode "if(`1`[1]==0x81&&`1`[2]==0x02)\n"
-		excode "r_=`0`.get(`2`.S);\n"
-		excode "else\n"
-		excode "r_=`0`.get(`2`);\n"
-		excode "if(!(`3`.$=r_!==undefined)){\n"
+		excode "let n_=`0`.B,m_=CM_(`1`[1]);\n"
+		excode "while(n_!=null){\n"
+		excode "let c_=m_(`2`,n_.K);\n"
+		excode "if(c_==0){`3`.$=true;return n_.V;}\n"
+		excode "if(c_<0)n_=n_.CL;else n_=n_.CR;\n"
+		excode "}\n"
+		excode "`3`.$=false;\n"
 		excode "switch(DT_(`1`.slice(1))[0]){\n"
 		excode "case 0x00:\n"
 		excode "case 0x07:\n"
@@ -746,8 +731,6 @@ func[__any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &boo
 		excode "default:\n"
 		excode "return null;\n"
 		excode "}\n"
-		excode "}\n"
-		excode "return r_;\n"
 	end if
 end func
 
@@ -780,13 +763,14 @@ func[__any]_moveOffset(me_: int, type: []int, offset: int)
 		excode "}\n"
 		excode "}\n"
 	elif(env = "web")
-		excode "if(`2`>=0){\n"
-		excode "for(let i_=0;i_<`2`;i_++){\n"
+		excode "let o_=~~`2`[1];\n"
+		excode "if(o_>=0){\n"
+		excode "for(let i_=0;i_<o_;i_++){\n"
 		excode "if(`0`.P==null)break;\n"
 		excode "`0`.P=`0`.P.N;\n"
 		excode "}\n"
 		excode "}else{\n"
-		excode "for(let i_=0;i_>`2`;i_--){\n"
+		excode "for(let i_=0;i_>o_;i_--){\n"
 		excode "if(`0`.P==null)break;\n"
 		excode "`0`.P=`0`.P.P;\n"
 		excode "}\n"
@@ -903,14 +887,16 @@ end func
 
 func[__any, __kvf]_forEach(me_: int, type: []int, callback: int, data: @Class): bool
 	if(env = "cpp")
-		excode "return dictForEach_(`0`->B, reinterpret_cast<bool(*)(K_, V_, type_(Class_))>(`2`), `3`);\n"
+		excode "return dictForEach_(`0`->B,reinterpret_cast<bool(*)(K_,V_,type_(Class_))>(`2`),`3`);\n"
 	elif(env = "web")
-		excode "let D_={F:`2`,D:`3`,C:true};\n"
-		excode "if(`1`[1]==0x81&&`1`[2]==0x02)\n"
-		excode "`0`.forEach(function(V_,K_){if(this.C)this.C=this.F({S:K_},V_,this.D)},D_);\n"
-		excode "else\n"
-		excode "`0`.forEach(function(V_,K_){if(this.C)this.C=this.F(K_,V_,this.D)},D_);\n"
-		excode "return D_.C;\n"
+		excode "return f_(`0`.B);\n"
+		excode "function f_(r_){\n"
+		excode "if(r_==null)return true;\n"
+		excode "if(!f_(r_.CL))return false;\n"
+		excode "if(!`2`(r_.K,r_.V,`3`))return false;\n"
+		excode "if(!f_(r_.CR))return false;\n"
+		excode "return true;\n"
+		excode "}\n"
 	end if
 end func
 

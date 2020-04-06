@@ -4,6 +4,7 @@ enum BuiltinFuncKind
 	char_
 	bit
 	array
+	comparableArray
 	str
 	addGenDict
 	getGenDict
@@ -12,7 +13,7 @@ enum BuiltinFuncKind
 	intFloat
 	arrayOfStr
 	dict_
-	arrayList
+	comparableArrayList
 	delListDict
 end enum
 
@@ -32,9 +33,9 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		do @builtinFuncs.add("endian", %bit)
 		do @builtinFuncs.add("exist", %dict_)
 		do @builtinFuncs.add("fill", %array)
-		do @builtinFuncs.add("find", %arrayList)
-		do @builtinFuncs.add("findBin", %array)
-		do @builtinFuncs.add("findLast", %arrayList)
+		do @builtinFuncs.add("find", %comparableArrayList)
+		do @builtinFuncs.add("findBin", %comparableArray)
+		do @builtinFuncs.add("findLast", %comparableArrayList)
 		do @builtinFuncs.add("findStr", %str)
 		do @builtinFuncs.add("findStrEx", %str)
 		do @builtinFuncs.add("findStrLast", %str)
@@ -63,7 +64,7 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		do @builtinFuncs.add("shr", %bit)
 		do @builtinFuncs.add("shuffle", %array)
 		do @builtinFuncs.add("sign", %intFloat)
-		do @builtinFuncs.add("sort", %arrayList)
+		do @builtinFuncs.add("sort", %comparableArrayList)
 		do @builtinFuncs.add("split", %str)
 		do @builtinFuncs.add("sub", %array)
 		do @builtinFuncs.add("tail", %list_)
@@ -110,6 +111,12 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 	case %array
 		if(type.typeId = %typeArray)
 			ret true
+		end if
+	case %comparableArray
+		if(type.typeId = %typeArray)
+			if(\ast@isComparable((type $ \ast@AstTypeArray).itemType, true))
+				ret true
+			end if
 		end if
 	case %str
 		if(\ast@isStr(type))
@@ -212,32 +219,36 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		if(type.typeId = %typeDict)
 			ret true
 		end if
-	case %arrayList
+	case %comparableArrayList
 		if(type.typeId = %typeArray)
-			switch(member)
-			case "sort"
-				do member :: "sortArray"
-			case "find"
-				do member :: "findArray"
-			case "findLast"
-				do member :: "findLastArray"
-			default
-				assert false
-			end switch
-			ret true
+			if(\ast@isComparable((type $ \ast@AstTypeArray).itemType, true))
+				switch(member)
+				case "sort"
+					do member :: "sortArray"
+				case "find"
+					do member :: "findArray"
+				case "findLast"
+					do member :: "findLastArray"
+				default
+					assert false
+				end switch
+				ret true
+			end if
 		end if
 		if(type.typeId = %typeGen & (type $ \ast@AstTypeGen).kind = %list_)
-			switch(member)
-			case "sort"
-				do member :: "sortList"
-			case "find"
-				do member :: "findList"
-			case "findLast"
-				do member :: "findLastList"
-			default
-				assert false
-			end switch
-			ret true
+			if(\ast@isComparable((type $ \ast@AstTypeGen).itemType, true))
+				switch(member)
+				case "sort"
+					do member :: "sortList"
+				case "find"
+					do member :: "findList"
+				case "findLast"
+					do member :: "findLastList"
+				default
+					assert false
+				end switch
+				ret true
+			end if
 		end if
 	case %delListDict
 		if(type.typeId = %typeGen & (type $ \ast@AstTypeGen).kind = %list_)
