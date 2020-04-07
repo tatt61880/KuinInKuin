@@ -425,21 +425,18 @@ Not existed.
 0
 Not existed.
 9
-(null)
-Not existed.
+(null)Not existed.
 a
 b
 c
 d
-(null)
-Not existed.
+(null)Not existed.
 f
 g
 h
 i
 j
-(null)
-Not existed.
+(null)Not existed.
 9
 0
 Not existed.
@@ -457,21 +454,18 @@ Not existed.
 0
 Not existed.
 9
-(null)
-Not existed.
+(null)Not existed.
 A
 B
 C
 D
-(null)
-Not existed.
+(null)Not existed.
 F
 G
 H
 I
 J
-(null)
-Not existed.
+(null)Not existed.
 -- Test 10 --
 true, false
 3, 3
