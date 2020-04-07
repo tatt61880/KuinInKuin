@@ -12,8 +12,10 @@ end enum
 	incorrectExt
 	incorrectSrcName
 	fileOpenFailed
-	sysFileOpenFailed
+	fileSaveFailed
 	sysFileBroken
+	iconFileBroken
+	tooManyResources
 	
 	_parsingErrs :: 0x00010000
 	sameIdentifierInSameScope
@@ -176,16 +178,16 @@ end enum
 	case %fileOpenFailed
 		switch(@lang)
 		case %ja
-			ret "ソースファイル「\{args[0]}」が開けません。"
+			ret "ファイル「\{args[0]}」が開けません。"
 		default
-			ret "Cannot open source file '\{args[0]}'."
+			ret "Cannot open file '\{args[0]}'."
 		end switch
-	case %sysFileOpenFailed
+	case %fileSaveFailed
 		switch(@lang)
 		case %ja
-			ret "システムファイル「\{args[0]}」が開けません。"
+			ret "ファイル「\{args[0]}」が保存できません。"
 		default
-			ret "The system file '\{args[0]}' could not be opened."
+			ret "Cannot save file '\{args[0]}'."
 		end switch
 	case %sysFileBroken
 		switch(@lang)
@@ -193,6 +195,20 @@ end enum
 			ret "システムファイル「\{args[0]}」が壊れています。"
 		default
 			ret "The system file '\{args[0]}' is broken."
+		end switch
+	case %iconFileBroken
+		switch(@lang)
+		case %ja
+			ret "アイコンファイル「\{args[0]}」が壊れています。"
+		default
+			ret "The icon file '\{args[0]}' is broken."
+		end switch
+	case %tooManyResources
+		switch(@lang)
+		case %ja
+			ret "リソースファイルの数「\{args[0]}」が多すぎます。 65535個以下でなければなりません。"
+		default
+			ret "The number of resource files '\{args[0]}' is too large. Must be 65535 or less."
 		end switch
 	case %sameIdentifierInSameScope
 		switch(@lang)

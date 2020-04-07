@@ -95,7 +95,9 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	
 	var ast: \ast@AstRoot :: @parseRoot(parentAstRoot)
 	do @filePtr.fin()
-	do @srcesNext.add(key, ast)
+	if(parentAstRoot =& null)
+		do @srcesNext.add(key, ast)
+	end if
 	ret true
 	
 	func isCorrectSrcName(name: []char): bool
@@ -139,15 +141,15 @@ func parseRoot(parentAstRoot: \ast@AstRoot): \ast@AstRoot
 	if(parentAstRoot =& null)
 		do ast :: #\ast@AstRoot
 		do @initAst(ast, %root, \pos@make(@srcName, 1, 1), null, false)
-		do ast.scopeRefedItems :: #list<\ast@ScopeRefedItem>
+		do ast.scopeChildren :: #dict<[]char, \ast@Ast>
 		do ast.items :: #list<\ast@Ast>
+		do ast.scopeRefedItems :: #list<\ast@ScopeRefedItem>
 	else
 		; In a 'subSrc', add codes to the parent.
 		do ast :: parentAstRoot
 	end if
 	do @scopeRefedItems :: ast.scopeRefedItems
 	
-	do ast.scopeChildren :: #dict<[]char, \ast@Ast>
 	do @scope.add(ast)
 	
 	; For the case where there is a single line comment at the beginning of source codes.
@@ -475,6 +477,7 @@ func parseClass(): \ast@AstClass
 		do item.public :: false
 		do item.override :: false
 		do item.parentItem :: null
+		do item.extra :: null
 		if(c = '+')
 			do item.public :: true
 		else
@@ -921,7 +924,7 @@ end func
 func parseStatCase(row: int, col: int, block_: \ast@Ast): \ast@AstStat
 	var ast: \ast@AstStatCase :: #\ast@AstStatCase
 	do @initAst(ast, %statCase, null, null, false)
-	do ast.conds :: #list<\ast@ExprPair>
+	do ast.conds :: #list<\ast@AstExprPair>
 	do ast.statBlock :: null
 	if(block_.typeId <> %statSwitch)
 		do \err@err(%wrongClause, \pos@make(@srcName, row, col), ["switch", "case"])
@@ -930,7 +933,7 @@ func parseStatCase(row: int, col: int, block_: \ast@Ast): \ast@AstStat
 	end if
 	
 	while loop(true)
-		var exprs: \ast@ExprPair :: #\ast@ExprPair
+		var exprs: \ast@AstExprPair :: #\ast@AstExprPair
 		do exprs.expr0 :: @parseExpr()
 		do exprs.expr1 :: null
 		var c: char :: @readChar()
@@ -1118,7 +1121,7 @@ end func
 func parseStatCatch(row: int, col: int, block_: \ast@Ast): \ast@AstStat
 	var ast: \ast@AstStatCatch :: #\ast@AstStatCatch
 	do @initAst(ast, %statCatch, null, null, false)
-	do ast.conds :: #list<\ast@ExprPair>
+	do ast.conds :: #list<\ast@AstExprPair>
 	do ast.statBlock :: null
 	if(block_.typeId <> %statTry)
 		do \err@err(%wrongClause, \pos@make(@srcName, row, col), ["try", "catch"])
@@ -1129,7 +1132,7 @@ func parseStatCatch(row: int, col: int, block_: \ast@Ast): \ast@AstStat
 	block
 		var c: char :: @readChar()
 		if(c = '\n')
-			var exprs: \ast@ExprPair :: #\ast@ExprPair
+			var exprs: \ast@AstExprPair :: #\ast@AstExprPair
 			var pos: \pos@Pos :: @makePos()
 			do exprs.expr0 :: @makePrimValue(pos, %int_, 0b64)
 			do exprs.expr1 :: @makePrimValue(pos, %int_, 0xFFFFFFFFb64)
@@ -1137,7 +1140,7 @@ func parseStatCatch(row: int, col: int, block_: \ast@Ast): \ast@AstStat
 		else
 			do @fileBuf :: c
 			while loop(true)
-				var exprs: \ast@ExprPair :: #\ast@ExprPair
+				var exprs: \ast@AstExprPair :: #\ast@AstExprPair
 				do exprs.expr0 :: @parseExpr()
 				do exprs.expr1 :: null
 				do c :: @readChar()
@@ -2104,10 +2107,8 @@ func parseExprValue(): \ast@AstExpr
 			case "env"
 				var env_: []char
 				switch(\option@env_)
-				case %cui
-					do env_ :: "cui"
-				case %wnd
-					do env_ :: "wnd"
+				case %exe
+					do env_ :: "exe"
 				case %web
 					do env_ :: "web"
 				case %cpp

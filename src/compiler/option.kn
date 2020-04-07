@@ -1,8 +1,7 @@
 +enum Env
-	cui
-	wnd
-	web
+	exe
 	cpp
+	web
 end enum
 
 +var inputFile: []char
@@ -97,13 +96,11 @@ end enum
 	end if
 	
 	if(envStr =& null)
-		do @env_ :: %cui
+		do @env_ :: %exe
 	else
 		switch(envStr)
-		case "cui"
-			do @env_ :: %cui
-		case "wnd"
-			do @env_ :: %wnd
+		case "exe"
+			do @env_ :: %exe
 		case "web"
 			do @env_ :: %web
 		case "cpp"

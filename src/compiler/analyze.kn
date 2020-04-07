@@ -224,7 +224,7 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 		block
 			var catch_: \ast@AstStatCatch :: #\ast@AstStatCatch
 			do @initAst(catch_, %statCatch, pos)
-			do catch_.conds :: #list<\ast@ExprPair>
+			do catch_.conds :: #list<\ast@AstExprPair>
 			block
 				var block_: \ast@AstStatBlock :: #\ast@AstStatBlock
 				do @initAst(block_, %statBlock, pos)
@@ -234,7 +234,7 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 				do catch_.statBlock :: block_
 			end block
 			block
-				var exprs: \ast@ExprPair :: #\ast@ExprPair
+				var exprs: \ast@AstExprPair :: #\ast@AstExprPair
 				block
 					var expr: \ast@AstExprValuePrim :: #\ast@AstExprValuePrim
 					do @initAstExpr(expr, %exprValuePrim, pos)
@@ -1357,10 +1357,10 @@ func rebuildSwitch(ast: \ast@AstStatSwitch, retType: \ast@AstType, parentFunc: \
 		do items.head()
 		while(!items.term())
 			var case_: \ast@AstStatCase :: items.get()
-			var items2: list<\ast@ExprPair> :: case_.conds
+			var items2: list<\ast@AstExprPair> :: case_.conds
 			do items2.head()
 			while(!items2.term())
-				var exprs: \ast@ExprPair :: items2.get()
+				var exprs: \ast@AstExprPair :: items2.get()
 				do exprs.expr0 :: @rebuildExpr(exprs.expr0, false)
 				if(ast.cond <>& null & exprs.expr0 <>& null)
 					if(!@cmpType(ast.cond.type, exprs.expr0.type, false))
@@ -1453,10 +1453,10 @@ func rebuildTry(ast: \ast@AstStatTry, retType: \ast@AstType, parentFunc: \ast@As
 		do items.head()
 		while(!items.term())
 			var catch_: \ast@AstStatCatch :: items.get()
-			var items2: list<\ast@ExprPair> :: catch_.conds
+			var items2: list<\ast@AstExprPair> :: catch_.conds
 			do items2.head()
 			while(!items2.term())
-				var exprs: \ast@ExprPair :: items2.get()
+				var exprs: \ast@AstExprPair :: items2.get()
 				do exprs.expr0 :: @rebuildExpr(exprs.expr0, false)
 				if(exprs.expr0 <>& null & (!\ast@isInt(exprs.expr0.type) | exprs.expr0.typeId <> %exprValuePrim))
 					do \err@err(%catchCondMustBeConstInt, exprs.expr0.pos, null)
@@ -3244,7 +3244,7 @@ end func
 func searchStdItem(src: []char, identifier: []char, makeExprRef: bool): \ast@Ast
 	var ast: \ast@Ast :: @asts.get(src, &)
 	if(ast =& null)
-		do \err@err(%sysFileOpenFailed, null, [src])
+		do \err@err(%fileOpenFailed, null, [src])
 		ret null
 	end if
 	
@@ -3372,6 +3372,7 @@ func addSpecialFunc(class_: \ast@AstClass, name: []char): \ast@AstFunc
 		do item.override :: true
 		do item.def :: ast
 		do item.parentItem :: null
+		do item.extra :: null
 		var ptr: \ast@AstClass :: class_.refItem $ \ast@AstClass
 		while(ptr.refItem <>& null)
 			do ptr :: ptr.refItem $ \ast@AstClass

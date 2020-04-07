@@ -67,6 +67,10 @@ func build(): bool
 	
 	; 'Output'
 	switch(\option@env_)
+	case %exe
+		if(!\exe\output@output(entry, resFiles.files))
+			ret false
+		end if
 	case %cpp
 		if(!\cpp\output@output(entry, resFiles.files))
 			ret false
@@ -80,6 +84,9 @@ func build(): bool
 	end switch
 	
 	do \err@err(%generationProcessCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
+	if(\err@errCnt > 0)
+		ret false
+	end if
 	
 	ret true
 	

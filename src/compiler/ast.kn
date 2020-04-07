@@ -143,6 +143,7 @@ end class
 	+var override: bool
 	+var def: @Ast
 	+var parentItem: @AstClassItem
+	+var extra: kuin@Class
 end class
 
 +class AstClass(@Ast)
@@ -221,13 +222,13 @@ end class
 	+var defaultStatBlock: @AstStatBlock
 end class
 
-+class ExprPair()
++class AstExprPair()
 	+var expr0: @AstExpr
 	+var expr1: @AstExpr
 end class
 
 +class AstStatCase(@AstStat)
-	+var conds: list<@ExprPair>
+	+var conds: list<@AstExprPair>
 	+var statBlock: @AstStatBlock
 end class
 
@@ -251,7 +252,7 @@ end class
 end class
 
 +class AstStatCatch(@AstStat)
-	+var conds: list<@ExprPair>
+	+var conds: list<@AstExprPair>
 	+var statBlock: @AstStatBlock
 end class
 

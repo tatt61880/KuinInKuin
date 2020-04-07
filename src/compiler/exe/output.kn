@@ -1,0 +1,10 @@
++func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
+	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry)
+	do \exe\machine@convert(pack)
+	do @deploy()
+	ret true
+end func
+
+func deploy()
+	; TODO:
+end func
