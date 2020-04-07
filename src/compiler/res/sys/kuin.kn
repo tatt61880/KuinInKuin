@@ -195,6 +195,9 @@ func[__any, __rme]_shl(me_: int, type: []int, n: int): int
 		excode "case 0x06:\n"
 		excode "return `0`<<`2`[1];\n"
 		excode "default:\n"
+		excode "if(`2`[1]>=32)\n"
+		excode "return Uint32Array.from([`0`[1]<<(`2`[1]-32),0]);\n"
+		excode "else\n"
 		excode "return `2`[1]?Uint32Array.from([(`0`[0]<<`2`[1])|(`0`[1]>>>(32-`2`[1])),`0`[1]<<`2`[1]]):`0`;\n"
 		excode "}\n"
 	end if
@@ -210,6 +213,9 @@ func[__any, __rme]_shr(me_: int, type: []int, n: int): int
 		excode "case 0x06:\n"
 		excode "return `0`>>>`2`[1];\n"
 		excode "default:\n"
+		excode "if(`2`[1]>=32)\n"
+		excode "return Uint32Array.from([0,`0`[0]>>>(`2`[1]-32)]);\n"
+		excode "else\n"
 		excode "return `2`[1]?Uint32Array.from([`0`[0]>>>`2`[1],(`0`[1]>>>`2`[1])|(`0`[0]<<(32-`2`[1]))]):`0`;\n"
 		excode "}\n"
 	end if
@@ -227,6 +233,9 @@ func[__any, __rme]_sar(me_: int, type: []int, n: int): int
 		excode "case 0x06:\n"
 		excode "return `0`>>`2`[1];\n"
 		excode "default:\n"
+		excode "if(`2`[1]>=32)\n"
+		excode "return Uint32Array.from([`0`[0]&0x80000000?-1:0,`0`[0]>>(`2`[1]-32)]);\n"
+		excode "else\n"
 		excode "return `2`[1]?Uint32Array.from([`0`[0]>>`2`[1],(`0`[1]>>>`2`[1])|(`0`[0]<<(32-`2`[1]))]):`0`;\n"
 		excode "}\n"
 	end if
@@ -408,17 +417,24 @@ func _toInt(me_: []char, success: &bool): int
 		excode "return 0;\n"
 		excode "}\n"
 	elif(env = "web")
-		; TODO: 64bit
+		; TODO: Sign
 		excode "if(`0`.S.length>=2&&`0`.S[0]==\"0\"&&`0`.S[1]==\"x\"){\n"
 		excode "let r_=Number(`0`.S);\n"
 		excode "`1`.$=!isNaN(r_);\n"
-		excode "let n_=parseInt(`0`.S.slice(2),16);\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+		excode "let s_=`0`.S.slice(2),n1_=s_.length>=9?parseInt(s_.slice(0,s_.length-8),16):0,n2_=parseInt(s_.length>=9?s_.slice(s_.length-8):s_,16);\n"
+		excode "return Uint32Array.from([n1_,n2_]);\n"
 		excode "}else{\n"
 		excode "let r_=Number(`0`.S);\n"
 		excode "`1`.$=!isNaN(r_);\n"
-		excode "let n_=parseInt(`0`.S,10);\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+		excode "let s_=`0`.S,n1_=s_.length>=10?parseInt(s_.slice(0,s_.length-9),10):0,n2_=parseInt(s_.length>=10?s_.slice(s_.length-9):s_,10);\n"
+		excode "let x_=Uint32Array.from([0,n2_]),y_=Uint32Array.from([0,0x3b9aca00]),z_=Uint32Array.from([0,1000000000]);\n"
+		excode "while(n1_>0){\n"
+		excode "let w_=Uint32Array.from([0,n1_%1000000000]);\n"
+		excode "n1_=Math.floor(n1_/1000000000);\n"
+		excode "FA_(x_,UM_(w_,y_));\n"
+		excode "y_=UM_(y_,z_);\n"
+		excode "}\n"
+		excode "return x_;\n"
 		excode "}\n"
 	end if
 end func
@@ -467,17 +483,23 @@ func _toBit64(me_: []char, success: &bool): bit64
 		excode "return 0;\n"
 		excode "}\n"
 	elif(env = "web")
-		; TODO: 64bit
 		excode "if(`0`.S.length>=2&&`0`.S[0]==\"0\"&&`0`.S[1]==\"x\"){\n"
 		excode "let r_=Number(`0`.S);\n"
 		excode "`1`.$=!isNaN(r_);\n"
-		excode "let n_=parseInt(`0`.S.slice(2),16);\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+		excode "let s_=`0`.S.slice(2),n1_=s_.length>=9?parseInt(s_.slice(0,s_.length-8),16):0,n2_=parseInt(s_.length>=9?s_.slice(s_.length-8):s_,16);\n"
+		excode "return Uint32Array.from([n1_,n2_]);\n"
 		excode "}else{\n"
 		excode "let r_=Number(`0`.S);\n"
 		excode "`1`.$=!isNaN(r_);\n"
-		excode "let n_=parseInt(`0`.S,10);\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+		excode "let s_=`0`.S,n1_=s_.length>=10?parseInt(s_.slice(0,s_.length-9),10):0,n2_=parseInt(s_.length>=10?s_.slice(s_.length-9):s_,10);\n"
+		excode "let x_=Uint32Array.from([0,n2_]),y_=Uint32Array.from([0,0x3b9aca00]),z_=Uint32Array.from([0,1000000000]);\n"
+		excode "while(n1_>0){\n"
+		excode "let w_=Uint32Array.from([0,n1_%1000000000]);\n"
+		excode "n1_=Math.floor(n1_/1000000000);\n"
+		excode "FA_(x_,UM_(w_,y_));\n"
+		excode "y_=UM_(y_,z_);\n"
+		excode "}\n"
+		excode "return x_;\n"
 		excode "}\n"
 	end if
 end func
