@@ -14,10 +14,18 @@ var fileLast: bool
 var scope: stack<\ast@Ast>
 var uniqueCnt: int
 var scopeRefedItems: list<\ast@ScopeRefedItem>
+var inSubSrc: bool
 
 +func parse(): dict<[]char, \ast@Ast>
 	do @srcesCur :: #dict<[]char, \ast@Ast>
-	do @srcesCur.add("\\" ~ \option@inputName, null)
+	block
+		var inputName: []char :: "\\" ~ \option@inputName
+		if(inputName.find('.', -1) <> -1)
+			do \err@err(%incorrectSrcName, null, [inputName])
+			ret @srcesCur
+		end if
+		do @srcesCur.add(inputName, null)
+	end block
 	do @srcesCur.add("kuin", null)
 	
 	var endFlag: lib@Bool :: #lib@Bool
@@ -66,7 +74,26 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	do @uniqueCnt :: 0
 	do @scopeRefedItems :: null
 	
-	var ast: \ast@AstRoot :: @parseRoot()
+	var parentAstRoot: \ast@AstRoot :: null
+	block
+		var dot: int :: @srcName.findLast('.', -1)
+		if(dot = -1)
+			do @inSubSrc :: false
+		else
+			do @inSubSrc :: true
+			var existence: bool
+			do parentAstRoot :: @srcesNext.get(@srcName.sub(0, dot), &existence) $ \ast@AstRoot
+			if(!existence)
+				do \err@err(%parentOfSubsourceNotFound, null, [@srcName])
+				ret true
+			end if
+			assert parentAstRoot <>& null
+			; Set a dummy source so that the 'subSrc' will not be reprocessed.
+			do @srcesNext.add(@srcName, \ast@getSubSrcDummyAst())
+		end if
+	end block
+	
+	var ast: \ast@AstRoot :: @parseRoot(parentAstRoot)
 	do @filePtr.fin()
 	do @srcesNext.add(key, ast)
 	ret true
@@ -85,7 +112,7 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 				if(idx >= ^name)
 					ret true
 				end if
-				if('a' <= name[idx] & name[idx] <= 'z' | name[idx] = '_' | '0' <= name[idx] & name[idx] <= '9')
+				if('a' <= name[idx] & name[idx] <= 'z' | name[idx] = '_' | '0' <= name[idx] & name[idx] <= '9' | name[idx] = '.')
 					skip loop
 				end if
 				if(name[idx] = '\\')
@@ -106,11 +133,18 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	end func
 end func
 
-func parseRoot(): \ast@AstRoot
-	var ast: \ast@AstRoot :: #\ast@AstRoot
-	do @initAst(ast, %root, \pos@make(@srcName, 1, 1), null, false)
-	do ast.scopeRefedItems :: #list<\ast@ScopeRefedItem>
-	do ast.items :: #list<\ast@Ast>
+; 'parentAstRoot' is the parent of a 'subSrc'.
+func parseRoot(parentAstRoot: \ast@AstRoot): \ast@AstRoot
+	var ast: \ast@AstRoot
+	if(parentAstRoot =& null)
+		do ast :: #\ast@AstRoot
+		do @initAst(ast, %root, \pos@make(@srcName, 1, 1), null, false)
+		do ast.scopeRefedItems :: #list<\ast@ScopeRefedItem>
+		do ast.items :: #list<\ast@Ast>
+	else
+		; In a 'subSrc', add codes to the parent.
+		do ast :: parentAstRoot
+	end if
 	do @scopeRefedItems :: ast.scopeRefedItems
 	
 	do ast.scopeChildren :: #dict<[]char, \ast@Ast>
@@ -151,7 +185,8 @@ func parseRoot(): \ast@AstRoot
 			case "alias"
 				do item :: @parseAlias()
 			case "include"
-				; TODO:
+				do @parseInclude()
+				skip loop
 			case "class"
 				do item :: @parseClass()
 			case "enum"
@@ -382,6 +417,21 @@ func parseAlias(): \ast@AstAlias
 	do ast.type :: @parseType()
 	do @assertNextChar('\n', true)
 	ret ast
+end func
+
+func parseInclude()
+	var subSrcName: []char :: @readIdentifier(true, false)
+	if(@inSubSrc)
+		do \err@err(%cannotIncludeInSubsourceFile, @makePos(), [subSrcName])
+		ret
+	end if
+	var newSrcName: []char :: "\{@srcName}.\{subSrcName}"
+	do @assertNextChar('\n', true)
+	var existence: bool
+	do @srcesNext.get(newSrcName, &existence)
+	if(!existence)
+		do @srcesNext.add(newSrcName, null)
+	end if
 end func
 
 func parseClass(): \ast@AstClass
@@ -2638,7 +2688,9 @@ func readFuncAttr(): []char
 end func
 
 func addSrc(name: []char)
-	if(@srcesNext.get(name, &) =& null)
+	var existence: bool
+	do @srcesNext.get(name, &existence)
+	if(!existence)
 		do @srcesNext.add(name, null)
 	end if
 end func
