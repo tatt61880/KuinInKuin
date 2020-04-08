@@ -1509,7 +1509,7 @@ var x: int :: 5678
 func test16()
 	block
 		var time: int :: 1485120859
-
+		
 		var year: int
 		var month: int
 		var day: int
@@ -1521,29 +1521,29 @@ func test16()
 		var time2: int :: lib@dateToInt(year, month, day, hour, minute, second)
 		do cui@print(time2.toStr() ~ ", " ~ (time = time2).toStr() ~ "\n")
 	end block
-
+	
 	block
 		var i: int :: 1234
 		var f: float :: 3.14159
 		var s: []char :: "abc"
 		do cui@print("i=\{i}, f=\{f}, s=\{s}, @x=\{@x}." ~ "\n")
 	end block
-
+	
 	block
 		do cui@print(["ab", "cd", "ef"].join("xx") ~ "\n")
 	end block
-
+	
 	block
 		do cui@print(lib@intMax.toStr() ~ ", " ~ lib@intMin.toStr() ~ "\n")
 	end block
-
+	
 	block
 		do cui@print((0x12b8).endian().toStr() ~ "\n")
 		do cui@print((0x1234b16).endian().toStr() ~ "\n")
 		do cui@print((0x12345678b32).endian().toStr() ~ "\n")
 		do cui@print((0x12345678ABCDEF01b64).endian().toStr() ~ "\n")
 	end block
-
+	
 	block
 		do cui@print("abcdefg".findBin('f').toStr() ~ "\n")
 		do cui@print("abcdefg".findBin('h').toStr() ~ "\n")
@@ -1557,18 +1557,18 @@ func test17()
 		do cui@print((-n ^ 4.0).toStr() ~ "\n")
 		do cui@print(n $ int.toStr() ~ "\n")
 	end block
-
+	
 	block
 		var n: int :: 5
-		do cui@print("\{"\{n+2}" ~ "a"}" ~ "\n")
+		do cui@print("\{"\{n + 2}" ~ "a"}" ~ "\n")
 	end block
-
+	
 	block
 		class C()
 			+var a: int
 			+var b: int
 		end class
-
+		
 		var l: list<C> :: #list<C>
 		do l.add(#C)
 		var c: C :: #C
@@ -1582,7 +1582,7 @@ func test17()
 		var l3: list<C> :: l $> []bit8 $< list<C>
 		do cui@print(l3.get().b.toStr() ~ "\n")
 	end block
-
+	
 	block
 		class C1()
 		end class
@@ -1592,7 +1592,7 @@ func test17()
 		do cui@print((c1 =$ C1).toStr() ~ "\n")
 		do cui@print((c1 =$ C2).toStr() ~ "\n")
 	end block
-
+	
 	block
 		var a: []char :: #[5]char
 		var x: char :: 'x'
@@ -1601,7 +1601,7 @@ func test17()
 		do a.fill('y')
 		do cui@print(a ~ "\n")
 	end block
-
+	
 	block
 		var a: [][]char :: #[5][]char
 		var x: []char :: "x"
@@ -1610,7 +1610,7 @@ func test17()
 		do a.fill("y")
 		do cui@print(a[0] ~ "\n")
 	end block
-
+	
 	block
 		do cui@print(file@fileName("abc/def.txt") ~ "\n")
 		do cui@print(file@fileName("abc/") ~ "\n")
@@ -1639,7 +1639,7 @@ func test18()
 				ret 1
 			end func
 		end class
-
+		
 		class ObjB(ObjA)
 			+*func f(str: []char): int
 				do super(me, str)
@@ -1647,7 +1647,7 @@ func test18()
 				ret 2
 			end func
 		end class
-
+		
 		class ObjC(ObjB)
 			+*func f(str: []char): int
 				do super(me, str)
@@ -1655,24 +1655,24 @@ func test18()
 				ret 3
 			end func
 		end class
-
+		
 		do cui@print((#ObjC).f("X").toStr() ~ "\n")
 	end block
-
+	
 	block
 		enum Color
 			red :: 1
 			green :: 2
 			blue :: 4
 		end enum
-
+		
 		var c1: Color :: %red
 		do c1 :: c1.or(%green)
 		var c2: Color :: %green
 		do c2 :: c2.or(%blue)
 		do cui@print((c1.and(c2) = %green).toStr() ~ "\n")
 	end block
-
+	
 	block
 		var d: dict<[]char, []char> :: #dict<[]char, []char>
 		do d.add("a", "A")
@@ -1686,14 +1686,14 @@ func test18()
 		var c: @C :: #@C
 		do c.value :: 100
 		do cui@print(d.forEach(callback, c).toStr() ~ "\n")
-
+		
 		func callback(key: []char, value: []char, data: kuin@Class): bool
 			do cui@print(key ~ ", " ~ (value =& null ?("null", value)) ~ "\n")
 			do cui@print((data $ @C).value.toStr() ~ "\n")
 			ret !(value <>& null & value = "B")
 		end func
 	end block
-
+	
 	block
 		var a: list<[]char> :: #list<[]char>
 		do a.add("abc")
@@ -1706,7 +1706,7 @@ func test18()
 			do a.del()
 		end while
 	end block
-
+	
 	block
 		var a: stack<[]char> :: #stack<[]char>
 		do a.add("abc")
@@ -1717,7 +1717,7 @@ func test18()
 			do cui@print((b =& null ?("null", b)) ~ "\n")
 		end while
 	end block
-
+	
 	block
 		var a: queue<[]char> :: #queue<[]char>
 		do a.add("abc")
@@ -1727,5 +1727,18 @@ func test18()
 			var b: []char :: a.get()
 			do cui@print((b =& null ?("null", b)) ~ "\n")
 		end while
+	end block
+	
+	block
+		var rnd: lib@Rnd :: lib@makeRnd(1234b32)
+		for i(0, 9)
+			do cui@print(rnd.rndBit64().toStr() ~ "\n")
+		end for
+		for i(0, 9)
+			do cui@print(rnd.rnd(1, 6).toStr() ~ "\n")
+		end for
+		for i(0, 9)
+			do cui@print(rnd.rndFloat(1.0, 6.0).toStr() ~ "\n")
+		end for
 	end block
 end func
