@@ -11,13 +11,17 @@ end enum
 		do me.delimiters :: " ,\n"
 	end func
 	
-	*func[d0000.knd, _readerDtor, __frc]_dtor()
+	*func[__frc]_dtor()
+		do me.fin()
 	end func
 	
 	+func fin()
 		if(env = "cpp")
 			excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "if(r_->F!=nullptr){\n"
 			excode "r_->F->close();\n"
+			excode "r_->F=nullptr;\n"
+			excode "}\n"
 		elif(env = "web")
 			excode "`0`.`.handle`.F=null;\n"
 		end if

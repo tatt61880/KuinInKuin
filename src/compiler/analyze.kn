@@ -193,6 +193,10 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			; Make the program to call 'init' and 'main'.
 			var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 			do funcs.add(@searchStdItem("kuin", "_init", false))
+			var data: AddInitFuncsData :: #AddInitFuncsData
+			do data.funcs :: funcs
+			do data.name :: "_init"
+			do @asts.forEach(addInitFuncs, data)
 			do funcs.add(@searchStdItem("kuin", "_initVars", false))
 			do funcs.add(mainFunc)
 			block
@@ -295,6 +299,10 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			; Make the program to call 'fin'.
 			var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 			do funcs.add(@searchStdItem("kuin", "_finVars", false))
+			var data: AddInitFuncsData :: #AddInitFuncsData
+			do data.funcs :: funcs
+			do data.name :: "_fin"
+			do @asts.forEach(addInitFuncs, data)
 			do funcs.add(@searchStdItem("kuin", "_fin", false))
 			block
 				do funcs.head()
@@ -321,6 +329,24 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 		do entry.stats.add(try_)
 	end block
 	ret entry
+	
+	class AddInitFuncsData()
+		+var funcs: list<\ast@Ast>
+		+var name: []char
+	end class
+	
+	func addInitFuncs(key: []char, value: \ast@Ast, data: kuin@Class): bool
+		if(key[0] = '\\' | key = "kuin")
+			ret true
+		end if
+		var data2: AddInitFuncsData :: data $ AddInitFuncsData
+		var ast: \ast@Ast :: value.scopeChildren.get(data2.name, &)
+		if(ast =& null)
+			ret true
+		end if
+		do data2.funcs.add(ast)
+		ret true
+	end func
 end func
 
 func rebuildRoot(key: []char, value: \ast@Ast, data: kuin@Class): bool
@@ -3269,7 +3295,7 @@ func searchStdItem(src: []char, identifier: []char, makeExprRef: bool): \ast@Ast
 	end if
 	
 	var ast2: \ast@Ast :: ast.scopeChildren.get(identifier, &)
-	if(ast =& null)
+	if(ast2 =& null)
 		do \err@err(%sysFileBroken, null, [src])
 		ret null
 	end if

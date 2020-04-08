@@ -3,6 +3,13 @@
 +const intMin: int :: -9223372036854775807 - 1
 +const intMax: int :: 9223372036854775807
 
+var globalRnd: @Rnd
+
+func _init()
+	do @globalRnd :: #@Rnd
+	do @globalRnd.setSeed((@sysTime() $ bit32).xor(@now() $ bit32))
+end func
+
 +func cmdLine(): [][]char
 	if(env = "cpp")
 		excode "auto a_=new_(Array_<type_(Array_<char16_t>)>)();\n"
@@ -39,45 +46,76 @@ end func
 end func
 
 +class Rnd()
-	*func[d0000.knd, _rndDtor, __frc]_dtor()
+	+func setSeed(seed: bit32)
+		do me.x :: 123456789b32
+		do me.y :: 362436069b32
+		do me.z :: 521288629b32 * seed
+		do me.w :: 88675123b32 * me.z.shr(1)
 	end func
 	
-	+func[d0000.knd, _rndRnd]rnd(min: int, max: int): int
+	+func rnd(min: int, max: int): int
+		if(dbg)
+			if(min > max)
+				throw excpt@dbgArgOutDomain
+			end if
+		end if
+		var n: bit64 :: (max - min + 1) $ bit64
+		var m: bit64 :: 0b64 - ((0b64 - n) % n)
+		var r: bit64
+		if(m = 0b64)
+			do r :: (me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64)
+		else
+			while(m <= r, skip)
+				do r :: (me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64)
+			end while
+		end if
+		ret(r % n) $ int + min
 	end func
 	
-	+func[d0000.knd, _rndRndFloat]rndFloat(min: float, max: float): float
+	+func rndFloat(min: float, max: float): float
+		if(dbg)
+			if(min > max)
+				throw excpt@dbgArgOutDomain
+			end if
+		end if
+		ret(me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64) $ float / 18446744073709551616.0 * (max - min) + min
 	end func
 	
-	+func[d0000.knd, _rndRndBit64]rndBit64(): bit64
+	+func rndBit64(): bit64
+		ret(me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64)
 	end func
 	
-	var rndState: int
+	func xs128(): bit32
+		var t: bit32 :: me.x.xor(me.x.shl(11))
+		do me.x :: me.y
+		do me.y :: me.z
+		do me.z :: me.w
+		do me.w :: me.w.xor(me.w.shr(19)).xor(t.xor(t.shr(8)))
+		ret me.w
+	end func
+	
+	var x: bit32
+	var y: bit32
+	var z: bit32
+	var w: bit32
 end class
 
-+func[d0000.knd, _makeRnd, __mki]makeRnd(me2: @Rnd, seed: int): @Rnd
++func makeRnd(seed: bit32): @Rnd
+	var r: @Rnd :: #@Rnd
+	do r.setSeed(seed)
+	ret r
 end func
 
 +func rnd(min: int, max: int): int
-	if(env = "cpp")
-		excode "return rnd_(`0`,`1`);\n"
-	elif(env = "web")
-		; TODO:
-		excode "let n_=Math.floor(Math.random()*(`1`-`0`+1))+`0`;\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
-	end if
+	ret @globalRnd.rnd(min, max)
 end func
 
 +func rndFloat(min: float, max: float): float
-	if(env = "cpp")
-		excode "return rndFloat_(`0`,`1`);\n"
-	elif(env = "web")
-		; TODO:
-		excode "return Math.random()*(`1`-`0`)+`0`;\n"
-	end if
+	ret @globalRnd.rndFloat(min, max)
 end func
 
-+func[d0000.knd, _rndBit64]rndBit64(): bit64
-	; TODO:
++func rndBit64(): bit64
+	ret @globalRnd.rndBit64()
 end func
 
 +func[d0000.knd, _rndUuid]rndUuid(): []char
@@ -284,6 +322,7 @@ end func
 end func
 
 +func same(n1: float, n2: float): bool
+	; TODO:
 	var max: float :: 1.0
 	if(max < n1)
 		do max :: n1
@@ -366,8 +405,8 @@ end func
 	if(env = "cpp")
 		excode "return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());\n"
 	elif(env = "web")
-		; TODO:
-		excode "return Uint32Array.from([0,new Date().getTime()]);\n"
+		excode "let n_=new Date().getTime();\n"
+		excode "return Uint32Array.from([Math.floor(n_/0x100000000),n_%0x100000000]);\n"
 	end if
 end func
 
@@ -375,8 +414,8 @@ end func
 	if(env = "cpp")
 		excode "return std::time(nullptr);\n"
 	elif(env = "web")
-		; TODO:
-		excode "return Uint32Array.from([0,Math.floor(new Date().getTime()/1000)]);\n"
+		excode "let n_=Math.floor(new Date().getTime()/1000);\n"
+		excode "return Uint32Array.from([Math.floor(n_/0x100000000),n_%0x100000000]);\n"
 	end if
 end func
 
