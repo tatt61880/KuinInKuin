@@ -63,6 +63,8 @@ end enum
 	wrongFloatingPointLiteral
 	wrongBitTypeLiteral
 	integerLiteralOverflowed
+	parentOfSubsourceNotFound
+	cannotIncludeInSubsourceFile
 	
 	_analysisErrs :: 0x00020000
 	noMainFunc
@@ -520,6 +522,20 @@ end enum
 			ret "整数リテラル「\{args[0]}」がオーバーフローしました。"
 		default
 			ret "The integer literal '\{args[0]}' has overflowed."
+		end switch
+	case %parentOfSubsourceNotFound
+		switch(@lang)
+		case %ja
+			ret "サブソースファイル「\{args[0]}」の親ファイルが見つかりませんでした。"
+		default
+			ret "The parent file of the subsource file '\{args[0]}' was not found."
+		end switch
+	case %cannotIncludeInSubsourceFile
+		switch(@lang)
+		case %ja
+			ret "サブソースファイル内でファイル「\{args[0]}」に対し「include」文を使うことはできません。"
+		default
+			ret "An 'include' cannot be used for the file '\{args[0]}' in a subsource file."
 		end switch
 	case %noMainFunc
 		switch(@lang)

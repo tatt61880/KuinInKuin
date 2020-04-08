@@ -556,3 +556,11 @@ end func
 	end if
 	ret false
 end func
+
+var subSrcDummyAst: @Ast
++func getSubSrcDummyAst(): @Ast
+	if(@subSrcDummyAst =& null)
+		do @subSrcDummyAst :: #@Ast {Dummy source to prevent 'subSrc' from being reprocessed.}
+	end if
+	ret @subSrcDummyAst
+end func

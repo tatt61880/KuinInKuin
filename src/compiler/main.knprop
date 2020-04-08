@@ -17,7 +17,6 @@
 		<resource>option.kn</resource>
 		<resource>parse.kn</resource>
 		<resource>pos.kn</resource>
-		<resource>web\builtin.kn</resource>
 		<resource>web\output.kn</resource>
 		<resource>web\raw_funcs.kn</resource>
 	</resources>

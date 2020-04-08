@@ -33,6 +33,9 @@ end func
 end func
 
 func resolveIdentifier(key: []char, value: \ast@Ast, data: kuin@Class): bool
+	if(value =& \ast@getSubSrcDummyAst())
+		ret true
+	end if
 	assert value =$ \ast@AstRoot
 	var scopeRefedItems: list<\ast@ScopeRefedItem> :: (value $ \ast@AstRoot).scopeRefedItems
 	
@@ -321,6 +324,9 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 end func
 
 func rebuildRoot(key: []char, value: \ast@Ast, data: kuin@Class): bool
+	if(value =& \ast@getSubSrcDummyAst())
+		ret true
+	end if
 	var ast: \ast@AstRoot :: value $ \ast@AstRoot
 	if(ast.extra <>& null)
 		ret true
