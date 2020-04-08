@@ -918,34 +918,6 @@ template<typename T1, typename T2> void dictFreeRec_(dictImpl_<T1, T2>* n) {
 	delPrim_(n);
 }
 
-static uint32_t rX_, rY_, rZ_, rW_;
-static uint32_t xs128_() {
-	uint32_t t = rX_ ^ (rX_ << 11);
-	rX_ = rY_;
-	rY_ = rZ_;
-	rZ_ = rW_;
-	return rW_ = (rW_ ^ (rW_ >> 19)) ^ (t ^ (t >> 8));
-}
-static int64_t rnd_(int64_t a, int64_t b) {
-	uint64_t n = (uint64_t)(b - a + 1);
-	uint64_t m = 0 - ((0 - n) % n);
-	uint64_t r;
-	if (m == 0)
-		r = (static_cast<uint64_t>(xs128_()) << 32) | static_cast<uint64_t>(xs128_());
-	else
-	{
-		do
-		{
-			r = (static_cast<uint64_t>(xs128_()) << 32) | static_cast<uint64_t>(xs128_());
-		} while (m <= r);
-	}
-	return static_cast<int64_t>(r % n) + a;
-}
-
-static double rndFloat_(double a, double b) {
-	return (double)((static_cast<uint64_t>(xs128_()) << 32) | static_cast<uint64_t>(xs128_())) / 18446744073709551616.0 * (b - a) + a;
-}
-
 static int64_t powI_(int64_t a, int64_t b) {
 	switch (b)
 	{
@@ -1077,10 +1049,5 @@ static void writeUtf8_(std::ofstream* f, char16_t c) {
 }
 
 static void init_() {
-	uint32_t t = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
-	rX_ = 123456789;
-	rY_ = 362436069;
-	rZ_ = 521288629 * t;
-	rW_ = 88675123 * (rZ_ >> 1);
 	setlocale(LC_ALL, "");
 }

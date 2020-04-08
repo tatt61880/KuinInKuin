@@ -1,7 +1,5 @@
 +func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>)
 	switch(attr)
-	case "addr"
-		; TODO:
 	case "exist"
 		; TODO:
 	case "max"
