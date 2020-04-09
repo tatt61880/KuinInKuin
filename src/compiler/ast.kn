@@ -121,7 +121,7 @@ end enum
 
 +class AstFunc(@Ast)
 	+var funcOption: @AstFuncOption
-	+var funcAttr: list<[]char>
+	+var funcAttr: list<[]char> {TODO: Remove 'funcAttr'.}
 	+var args: list<@AstArg>
 	+var ret_: @AstType
 	+var stats: list<@AstStat>
@@ -301,7 +301,7 @@ end class
 
 +class AstTypeFunc(@AstTypeNullable)
 	+var funcOption: @AstFuncOption
-	+var funcAttr: list<[]char>
+	+var funcAttr: list<[]char> {TODO: Remove 'funcAttr'.}
 	+var args: list<@AstTypeFuncArg>
 	+var ret_: @AstType
 end class

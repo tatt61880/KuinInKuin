@@ -978,6 +978,12 @@ struct writer_ {
 	std::ofstream* F;
 };
 
+template<typename T>
+struct listPtr_ {
+	listPtr_<T>() {}
+	typename T::iterator I;
+};
+
 static char16_t readUtf8_(std::ifstream* f) {
 	char c;
 	int64_t l;

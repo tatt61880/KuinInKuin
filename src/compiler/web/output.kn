@@ -102,14 +102,13 @@ func buildFunc(ast: \ast@AstFunc)
 		end if
 	else
 		do @codes.tail()
-		var localVarPos: int :: @codes.idx()
+		var listPtr: kuin@ListPtr :: @codes.getPtr()
 		
 		do @buildStats(ast.stats)
 		
 		do @codes.add("}\n")
 		
-		do @codes.head()
-		do @codes.moveOffset(localVarPos)
+		do @codes.setPtr(listPtr)
 		do @codes.next()
 		do @localVars.head()
 		while(!@localVars.term())

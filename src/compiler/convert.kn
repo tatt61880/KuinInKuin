@@ -108,24 +108,29 @@ end func
 	var code: []char :: (ast.code $ \ast@AstExprValueStr).value
 	var s: []char :: ""
 	var funcArgs: list<\ast@AstArg> :: func_.args
-	var argsIdx: int :: funcArgs.idx()
+	var listPtr: kuin@ListPtr :: funcArgs.getPtr()
 	var args: []\ast@AstArg :: #[^funcArgs]\ast@AstArg
 	do funcArgs.head()
 	for i(0, ^args - 1)
 		do args[i] :: funcArgs.get()
 		do funcArgs.next()
 	end for
-	do funcArgs.head()
-	do funcArgs.moveOffset(argsIdx)
+	do funcArgs.setPtr(listPtr)
 	while(ptr < ^code)
 		var pos: int :: code.find('`', ptr)
 		if(pos = ptr)
 			do ptr :+ 1
 			var value: []char :: parseValue(code, &ptr)
 			if(^value >= 1 & value[0] = '.')
-				if(^args >= 1 & args[0].type.refItem <>& null & args[0].type.refItem.typeId = %class_)
+				var class_: \ast@AstClass :: null
+				if(func_.funcOption.and(%any) = %none & ^args >= 1 & args[0].type.refItem <>& null & args[0].type.refItem.typeId = %class_)
+					do class_ :: (args[0].type.refItem $ \ast@AstClass)
+				elif(func_.funcOption.and(%any) <> %none & ^args >= 3 & args[2].type.refItem <>& null & args[2].type.refItem.typeId = %class_)
+					do class_ :: (args[2].type.refItem $ \ast@AstClass)
+				end if
+				if(class_ <>& null)
 					var name: []char :: value.sub(1, -1)
-					var members: list<\ast@AstClassItem> :: (args[0].type.refItem $ \ast@AstClass).items
+					var members: list<\ast@AstClassItem> :: class_.items
 					do members.head()
 					while loop(!members.term())
 						var def: \ast@Ast :: members.get().def

@@ -944,3 +944,27 @@ func[__any]_idx(me_: int, type: []int): int
 		excode "return Uint32Array.from([-1,-1]);\n"
 	end if
 end func
+
++class ListPtr()
+	var ptr: int
+end class
+
+func[__any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
+	if(env = "cpp")
+		excode "auto l_=newPrim_(listPtr_<decltype(`0`->B)>)();\n"
+		excode "`2`->`.ptr`=reinterpret_cast<int64_t>(l_);\n"
+		excode "l_->I=`0`->I;\n"
+	elif(env = "web")
+		excode "`2`.`.ptr`=`0`.P;\n"
+	end if
+	ret me2
+end func
+
+func[__any]_setPtr(me_: int, type: []int, ptr: @ListPtr)
+	if(env = "cpp")
+		excode "auto l_=reinterpret_cast<listPtr_<decltype(`0`->B)>*>(`2`->`.ptr`);\n"
+		excode "`0`->I=l_->I;\n"
+	elif(env = "web")
+		excode "`0`.P=`2`.`.ptr`;\n"
+	end if
+end func

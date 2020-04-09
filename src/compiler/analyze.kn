@@ -624,11 +624,9 @@ func rebuildClass(ast: \ast@AstClass)
 					; Analyze functions and variables in classes because they can be referred to as instances.
 					var def: \ast@Ast :: item.def
 					if(def.typeId = %func_)
-						var idx: int :: astItems.idx()
-						assert idx <> -1
+						var listPtr: kuin@ListPtr :: astItems.getPtr()
 						do @rebuildFunc(def $ \ast@AstFunc)
-						do astItems.head()
-						do astItems.moveOffset(idx)
+						do astItems.setPtr(listPtr)
 					elif(def.typeId = %var_)
 						do @rebuildVar(def $ \ast@AstVar)
 					end if
@@ -1171,10 +1169,10 @@ func rebuildStat(ast: \ast@AstStat, retType: \ast@AstType, parentFunc: \ast@AstF
 			assert parentFunc <>& null & parentFunc.name <>& null
 			assert \ast@isInt(arg.type)
 			block
-				var idx: int :: parentFunc.args.idx()
+				var listPtr: kuin@ListPtr :: parentFunc.args.getPtr()
 				do parentFunc.args.head()
 				var refClass: \ast@AstClass :: parentFunc.args.get().type.refItem $ \ast@AstClass
-				do parentFunc.args.moveOffset(idx)
+				do parentFunc.args.setPtr(listPtr)
 				assert refClass.typeId = %class_
 				var superFunc: \ast@AstFunc :: null
 				var items: list<\ast@AstClassItem> :: refClass.items
