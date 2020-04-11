@@ -673,8 +673,6 @@ func buildExpr(ast: \ast@AstExpr)
 		do @buildExprValuePrim(ast $ \ast@AstExprValuePrim)
 	case %exprValueStr
 		do @buildExprValueStr(ast $ \ast@AstExprValueStr)
-	case %exprValueBin
-		do @buildExprValueBin(ast $ \ast@AstExprValueBin)
 	case %exprValueFloat
 		do @buildExprValueFloat(ast $ \ast@AstExprValueFloat)
 	case %exprValueArray
@@ -1590,19 +1588,6 @@ func buildExprValueStr(ast: \ast@AstExprValueStr)
 		do s :~ @escapeChar(value[i])
 	end for
 	do s :~ "\"}"
-	do @codes.add(s)
-end func
-
-func buildExprValueBin(ast: \ast@AstExprValueBin)
-	var value: []bit8 :: ast.value
-	var s: []char :: "["
-	for i(0, ^value - 1)
-		if(i <> 0)
-			do s :~ ","
-		end if
-		do s :~ value[i].toStr()
-	end for
-	do s :~ "]"
 	do @codes.add(s)
 end func
 

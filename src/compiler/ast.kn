@@ -63,9 +63,8 @@
 	exprValue :: 0x00010800
 	exprValuePrim :: 0x00010801
 	exprValueStr :: 0x00010802
-	exprValueBin :: 0x00010803
-	exprValueEnumElement :: 0x00010804
-	exprValueFloat :: 0x00010805
+	exprValueEnumElement :: 0x00010803
+	exprValueFloat :: 0x00010804
 	exprValueArray :: 0x080C
 	exprRef :: 0x080E
 	info :: 0x10000000
@@ -474,10 +473,6 @@ end class
 	+var value: []char
 end class
 
-+class AstExprValueBin(@AstExprValue)
-	+var value: []bit8
-end class
-
 +class AstExprValueEnumElement(@AstExprValue)
 	+var identifier: []char
 end class
@@ -533,16 +528,6 @@ end func
 	ret false
 end func
 
-+func isBin(type: @AstType): bool
-	if(type.typeId = %typeArray)
-		var itemType: @AstType :: (type $ @AstTypeArray).itemType
-		if(itemType.typeId = %typeBit & (itemType $ @AstTypeBit).size = 1)
-			ret true
-		end if
-	end if
-	ret false
-end func
-
 +func isComparable(type: @AstType, lessOrGreater: bool): bool
 	; Note: 'null' itself is an incomparable type.
 	; The following types can be compared.
@@ -550,7 +535,7 @@ end func
 		ret true
 	end if
 	
-	; 'bool' and binaries can be just determined whether the values match.
+	; 'bool' can be just determined whether the values match.
 	if(!lessOrGreater & @isBool(type))
 		ret true
 	end if

@@ -1746,8 +1746,6 @@ func rebuildExpr(ast: \ast@AstExpr, nullable: bool): \ast@AstExpr
 		do ast :: @rebuildExprValuePrim(ast $ \ast@AstExprValuePrim)
 	case %exprValueStr
 		do ast :: @rebuildExprValueStr(ast $ \ast@AstExprValueStr)
-	case %exprValueBin
-		do ast :: @rebuildExprValueBin(ast $ \ast@AstExprValueBin)
 	case %exprValueEnumElement
 		do ast :: @rebuildExprValueEnumElement(ast $ \ast@AstExprValueEnumElement)
 	case %exprValueFloat
@@ -2089,16 +2087,6 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 						do expr.type :: ast.children0.type
 						do expr.value :: s1 ~ s2
 						do expr :: @rebuildExprValueStr(expr) $ \ast@AstExprValueStr
-						do ast.extra :: expr
-						ret ast.extra $ \ast@AstExpr
-					elif(\ast@isBin(ast.children0.type))
-						var b1: []bit8 :: (ast.children0 $ \ast@AstExprValueBin).value
-						var b2: []bit8 :: (ast.children1 $ \ast@AstExprValueBin).value
-						var expr: \ast@AstExprValueBin :: #\ast@AstExprValueBin
-						do @initAstExpr(expr, %exprValueBin, ast.pos)
-						do expr.type :: ast.children0.type
-						do expr.value :: b1 ~ b2
-						do expr :: @rebuildExprValueBin(expr) $ \ast@AstExprValueBin
 						do ast.extra :: expr
 						ret ast.extra $ \ast@AstExpr
 					end if
@@ -3030,16 +3018,6 @@ func rebuildExprValueStr(ast: \ast@AstExprValueStr): \ast@AstExpr
 	ret ast
 end func
 
-func rebuildExprValueBin(ast: \ast@AstExprValueBin): \ast@AstExpr
-	if(ast.extra <>& null)
-		ret ast.extra $ \ast@AstExpr
-	end if
-	do ast.extra :: ast
-	
-	do ast.varKind :: %value
-	ret ast
-end func
-
 func rebuildExprValueEnumElement(ast: \ast@AstExprValueEnumElement): \ast@AstExpr
 	if(ast.extra <>& null)
 		ret ast.extra $ \ast@AstExpr
@@ -3162,28 +3140,6 @@ func rebuildExprValueArray(ast: \ast@AstExprValueArray): \ast@AstExpr
 			end while
 			do ast2.value :: s
 			do ast2 :: @rebuildExprValueStr(ast2) $ \ast@AstExprValueStr
-			do ast.extra :: ast2
-			ret ast.extra $ \ast@AstExpr
-		end if
-	end if
-	
-	if(\ast@isBin(ast.type))
-		; Replace constants consisting only of binaries with binary literals.
-		if(chkConst(ast.values))
-			var ast2: \ast@AstExprValueBin :: #\ast@AstExprValueBin
-			do @initAstExpr(ast2, %exprValueBin, ast.pos)
-			do ast2.type :: ast.type
-			var b: []bit8 :: #[^ast.values]bit8
-			var idx: int :: 0
-			var items: list<\ast@AstExpr> :: ast.values
-			do items.head()
-			while(!items.term())
-				do b[idx] :: (items.get() $ \ast@AstExprValuePrim).value $ bit8
-				do items.next()
-				do idx :+ 1
-			end while
-			do ast2.value :: b
-			do ast2 :: @rebuildExprValueBin(ast2) $ \ast@AstExprValueBin
 			do ast.extra :: ast2
 			ret ast.extra $ \ast@AstExpr
 		end if
