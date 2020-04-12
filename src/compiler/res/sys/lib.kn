@@ -341,8 +341,8 @@ end func
 end func
 
 +func same(n1: float, n2: float): bool
-	var i1: bit64 :: toBit64Forcibly(n1)
-	var i2: bit64 :: toBit64Forcibly(n2)
+	var i1: bit64 :: @toBit64Forcibly(n1)
+	var i2: bit64 :: @toBit64Forcibly(n2)
 	if(i1.shr(63) <> i2.shr(63))
 		ret i1 = i2
 	end if
