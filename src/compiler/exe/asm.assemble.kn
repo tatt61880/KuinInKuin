@@ -2579,7 +2579,7 @@ end func
 func assembleExprValueFloat(ast: \ast@AstExprValueFloat, regI: int, regF: int)
 	assert ast.varKind <> %unknown
 	var asms: list<@Asm> :: @pack.asms
-	var addr: lib@Int :: @addReadonlyData(lib@toBit64Forcibly(ast.value), false)
+	var addr: lib@Int :: @addReadonlyData(\convert@bit64ToBin(lib@toBit64Forcibly(ast.value)), false)
 	do asms.add(@asmMovsd(@valReg(4, @regF[regF]), @valRip(4, @refValueAddr(addr, true))))
 end func
 
