@@ -1245,6 +1245,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 				while(!items.term())
 					if(first)
 						do first :: false
+						do @codes.add("(")
 					else
 						do @codes.add(",(")
 					end if

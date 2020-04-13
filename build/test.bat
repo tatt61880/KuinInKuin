@@ -33,6 +33,7 @@ rem Kuin2.kn ->[Kuin2.exe]-> Kuin2.js
 copy /Y "..\src\compiler\*.kn" "..\src\compiler\res\"
 xcopy /s /e /q /i /y "..\src\compiler\cpp" "..\src\compiler\res\cpp"
 xcopy /s /e /q /i /y "..\src\compiler\web" "..\src\compiler\res\web"
+xcopy /s /e /q /i /y "..\src\compiler\exe" "..\src\compiler\res\exe"
 copy /Y ".\test_data\test.kn" "..\src\compiler\res\"
 .\output\kuin.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_js" -s "%~dp0../src/compiler/res/sys/" -e web
 

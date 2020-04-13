@@ -286,11 +286,14 @@ template<typename T, typename... A> T newArrays_(A... a) {
 		return nullptr;
 	return newArraysRec_<T>()(std::forward<A>(a)...);
 }
-type_(Array_<char16_t>) emptyStr_() {
-	type_(Array_<char16_t>) r = new_(Array_<char16_t>)();
-	r->L = 0;
-	r->B = newPrimArray_(1, char16_t);
-	r->B[0] = 0;
+template<typename T>
+type_(Array_<T>) newArrayBin_(int64_t l, const void* d) {
+	type_(Array_<T>) r = new_(Array_<T>)();
+	r->L = l;
+	r->B = newPrimArray_(static_cast<size_t>(l) + bufLen_<T>(), T);
+	memcpy(r->B, d, sizeof(T) * static_cast<size_t>(l));
+	if (bufLen_<T>() > 0)
+		r->B[l] = 0;
 	return r;
 }
 

@@ -1525,8 +1525,9 @@ end func
 		if(value.typeId = %addr)
 			; 'refValueList' is set to 'null' when the address is to be updated later, not now.
 			if(refValueList <>& null)
-				do(value $ @RefValueAddr).pos :: writer.getPos() - 0x0400 + 0x1000
-				do refValueList.add(value)
+				var value2: @RefValueAddr :: value $ @RefValueAddr
+				do value2.pos :: writer.getPos() - 0x0400 + 0x1000
+				do refValueList.add(value2)
 			end if
 			ret 0xFFFFFFFFb64
 		end if
