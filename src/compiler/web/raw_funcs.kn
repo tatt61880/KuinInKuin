@@ -52,9 +52,6 @@
 		; TODO:
 	case "math_gamma"
 		; TODO:
-	case "rndRaw"
-		; TODO:
-		do codes.add("return Math.floor(Math.random()*0x100000000);\n")
 	default
 		assert false
 	end switch

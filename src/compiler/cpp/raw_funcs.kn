@@ -22,9 +22,6 @@
 		do args.next()
 		var len_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return repeat_(\{me_.id}, \{len_.id});\n")
-	case "rndRaw"
-		; TODO: Refactoring.
-		do codes.add("return (int64_t)xs128_();\n")
 	case "cui_inputLetter"
 		do codes.add("return static_cast<char16_t>(fgetwc(stdin));\n")
 	case "toStrFmtInt"

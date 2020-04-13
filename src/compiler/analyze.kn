@@ -3418,26 +3418,6 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 	if(typeId1 = %typeFunc & typeId2 = %typeFunc)
 		var func1: \ast@AstTypeFunc :: type1 $ \ast@AstTypeFunc
 		var func2: \ast@AstTypeFunc :: type2 $ \ast@AstTypeFunc
-		; TODO:
-		{
-		if(func1.funcOption <> func2.funcOption)
-			ret false
-		end if
-		var attrs1: list<[]char> :: func1.funcAttr
-		var attrs2: list<[]char> :: func2.funcAttr
-		do attrs1.head()
-		do attrs2.head()
-		while(!attrs1.term() & !attrs2.term())
-			if(attrs1.get() <> attrs2.get())
-				ret false
-			end if
-			do attrs1.next()
-			do attrs2.next()
-		end while
-		if(!(attrs1.term() & attrs2.term()))
-			ret false
-		end if
-		}
 		var args1: list<\ast@AstTypeFuncArg> :: func1.args
 		var args2: list<\ast@AstTypeFuncArg> :: func2.args
 		do args1.head()
@@ -3485,18 +3465,7 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 				; Check whether they are parent-child relationship.
 				var class1: \ast@AstClass :: type1.refItem $ \ast@AstClass
 				var class2: \ast@AstClass :: type2.refItem $ \ast@AstClass
-				var ptr: \ast@AstClass
-				; TODO:
-				{
-				do ptr :: class2
-				while(ptr <>& null)
-					if(ptr =& class1)
-						ret true
-					end if
-					do ptr :: ptr.refItem $ \ast@AstClass
-				end while
-				}
-				do ptr :: class1
+				var ptr: \ast@AstClass :: class1
 				while(ptr <>& null)
 					if(ptr =& class2)
 						ret true

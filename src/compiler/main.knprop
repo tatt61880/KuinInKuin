@@ -15,6 +15,7 @@
 		<resource>err.kn</resource>
 		<resource>exe\asm.kn</resource>
 		<resource>exe\asm.assemble.kn</resource>
+		<resource>exe\asm.excpt_func.kn</resource>
 		<resource>exe\machine.kn</resource>
 		<resource>exe\manifest.kn</resource>
 		<resource>exe\output.kn</resource>

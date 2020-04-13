@@ -1,4 +1,5 @@
 include assemble
+include excpt_func
 
 +class Pack()
 	+var asms: list<@Asm>
@@ -39,15 +40,21 @@ end func
 	+var addrTop: lib@Int
 	+var addrBottom: int
 	+var retPoint: @AsmLabel
+	+var rawAsms: list<@Asm>
+	+var rawArgNum: int
+	+var rawHeader: list<@Asm>
 end class
 
 +func getExeFuncInfo(ast: \ast@AstFunc): @ExeFuncInfo
 	if(ast.extra =& null | ast.extra.typeId <> %info)
 		var info: @ExeFuncInfo :: #@ExeFuncInfo
 		do info.typeId :: %info
-		do info.addrTop :: #lib@Int
+		do info.addrTop :: @newAddr()
 		do info.addrBottom :: -1
 		do info.retPoint :: null
+		do info.rawAsms :: null
+		do info.rawArgNum :: -1
+		do info.rawHeader :: null
 		do ast.extra :: info
 	end if
 	ret ast.extra $ @ExeFuncInfo
