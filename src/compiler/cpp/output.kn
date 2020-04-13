@@ -1243,19 +1243,13 @@ end func
 
 func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
-	if(^value = 0)
-		do @codes.add("emptyStr_()")
-	else
-		var s: []char :: "new_(Array_<char16_t>)("
-		for i(0, ^value - 1)
-			if(i <> 0)
-				do s :~ ", "
-			end if
-			do s :~ "u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
-		end for
-		do s :~ ")"
-		do @codes.add(s)
-	end if
+	var s: []char :: "newArrayBin_<char16_t>(\{^value},\""
+	for i(0, ^value - 1)
+		var v: bit16 :: value[i] $ bit16
+		do s :~ "\\x" ~ (v $ bit8).toStr().sub(2, -1) ~ "\\x" ~ (v.shr(8) $ bit8).toStr().sub(2, -1)
+	end for
+	do s :~ "\")"
+	do @codes.add(s)
 end func
 
 func buildExprValueFloat(ast: \ast@AstExprValueFloat)
@@ -1271,23 +1265,51 @@ end func
 
 func buildExprValueArray(ast: \ast@AstExprValueArray)
 	; Note that constant string values are handled by 'ExprValueStr'.
-	do @codes.add("new_(Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>)(")
-	var first: bool :: true
-	var items: list<\ast@AstExpr> :: ast.values
-	assert ^ items > 0
-	do items.head()
-	while(!items.term())
-		if(first)
-			do first :: false
-			do @codes.add("(")
-		else
-			do @codes.add(", (")
-		end if
-		do @buildExpr(items.get())
+	var itemType: \ast@AstType :: (ast.type $ \ast@AstTypeArray).itemType
+	if(itemType.typeId = %typeBit & (itemType $ \ast@AstTypeBit).size = 1 & chkValue(ast.values))
+		var s: []char :: "newArrayBin_<uint8_t>(\{^ast.values},\""
+		var items: list<\ast@AstExpr> :: ast.values
+		do items.head()
+		while(!items.term())
+			var value: bit8 :: (items.get() $ \ast@AstExprValuePrim).value $ bit8
+			do s :~ "\\x" ~ (value.toStr().sub(2, -1))
+			do items.next()
+		end while
+		do s :~ "\")"
+		do @codes.add(s)
+		ret
+	end if
+	
+	block
+		do @codes.add("new_(Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>)(")
+		var first: bool :: true
+		var items: list<\ast@AstExpr> :: ast.values
+		assert ^ items > 0
+		do items.head()
+		while(!items.term())
+			if(first)
+				do first :: false
+				do @codes.add("(")
+			else
+				do @codes.add(", (")
+			end if
+			do @buildExpr(items.get())
+			do @codes.add(")")
+			do items.next()
+		end while
 		do @codes.add(")")
-		do items.next()
-	end while
-	do @codes.add(")")
+	end block
+	
+	func chkValue(items: list<\ast@AstExpr>): bool
+		do items.head()
+		while(!items.term())
+			if(items.get().typeId.and(%exprValue) <> %exprValue)
+				ret false
+			end if
+			do items.next()
+		end while
+		ret true
+	end func
 end func
 
 func buildExprRef(ast: \ast@AstExpr)

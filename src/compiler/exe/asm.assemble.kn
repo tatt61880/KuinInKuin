@@ -1609,13 +1609,13 @@ end func
 
 func assembleBreak(ast: \ast@AstStat)
 	var asms: list<@Asm> :: @pack.asms
-	var info: @ExeStatInfo :: @getExeStatInfo(ast.refItem)
+	var info: @ExeStatInfo :: @getExeStatInfo(ast.refItem $ \ast@AstStat)
 	do asms.add(@asmJmp(@valImm(4, @refValueAddr(info.breakPoint.addr, true))))
 end func
 
 func assembleSkip(ast: \ast@AstStat)
 	var asms: list<@Asm> :: @pack.asms
-	var info: @ExeStatInfo :: @getExeStatInfo(ast.refItem)
+	var info: @ExeStatInfo :: @getExeStatInfo(ast.refItem $ \ast@AstStat)
 	do asms.add(@asmJmp(@valImm(4, @refValueAddr(info.skipPoint.addr, true))))
 end func
 
@@ -2533,7 +2533,7 @@ func assembleExprDot(ast: \ast@AstExprDot, regI: int, regF: int, expandMe: bool)
 		end if
 	else
 		assert ast.refItem.typeId = %exprRef
-		do @assembleExprRef(ast.refItem, regI, regF)
+		do @assembleExprRef(ast.refItem $ \ast@AstExpr, regI, regF)
 	end if
 end func
 
