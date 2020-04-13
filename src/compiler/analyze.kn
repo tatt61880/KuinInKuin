@@ -1,7 +1,9 @@
 var asts: dict<[]char, \ast@Ast>
+var funcAttrs: dict<[]char, dict<[]char, bool>>
 
-+func analyze(asts: dict<[]char, \ast@Ast>): \ast@AstFunc
++func analyze(asts: dict<[]char, \ast@Ast>, funcAttrs: &dict<[]char, dict<[]char, bool>>): \ast@AstFunc
 	do @asts :: asts
+	do @funcAttrs :: #dict<[]char, dict<[]char, bool>>
 	
 	var mainFunc: \ast@AstFunc :: @searchMain()
 	if(mainFunc =& null)
@@ -9,6 +11,7 @@ var asts: dict<[]char, \ast@Ast>
 	end if
 	
 	do asts.forEach(@resolveIdentifier, null)
+	do funcAttrs :: @funcAttrs
 	ret @rebuild(mainFunc)
 end func
 
@@ -427,6 +430,19 @@ func rebuildFunc(ast: \ast@AstFunc)
 	end if
 	do ast.extra :: ast
 	
+	if(^ast.funcAttr >= 1)
+		do ast.funcAttr.head()
+		var name1: []char :: ast.funcAttr.get()
+		var name2: []char
+		if(^ast.funcAttr = 1)
+			do name2 :: ast.name
+		else
+			do ast.funcAttr.next()
+			do name2 :: ast.funcAttr.get()
+		end if
+		do addFuncAttr(name1, name2)
+	end if
+	
 	var items: list<\ast@AstArg> :: ast.args
 	do items.head()
 	while(!items.term())
@@ -438,6 +454,15 @@ func rebuildFunc(ast: \ast@AstFunc)
 		do ast.ret_ :: @rebuildType(ast.ret_, null)
 	end if
 	do ast.stats :: @refreshStats(ast.stats, ast.ret_, ast)
+	
+	func addFuncAttr(name1: []char, name2: []char)
+		var attrs1: dict<[]char, bool> :: @funcAttrs.get(name1, &)
+		if(attrs1 =& null)
+			do attrs1 :: #dict<[]char, bool>
+			do @funcAttrs.add(name1, attrs1)
+		end if
+		do attrs1.add(name2, true)
+	end func
 end func
 
 func rebuildVar(ast: \ast@AstVar)
