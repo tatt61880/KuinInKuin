@@ -345,6 +345,7 @@
 	do writer.writeStr("return r;\n")
 	do writer.writeStr("}\n")
 	
+	; TODO: Remove 'SM_'.
 	; 'mul' for 'int'.
 	do writer.writeStr("function SM_(a,b){\n")
 	do writer.writeStr("let r=new Uint32Array(2),x,y,sx,sy;\n")

@@ -1216,7 +1216,6 @@ func rebuildStat(ast: \ast@AstStat, retType: \ast@AstType, parentFunc: \ast@AstF
 				var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
 				do @initAst(type, %typeFunc, ast.pos)
 				do type.funcOption :: superFunc.funcOption
-				do type.funcAttr :: superFunc.funcAttr
 				do type.args :: #list<\ast@AstTypeFuncArg>
 				do type.ret_ :: superFunc.ret_
 				var args2: list<\ast@AstArg> :: superFunc.args
@@ -2754,7 +2753,6 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 					var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
 					do @initAst(type, %typeFunc, ast.pos)
 					do type.funcOption :: (item.def $ \ast@AstFunc).funcOption
-					do type.funcAttr :: (item.def $ \ast@AstFunc).funcAttr
 					do type.args :: #list<\ast@AstTypeFuncArg>
 					block
 						var items2: list<\ast@AstArg> :: (item.def $ \ast@AstFunc).args
@@ -2895,7 +2893,6 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 					var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
 					do @initAst(type, %typeFunc, ast.pos)
 					do type.funcOption :: %none
-					do type.funcAttr :: #list<[]char>
 					do type.args :: #list<\ast@AstTypeFuncArg>
 					block
 						var item: \ast@AstTypeFuncArg :: #\ast@AstTypeFuncArg
@@ -3205,7 +3202,6 @@ func rebuildExprRef(ast: \ast@AstExpr): \ast@AstExpr
 			var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
 			do @initAst(type, %typeFunc, ast.pos)
 			do type.funcOption :: func_.funcOption
-			do type.funcAttr :: func_.funcAttr
 			do type.args :: #list<\ast@AstTypeFuncArg>
 			block
 				var items: list<\ast@AstArg> :: func_.args

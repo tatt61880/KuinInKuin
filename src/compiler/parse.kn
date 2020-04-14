@@ -1326,7 +1326,6 @@ func parseType(): \ast@AstType
 				var ast2: \ast@AstTypeFunc :: #\ast@AstTypeFunc
 				do @initAst(ast2, %typeFunc, pos, null, false)
 				do ast2.funcOption :: %none
-				do ast2.funcAttr :: #list<[]char>
 				do ast2.args :: #list<\ast@AstTypeFuncArg>
 				do ast2.ret_ :: null
 				do c :: @readChar()

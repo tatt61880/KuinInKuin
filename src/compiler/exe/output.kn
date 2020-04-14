@@ -1,8 +1,21 @@
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	; DLL functions loaded when the program starts.
-	; TODO:
+	var attrs1: dict<[]char, bool> :: funcAttrs.get("d0000.knd", &)
+	if(attrs1 =& null)
+		do attrs1 :: #dict<[]char, bool>
+		do funcAttrs.add("d0000.knd", attrs1)
+	end if
+	do attrs1.add("_freeSet", true)
+	do attrs1.add("_toBin", true)
+	do attrs1.add("_fromBin", true)
+	do attrs1.add("_copy", true)
+	do attrs1.add("_powInt", true)
+	do attrs1.add("_powFloat", true)
+	do attrs1.add("_mod", true)
+	do attrs1.add("_cmpStr", true)
+	do attrs1.add("_newArray", true)
 	
-	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry)
+	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry, funcAttrs)
 	do \exe\machine@convert(pack)
 	do @deploy()
 	ret true

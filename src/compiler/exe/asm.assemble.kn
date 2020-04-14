@@ -6,6 +6,7 @@ var floatNeg: []bit8
 var real43e0: []bit8
 var real43f0: []bit8
 var pack: @Pack
+var funcAttrs: dict<[]char, dict<[]char, bool>>
 var funcs: queue<\ast@AstFunc>
 var localVars: stack<list<\ast@AstArg>>
 var refFuncArgNums: stack<list<int>>
@@ -15,7 +16,7 @@ class TmpVars()
 	+var fVars: []\ast@AstArg
 end class
 
-+func assemble(entry: \ast@AstFunc): @Pack
++func assemble(entry: \ast@AstFunc, funcAttrs: dict<[]char, dict<[]char, bool>>): @Pack
 	if(@regI =& null)
 		do @regI :: [%ax $ @Reg, %cx, %dx, %r8, %r9, %r10, %r11, %r12, %r13, %r14, %r15, %bx]
 	end if
@@ -38,6 +39,7 @@ end class
 		do @real43f0 :: [0x00b8, 0x00b8, 0x00b8, 0x00b8, 0x00b8, 0x00b8, 0xF0b8, 0x43b8]
 	end if
 	
+	do @funcAttrs :: funcAttrs
 	do @pack :: #@Pack
 	do @pack.asms :: #list<@Asm>
 	do @pack.readonlyData :: #list<@ReadonlyData>
@@ -104,7 +106,7 @@ end func
 func loadResources(): bool
 	var reader: file@Reader :: file@makeReader(\option@icon)
 	if(reader =& null)
-		; TODO:
+		do \err@err(%fileOpenFailed, null, [\option@icon])
 		ret false
 	end if
 	var data: []bit8
@@ -639,7 +641,7 @@ end func
 
 func callKuinLib(funcName: []char)
 	var asms: list<@Asm> :: @pack.asms
-	; TODO: You must register the functions you call here in the 'Analyze' function.
+	; You must register the functions you call here in the 'Analyze' function.
 	var addr: lib@Int :: @addWritableData("d0000.knd$" ~ funcName, 8)
 	do asms.add(@asmCall(@valRip(8, @refValueAddr(addr, true))))
 end func
@@ -862,6 +864,39 @@ func makeRawFunc(asms: &list<@Asm>): \ast@AstFunc
 	ret func_
 end func
 
+func strToBinWide(str: []char): []bit8
+	var r: []bit8 :: #[^str * 2 + 2]bit8
+	for i(0, ^str - 1)
+		do r[i * 2] :: str[i] $ bit8
+		do r[i * 2 + 1] :: (str[i] $ bit16).shr(8) $ bit8
+	end for
+	do r[^str * 2] :: 0b8
+	do r[^str * 2 + 1] :: 0b8
+	ret r
+end func
+
+func strToBinAscii(str: []char): []bit8
+	var r: []bit8 :: #[^str + 1]bit8
+	for i(0, ^str - 1)
+		do r[i] :: str[i] $ bit8
+	end for
+	do r[^str] :: 0b8
+	ret r
+end func
+
+func dbgBreak()
+	if(dbg)
+		; Set a breakpoint to be caught by the debugger.
+		var asms: list<@Asm> :: @pack.asms
+		do asms.add(@asmXor(@valReg(4, %cx), @valReg(4, %cx)))
+		do asms.add(@asmXor(@valReg(4, %dx), @valReg(4, %dx)))
+		do asms.add(@asmXor(@valReg(4, %r8), @valReg(4, %r8)))
+		do asms.add(@asmXor(@valReg(4, %r9), @valReg(4, %r9)))
+		do @callApi(asms, "USER32.dll", "MessageBoxW")
+		do asms.add(@asmInt(@valImmU(8, 0x03b64)))
+	end if
+end func
+
 func assembleFunc(ast: \ast@AstFunc, entry: bool)
 	var asms: list<@Asm> :: @pack.asms
 	var info: @ExeFuncInfo :: @getExeFuncInfo(ast)
@@ -936,7 +971,10 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		
 		; Initialize the Dlls.
 		var l1: @AsmLabel :: @asmLabel()
-		; TODO:
+		do @funcAttrs.forEach(initDlls, scopeEntry.end_)
+		if(dbg)
+			do @dbgBreak()
+		end if
 		do asms.add(l1)
 	end if
 	do @assembleStats(ast.stats)
@@ -949,7 +987,117 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		end while
 		do @refFuncArgNums.peek().add(info.rawArgNum)
 	end if
-	; TODO:
+	; TODO: ExitCode
+	if(^ast.funcAttr > 0)
+		; Call functions in Dlls.
+		if(ast.name <>& null & ast.name = "_init")
+			; Pass necessary information to '_init' functions.
+			block
+				var addr: lib@Int :: @addWritableData("HeapHnd", 8)
+				do asms.add(@asmMov(@valReg(8, %cx), @valRip(8, @refValueAddr(addr, true))))
+			end block
+			if(dbg)
+				var addr: lib@Int :: @addWritableData("HeapCnt", 8)
+				do asms.add(@asmLea(@valReg(8, %dx), @valRip(8, @refValueAddr(addr, true))))
+			end if
+			do asms.add(@asmXor(@valReg(4, %dx), @valReg(4, %dx)))
+			do asms.add(@asmMov(@valReg(8, %r8), @valImmS(8, \option@appCode)))
+			block
+				; TODO: var addr: lib@Int :: @addReadonlyData(@resFlags, false)
+				var addr: lib@Int :: @addReadonlyData([0b8], false) {TODO: Remove.}
+				do asms.add(@asmLea(@valReg(8, %r9), @valRip(8, @refValueAddr(addr, true))))
+			end block
+		else
+			var idx: int
+			var items: list<\ast@AstArg> :: ast.args
+			do items.head()
+			while(!items.term())
+				var arg: \ast@AstArg :: items.get()
+				var info2: @ExeArgInfo :: @getExeArgInfo(arg)
+				if(idx < 4)
+					; Arguments passed in registers.
+					if(arg.refVar)
+						var reg: @Reg
+						switch(idx)
+						case 0
+							do reg :: %cx
+						case 1
+							do reg :: %dx
+						case 2
+							do reg :: %r8
+						case 3
+							do reg :: %r9
+						default
+							assert false
+						end switch
+						do asms.add(@asmMov(@valReg(8, reg), @valMem(8, @valReg(8, %sp), null, @refValueAddr(info2.addr, false))))
+					elif(\ast@isFloat(arg.type))
+						var reg: @Reg
+						switch(idx)
+						case 0
+							do reg :: %xmm0
+						case 1
+							do reg :: %xmm1
+						case 2
+							do reg :: %xmm2
+						case 3
+							do reg :: %xmm3
+						default
+							assert false
+						end switch
+						do asms.add(@asmMovsd(@valReg(4, reg), @valMem(4, @valReg(8, %sp), null, @refValueAddr(info2.addr, false))))
+					else
+						var size: int :: @getSize(arg.type)
+						var reg: @Reg
+						switch(idx)
+						case 0
+							do reg :: %cx
+						case 1
+							do reg :: %dx
+						case 2
+							do reg :: %r8
+						case 3
+							do reg :: %r9
+						default
+							assert false
+						end switch
+						do asms.add(@asmMov(@valReg(size, reg), @valMem(size, @valReg(8, %sp), null, @refValueAddr(info2.addr, false))))
+					end if
+				else
+					; Arguments passed in the stack area.
+					do asms.add(@asmMov(@valReg(8, %si), @valMem(8, @valReg(8, %sp), null, @refValueAddr(info2.addr, false))))
+					do asms.add(@asmMov(@valMemS(8, @valReg(8, %sp), null, idx * 8), @valReg(8, %si)))
+				end if
+				do items.next()
+				do idx :+ 1
+			end while
+		end if
+		block
+			var addr: lib@Int
+			do ast.funcAttr.head()
+			var attr1: []char :: ast.funcAttr.get()
+			var attr2: []char
+			if(^ast.funcAttr >= 2)
+				do attr2 :: ast.funcAttr.get()
+			else
+				do attr2 :: null
+			end if
+			do ast.funcAttr.next()
+			if(attr2 =& null)
+				do addr :: @addWritableData(attr1 ~ "$" ~ ast.name, 8)
+			else
+				do addr :: @addWritableData(attr1 ~ "$" ~ attr2, 8)
+			end if
+			do asms.add(@asmCall(@valRip(8, @refValueAddr(addr, true))))
+		end block
+	elif(info.rawAsms =& null & ast.ret_ <>& null)
+		; Return 0 when 'ret' is not explicitly written.
+		if(\ast@isFloat(ast.ret_))
+			do asms.add(@asmXorpd(@valReg(4, %xmm0), @valReg(4, %xmm0)))
+		else
+			do asms.add(@asmXor(@valReg(4, %ax), @valReg(4, %ax)))
+		end if
+	end if
 	do asms.add(info.retPoint)
 	
 	if(info.rawAsms =& null)
@@ -987,7 +1135,33 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 			do items.head()
 			while(!items.term())
 				var l1: @AsmLabel :: null
-				; TODO:
+				if(ast.funcOption.and(%any) <> %none & idx = 0 | ast.funcOption.and(%tme) <> %none & idx = 2)
+					do l1 :: @asmLabel()
+					var listPtr: kuin@ListPtr :: items.getPtr()
+					do items.head()
+					do items.next()
+					var arg: \ast@AstArg :: items.get()
+					do items.setPtr(listPtr)
+					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
+				elif(ast.funcOption.and(%tch) <> %none & idx = 2 | ast.funcOption.and(%tkv) <> %none & idx = 3)
+					do l1 :: @asmLabel()
+					var listPtr: kuin@ListPtr :: items.getPtr()
+					do items.head()
+					do items.next()
+					var arg: \ast@AstArg :: items.get()
+					do items.setPtr(listPtr)
+					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
+					do asms.add(@asmInc(@valReg(8, @regI[0])))
+				elif(ast.funcOption.and(%tkv) <> %none & idx = 4)
+					do l1 :: @asmLabel()
+					var listPtr: kuin@ListPtr :: items.getPtr()
+					do items.head()
+					do items.next()
+					do items.next()
+					var arg: \ast@AstArg :: items.get()
+					do items.setPtr(listPtr)
+					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
+				end if
 				if(l1 <>& null)
 					do asms.add(l1)
 				end if
@@ -1002,7 +1176,9 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 			; Throw the exception again if it has occurred.
 			var l1: @AsmLabel :: @asmLabel()
 			do asms.add(@asmCmp(@valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(excpt), false)), @valImmU(8, 0x00b64)))
-			; TODO:
+			do asms.add(@asmJe(@valImm(4, @refValueAddr(l1.addr, true))))
+			do asms.add(@asmMov(@valReg(4, %cx), @valMem(4, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(excpt), false))))
+			do @raiseExcpt()
 			do asms.add(l1)
 		end block
 		block
@@ -1025,7 +1201,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		; Finalize the program.
 		block
 			; Finalize the Dlls.
-			; TODO:
+			do @funcAttrs.forEach(finDlls, null)
 		end block
 		if(dbg)
 			var l1: @AsmLabel :: @asmLabel()
@@ -1055,7 +1231,12 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		block
 			; Calculate the size of the arguments.
 			var maxArgNum: int :: 4 {According to the specification, at least four arguments must be reserved.}
-			; TODO:
+			if(^ast.funcAttr > 0)
+				; Arguments for DLL calls.
+				if(maxArgNum < ^ast.args)
+					do maxArgNum :: ^ast.args
+				end if
+			end if
 			var items: list<int> :: @refFuncArgNums.peek()
 			do items.head()
 			while(!items.term())
@@ -1118,6 +1299,81 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 	do @localVars.get()
 	do asms.add(table.end_)
 	do asms.add(@asmInt(@valImmU(8, 0x03b64)))
+	
+	class initDllFuncsData()
+		+var label: @AsmLabel
+		+var dllName: []char
+	end class
+	
+	func initDlls(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+		var end_: @AsmLabel :: data $ @AsmLabel
+		var asms: list<@Asm> :: @pack.asms
+		var l1: @AsmLabel :: @asmLabel()
+		var l2: @AsmLabel :: @asmLabel()
+		block
+			var addr: lib@Int :: @addReadonlyData(@strToBinWide("data/" ~ key), false)
+			do asms.add(@asmLea(@valReg(8, %cx), @valRip(8, @refValueAddr(addr, true))))
+		end block
+		do @callApi(asms, "KERNEL32.dll", "LoadLibraryW")
+		do asms.add(@asmCmp(@valReg(8, %ax), @valImmU(8, 0x00b64)))
+		do asms.add(@asmJe(@valImm(4, @refValueAddr(l1.addr, true))))
+		block
+			var addr: lib@Int :: @addWritableData("$" ~ key, 8)
+			do asms.add(@asmMov(@valRip(8, @refValueAddr(addr, true)), @valReg(8, %ax)))
+		end block
+		do asms.add(@asmMov(@valReg(8, %si), @valReg(8, %ax)))
+		block
+			var data2: initDllFuncsData :: #initDllFuncsData
+			do data2.label :: l1
+			do data2.dllName :: key
+			do value.forEach(initDllFuncs, data2)
+		end block
+		do asms.add(@asmJmp(@valImm(4, @refValueAddr(l2.addr, true))))
+		do asms.add(l1)
+		block
+			var addr: lib@Int :: @addReadonlyData(@strToBinWide("File not found: " ~ key), false)
+			do asms.add(@asmLea(@valReg(8, %dx), @valRip(8, @refValueAddr(addr, true))))
+		end block
+		do asms.add(@asmXor(@valReg(4, %cx), @valReg(4, %cx)))
+		do asms.add(@asmXor(@valReg(4, %r8), @valReg(4, %r8)))
+		do asms.add(@asmMov(@valReg(4, %r9), @valImmU(4, 0x00010010b64))) {'MB_ICONERROR | MB_SETFOREGROUND'}
+		do @callApi(asms, "USER32.dll", "MessageBoxW")
+		do asms.add(@asmJmp(@valImm(4, @refValueAddr(end_.addr, true))))
+		do asms.add(l2)
+		ret true
+	end func
+	
+	func initDllFuncs(key: []char, value: bool, data: kuin@Class): bool
+		var data2: initDllFuncsData :: data $ initDllFuncsData
+		var asms: list<@Asm> :: @pack.asms
+		block
+			var addr: lib@Int :: @addReadonlyData(@strToBinAscii(key), false)
+			do asms.add(@asmLea(@valReg(8, %dx), @valRip(8, @refValueAddr(addr, true))))
+		end block
+		do asms.add(@asmMov(@valReg(8, %cx), @valReg(8, %si)))
+		do @callApi(asms, "KERNEL32.dll", "GetProcAddress")
+		do asms.add(@asmCmp(@valReg(8, %ax), @valImmU(8, 0x00b64)))
+		do asms.add(@asmJe(@valImm(4, @refValueAddr(data2.label.addr, true))))
+		block
+			var addr: lib@Int :: @addWritableData(data2.dllName ~ "$" ~ key, 8)
+			do asms.add(@asmMov(@valRip(8, @refValueAddr(addr, true)), @valReg(8, %ax)))
+		end block
+		ret true
+	end func
+	
+	func finDlls(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+		var asms: list<@Asm> :: @pack.asms
+		var l1: @AsmLabel :: @asmLabel()
+		block
+			var addr: lib@Int :: @addWritableData("$" ~ key, 8)
+			do asms.add(@asmMov(@valReg(8, %cx), @valRip(8, @refValueAddr(addr, true))))
+		end block
+		do asms.add(@asmCmp(@valReg(8, %cx), @valImmU(8, 0x00b64)))
+		do asms.add(@asmJe(@valImm(4, @refValueAddr(l1.addr, true))))
+		do @callApi(asms, "KERNEL32.dll", "FreeLibrary")
+		do asms.add(l1)
+		ret true
+	end func
 end func
 
 func assembleStats(asts: list<\ast@AstStat>)
@@ -1542,7 +1798,45 @@ func assembleTry(ast: \ast@AstStatTry)
 			var func_: \ast@AstFunc :: @makeRawFunc(&asms2)
 			var l1: @AsmLabel :: @asmLabel()
 			var l2: @AsmLabel :: @asmLabel()
-			; TODO:
+			do asms2.add(@asmMov(@valReg(8, %ax), @valMemS(8, @valReg(8, %cx), null, 0x00)))
+			do asms2.add(@asmMov(@valReg(4, %ax), @valMemS(4, @valReg(8, %ax), null, 0x00)))
+			block
+				var items: list<\ast@AstStatCatch> :: ast.catches
+				do items.head()
+				while(!items.term())
+					var catch_: \ast@AstStatCatch :: items.get()
+					var items2: list<\ast@AstExprPair> :: catch_.conds
+					do items2.head()
+					while(!items2.term())
+						var exprs: \ast@AstExprPair :: items2.get()
+						if(exprs.expr1 =& null)
+							var n: int :: (exprs.expr0 $ \ast@AstExprValuePrim).value $ int
+							do asms2.add(@asmMov(@valReg(8, %r8), @valImmS(8, n)))
+							do asms2.add(@asmCmp(@valReg(8, %ax), @valReg(8, %r8)))
+							do asms2.add(@asmJe(@valImm(4, @refValueAddr(l1.addr, true))))
+						else
+							var l3: @AsmLabel :: @asmLabel()
+							var n1: int :: (exprs.expr0 $ \ast@AstExprValuePrim).value $ int
+							var n2: int :: (exprs.expr1 $ \ast@AstExprValuePrim).value $ int
+							do asms2.add(@asmMov(@valReg(8, %r8), @valImmS(8, n1)))
+							do asms2.add(@asmCmp(@valReg(8, %ax), @valReg(8, %r8)))
+							do asms2.add(@asmJl(@valImm(4, @refValueAddr(l3.addr, true))))
+							do asms2.add(@asmMov(@valReg(8, %r8), @valImmS(8, n2)))
+							do asms2.add(@asmCmp(@valReg(8, %ax), @valReg(8, %r8)))
+							do asms2.add(@asmJle(@valImm(4, @refValueAddr(l1.addr, true))))
+							do asms2.add(l3)
+						end if
+						do items2.next()
+					end while
+					do items.next()
+				end while
+			end block
+			do asms2.add(@asmXor(@valReg(4, %ax), @valReg(4, %ax)))
+			do asms2.add(@asmJmp(@valImm(4, @refValueAddr(l2.addr, true))))
+			do asms2.add(l1)
+			do asms2.add(@asmMov(@valMem(8, @valReg(8, %dx), null, @refValueAddr(@refLocalVar(ast.blockVar), false)), @valReg(8, %ax)))
+			do asms2.add(@asmMov(@valReg(4, %ax), @valImmU(4, 0x01b64)))
+			do asms2.add(l2)
 			do scopeCatch.catchFunc :: @refLocalFunc(func_)
 		end block
 	else
@@ -1565,7 +1859,10 @@ func assembleTry(ast: \ast@AstStatTry)
 		; Make the exception function.
 		var asms2: list<@Asm>
 		var func_: \ast@AstFunc :: @makeRawFunc(&asms2)
-		; TODO:
+		do asms2.add(@asmMov(@valReg(8, %ax), @valMemS(8, @valReg(8, %cx), null, 0x00)))
+		do asms2.add(@asmMov(@valReg(4, %ax), @valMemS(4, @valReg(8, %ax), null, 0x00)))
+		do asms2.add(@asmMov(@valMem(8, @valReg(8, %dx), null, @refValueAddr(@refLocalVar(ast.blockVar), false)), @valReg(8, %ax)))
+		do asms2.add(@asmMov(@valReg(4, %ax), @valImmU(4, 0x01b64)))
 		do scopeFinally.catchFunc :: @refLocalFunc(func_)
 	end if
 end func
@@ -2003,7 +2300,6 @@ func assembleExpr2(ast: \ast@AstExpr2, regI: int, regF: int)
 				do asms.add(@asmMovzx(@valReg(4, @regI[regI + 1]), @valReg(size, @regI[regI + 1])))
 				do asms.add(@asmImul(@valReg(4, @regI[regI]), @valReg(4, @regI[regI + 1]), null))
 			else
-				; TODO: Check sign.(cpp)
 				do asms.add(@asmImul(@valReg(size, @regI[regI]), @valReg(size, @regI[regI + 1]), null))
 			end if
 		end if
@@ -2430,6 +2726,7 @@ func assembleExprCall(ast: \ast@AstExprCall, regI: int, regF: int)
 	do items.head()
 	while(!items.term())
 		var item: \ast@AstExprCallArg :: items.get()
+		var funcOption: \ast@AstFuncOption :: (ast.func_.type $ \ast@AstTypeFunc).funcOption
 		if(classMethodCall & idx = 0)
 			assert \ast@isRef(item.arg.type) & !item.refVar
 			; In case of method call, 'me' is not expanded, and store 'me' in the second argument.
@@ -2438,7 +2735,23 @@ func assembleExprCall(ast: \ast@AstExprCall, regI: int, regF: int)
 			; Expand 'me'.
 			var info: @ExeClassItemInfo :: @getExeClassItemInfo((ast.func_ $ \ast@AstExprDot).classItem)
 			do @expandMe(info.addr, 0)
-			; TODO: elif
+		elif(funcOption.and(%any) <> %none & idx = 1)
+			; Set the second argument of '__any' functions to the type of 'me'.
+			var listPtr: kuin@ListPtr :: items.getPtr()
+			do items.head()
+			var meType: \ast@AstType :: items.get().arg.type
+			do items.setPtr(listPtr)
+			do @setTypeId(@regI[1], meType)
+			do asms.add(@asmMov(@valMemS(8, @valReg(8, %sp), null, idx * 8), @valReg(8, @regI[1])))
+		elif(funcOption.and(%tkv) <> %none & idx = 2)
+			; Set the third argument of '__tkv' functions to the type of 'value'.
+			var listPtr: kuin@ListPtr :: items.getPtr()
+			do items.head()
+			var meType: \ast@AstType :: items.get().arg.type
+			do items.setPtr(listPtr)
+			assert meType.typeId = %typeDict
+			do @setTypeId(@regI[1], (meType $ \ast@AstTypeDict).itemTypeValue)
+			do asms.add(@asmMov(@valMemS(8, @valReg(8, %sp), null, idx * 8), @valReg(8, @regI[1])))
 		else
 			var size: int :: item.refVar ?(8, @getSize(item.arg.type))
 			do asms.add(@asmMov(@valReg(size, @regI[1]), @valMem(size, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpArgs[idx]), false))))
@@ -2566,7 +2879,8 @@ func assembleExprValueStr(ast: \ast@AstExprValueStr, regI: int, regF: int)
 	do asms.add(@asmMov(@valMemS(8, @valReg(8, %ax), null, 0x00), @valImmU(8, 0x01b64)))
 	do asms.add(@asmMov(@valMemS(8, @valReg(8, %ax), null, 0x08), @valImmU(8, (^data) $ bit64)))
 	block
-		; TODO:
+		var addr: lib@Int :: @addReadonlyData(@strToBinWide(data), false)
+		do asms.add(@asmLea(@valReg(8, %si), @valRip(8, @refValueAddr(addr, true))))
 	end block
 	do asms.add(@asmLea(@valReg(8, %di), @valMemS(8, @valReg(8, %ax), null, 0x10)))
 	do @copyMem(%di, 2 * (^data + 1), %si, %cx)
