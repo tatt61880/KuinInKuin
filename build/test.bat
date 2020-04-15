@@ -35,7 +35,7 @@ xcopy /s /e /q /i /y "..\src\compiler\cpp" "..\src\compiler\res\cpp"
 xcopy /s /e /q /i /y "..\src\compiler\web" "..\src\compiler\res\web"
 xcopy /s /e /q /i /y "..\src\compiler\exe" "..\src\compiler\res\exe"
 copy /Y ".\test_data\test.kn" "..\src\compiler\res\"
-.\output\kuin.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_js" -s "%~dp0../src/compiler/res/sys/" -e web
+.\output\x64\Release\kuin_cpp.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_js" -s "%~dp0../src/compiler/res/sys/" -e web
 
 rem Kuin2.js ->[Kuin2.js]-> Kuin2.js
 "C:\Program Files\Mozilla Firefox\firefox.exe" ".\output\kuin_js.html?-i&res/main.kn&-o&kuin_js2&-s&res/sys/&-e&web"
