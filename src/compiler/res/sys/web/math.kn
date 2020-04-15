@@ -257,6 +257,62 @@ func _init()
 	|]
 end func
 
++func[__raw, math_bellmanFord]bellmanFord(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int, beginNode: int): []int
+	; TODO:
+end func
+
++func[__raw, math_dijkstra]dijkstra(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int, beginNode: int): []int
+	; TODO:
+end func
+
++func fact(n: float): float
+	ret @gamma(n + 1.0)
+end func
+
++func factInt(n: int): int
+	; TODO: Refactoring.
+	if(n < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(n > 20)
+		throw excpt@dbgIntOverflow
+	end if
+	var result: int :: 1
+	for i(1, n)
+		do result :* i
+	end for
+	ret result
+end func
+
++func fibonacci(n: int): int
+	; TODO: Refactoring.
+	if(n < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(n > 92)
+		throw excpt@dbgIntOverflow
+	end if
+	if(n = 0)
+		ret 0
+	end if
+	var a: int :: 0
+	var b: int :: 1
+	for i(2, n)
+		var t: int :: a + b
+		do a :: b
+		do b :: t
+	end for
+	ret b
+end func
+
++func[d0003.knd, _floydWarshall]floydWarshall(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int): [][]int
+	; TODO:
+end func
+
++func[__raw, math_gamma]gamma(n: float): float
+	; TODO:
+end func
+
 +func gcd(a: int, b: int): int
 	if(a = 0)
 		if(b = 0)
@@ -287,6 +343,35 @@ end func
 	end while
 end func
 
++func knapsack(weights: []int, values: []int, maxWeight: int, reuse: bool): int
+	; TODO: Refactoring.
+	var dp: []int :: #[maxWeight + 1]int
+	if(reuse)
+		for i(0, ^weights - 1)
+			var j: int :: weights[i]
+			while(j <= maxWeight)
+				var value: int :: dp[j - weights[i]] + values[i]
+				if(dp[j] < value)
+					do dp[j] :: value
+				end if
+				do j :+ 1
+			end while
+		end for
+	else
+		for i(0, ^weights - 1)
+			var j: int :: maxWeight
+			while(j >= weights[i])
+				var value: int :: dp[j - weights[i]] + values[i]
+				if(dp[j] < value)
+					do dp[j] :: value
+				end if
+				do j :- 1
+			end while
+		end for
+	end if
+	ret dp[maxWeight]
+end func
+
 +func lcm(a: int, b: int): int
 	if(a = 0)
 		if(b = 0)
@@ -306,18 +391,18 @@ end func
 	ret a / @gcd(a, b) * b
 end func
 
-+func modPow(value: int, exponent: int, modulus: int): int
-	if(value < 0 | exponent < 0 | modulus < 0)
-		throw excpt@dbgArgOutDomain
-	end if
-	ret @modPowUnsigned(value $ bit64, exponent $ bit64, modulus $ bit64) $ int
-end func
-
 +func modMul(a: int, b: int, modulus: int): int
 	if(a < 0 | b < 0 | modulus < 0)
 		throw excpt@dbgArgOutDomain
 	end if
 	ret @modMulUnsigned(a $ bit64, b $ bit64, modulus $ bit64) $ int
+end func
+
++func modPow(value: int, exponent: int, modulus: int): int
+	if(value < 0 | exponent < 0 | modulus < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	ret @modPowUnsigned(value $ bit64, exponent $ bit64, modulus $ bit64) $ int
 end func
 
 +func prime(n: int): bool
@@ -467,87 +552,6 @@ end func
 		do seed :: x
 		ret x $ bit64
 	end func
-end func
-
-+func[__raw, math_gamma]gamma(n: float): float
-end func
-
-+func fact(n: float): float
-	ret @gamma(n + 1.0)
-end func
-
-+func factInt(n: int): int
-	; TODO: Refactoring.
-	if(n < 0)
-		throw excpt@dbgArgOutDomain
-	end if
-	if(n > 20)
-		throw excpt@dbgIntOverflow
-	end if
-	var result: int :: 1
-	for i(1, n)
-		do result :* i
-	end for
-	ret result
-end func
-
-+func fibonacci(n: int): int
-	; TODO: Refactoring.
-	if(n < 0)
-		throw excpt@dbgArgOutDomain
-	end if
-	if(n > 92)
-		throw excpt@dbgIntOverflow
-	end if
-	if(n = 0)
-		ret 0
-	end if
-	var a: int :: 0
-	var b: int :: 1
-	for i(2, n)
-		var t: int :: a + b
-		do a :: b
-		do b :: t
-	end for
-	ret b
-end func
-
-+func knapsack(weights: []int, values: []int, maxWeight: int, reuse: bool): int
-	; TODO: Refactoring.
-	var dp: []int :: #[maxWeight + 1]int
-	if(reuse)
-		for i(0, ^weights - 1)
-			var j: int :: weights[i]
-			while(j <= maxWeight)
-				var value: int :: dp[j - weights[i]] + values[i]
-				if(dp[j] < value)
-					do dp[j] :: value
-				end if
-				do j :+ 1
-			end while
-		end for
-	else
-		for i(0, ^weights - 1)
-			var j: int :: maxWeight
-			while(j >= weights[i])
-				var value: int :: dp[j - weights[i]] + values[i]
-				if(dp[j] < value)
-					do dp[j] :: value
-				end if
-				do j :- 1
-			end while
-		end for
-	end if
-	ret dp[maxWeight]
-end func
-
-+func[__raw, math_dijkstra]dijkstra(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int, beginNode: int): []int
-end func
-
-+func[__raw, math_bellmanFord]bellmanFord(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int, beginNode: int): []int
-end func
-
-+func[d0003.knd, _floydWarshall]floydWarshall(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int): [][]int
 end func
 
 func modPowUnsigned(value: bit64, exponent: bit64, modulus: bit64): bit64

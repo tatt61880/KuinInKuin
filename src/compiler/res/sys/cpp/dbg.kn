@@ -1,2 +1,3 @@
 +func [d0000.knd, _dbgPrint] print(str: []char)
+	; TODO:
 end func

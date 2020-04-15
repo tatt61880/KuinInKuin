@@ -19,12 +19,13 @@ func convert(path: []char, dir: bool, data: kuin@Class): bool
 	while loop(!reader.term())
 		var s: []char :: reader.readLine()
 		if(^s >= 1 & s[0] = '#')
-			var targets: [][]char :: s.split(",")
+			var targets: [][]char :: s.sub(1, -1).split(",")
 			do skip_ :: true
 			for i(0, ^targets - 1)
 				var t: []char :: targets[i].trim()
 				if(t = "any" | t = @curTarget)
 					do skip_ :: false
+					break i
 				end if
 			end for
 			skip loop
