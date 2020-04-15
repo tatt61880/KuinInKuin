@@ -803,6 +803,7 @@ end func
 func[__any]_tail(me_: int, type: []int)
 	if(env = "cpp")
 		excode "`0`->I=`0`->B.end();\n"
+		excode "if(`0`->B.size()!=0)\n"
 		excode "--`0`->I;\n"
 	elif(env = "web")
 		excode "`0`.P=`0`.T;\n"

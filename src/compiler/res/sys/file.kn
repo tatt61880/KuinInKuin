@@ -60,8 +60,17 @@ end enum
 		do me.delimiters :: delimiters
 	end func
 	
-	+func[d0000.knd, _readerRead]read(size: int): []bit8
-		ret null { TODO: }
+	+func read(size: int): []bit8
+		if(env = "cpp")
+			excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+			excode "auto a_=new_(Array_<uint8_t>)();\n"
+			excode "a_->L=`1`;\n"
+			excode "a_->B=newPrimArray_(static_cast<size_t>(`1`),uint8_t);\n"
+			excode "r_->F->read(reinterpret_cast<char*>(a_->B),`1`);\n"
+			excode "return r_->F->gcount()==`1`?a_:nullptr;\n"
+		elif(env = "web")
+			; TODO:
+		end if
 	end func
 	
 	+func readLetter(): char

@@ -19,6 +19,11 @@ var importLen: int
 
 +func convert(pack: \exe\asm@Pack)
 	do @pack :: pack
+	do @code :: #@Section
+	do @readonlyData :: #@Section
+	do @excpt :: #@Section
+	do @writableData :: #@Section
+	do @res :: #@Section
 	do @writer :: file@makeWriter(\option@outputFile ~ ".exe", false)
 	if(@writer =& null)
 		do \err@err(%fileSaveFailed, null, [\option@outputFile ~ ".exe"])
@@ -326,7 +331,7 @@ func writeCode()
 			do refValueList.next()
 		end if
 		var addr2: int :: @writer.getPos() - @code.dataPos $ int + @code.imgPos $ int
-		while(refValueList.term())
+		while(!refValueList.term())
 			do(refValueList.get()).bottom :: addr2
 			do refValueList.next()
 		end while
