@@ -56,7 +56,7 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	if(key[0] = '\\')
 		do truePath :: \option@inputDir ~ replacePath(key.sub(1, -1)) ~ ".kn"
 	else
-		do truePath :: \option@sysDir ~ replacePath(key) ~ ".kn"
+		do truePath :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/" ~ replacePath(key) ~ ".kn" {TODO:}
 	end if
 	do @filePtr :: file@makeReader(truePath)
 	if(@filePtr =& null)
@@ -2104,18 +2104,7 @@ func parseExprValue(): \ast@AstExpr
 			case "dbg"
 				ret @makePrimValue(pos, %bool_, \option@rls ?(0b64, 1b64))
 			case "env"
-				var env_: []char
-				switch(\option@env_)
-				case %exe
-					do env_ :: "exe"
-				case %web
-					do env_ :: "web"
-				case %cpp
-					do env_ :: "cpp"
-				default
-					assert false
-				end switch
-				ret @makeStrValue(pos, env_)
+				ret @makeStrValue(pos, \option@getEnvStr(\option@env_))
 			default
 				var ast: \ast@AstExpr :: #\ast@AstExpr
 				do @initAstExpr(ast, %exprRef, pos)
