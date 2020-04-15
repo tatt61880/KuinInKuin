@@ -164,3 +164,17 @@ end enum
 		ret true
 	end func
 end func
+
++func getEnvStr(env_: @Env): []char
+	switch(env_)
+	case %exe
+		ret "exe"
+	case %web
+		ret "web"
+	case %cpp
+		ret "cpp"
+	default
+		assert false
+		ret null
+	end switch
+end func

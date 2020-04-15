@@ -1,0 +1,2 @@
++func hash(data: []bit8): []bit8
+end func
