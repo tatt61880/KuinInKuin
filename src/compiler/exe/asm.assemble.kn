@@ -1296,7 +1296,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		end block
 	end block
 	
-	if(info.rawHeader <>& null)
+	if(info.rawHeader =& null)
 		; Restore the stack pointer and exit the function.
 		if(varSize.value <> 0)
 			do asms.add(@asmAdd(@valReg(8, %sp), @valImmS(8, varSize.value)))

@@ -12,6 +12,8 @@ pushd "%~dp0"
 
 .\output\x64\Release\kuin_cpp.exe -i "%~dp0test_data/test_exe.kn" -o "%~dp0output/test_exe" -s "%~dp0../src/compiler/res/sys/" -e exe
 
+rem .\output\kuin.exe -i "%~dp0test_data/test_exe.kn" -o "%~dp0output/test_exe.exe" -s "%~dp0../src/compiler/res/sys/" -e exe
+
 pause
 
 popd
