@@ -336,7 +336,7 @@ end func
 end func
 
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
-	excode "return fileForEach_(`0`,`1`,`2`,`3`);\n"
+	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
 end func
 
 +func[d0000.knd, _fullPath]fullPath(path: []char): []char

@@ -263,7 +263,7 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 #   define BOOST_MOVE_FILE(OLD,NEW)()
 #endif
 
-static bool fileForEach_(const Array_<char16_t>* p, bool r, bool(*f)(type_(Array_<char16_t>*), bool, type_(Class_)), type_(Class_) d) {
+static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array_<char16_t>), bool, type_(Class_)), type_(Class_) d) {
 	if (p->L > 260)
 		return false;
 #if defined(_WIN32)
@@ -277,7 +277,10 @@ static bool fileForEach_(const Array_<char16_t>* p, bool r, bool(*f)(type_(Array
 		std::u16string s = p->B;
 		const std::string& p2 = utf16ToUtf8_(s);
 #if defined(_WIN32)
-		h = _findfirst(p2.c_str(), &t);
+		char p3[262];
+		strcpy(p3, p2.c_str());
+		strcat(p3, "*");
+		h = _findfirst(p3, &t);
 		if (h == -1)
 			return false;
 #else
@@ -300,10 +303,11 @@ static bool fileForEach_(const Array_<char16_t>* p, bool r, bool(*f)(type_(Array
 #endif
 			const std::u16string p2 = utf8ToUtf16_(s);
 			size_t l = p2.size();
-			type_(Array_<T>) p3 = new_(Array_<char16_t>)();
-			p3->L = static_cast<int64_t>(l);
-			p3->B = newPrimArray_(l + 1, char16_t);
-			memcpy(p3->B, p2.c_str(), sizeof(char16_t) * (l + 1));
+			type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
+			p3->L = p->L + static_cast<int64_t>(l);
+			p3->B = newPrimArray_(static_cast<size_t>(p->L + l + 1), char16_t);
+			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<size_t>(p->L));
+			memcpy(p3->B + p->L, p2.c_str(), sizeof(char16_t) * (l + 1));
 			if (!f(p3, false, d))
 			{
 				a = false;
@@ -321,12 +325,13 @@ static bool fileForEach_(const Array_<char16_t>* p, bool r, bool(*f)(type_(Array
 			std::string s = n;
 			const std::u16string p2 = utf8ToUtf16_(s);
 			size_t l = p2.size();
-			type_(Array_<T>) p3 = new_(Array_<char16_t>)();
-			p3->L = static_cast<int64_t>(l + 1);
-			p3->B = newPrimArray_(l + 2, char16_t);
-			memcpy(p3->B, p2.c_str(), sizeof(char16_t) * l);
-			p3->B[l] = '/';
-			p3->B[l + 1] = 0;
+			type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
+			p3->L = p->L + static_cast<int64_t>(l) + 1;
+			p3->B = newPrimArray_(static_cast<size_t>(p->L + l + 2), char16_t);
+			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<size_t>(p->L));
+			memcpy(p3->B + p->L, p2.c_str(), sizeof(char16_t) * l);
+			p3->B[p->L + l] = '/';
+			p3->B[p->L + l + 1] = 0;
 			if (!fileForEach_(p3, r, f, d))
 			{
 				a = false;
@@ -343,7 +348,7 @@ static bool fileForEach_(const Array_<char16_t>* p, bool r, bool(*f)(type_(Array
 	return a;
 }
 
-static bool fileExists_(const Array_<char16_t>* p)
+static bool fileExists_(type_(Array_<char16_t>) p)
 {
 	struct stat b;
 	std::u16string s = p->B;

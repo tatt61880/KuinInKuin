@@ -12,6 +12,7 @@
 #include <queue>
 #include <sstream>
 #include <stack>
+#include <sys/stat.h>
 #include <type_traits>
 #include <vector>
 
@@ -126,6 +127,7 @@ static std::u16string utf8ToUtf16_(const std::string& s) {
 #define STRICT
 #define _WIN32_DCOM
 #include <Windows.h>
+#include <io.h>
 
 const char newLine_[] = { '\r', '\n' };
 
@@ -174,8 +176,8 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 #else
 
 #include <unistd.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <dirent.h>
 
 const char newLine_[] = { '\n' };
 
@@ -260,6 +262,99 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 #   define BOOST_COPY_FILE(F,T,FailIfExistsBool)
 #   define BOOST_MOVE_FILE(OLD,NEW)()
 #endif
+
+static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array_<char16_t>), bool, type_(Class_)), type_(Class_) d) {
+	if (p->L > 260)
+		return false;
+#if defined(_WIN32)
+	_finddata_t t;
+	intptr_t h;
+#else
+	dirent* t;
+	DIR* h;
+#endif
+	{
+		std::u16string s = p->B;
+		const std::string& p2 = utf16ToUtf8_(s);
+#if defined(_WIN32)
+		char p3[262];
+		strcpy(p3, p2.c_str());
+		strcat(p3, "*");
+		h = _findfirst(p3, &t);
+		if (h == -1)
+			return false;
+#else
+		h = opendir(p2.c_str());
+		if (h == nullptr)
+			return false;
+#endif
+	}
+	if (!f(p, true, d))
+		return false;
+	bool a = true;
+#if defined(_WIN32)
+	do {
+		if ((t.attrib & _A_SUBDIR) == 0) {
+			std::string s = t.name;
+#else
+	while ((t = readdir(h)) != nullptr) {
+		if ((t->d_type & _A_SUBDIR) == 0) {
+			std::string s = t->d_name;
+#endif
+			const std::u16string p2 = utf8ToUtf16_(s);
+			size_t l = p2.size();
+			type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
+			p3->L = p->L + static_cast<int64_t>(l);
+			p3->B = newPrimArray_(static_cast<size_t>(p->L + l + 1), char16_t);
+			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<size_t>(p->L));
+			memcpy(p3->B + p->L, p2.c_str(), sizeof(char16_t) * (l + 1));
+			if (!f(p3, false, d))
+			{
+				a = false;
+				break;
+			}
+		}
+		else {
+#if defined(_WIN32)
+			const char* n = t.name;
+#else
+			const char* n = t->d_name;
+#endif
+			if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
+				continue;
+			std::string s = n;
+			const std::u16string p2 = utf8ToUtf16_(s);
+			size_t l = p2.size();
+			type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
+			p3->L = p->L + static_cast<int64_t>(l) + 1;
+			p3->B = newPrimArray_(static_cast<size_t>(p->L + l + 2), char16_t);
+			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<size_t>(p->L));
+			memcpy(p3->B + p->L, p2.c_str(), sizeof(char16_t) * l);
+			p3->B[p->L + l] = '/';
+			p3->B[p->L + l + 1] = 0;
+			if (!fileForEach_(p3, r, f, d))
+			{
+				a = false;
+				break;
+			}
+		}
+	}
+#if defined(_WIN32)
+	while (_findnext(h, &t) == 0);
+	_findclose(h);
+#else
+	closedir(h);
+#endif
+	return a;
+}
+
+static bool fileExists_(type_(Array_<char16_t>) p)
+{
+	struct stat b;
+	std::u16string s = p->B;
+	const std::string t = utf16ToUtf8_(s);
+	return stat(t.c_str(), &b) == 0;
+}
 
 template<typename T> struct newArraysRec_{
 	T operator()() { throw 0; }
