@@ -362,8 +362,7 @@ end func
 
 +func exist(path: []char): bool
 #cpp
-	; TODO:
-	excode "return false;\n"
+	excode "return fileExists_(`0`);\n"
 #web
 	excode "let f_=false,p_=`0`.S;\n"
 	excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!=null;\n"
@@ -419,8 +418,7 @@ end func
 
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 #cpp
-	; TODO:
-	excode "return false;\n"
+	excode "return fileForEach_(`0`,`1`,`2`,`3`);\n"
 #web
 	excode "let f_,p_=`0`.S;\n"
 	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"

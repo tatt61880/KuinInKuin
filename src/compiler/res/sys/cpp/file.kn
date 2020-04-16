@@ -293,8 +293,7 @@ end func
 end func
 
 +func exist(path: []char): bool
-	; TODO:
-	excode "return false;\n"
+	excode "return fileExists_(`0`);\n"
 end func
 
 +func ext(path: []char): []char
@@ -337,8 +336,7 @@ end func
 end func
 
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
-	; TODO:
-	excode "return false;\n"
+	excode "return fileForEach_(`0`,`1`,`2`,`3`);\n"
 end func
 
 +func[d0000.knd, _fullPath]fullPath(path: []char): []char
