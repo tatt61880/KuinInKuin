@@ -22,14 +22,21 @@ end enum
 		do me.fin()
 	end func
 	
+#exe
+	+func[d0000.knd, _readerDelimiter]delimiter(delimiters: []char)
+#cpp,web
 	+func delimiter(delimiters: []char)
 		do me.delimiters :: delimiters
+#any
 	end func
 	
-	+func[d0000.knd, _readerFileSize]fileSize(): int
+	+func fileSize(): int
 		ret 0 { TODO: }
 	end func
 	
+#exe
+	+func[d0000.knd, _readerFin]fin()
+#cpp,web
 	+func fin()
 #cpp
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
@@ -42,6 +49,9 @@ end enum
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _readerGetPos]getPos(): int
+#cpp,web
 	+func getPos(): int
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
@@ -52,6 +62,9 @@ end enum
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _readerRead]read(size: int): []bit8
+#cpp,web
 	+func read(size: int): []bit8
 #cpp
 		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
@@ -97,6 +110,9 @@ end enum
 		ret r
 	end func
 	
+#exe
+	+func[d0000.knd, _readerReadLetter]readLetter(): char
+#cpp,web
 	+func readLetter(): char
 #cpp
 		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
@@ -155,6 +171,9 @@ end enum
 		ret buf.sub(0, ptr)
 	end func
 	
+#exe
+	+func[d0000.knd, _readerSetPos]setPos(origin: @Origin, pos: int)
+#cpp,web
 	+func setPos(origin: @Origin, pos: int)
 #cpp
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
@@ -174,6 +193,9 @@ end enum
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _readerTerm]term(): bool
+#cpp,web
 	+func term(): bool
 #cpp
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
@@ -205,7 +227,12 @@ end enum
 	
 	const strBufSize: int :: 1024
 	var handle: int
+#exe
+	var delimiterNum: int
+	var delimiters: int
+#cpp,web
 	var delimiters: []char
+#any
 	var fileSize_: int
 end class
 
@@ -214,6 +241,9 @@ end class
 		do me.fin()
 	end func
 	
+#exe
+	+func[d0000.knd, _writerFin]fin()
+#cpp,web
 	+func fin()
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
@@ -233,6 +263,9 @@ end class
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _writerGetPos]getPos(): int
+#cpp,web
 	+func getPos(): int
 #cpp
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
@@ -243,6 +276,9 @@ end class
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _writerSetPos]setPos(origin: @Origin, pos: int)
+#cpp,web
 	+func setPos(origin: @Origin, pos: int)
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
@@ -262,6 +298,9 @@ end class
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _writerWrite]write(bin: []bit8)
+#cpp,web
 	+func write(bin: []bit8)
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
@@ -271,6 +310,9 @@ end class
 #any
 	end func
 	
+#exe
+	+func[d0000.knd, _writerWriteChar]writeChar(n: char)
+#cpp,web
 	+func writeChar(n: char)
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
@@ -307,15 +349,15 @@ end class
 	var handle: int
 end class
 
-+func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
++func copyDir(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[__raw, file_copyFile]copyFile(dst: []char, src: []char): bool
++func copyFile(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _delDir]delDir(path: []char): bool
++func delDir(path: []char): bool
 	; TODO:
 end func
 
@@ -335,7 +377,7 @@ end func
 	ret r
 end func
 
-+func[d0000.knd, _delFile]delFile(path: []char): bool
++func delFile(path: []char): bool
 	; TODO:
 end func
 
@@ -356,10 +398,13 @@ end func
 	end if
 end func
 
-+func[d0000.knd, _exeDir]exeDir(): []char
++func exeDir(): []char
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _existPath]exist(path: []char): bool
+#cpp,web
 +func exist(path: []char): bool
 #cpp
 	excode "return fileExists_(`0`);\n"
@@ -412,10 +457,13 @@ end func
 	ret r
 end func
 
-+func[d0000.knd, _fileSize]fileSize(path: []char): int
++func fileSize(path: []char): int
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _forEachDir]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+#cpp,web
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 #cpp
 	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
@@ -432,18 +480,21 @@ end func
 #any
 end func
 
-+func[d0000.knd, _fullPath]fullPath(path: []char): []char
++func fullPath(path: []char): []char
 	; TODO:
 end func
 
-+func[d0000.knd, _getCurDir]getCurDir(): []char
++func getCurDir(): []char
 	; TODO:
 end func
 
-+func[d0000.knd, _makeDir]makeDir(path: []char): bool
++func makeDir(path: []char): bool
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _makeReader, __mki]makeReader(me2: @Reader, path: []char): @Reader
+#cpp,web
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
 #cpp
 	excode "reader_*r_=newPrim_(reader_)();\n"
@@ -469,6 +520,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _makeWriter, __mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+#cpp,web
 +func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
 #cpp
 	excode "writer_*w_=newPrim_(writer_)();\n"
@@ -484,18 +538,18 @@ end func
 #any
 end func
 
-+func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
++func moveDir(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool
++func moveFile(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _setCurDir]setCurDir(path: []char)
++func setCurDir(path: []char)
 	; TODO:
 end func
 
-+func[d0000.knd, _sysDir]sysDir(kind: @SysDir): []char
++func sysDir(kind: @SysDir): []char
 	; TODO:
 end func

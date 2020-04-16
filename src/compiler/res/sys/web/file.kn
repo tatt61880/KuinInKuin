@@ -26,7 +26,7 @@ end enum
 		do me.delimiters :: delimiters
 	end func
 	
-	+func[d0000.knd, _readerFileSize]fileSize(): int
+	+func fileSize(): int
 		ret 0 { TODO: }
 	end func
 	
@@ -228,15 +228,15 @@ end class
 	var handle: int
 end class
 
-+func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
++func copyDir(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[__raw, file_copyFile]copyFile(dst: []char, src: []char): bool
++func copyFile(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _delDir]delDir(path: []char): bool
++func delDir(path: []char): bool
 	; TODO:
 end func
 
@@ -256,7 +256,7 @@ end func
 	ret r
 end func
 
-+func[d0000.knd, _delFile]delFile(path: []char): bool
++func delFile(path: []char): bool
 	; TODO:
 end func
 
@@ -277,7 +277,7 @@ end func
 	end if
 end func
 
-+func[d0000.knd, _exeDir]exeDir(): []char
++func exeDir(): []char
 	; TODO:
 end func
 
@@ -329,7 +329,7 @@ end func
 	ret r
 end func
 
-+func[d0000.knd, _fileSize]fileSize(path: []char): int
++func fileSize(path: []char): int
 	; TODO:
 end func
 
@@ -345,15 +345,15 @@ end func
 	excode "return true;\n"
 end func
 
-+func[d0000.knd, _fullPath]fullPath(path: []char): []char
++func fullPath(path: []char): []char
 	; TODO:
 end func
 
-+func[d0000.knd, _getCurDir]getCurDir(): []char
++func getCurDir(): []char
 	; TODO:
 end func
 
-+func[d0000.knd, _makeDir]makeDir(path: []char): bool
++func makeDir(path: []char): bool
 	; TODO:
 end func
 
@@ -377,18 +377,18 @@ end func
 	excode "return `0`;\n"
 end func
 
-+func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
++func moveDir(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool
++func moveFile(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _setCurDir]setCurDir(path: []char)
++func setCurDir(path: []char)
 	; TODO:
 end func
 
-+func[d0000.knd, _sysDir]sysDir(kind: @SysDir): []char
++func sysDir(kind: @SysDir): []char
 	; TODO:
 end func

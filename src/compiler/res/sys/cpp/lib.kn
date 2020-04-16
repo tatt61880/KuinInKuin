@@ -9,11 +9,7 @@ func _init()
 end func
 
 +class BmSearch()
-	*func[d0000.knd, _bmSearchDtor, __frc]_dtor()
-		; TODO:
-	end func
-	
-	+func[d0000.knd, _bmSearchFind]find(text: []char, start: int): int
+	+func find(text: []char, start: int): int
 		; TODO:
 	end func
 	
@@ -221,7 +217,7 @@ end func
 	ret ^ s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0))
 end func
 
-+func[d0000.knd, _cmpEx]cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
++func cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
 	; TODO:
 end func
 
@@ -233,7 +229,7 @@ end func
 	excode "return std::cosh(`0`);\n"
 end func
 
-+func[d0000.knd, _countUp]countUp(min: int, max: int): []int
++func countUp(min: int, max: int): []int
 	; TODO:
 end func
 
@@ -250,6 +246,7 @@ end func
 	excode "return std::hypot(`0`-`2`,`1`-`3`);\n"
 end func
 
+; TODO: 'exe'
 +func exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
@@ -291,7 +288,7 @@ end func
 	ret g >= -4 ?((g + 4) % 7, (g + 5) % 7 + 6)
 end func
 
-+func[d0000.knd, _intToLocalDate]intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
++func intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
 	; TODO:
 end func
 
@@ -312,7 +309,7 @@ end func
 	excode "return std::log(`0`);\n"
 end func
 
-+func[d0000.knd, _localDateToInt]localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
++func localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
 	; TODO:
 end func
 
@@ -320,7 +317,7 @@ end func
 	ret @ln(x) / @ln(base)
 end func
 
-+func[d0000.knd, _makeBmSearch, __mki]makeBmSearch(me2: @BmSearch, pattern: []char): @BmSearch
++func makeBmSearch(pattern: []char): @BmSearch
 	; TODO:
 end func
 
@@ -431,7 +428,7 @@ end func
 	excode "return std::sinh(`0`);\n"
 end func
 
-+func[d0000.knd]sleep(ms: int)
++func sleep(ms: int)
 	; TODO:
 end func
 

@@ -60,7 +60,7 @@ end func
 	ret r
 end func
 
-+func[__raw, cui_inputLetter]inputLetter(): char
++func inputLetter(): char
 	; TODO:
 end func
 
@@ -90,6 +90,9 @@ end func
 	ret buf.sub(0, ptr)
 end func
 
+#exe
++func[d0002.knd, _print]print(str: []char)
+#cpp,web
 +func print(str: []char)
 #cpp
 	excode "if(`0`==nullptr){\n"

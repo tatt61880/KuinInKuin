@@ -1,5 +1,6 @@
 +const envCui: bit64 :: 0b64
 +const envWnd: bit64 :: 1b64
+
 +class Class()
 	func ctor()
 	end func

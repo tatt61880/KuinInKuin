@@ -9,11 +9,7 @@ func _init()
 end func
 
 +class BmSearch()
-	*func[d0000.knd, _bmSearchDtor, __frc]_dtor()
-		; TODO:
-	end func
-	
-	+func[d0000.knd, _bmSearchFind]find(text: []char, start: int): int
+	+func find(text: []char, start: int): int
 		; TODO:
 	end func
 	
@@ -139,28 +135,28 @@ end class
 
 var globalRnd: @Rnd
 
-+func acos(x: float): float
++func[d0000.knd, _acos]acos(x: float): float
 end func
 
-+func acosh(x: float): float
++func[d0000.knd, _acosh]acosh(x: float): float
 end func
 
-+func addr(class_: kuin@Class): bit64
++func[d0000.knd, _addr]addr(class_: kuin@Class): bit64
 end func
 
-+func asin(x: float): float
++func[d0000.knd, _asin]asin(x: float): float
 end func
 
-+func asinh(x: float): float
++func[d0000.knd, _asinh]asinh(x: float): float
 end func
 
-+func atan(x: float): float
++func[d0000.knd, _atan]atan(x: float): float
 end func
 
-+func atanh(x: float): float
++func[d0000.knd, _atanh]atanh(x: float): float
 end func
 
-+func ceil(x: float): float
++func[d0000.knd, _ceil]ceil(x: float): float
 end func
 
 +func cerp(first: float, last: float, rate: float): float
@@ -187,7 +183,7 @@ end func
 	ret false
 end func
 
-+func cmdLine(): [][]char
++func[d0000.knd, _cmdLine]cmdLine(): [][]char
 end func
 
 +func cmp(s1: []char, s2: []char): int
@@ -201,17 +197,17 @@ end func
 	ret ^ s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0))
 end func
 
-+func[d0000.knd, _cmpEx]cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
++func cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
 	; TODO:
 end func
 
-+func cos(x: float): float
++func[d0000.knd, _cos]cos(x: float): float
 end func
 
-+func cosh(x: float): float
++func[d0000.knd, _cosh]cosh(x: float): float
 end func
 
-+func[d0000.knd, _countUp]countUp(min: int, max: int): []int
++func countUp(min: int, max: int): []int
 	; TODO:
 end func
 
@@ -224,9 +220,10 @@ end func
 	ret(b * 146097 + c * 365 + c / 4 - c / 100 + d - 719468) * 86400 + hour * 3600 + minute * 60 + second
 end func
 
-+func dist(x: float, y: float, centerX: float, centerY: float): float
++func[d0000.knd, _dist]dist(x: float, y: float, centerX: float, centerY: float): float
 end func
 
+; TODO: 'exe'
 +func exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
@@ -235,10 +232,10 @@ end func
 	end if
 end func
 
-+func exp(x: float): float
++func[d0000.knd, _exp]exp(x: float): float
 end func
 
-+func floor(x: float): float
++func[d0000.knd, _floor]floor(x: float): float
 end func
 
 +func hermite(pos: []float, rate: float): float
@@ -265,11 +262,11 @@ end func
 	ret g >= -4 ?((g + 4) % 7, (g + 5) % 7 + 6)
 end func
 
-+func[d0000.knd, _intToLocalDate]intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
++func intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
 	; TODO:
 end func
 
-+func invRot(x: float, y: float, centerX: float, centerY: float): float
++func[d0000.knd, _invRot]invRot(x: float, y: float, centerX: float, centerY: float): float
 end func
 
 +func lerp(first: float, last: float, rate: float): float
@@ -280,10 +277,10 @@ end func
 	; TODO:
 end func
 
-+func ln(x: float): float
++func[d0000.knd, _ln]ln(x: float): float
 end func
 
-+func[d0000.knd, _localDateToInt]localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
++func localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
 	; TODO:
 end func
 
@@ -291,7 +288,7 @@ end func
 	ret @ln(x) / @ln(base)
 end func
 
-+func[d0000.knd, _makeBmSearch, __mki]makeBmSearch(me2: @BmSearch, pattern: []char): @BmSearch
++func makeBmSearch(pattern: []char): @BmSearch
 	; TODO:
 end func
 
@@ -317,7 +314,7 @@ end func
 	ret n1 <= n2 ?(n1, n2)
 end func
 
-+func now(): int
++func[d0000.knd, _now]now(): int
 end func
 
 +func padding(value: int, align: int): int
@@ -393,36 +390,36 @@ end func
 	ret - 24 <= diff & diff <= 24
 end func
 
-+func sin(x: float): float
++func[d0000.knd, _sin]sin(x: float): float
 end func
 
-+func sinh(x: float): float
++func[d0000.knd, _sinh]sinh(x: float): float
 end func
 
-+func[d0000.knd]sleep(ms: int)
++func sleep(ms: int)
 	; TODO:
 end func
 
-+func sqrt(x: float): float
++func[d0000.knd, _sqrt]sqrt(x: float): float
 end func
 
-+func sysTime(): int
++func[d0000.knd, _sysTime]sysTime(): int
 end func
 
-+func tan(x: float): float
++func[d0000.knd, _tan]tan(x: float): float
 end func
 
-+func tanh(x: float): float
++func[d0000.knd, _tanh]tanh(x: float): float
 end func
 
-+func toBit64Forcibly(x: float): bit64
++func[d0000.knd, _toBit64Forcibly]toBit64Forcibly(x: float): bit64
 end func
 
 +func toDegree(rad: float): float
 	ret rad * 180.0 / @pi
 end func
 
-+func toFloatForcibly(x: bit64): float
++func[d0000.knd, _toFloatForcibly]toFloatForcibly(x: bit64): float
 end func
 
 +func toRad(degree: float): float

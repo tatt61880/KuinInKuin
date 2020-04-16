@@ -60,7 +60,7 @@ end func
 	ret r
 end func
 
-+func[__raw, cui_inputLetter]inputLetter(): char
++func inputLetter(): char
 	; TODO:
 end func
 

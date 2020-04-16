@@ -1,5 +1,6 @@
 +const envCui: bit64 :: 0b64
 +const envWnd: bit64 :: 1b64
+
 +class Class()
 	func ctor()
 	end func
@@ -25,13 +26,13 @@
 	end func
 end class
 
-func _init()
+func[d0000.knd]_init()
 end func
 
-func _fin()
+func[d0000.knd]_fin()
 end func
 
-func _err(excpt: int)
+func[d0000.knd]_err(excpt: int)
 end func
 
 func _initVars()
@@ -52,19 +53,19 @@ func _absInt(me_: int): int
 	ret me_ >= 0 ?(me_, -me_)
 end func
 
-func[__any, __tkv]_addDict(me_: int, type: []int, key: int, item: int)
+func[d0000.knd, __any, __tkv]_addDict(me_: int, type: []int, key: int, item: int)
 end func
 
-func[__any, __tch]_addList(me_: int, type: []int, item: int)
+func[d0000.knd, __any, __tch]_addList(me_: int, type: []int, item: int)
 end func
 
-func[__any, __tch]_addQueue(me_: int, type: []int, item: int)
+func[d0000.knd, __any, __tch]_addQueue(me_: int, type: []int, item: int)
 end func
 
-func[__any, __tch]_addStack(me_: int, type: []int, item: int)
+func[d0000.knd, __any, __tch]_addStack(me_: int, type: []int, item: int)
 end func
 
-func[__any, __tme, __rme]_and(me_: int, type: []int, n: int): int
+func[d0000.knd, __any, __tme, __rme]_and(me_: int, type: []int, n: int): int
 end func
 
 func _clampFloat(me_: float, min: float, max: float): float
@@ -91,42 +92,37 @@ func _clampMinInt(me_: int, min: int): int
 	ret me_ < min ?(min, me_)
 end func
 
-func[__any]_del(me_: int, type: []int)
+func[d0000.knd, __any]_del(me_: int, type: []int)
 end func
 
-func[__any, __tch]_delDict(me_: int, type: []int, key: int)
-	; TODO:
+func[d0000.knd, __any, __tch]_delDict(me_: int, type: []int, key: int)
 end func
 
-func[__any]_delNext(me_: int, type: []int)
-	; TODO:
+func[d0000.knd, __any]_delNext(me_: int, type: []int)
 end func
 
-func[__any, __rme]_endian(me_: int, type: []int): int
+func[d0000.knd, __any, __rme]_endian(me_: int, type: []int): int
 end func
 
-func[__any, __tch, __raw, exist]_exist(me_: int, type: []int, key: int): bool
-	; TODO:
+func[d0000.knd, __any, __tch]_exist(me_: int, type: []int, key: int): bool
 end func
 
-func[__any, __tch]_fill(me_: int, type: []int, value: int)
+func[d0000.knd, __any, __tch]_fill(me_: int, type: []int, value: int)
 end func
 
-func[__any, __tch]_findArray(me_: int, type: []int, item: int, start: int): int
+func[d0000.knd, __any, __tch]_findArray(me_: int, type: []int, item: int, start: int): int
 end func
 
-func[__any, __tch]_findBin(me_: int, type: []int, item: int): int
+func[d0000.knd, __any, __tch]_findBin(me_: int, type: []int, item: int): int
 end func
 
-func[__any, __tch]_findLastArray(me_: int, type: []int, item: int, start: int): int
+func[d0000.knd, __any, __tch]_findLastArray(me_: int, type: []int, item: int, start: int): int
 end func
 
-func[__any, __tch]_findLastList(me_: int, type: []int, item: int): bool
-	; TODO:
+func[d0000.knd, __any, __tch]_findLastList(me_: int, type: []int, item: int): bool
 end func
 
-func[__any, __tch]_findList(me_: int, type: []int, item: int): bool
-	; TODO:
+func[d0000.knd, __any, __tch]_findList(me_: int, type: []int, item: int): bool
 end func
 
 func _findStr(me_: []char, pattern: []char, start: int): int
@@ -153,40 +149,38 @@ func _findStrLast(me_: []char, pattern: []char, start: int): int
 	ret - 1
 end func
 
-func _findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
-	; TODO:
+func[d0000.knd]_findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
 end func
 
-func[__any, __kvf]_forEach(me_: int, type: []int, callback: int, data: @Class): bool
+func[d0000.knd, __any, __kvf]_forEach(me_: int, type: []int, callback: int, data: @Class): bool
 end func
 
-func[__any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &bool): int
+func[d0000.knd, __any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &bool): int
 end func
 
-func[__any, __rch]_getList(me_: int, type: []int): int
+func[d0000.knd, __any, __rch]_getList(me_: int, type: []int): int
 end func
 
-func[__any, __rch]_getOffset(me_: int, type: []int, offset: int): int
-	; TODO:
+func[d0000.knd, __any, __rch]_getOffset(me_: int, type: []int, offset: int): int
 end func
 
-func[__any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
+func[d0000.knd, __any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
 	ret me2
 end func
 
-func[__any, __rch]_getQueue(me_: int, type: []int): int
+func[d0000.knd, __any, __rch]_getQueue(me_: int, type: []int): int
 end func
 
-func[__any, __rch]_getStack(me_: int, type: []int): int
+func[d0000.knd, __any, __rch]_getStack(me_: int, type: []int): int
 end func
 
-func[__any]_head(me_: int, type: []int)
+func[d0000.knd, __any]_head(me_: int, type: []int)
 end func
 
-func[__any]_idx(me_: int, type: []int): int
+func[d0000.knd, __any]_idx(me_: int, type: []int): int
 end func
 
-func[__any, __tch]_ins(me_: int, type: []int, item: int)
+func[d0000.knd, __any, __tch]_ins(me_: int, type: []int, item: int)
 end func
 
 func _join(me_: [][]char, delimiter: []char): []char
@@ -225,54 +219,50 @@ func _lower(me_: []char): []char
 	ret s
 end func
 
-func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
-	; TODO:
+func[d0000.knd, __any, __rch]_max(me_: int, type: []int): int
 end func
 
-func[__any, __rch, __raw, min]_min(me_: int, type: []int): int
-	; TODO:
+func[d0000.knd, __any, __rch]_min(me_: int, type: []int): int
 end func
 
-func[__any]_moveOffset(me_: int, type: []int, offset: int)
+func[d0000.knd, __any]_moveOffset(me_: int, type: []int, offset: int)
 end func
 
-func[__any]_next(me_: int, type: []int)
+func[d0000.knd, __any]_next(me_: int, type: []int)
 end func
 
-func[__any, __rme]_not(me_: int, type: []int): int
+func[d0000.knd, __any, __rme]_not(me_: int, type: []int): int
 end func
 
 func _offset(me_: char, n: int): char
 	ret(me_ $ bit64 + n $ bit64) $ char
 end func
 
-func[__any, __tme, __rme]_or(me_: int, type: []int, n: int): int
+func[d0000.knd, __any, __tme, __rme]_or(me_: int, type: []int, n: int): int
 end func
 
-func[__any, __rch]_peekQueue(me_: int, type: []int): int
+func[d0000.knd, _peek, __any, __rch]_peekQueue(me_: int, type: []int): int
 end func
 
-func[__any, __rch]_peekStack(me_: int, type: []int): int
+func[d0000.knd, _peek, __any, __rch]_peekStack(me_: int, type: []int): int
 end func
 
-func[__any]_prev(me_: int, type: []int)
+func[d0000.knd, __any]_prev(me_: int, type: []int)
 end func
 
-func[__any, __rme, __raw, repeat]_repeat(me_: int, type: []int, len: int): int
-	; TODO:
+func[d0000.knd, __any, __rme]_repeat(me_: int, type: []int, len: int): int
 end func
 
-func _replace(me_: []char, old: []char, new: []char): []char
-	; TODO:
+func[d0000.knd]_replace(me_: []char, old: []char, new: []char): []char
 end func
 
-func[__any]_reverse(me_: int, type: []int)
+func[d0000.knd, __any]_reverse(me_: int, type: []int)
 end func
 
-func[__any, __rme]_sar(me_: int, type: []int, n: int): int
+func[d0000.knd, __any, __rme]_sar(me_: int, type: []int, n: int): int
 end func
 
-func[__any]_setPtr(me_: int, type: []int, ptr: @ListPtr)
+func[d0000.knd, __any]_setPtr(me_: int, type: []int, ptr: @ListPtr)
 end func
 
 func _signFloat(me_: float): float
@@ -283,24 +273,22 @@ func _signInt(me_: int): int
 	ret me_ > 0 ?(1, me_ < 0 ?(-1, 0))
 end func
 
-func[__any, __rme]_shl(me_: int, type: []int, n: int): int
+func[d0000.knd, __any, __rme]_shl(me_: int, type: []int, n: int): int
 end func
 
-func[__any, __rme]_shr(me_: int, type: []int, n: int): int
+func[d0000.knd, __any, __rme]_shr(me_: int, type: []int, n: int): int
 end func
 
-func[__any]_shuffle(me_: int, type: []int)
-	; TODO:
+func[d0000.knd, __any]_shuffle(me_: int, type: []int)
 end func
 
-func[__any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
+func[d0000.knd, __any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
 end func
 
-func[__any]_sortArray(me_: int, type: []int)
+func[d0000.knd, __any]_sortArray(me_: int, type: []int)
 end func
 
-func[__any]_sortList(me_: int, type: []int)
-	; TODO:
+func[d0000.knd, __any]_sortList(me_: int, type: []int)
 end func
 
 func _split(me_: []char, delimiter: []char): [][]char
@@ -317,45 +305,40 @@ func _split(me_: []char, delimiter: []char): [][]char
 	end while
 end func
 
-func[__any]_tail(me_: int, type: []int)
+func[d0000.knd, __any]_tail(me_: int, type: []int)
 end func
 
-func[__any]_term(me_: int, type: []int): bool
+func[d0000.knd, __any]_term(me_: int, type: []int): bool
 end func
 
-func[__any]_termOffset(me_: int, type: []int, offset: int): bool
-	; TODO:
+func[d0000.knd, __any]_termOffset(me_: int, type: []int, offset: int): bool
 end func
 
-func[__any, __rac]_toArray(me_: int, type: []int): int
+func[d0000.knd, __any, __rac]_toArray(me_: int, type: []int): int
 end func
 
-func[__any, __rak]_toArrayKey(me_: int, type: []int): int
-	; TODO:
+func[d0000.knd, __any, __rak]_toArrayKey(me_: int, type: []int): int
 end func
 
-func[__any, __rav]_toArrayValue(me_: int, type: []int): int
-	; TODO:
+func[d0000.knd, __any, __rav]_toArrayValue(me_: int, type: []int): int
 end func
 
-func _toBit64(me_: []char, success: &bool): bit64
+func[d0000.knd]_toBit64(me_: []char, success: &bool): bit64
 end func
 
-func _toFloat(me_: []char, success: &bool): float
+func[d0000.knd]_toFloat(me_: []char, success: &bool): float
 end func
 
-func _toInt(me_: []char, success: &bool): int
+func[d0000.knd]_toInt(me_: []char, success: &bool): int
 end func
 
-func[__any]_toStr(me_: int, type: []int): []char
+func[d0000.knd, __any]_toStr(me_: int, type: []int): []char
 end func
 
-func _toStrFmtFloat(me_: float, fmt: []char): []char
-	; TODO:
+func[d0000.knd]_toStrFmtFloat(me_: float, fmt: []char): []char
 end func
 
-func _toStrFmtInt(me_: int, fmt: []char): []char
-	; TODO:
+func[d0000.knd]_toStrFmtInt(me_: int, fmt: []char): []char
 end func
 
 func _trim(me_: []char): []char
@@ -438,5 +421,5 @@ func _upper(me_: []char): []char
 	ret s
 end func
 
-func[__any, __tme, __rme]_xor(me_: int, type: []int, n: int): int
+func[d0000.knd, __any, __tme, __rme]_xor(me_: int, type: []int, n: int): int
 end func

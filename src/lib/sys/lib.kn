@@ -9,11 +9,7 @@ func _init()
 end func
 
 +class BmSearch()
-	*func[d0000.knd, _bmSearchDtor, __frc]_dtor()
-		; TODO:
-	end func
-	
-	+func[d0000.knd, _bmSearchFind]find(text: []char, start: int): int
+	+func find(text: []char, start: int): int
 		; TODO:
 	end func
 	
@@ -139,6 +135,9 @@ end class
 
 var globalRnd: @Rnd
 
+#exe
++func[d0000.knd, _acos]acos(x: float): float
+#cpp,web
 +func acos(x: float): float
 #cpp
 	excode "return std::acos(`0`);\n"
@@ -147,6 +146,9 @@ var globalRnd: @Rnd
 #any
 end func
 
+#exe
++func[d0000.knd, _acosh]acosh(x: float): float
+#cpp,web
 +func acosh(x: float): float
 #cpp
 	excode "return std::acosh(`0`);\n"
@@ -155,6 +157,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _addr]addr(class_: kuin@Class): bit64
+#cpp,web
 +func addr(class_: kuin@Class): bit64
 #cpp
 	excode "return addr_(`0`);\n"
@@ -163,6 +168,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _asin]asin(x: float): float
+#cpp,web
 +func asin(x: float): float
 #cpp
 	excode "return std::asin(`0`);\n"
@@ -171,6 +179,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _asinh]asinh(x: float): float
+#cpp,web
 +func asinh(x: float): float
 #cpp
 	excode "return std::asinh(`0`);\n"
@@ -179,6 +190,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _atan]atan(x: float): float
+#cpp,web
 +func atan(x: float): float
 #cpp
 	excode "return std::atan(`0`);\n"
@@ -187,6 +201,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _atanh]atanh(x: float): float
+#cpp,web
 +func atanh(x: float): float
 #cpp
 	excode "return std::atanh(`0`);\n"
@@ -195,6 +212,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _ceil]ceil(x: float): float
+#cpp,web
 +func ceil(x: float): float
 #cpp
 	excode "return std::ceil(`0`);\n"
@@ -227,6 +247,9 @@ end func
 	ret false
 end func
 
+#exe
++func[d0000.knd, _cmdLine]cmdLine(): [][]char
+#cpp,web
 +func cmdLine(): [][]char
 #cpp
 	excode "auto a_=new_(Array_<type_(Array_<char16_t>)>)();\n"
@@ -261,10 +284,13 @@ end func
 	ret ^ s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0))
 end func
 
-+func[d0000.knd, _cmpEx]cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
++func cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _cos]cos(x: float): float
+#cpp,web
 +func cos(x: float): float
 #cpp
 	excode "return std::cos(`0`);\n"
@@ -273,6 +299,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _cosh]cosh(x: float): float
+#cpp,web
 +func cosh(x: float): float
 #cpp
 	excode "return std::cosh(`0`);\n"
@@ -281,7 +310,7 @@ end func
 #any
 end func
 
-+func[d0000.knd, _countUp]countUp(min: int, max: int): []int
++func countUp(min: int, max: int): []int
 	; TODO:
 end func
 
@@ -294,6 +323,9 @@ end func
 	ret(b * 146097 + c * 365 + c / 4 - c / 100 + d - 719468) * 86400 + hour * 3600 + minute * 60 + second
 end func
 
+#exe
++func[d0000.knd, _dist]dist(x: float, y: float, centerX: float, centerY: float): float
+#cpp,web
 +func dist(x: float, y: float, centerX: float, centerY: float): float
 #cpp
 	excode "return std::hypot(`0`-`2`,`1`-`3`);\n"
@@ -303,6 +335,7 @@ end func
 #any
 end func
 
+; TODO: 'exe'
 +func exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
@@ -315,6 +348,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _exp]exp(x: float): float
+#cpp,web
 +func exp(x: float): float
 #cpp
 	excode "return std::exp(`0`);\n"
@@ -323,6 +359,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _floor]floor(x: float): float
+#cpp,web
 +func floor(x: float): float
 #cpp
 	excode "return std::floor(`0`);\n"
@@ -355,10 +394,13 @@ end func
 	ret g >= -4 ?((g + 4) % 7, (g + 5) % 7 + 6)
 end func
 
-+func[d0000.knd, _intToLocalDate]intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
++func intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _invRot]invRot(x: float, y: float, centerX: float, centerY: float): float
+#cpp,web
 +func invRot(x: float, y: float, centerX: float, centerY: float): float
 #cpp
 	excode "double r_=std::atan2(`1`-`3`,`0`-`2`);\n"
@@ -377,6 +419,9 @@ end func
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _ln]ln(x: float): float
+#cpp,web
 +func ln(x: float): float
 #cpp
 	excode "return std::log(`0`);\n"
@@ -385,7 +430,7 @@ end func
 #any
 end func
 
-+func[d0000.knd, _localDateToInt]localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
++func localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
 	; TODO:
 end func
 
@@ -393,7 +438,7 @@ end func
 	ret @ln(x) / @ln(base)
 end func
 
-+func[d0000.knd, _makeBmSearch, __mki]makeBmSearch(me2: @BmSearch, pattern: []char): @BmSearch
++func makeBmSearch(pattern: []char): @BmSearch
 	; TODO:
 end func
 
@@ -419,6 +464,9 @@ end func
 	ret n1 <= n2 ?(n1, n2)
 end func
 
+#exe
++func[d0000.knd, _now]now(): int
+#cpp,web
 +func now(): int
 #cpp
 	excode "return std::time(nullptr);\n"
@@ -501,6 +549,9 @@ end func
 	ret - 24 <= diff & diff <= 24
 end func
 
+#exe
++func[d0000.knd, _sin]sin(x: float): float
+#cpp,web
 +func sin(x: float): float
 #cpp
 	excode "return std::sin(`0`);\n"
@@ -509,6 +560,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _sinh]sinh(x: float): float
+#cpp,web
 +func sinh(x: float): float
 #cpp
 	excode "return std::sinh(`0`);\n"
@@ -517,10 +571,13 @@ end func
 #any
 end func
 
-+func[d0000.knd]sleep(ms: int)
++func sleep(ms: int)
 	; TODO:
 end func
 
+#exe
++func[d0000.knd, _sqrt]sqrt(x: float): float
+#cpp,web
 +func sqrt(x: float): float
 #cpp
 	excode "return std::sqrt(`0`);\n"
@@ -529,6 +586,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _sysTime]sysTime(): int
+#cpp,web
 +func sysTime(): int
 #cpp
 	excode "return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());\n"
@@ -538,6 +598,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _tan]tan(x: float): float
+#cpp,web
 +func tan(x: float): float
 #cpp
 	excode "return std::tan(`0`);\n"
@@ -546,6 +609,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _tanh]tanh(x: float): float
+#cpp,web
 +func tanh(x: float): float
 #cpp
 	excode "return std::tanh(`0`);\n"
@@ -554,6 +620,9 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, _toBit64Forcibly]toBit64Forcibly(x: float): bit64
+#cpp,web
 +func toBit64Forcibly(x: float): bit64
 #cpp
 	excode "return *(uint64_t*)&`0`;\n"
@@ -568,6 +637,9 @@ end func
 	ret rad * 180.0 / @pi
 end func
 
+#exe
++func[d0000.knd, _toFloatForcibly]toFloatForcibly(x: bit64): float
+#cpp,web
 +func toFloatForcibly(x: bit64): float
 #cpp
 	excode "return *(double*)&`0`;\n"

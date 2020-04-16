@@ -22,21 +22,20 @@ end enum
 		do me.fin()
 	end func
 	
-	+func delimiter(delimiters: []char)
-		do me.delimiters :: delimiters
+	+func[d0000.knd, _readerDelimiter]delimiter(delimiters: []char)
 	end func
 	
-	+func[d0000.knd, _readerFileSize]fileSize(): int
+	+func fileSize(): int
 		ret 0 { TODO: }
 	end func
 	
-	+func fin()
+	+func[d0000.knd, _readerFin]fin()
 	end func
 	
-	+func getPos(): int
+	+func[d0000.knd, _readerGetPos]getPos(): int
 	end func
 	
-	+func read(size: int): []bit8
+	+func[d0000.knd, _readerRead]read(size: int): []bit8
 	end func
 	
 	+func readChar(): char
@@ -71,7 +70,7 @@ end enum
 		ret r
 	end func
 	
-	+func readLetter(): char
+	+func[d0000.knd, _readerReadLetter]readLetter(): char
 	end func
 	
 	+func readLine(): []char
@@ -123,10 +122,10 @@ end enum
 		ret buf.sub(0, ptr)
 	end func
 	
-	+func setPos(origin: @Origin, pos: int)
+	+func[d0000.knd, _readerSetPos]setPos(origin: @Origin, pos: int)
 	end func
 	
-	+func term(): bool
+	+func[d0000.knd, _readerTerm]term(): bool
 	end func
 	
 	func readCharWithDelimiters(): char
@@ -146,7 +145,8 @@ end enum
 	
 	const strBufSize: int :: 1024
 	var handle: int
-	var delimiters: []char
+	var delimiterNum: int
+	var delimiters: int
 	var fileSize_: int
 end class
 
@@ -155,19 +155,19 @@ end class
 		do me.fin()
 	end func
 	
-	+func fin()
+	+func[d0000.knd, _writerFin]fin()
 	end func
 	
-	+func getPos(): int
+	+func[d0000.knd, _writerGetPos]getPos(): int
 	end func
 	
-	+func setPos(origin: @Origin, pos: int)
+	+func[d0000.knd, _writerSetPos]setPos(origin: @Origin, pos: int)
 	end func
 	
-	+func write(bin: []bit8)
+	+func[d0000.knd, _writerWrite]write(bin: []bit8)
 	end func
 	
-	+func writeChar(n: char)
+	+func[d0000.knd, _writerWriteChar]writeChar(n: char)
 	end func
 	
 	+func writeFloat(n: float)
@@ -193,15 +193,15 @@ end class
 	var handle: int
 end class
 
-+func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
++func copyDir(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[__raw, file_copyFile]copyFile(dst: []char, src: []char): bool
++func copyFile(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _delDir]delDir(path: []char): bool
++func delDir(path: []char): bool
 	; TODO:
 end func
 
@@ -221,7 +221,7 @@ end func
 	ret r
 end func
 
-+func[d0000.knd, _delFile]delFile(path: []char): bool
++func delFile(path: []char): bool
 	; TODO:
 end func
 
@@ -242,11 +242,11 @@ end func
 	end if
 end func
 
-+func[d0000.knd, _exeDir]exeDir(): []char
++func exeDir(): []char
 	; TODO:
 end func
 
-+func exist(path: []char): bool
++func[d0000.knd, _existPath]exist(path: []char): bool
 end func
 
 +func ext(path: []char): []char
@@ -284,43 +284,43 @@ end func
 	ret r
 end func
 
-+func[d0000.knd, _fileSize]fileSize(path: []char): int
++func fileSize(path: []char): int
 	; TODO:
 end func
 
-+func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
++func[d0000.knd, _forEachDir]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 end func
 
-+func[d0000.knd, _fullPath]fullPath(path: []char): []char
++func fullPath(path: []char): []char
 	; TODO:
 end func
 
-+func[d0000.knd, _getCurDir]getCurDir(): []char
++func getCurDir(): []char
 	; TODO:
 end func
 
-+func[d0000.knd, _makeDir]makeDir(path: []char): bool
++func makeDir(path: []char): bool
 	; TODO:
 end func
 
-+func[__mki]makeReader(me2: @Reader, path: []char): @Reader
++func[d0000.knd, _makeReader, __mki]makeReader(me2: @Reader, path: []char): @Reader
 end func
 
-+func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
++func[d0000.knd, _makeWriter, __mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
 end func
 
-+func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
++func moveDir(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool
++func moveFile(dst: []char, src: []char): bool
 	; TODO:
 end func
 
-+func[d0000.knd, _setCurDir]setCurDir(path: []char)
++func setCurDir(path: []char)
 	; TODO:
 end func
 
-+func[d0000.knd, _sysDir]sysDir(kind: @SysDir): []char
++func sysDir(kind: @SysDir): []char
 	; TODO:
 end func
