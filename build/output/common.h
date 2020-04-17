@@ -278,8 +278,10 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 		const std::string& p2 = utf16ToUtf8_(s);
 #if defined(_WIN32)
 		char p3[262];
-		strcpy(p3, p2.c_str());
-		strcat(p3, "*");
+		size_t l = p2.size();
+		memcpy(p3, p2.c_str(), l);
+		p3[l] = '*';
+		p3[l + 1] = 0;
 		h = _findfirst(p3, &t);
 		if (h == -1)
 			return false;

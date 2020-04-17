@@ -244,7 +244,7 @@ end class
 end func
 
 +func copyFile(dst: []char, src: []char): bool
-	; TODO:
+	ret false {TODO:}
 end func
 
 +func delDir(path: []char): bool

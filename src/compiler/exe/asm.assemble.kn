@@ -1086,6 +1086,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 			var attr1: []char :: ast.funcAttr.get()
 			var attr2: []char
 			if(^ast.funcAttr >= 2)
+				do ast.funcAttr.next()
 				do attr2 :: ast.funcAttr.get()
 			else
 				do attr2 :: null
