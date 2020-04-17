@@ -1,3 +1,6 @@
 func main()
-	do cui@print("Hello, world!\n")
+	var a: int :: 5
+	var b: int :: 3
+	var c: int :: a + b
+	do cui@print("\{a}, \{b}, \{c}\n")
 end func

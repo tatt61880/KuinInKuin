@@ -2791,6 +2791,18 @@ func assembleExprCall(ast: \ast@AstExprCall, regI: int, regF: int)
 			end if
 			do asms.add(@asmMov(@valReg(size, %si), @valReg(size, %ax)))
 		end if
+		do @popRegs(tmp)
+		if(\ast@isFloat(type))
+			if((ast.func_.type $ \ast@AstTypeFunc).funcOption.and(%rch) <> %none)
+				var tmpIToF: \ast@AstArg :: @makeTmpVar(8, null)
+				do asms.add(@asmMov(@valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpIToF), false)), @valReg(8, %si)))
+				do asms.add(@asmMovsd(@valReg(4, @regF[regF]), @valMem(4, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpIToF), false))))
+			else
+				do asms.add(@asmMovsd(@valReg(4, @regF[regF]), @valReg(4, %xmm14)))
+			end if
+		else
+			do asms.add(@asmMov(@valReg(size, @regI[regI]), @valReg(size, %si)))
+		end if
 	end if
 end func
 
