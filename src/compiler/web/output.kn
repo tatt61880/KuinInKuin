@@ -280,10 +280,10 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 		do items.head()
 		while(!items.term())
 			var item: \ast@AstStatCase :: items.get()
-			var items2: list<\ast@ExprPair> :: item.conds
+			var items2: list<\ast@AstExprPair> :: item.conds
 			do items2.head()
 			while(!items2.term())
-				var exprs: \ast@ExprPair :: items2.get()
+				var exprs: \ast@AstExprPair :: items2.get()
 				if(exprs.expr0.typeId <> %exprValuePrim | exprs.expr1 <>& null)
 					do useSwitch :: false
 					break chk
@@ -314,18 +314,18 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 			do items.head()
 			while(!items.term())
 				var item: \ast@AstStatCase :: items.get()
-				var items2: list<\ast@ExprPair> :: item.conds
+				var items2: list<\ast@AstExprPair> :: item.conds
 				do items2.head()
 				if(switch64bit)
 					while(!items2.term())
-						var exprs: \ast@ExprPair :: items2.get()
+						var exprs: \ast@AstExprPair :: items2.get()
 						assert exprs.expr1 =& null
 						do @codes.add("case " ~ (exprs.expr0 $ \ast@AstExprValuePrim).value.toStr() ~ ":\n")
 						do items2.next()
 					end while
 				else
 					while(!items2.term())
-						var exprs: \ast@ExprPair :: items2.get()
+						var exprs: \ast@AstExprPair :: items2.get()
 						assert exprs.expr1 =& null
 						do @codes.add("case ")
 						do @buildExpr(exprs.expr0)
@@ -361,10 +361,10 @@ func buildSwitch(ast: \ast@AstStatSwitch)
 				do @codes.add("else if(")
 			end if
 			var first2: bool :: true
-			var items2: list<\ast@ExprPair> :: item.conds
+			var items2: list<\ast@AstExprPair> :: item.conds
 			do items2.head()
 			while(!items2.term())
-				var exprs: \ast@ExprPair :: items2.get()
+				var exprs: \ast@AstExprPair :: items2.get()
 				if(first2)
 					do first2 :: false
 				else
@@ -540,10 +540,10 @@ func buildTry(ast: \ast@AstStatTry)
 				do @codes.add("else if(")
 			end if
 			var first2: bool :: true
-			var items2: list<\ast@ExprPair> :: item.conds
+			var items2: list<\ast@AstExprPair> :: item.conds
 			do items2.head()
 			while(!items2.term())
-				var exprs: \ast@ExprPair :: items2.get()
+				var exprs: \ast@AstExprPair :: items2.get()
 				if(first2)
 					do first2 :: false
 				else
@@ -678,7 +678,7 @@ func buildExpr(ast: \ast@AstExpr)
 	case %exprValueArray
 		do @buildExprValueArray(ast $ \ast@AstExprValueArray)
 	case %exprRef
-		do @buildExprRef(ast $ \ast@AstExpr)
+		do @buildExprRef(ast)
 	default
 		assert false
 	end switch
@@ -1052,14 +1052,14 @@ func buildExpr2(ast: \ast@AstExpr2)
 		end if
 	case %mul
 		if(\ast@isInt(type))
-			do @codes.add("SM_((")
+			do @codes.add("NM_((")
 			do @buildExpr(ast.children0)
 			do @codes.add("),(")
 			do @buildExpr(ast.children1)
 			do @codes.add("))")
 		elif(type.typeId = %typeBit)
 			if((type $ \ast@AstTypeBit).size = 8)
-				do @codes.add("UM_((")
+				do @codes.add("NM_((")
 				do @buildExpr(ast.children0)
 				do @codes.add("),(")
 				do @buildExpr(ast.children1)
@@ -1245,6 +1245,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 				while(!items.term())
 					if(first)
 						do first :: false
+						do @codes.add("(")
 					else
 						do @codes.add(",(")
 					end if
@@ -1678,6 +1679,10 @@ func write(resFiles: list<[]char>)
 	if(\option@extra.get("merge", &))
 		var fileName: []char :: file@fileName(\option@outputFile)
 		do writer :: file@makeWriter(\option@outputFile ~ ".html", false)
+		if(writer =& null)
+			do \err@err(%fileSaveFailed, null, [\option@outputFile ~ ".html"])
+			ret
+		end if
 		do writer.writeStr("<!DOCTYPE html>\n")
 		do writer.writeStr("<html>\n")
 		do writer.writeStr("\t<head>\n")
@@ -1693,11 +1698,19 @@ func write(resFiles: list<[]char>)
 		do writer.fin()
 	else
 		do writer :: file@makeWriter(\option@outputFile ~ ".js", false)
+		if(writer =& null)
+			do \err@err(%fileSaveFailed, null, [\option@outputFile ~ ".js"])
+			ret
+		end if
 		do writeJs(writer, resFiles)
 		do writer.fin()
 		
 		var fileName: []char :: file@fileName(\option@outputFile)
 		do writer :: file@makeWriter(\option@outputFile ~ ".html", false)
+		if(writer =& null)
+			do \err@err(%fileSaveFailed, null, [\option@outputFile ~ ".html"])
+			ret
+		end if
 		do writer.writeStr("<!DOCTYPE html>\n")
 		do writer.writeStr("<html>\n")
 		do writer.writeStr("\t<head>\n")
@@ -1762,6 +1775,10 @@ func write(resFiles: list<[]char>)
 				else
 					do writer.writeStr("return f?\"")
 					var reader: file@Reader :: file@makeReader(resFile)
+					if(reader =& null)
+						do \err@err(%fileOpenFailed, null, [resFile])
+						ret
+					end if
 					while(!reader.term())
 						var line: []char :: reader.readLine()
 						for i(0, ^line - 1)

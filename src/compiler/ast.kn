@@ -120,7 +120,7 @@ end enum
 
 +class AstFunc(@Ast)
 	+var funcOption: @AstFuncOption
-	+var funcAttr: list<[]char> {TODO: Remove 'funcAttr'.}
+	+var funcAttr: list<[]char>
 	+var args: list<@AstArg>
 	+var ret_: @AstType
 	+var stats: list<@AstStat>
@@ -143,6 +143,7 @@ end class
 	+var override: bool
 	+var def: @Ast
 	+var parentItem: @AstClassItem
+	+var extra: kuin@Class
 end class
 
 +class AstClass(@Ast)
@@ -221,13 +222,13 @@ end class
 	+var defaultStatBlock: @AstStatBlock
 end class
 
-+class ExprPair()
++class AstExprPair()
 	+var expr0: @AstExpr
 	+var expr1: @AstExpr
 end class
 
 +class AstStatCase(@AstStat)
-	+var conds: list<@ExprPair>
+	+var conds: list<@AstExprPair>
 	+var statBlock: @AstStatBlock
 end class
 
@@ -251,7 +252,7 @@ end class
 end class
 
 +class AstStatCatch(@AstStat)
-	+var conds: list<@ExprPair>
+	+var conds: list<@AstExprPair>
 	+var statBlock: @AstStatBlock
 end class
 
@@ -300,7 +301,6 @@ end class
 
 +class AstTypeFunc(@AstTypeNullable)
 	+var funcOption: @AstFuncOption
-	+var funcAttr: list<[]char> {TODO: Remove 'funcAttr'.}
 	+var args: list<@AstTypeFuncArg>
 	+var ret_: @AstType
 end class

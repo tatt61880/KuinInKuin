@@ -1,0 +1,388 @@
++enum Origin
+	head
+	cur
+	tail
+end enum
+
++enum SysDir
+	desktop :: 0x00
+	fonts :: 0x14
+	appData :: 0x1A
+	windows :: 0x24
+	system32 :: 0x25
+	programFiles :: 0x26
+end enum
+
++class Reader()
+	*func ctor()
+		do me.delimiters :: " ,\n"
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+	+func delimiter(delimiters: []char)
+		do me.delimiters :: delimiters
+	end func
+	
+	+func fileSize(): int
+		ret 0 { TODO: }
+	end func
+	
+	+func fin()
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "if(r_->F!=nullptr){\n"
+		excode "r_->F->close();\n"
+		excode "r_->F=nullptr;\n"
+		excode "}\n"
+	end func
+	
+	+func getPos(): int
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "return static_cast<int64_t>(r_->F->tellp());\n"
+	end func
+	
+	+func read(size: int): []bit8
+		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "auto a_=new_(Array_<uint8_t>)();\n"
+		excode "a_->L=`1`;\n"
+		excode "a_->B=newPrimArray_(static_cast<size_t>(`1`),uint8_t);\n"
+		excode "r_->F->read(reinterpret_cast<char*>(a_->B),`1`);\n"
+		excode "return r_->F->gcount()==`1`?a_:nullptr;\n"
+	end func
+	
+	+func readChar(): char
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c <> '\0')
+				if(c = '\uFFFF')
+					throw excpt@invalidDataFmt
+				end if
+				ret c
+			end if
+		end while
+	end func
+	
+	+func readFloat(): float
+		var s: []char :: me.readStr()
+		var b: bool
+		var r: float :: s.toFloat(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
+	end func
+	
+	+func readInt(): int
+		var s: []char :: me.readStr()
+		var b: bool
+		var r: int :: s.toInt(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
+	end func
+	
+	+func readLetter(): char
+		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "return readUtf8_(r_->F);\n"
+	end func
+	
+	+func readLine(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readLetter()
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c = '\uFFFF')
+				break loop
+			end if
+			if(c = '\n')
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
+	end func
+	
+	+func readStr(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c = '\uFFFF')
+				if(^buf = 0)
+					throw excpt@invalidDataFmt
+				end if
+				break loop
+			end if
+			if(c = '\0')
+				if(^buf = 0)
+					skip loop
+				end if
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
+	end func
+	
+	+func setPos(origin: @Origin, pos: int)
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
+		excode "switch(`1`){\n"
+		excode "case 0:o_=std::ios_base::beg;break;\n"
+		excode "case 1:o_=std::ios_base::cur;break;\n"
+		excode "case 2:o_=std::ios_base::end;break;\n"
+		excode "}\n"
+		excode "r_->F->seekg(`2`,o_);\n"
+	end func
+	
+	+func term(): bool
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "char c_;\n"
+		excode "if(r_->F->get(c_)){\n"
+		excode "r_->F->seekg(-1,std::ios_base::cur);\n"
+		excode "return false;\n"
+		excode "}\n"
+		excode "return true;\n"
+	end func
+	
+	func readCharWithDelimiters(): char
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					ret '\0'
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			ret c
+		end while
+	end func
+	
+	const strBufSize: int :: 1024
+	var handle: int
+	var delimiters: []char
+	var fileSize_: int
+end class
+
++class Writer()
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+	+func fin()
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "r_->F->close();\n"
+	end func
+	
+	+func getPos(): int
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "return static_cast<int64_t>(r_->F->tellg());\n"
+	end func
+	
+	+func setPos(origin: @Origin, pos: int)
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
+		excode "switch(`1`){\n"
+		excode "case 0:o_=std::ios_base::beg;break;\n"
+		excode "case 1:o_=std::ios_base::cur;break;\n"
+		excode "case 2:o_=std::ios_base::end;break;\n"
+		excode "}\n"
+		excode "r_->F->seekp(`2`,o_);\n"
+	end func
+	
+	+func write(bin: []bit8)
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "r_->F->write(reinterpret_cast<char*>(`1`->B),`1`->L);\n"
+	end func
+	
+	+func writeChar(n: char)
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "writeUtf8_(r_->F,`1`);\n"
+	end func
+	
+	+func writeFloat(n: float)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+	
+	+func writeInt(n: int)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+	
+	+func writeStr(n: []char)
+		for i(0, ^n - 1)
+			do me.writeChar(n[i])
+		end for
+	end func
+	
+	var handle: int
+end class
+
++func copyDir(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func copyFile(dst: []char, src: []char): bool
+	ret false {TODO:}
+end func
+
++func delDir(path: []char): bool
+	; TODO:
+end func
+
++func delExt(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(p < 0 | path[p] <> '.')
+		ret path
+	end if
+	var r: []char :: #[p]char
+	for i(0, p - 1)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
+end func
+
++func delFile(path: []char): bool
+	; TODO:
+end func
+
++func dir(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret "./"
+	else
+		var r: []char :: #[p + 1]char
+		for i(0, p)
+			do r[i] :: path[i] = '\\' ?('/', path[i])
+		end for
+		ret r
+	end if
+end func
+
++func exeDir(): []char
+	; TODO:
+end func
+
++func exist(path: []char): bool
+	excode "return fileExists_(`0`);\n"
+end func
+
++func ext(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(path[p] <> '.')
+		ret ""
+	else
+		do p :+ 1
+		var r: []char :: #[^path - p]char
+		for i(0, ^path - p - 1)
+			do r[i] :: path[p + i]
+		end for
+		ret r
+	end if
+end func
+
++func fileName(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret path
+	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
+end func
+
++func fileSize(path: []char): int
+	; TODO:
+end func
+
++func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
+end func
+
++func fullPath(path: []char): []char
+	; TODO:
+end func
+
++func getCurDir(): []char
+	; TODO:
+end func
+
++func makeDir(path: []char): bool
+	; TODO:
+end func
+
++func[__mki]makeReader(me2: @Reader, path: []char): @Reader
+	excode "reader_*r_=newPrim_(reader_)();\n"
+	excode "`0`->`.handle`=reinterpret_cast<int64_t>(r_);\n"
+	excode "std::u16string s_=`1`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "r_->F=newPrim_(std::ifstream)(t_.c_str(),std::ios::in|std::ios::binary);\n"
+	excode "if(!*r_->F)return nullptr;\n"
+	excode "return `0`;\n"
+end func
+
++func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+	excode "writer_*w_=newPrim_(writer_)();\n"
+	excode "`0`->`.handle`=reinterpret_cast<int64_t>(w_);\n"
+	excode "std::u16string s_=`1`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "w_->F=newPrim_(std::ofstream)(t_.c_str(),std::ios::out|std::ios::binary|(`2`?std::ios::app:std::ios::trunc));\n"
+	excode "if(!*w_->F)return nullptr;\n"
+	excode "return `0`;\n"
+end func
+
++func moveDir(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func moveFile(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func setCurDir(path: []char)
+	; TODO:
+end func
+
++func sysDir(kind: @SysDir): []char
+	; TODO:
+end func

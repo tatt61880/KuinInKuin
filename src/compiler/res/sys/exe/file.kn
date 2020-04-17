@@ -1,0 +1,326 @@
++enum Origin
+	head
+	cur
+	tail
+end enum
+
++enum SysDir
+	desktop :: 0x00
+	fonts :: 0x14
+	appData :: 0x1A
+	windows :: 0x24
+	system32 :: 0x25
+	programFiles :: 0x26
+end enum
+
++class Reader()
+	*func ctor()
+		do me.delimiters :: " ,\n"
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+	+func[d0000.knd, _readerDelimiter]delimiter(delimiters: []char)
+	end func
+	
+	+func fileSize(): int
+		ret 0 { TODO: }
+	end func
+	
+	+func[d0000.knd, _readerFin]fin()
+	end func
+	
+	+func[d0000.knd, _readerGetPos]getPos(): int
+	end func
+	
+	+func[d0000.knd, _readerRead]read(size: int): []bit8
+	end func
+	
+	+func readChar(): char
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c <> '\0')
+				if(c = '\uFFFF')
+					throw excpt@invalidDataFmt
+				end if
+				ret c
+			end if
+		end while
+	end func
+	
+	+func readFloat(): float
+		var s: []char :: me.readStr()
+		var b: bool
+		var r: float :: s.toFloat(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
+	end func
+	
+	+func readInt(): int
+		var s: []char :: me.readStr()
+		var b: bool
+		var r: int :: s.toInt(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
+	end func
+	
+	+func[d0000.knd, _readerReadLetter]readLetter(): char
+	end func
+	
+	+func readLine(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readLetter()
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c = '\uFFFF')
+				break loop
+			end if
+			if(c = '\n')
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
+	end func
+	
+	+func readStr(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c = '\uFFFF')
+				if(^buf = 0)
+					throw excpt@invalidDataFmt
+				end if
+				break loop
+			end if
+			if(c = '\0')
+				if(^buf = 0)
+					skip loop
+				end if
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
+	end func
+	
+	+func[d0000.knd, _readerSetPos]setPos(origin: @Origin, pos: int)
+	end func
+	
+	+func[d0000.knd, _readerTerm]term(): bool
+	end func
+	
+	func readCharWithDelimiters(): char
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					ret '\0'
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			ret c
+		end while
+	end func
+	
+	const strBufSize: int :: 1024
+	var handle: int
+	var delimiterNum: int
+	var delimiters: int
+	var fileSize_: int
+end class
+
++class Writer()
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+	+func[d0000.knd, _writerFin]fin()
+	end func
+	
+	+func[d0000.knd, _writerGetPos]getPos(): int
+	end func
+	
+	+func[d0000.knd, _writerSetPos]setPos(origin: @Origin, pos: int)
+	end func
+	
+	+func[d0000.knd, _writerWrite]write(bin: []bit8)
+	end func
+	
+	+func[d0000.knd, _writerWriteChar]writeChar(n: char)
+	end func
+	
+	+func writeFloat(n: float)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+	
+	+func writeInt(n: int)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+	
+	+func writeStr(n: []char)
+		for i(0, ^n - 1)
+			do me.writeChar(n[i])
+		end for
+	end func
+	
+	var handle: int
+end class
+
++func copyDir(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func copyFile(dst: []char, src: []char): bool
+	ret false {TODO:}
+end func
+
++func delDir(path: []char): bool
+	; TODO:
+end func
+
++func delExt(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(p < 0 | path[p] <> '.')
+		ret path
+	end if
+	var r: []char :: #[p]char
+	for i(0, p - 1)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
+end func
+
++func delFile(path: []char): bool
+	; TODO:
+end func
+
++func dir(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret "./"
+	else
+		var r: []char :: #[p + 1]char
+		for i(0, p)
+			do r[i] :: path[i] = '\\' ?('/', path[i])
+		end for
+		ret r
+	end if
+end func
+
++func exeDir(): []char
+	; TODO:
+end func
+
++func[d0000.knd, _existPath]exist(path: []char): bool
+end func
+
++func ext(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(path[p] <> '.')
+		ret ""
+	else
+		do p :+ 1
+		var r: []char :: #[^path - p]char
+		for i(0, ^path - p - 1)
+			do r[i] :: path[p + i]
+		end for
+		ret r
+	end if
+end func
+
++func fileName(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret path
+	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
+end func
+
++func fileSize(path: []char): int
+	; TODO:
+end func
+
++func[d0000.knd, _forEachDir]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+end func
+
++func fullPath(path: []char): []char
+	; TODO:
+end func
+
++func getCurDir(): []char
+	; TODO:
+end func
+
++func makeDir(path: []char): bool
+	; TODO:
+end func
+
++func[d0000.knd, _makeReader, __mki]makeReader(me2: @Reader, path: []char): @Reader
+end func
+
++func[d0000.knd, _makeWriter, __mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+end func
+
++func moveDir(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func moveFile(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func setCurDir(path: []char)
+	; TODO:
+end func
+
++func sysDir(kind: @SysDir): []char
+	; TODO:
+end func

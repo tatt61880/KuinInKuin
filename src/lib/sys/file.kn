@@ -1,0 +1,555 @@
++enum Origin
+	head
+	cur
+	tail
+end enum
+
++enum SysDir
+	desktop :: 0x00
+	fonts :: 0x14
+	appData :: 0x1A
+	windows :: 0x24
+	system32 :: 0x25
+	programFiles :: 0x26
+end enum
+
++class Reader()
+	*func ctor()
+		do me.delimiters :: " ,\n"
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+#exe
+	+func[d0000.knd, _readerDelimiter]delimiter(delimiters: []char)
+#cpp,web
+	+func delimiter(delimiters: []char)
+		do me.delimiters :: delimiters
+#any
+	end func
+	
+	+func fileSize(): int
+		ret 0 { TODO: }
+	end func
+	
+#exe
+	+func[d0000.knd, _readerFin]fin()
+#cpp,web
+	+func fin()
+#cpp
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "if(r_->F!=nullptr){\n"
+		excode "r_->F->close();\n"
+		excode "r_->F=nullptr;\n"
+		excode "}\n"
+#web
+		excode "`0`.`.handle`.F=null;\n"
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _readerGetPos]getPos(): int
+#cpp,web
+	+func getPos(): int
+#cpp
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "return static_cast<int64_t>(r_->F->tellp());\n"
+#web
+		excode "let n_= `0`.`.handle`.I;\n"
+		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _readerRead]read(size: int): []bit8
+#cpp,web
+	+func read(size: int): []bit8
+#cpp
+		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "auto a_=new_(Array_<uint8_t>)();\n"
+		excode "a_->L=`1`;\n"
+		excode "a_->B=newPrimArray_(static_cast<size_t>(`1`),uint8_t);\n"
+		excode "r_->F->read(reinterpret_cast<char*>(a_->B),`1`);\n"
+		excode "return r_->F->gcount()==`1`?a_:nullptr;\n"
+#web
+		; TODO:
+#any
+	end func
+	
+	+func readChar(): char
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c <> '\0')
+				if(c = '\uFFFF')
+					throw excpt@invalidDataFmt
+				end if
+				ret c
+			end if
+		end while
+	end func
+	
+	+func readFloat(): float
+		var s: []char :: me.readStr()
+		var b: bool
+		var r: float :: s.toFloat(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
+	end func
+	
+	+func readInt(): int
+		var s: []char :: me.readStr()
+		var b: bool
+		var r: int :: s.toInt(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
+	end func
+	
+#exe
+	+func[d0000.knd, _readerReadLetter]readLetter(): char
+#cpp,web
+	+func readLetter(): char
+#cpp
+		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "return readUtf8_(r_->F);\n"
+#web
+		excode "return `0`.`.handle`.F.charCodeAt(`0`.`.handle`.I++);\n"
+#any
+	end func
+	
+	+func readLine(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readLetter()
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c = '\uFFFF')
+				break loop
+			end if
+			if(c = '\n')
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
+	end func
+	
+	+func readStr(): []char
+		var buf: []char :: #[strBufSize]char
+		var ptr: int :: 0
+		while loop(true)
+			var c: char :: me.readCharWithDelimiters()
+			if(c = '\uFFFF')
+				if(^buf = 0)
+					throw excpt@invalidDataFmt
+				end if
+				break loop
+			end if
+			if(c = '\0')
+				if(^buf = 0)
+					skip loop
+				end if
+				break loop
+			end if
+			if(ptr = ^buf)
+				do buf :~ #[strBufSize]char
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
+		end while
+		ret buf.sub(0, ptr)
+	end func
+	
+#exe
+	+func[d0000.knd, _readerSetPos]setPos(origin: @Origin, pos: int)
+#cpp,web
+	+func setPos(origin: @Origin, pos: int)
+#cpp
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
+		excode "switch(`1`){\n"
+		excode "case 0:o_=std::ios_base::beg;break;\n"
+		excode "case 1:o_=std::ios_base::cur;break;\n"
+		excode "case 2:o_=std::ios_base::end;break;\n"
+		excode "}\n"
+		excode "r_->F->seekg(`2`,o_);\n"
+#web
+		excode "switch(`1`){\n"
+		excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
+		excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
+		excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
+		excode "}\n"
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _readerTerm]term(): bool
+#cpp,web
+	+func term(): bool
+#cpp
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "char c_;\n"
+		excode "if(r_->F->get(c_)){\n"
+		excode "r_->F->seekg(-1,std::ios_base::cur);\n"
+		excode "return false;\n"
+		excode "}\n"
+		excode "return true;\n"
+#web
+		excode "return `0`.`.handle`.I>=`0`.`.handle`.F.length;\n"
+#any
+	end func
+	
+	func readCharWithDelimiters(): char
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					ret '\0'
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			ret c
+		end while
+	end func
+	
+	const strBufSize: int :: 1024
+	var handle: int
+#exe
+	var delimiterNum: int
+	var delimiters: int
+#cpp,web
+	var delimiters: []char
+#any
+	var fileSize_: int
+end class
+
++class Writer()
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+#exe
+	+func[d0000.knd, _writerFin]fin()
+#cpp,web
+	+func fin()
+#cpp
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "r_->F->close();\n"
+#web
+		excode "let d_=`0`.`.handle`.F.replace(/\\n/g, \"\\u000D\\n\");\n"
+		excode "if(O_&&O_.writeFile){O_.writeFile(`0`.`.handle`.P,d_);return;}\n"
+		excode "let b_=new Blob([d_]);\n"
+		excode "let l_=document.createElement(\"a\");\n"
+		excode "l_.download=`0`.`.handle`.P;\n"
+		excode "l_.href=(URL||webkitURL).createObjectURL(b_);\n"
+		excode "l_.setAttribute(\"style\",\"display:none\");\n"
+		excode "document.body.appendChild(l_);\n"
+		excode "l_.click();\n"
+		excode "document.body.removeChild(l_);\n"
+		excode "`0`.`.handle`.F=null;\n"
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _writerGetPos]getPos(): int
+#cpp,web
+	+func getPos(): int
+#cpp
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		excode "return static_cast<int64_t>(r_->F->tellg());\n"
+#web
+		excode "let n_= `0`.`.handle`.I;\n"
+		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _writerSetPos]setPos(origin: @Origin, pos: int)
+#cpp,web
+	+func setPos(origin: @Origin, pos: int)
+#cpp
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
+		excode "switch(`1`){\n"
+		excode "case 0:o_=std::ios_base::beg;break;\n"
+		excode "case 1:o_=std::ios_base::cur;break;\n"
+		excode "case 2:o_=std::ios_base::end;break;\n"
+		excode "}\n"
+		excode "r_->F->seekp(`2`,o_);\n"
+#web
+		excode "switch(`1`){\n"
+		excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
+		excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
+		excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
+		excode "}\n"
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _writerWrite]write(bin: []bit8)
+#cpp,web
+	+func write(bin: []bit8)
+#cpp
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "r_->F->write(reinterpret_cast<char*>(`1`->B),`1`->L);\n"
+#web
+		; TODO:
+#any
+	end func
+	
+#exe
+	+func[d0000.knd, _writerWriteChar]writeChar(n: char)
+#cpp,web
+	+func writeChar(n: char)
+#cpp
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "writeUtf8_(r_->F,`1`);\n"
+#web
+		excode "if(`0`.`.handle`.I<`0`.`.handle`.F.length)\n"
+		excode "`0`.`.handle`.F=`0`.`.handle`.F.slice(0,`0`.`.handle`.I)+String.fromCharCode(`1`)+`0`.`.handle`.F.slice(`0`.`.handle`.I+1);\n"
+		excode "else\n"
+		excode "`0`.`.handle`.F+=String.fromCharCode(`1`);\n"
+		excode "`0`.`.handle`.I++;\n"
+#any
+	end func
+	
+	+func writeFloat(n: float)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+	
+	+func writeInt(n: int)
+		var s: []char :: n.toStr()
+		for i(0, ^s - 1)
+			do me.writeChar(s[i])
+		end for
+	end func
+	
+	+func writeStr(n: []char)
+		for i(0, ^n - 1)
+			do me.writeChar(n[i])
+		end for
+	end func
+	
+	var handle: int
+end class
+
++func copyDir(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func copyFile(dst: []char, src: []char): bool
+	ret false {TODO:}
+end func
+
++func delDir(path: []char): bool
+	; TODO:
+end func
+
++func delExt(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(p < 0 | path[p] <> '.')
+		ret path
+	end if
+	var r: []char :: #[p]char
+	for i(0, p - 1)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
+end func
+
++func delFile(path: []char): bool
+	; TODO:
+end func
+
++func dir(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret "./"
+	else
+		var r: []char :: #[p + 1]char
+		for i(0, p)
+			do r[i] :: path[i] = '\\' ?('/', path[i])
+		end for
+		ret r
+	end if
+end func
+
++func exeDir(): []char
+	; TODO:
+end func
+
+#exe
++func[d0000.knd, _existPath]exist(path: []char): bool
+#cpp,web
++func exist(path: []char): bool
+#cpp
+	excode "return fileExists_(`0`);\n"
+#web
+	excode "let f_=false,p_=`0`.S;\n"
+	excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!=null;\n"
+	excode "if(f_==false){\n"
+	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
+	excode "f_=F_(p_,false);\n"
+	excode "else{\n"
+	; TODO:
+	excode "}\n"
+	excode "}\n"
+	excode "return f_;\n"
+#any
+end func
+
++func ext(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
+		do p :- 1
+	end while
+	if(path[p] <> '.')
+		ret ""
+	else
+		do p :+ 1
+		var r: []char :: #[^path - p]char
+		for i(0, ^path - p - 1)
+			do r[i] :: path[p + i]
+		end for
+		ret r
+	end if
+end func
+
++func fileName(path: []char): []char
+	assert path <>& null
+	var p: int :: ^path - 1
+	while(p >= 0 & path[p] <> '/' & path[p] <> '\\')
+		do p :- 1
+	end while
+	if(p < 0)
+		ret path
+	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
+end func
+
++func fileSize(path: []char): int
+	; TODO:
+end func
+
+#exe
++func[d0000.knd, _forEachDir]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+#cpp,web
++func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
+#cpp
+	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
+#web
+	excode "let f_,p_=`0`.S;\n"
+	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
+	excode "f_=FF_();\n"
+	excode "for(let i_=0;i_<f_.length;i_++){\n"
+	excode "if(f_[i_].slice(0,p_.length)==p_&&(`1`||f_[i_].slice(p_.length).indexOf(\"/\")==-1)){\n"
+	excode "if(!`2`({S:f_[i_]},f_[i_][f_[i_].length-1]=='/',`3`))return false"
+	excode "}\n"
+	excode "}\n"
+	excode "return true;\n"
+#any
+end func
+
++func fullPath(path: []char): []char
+	; TODO:
+end func
+
++func getCurDir(): []char
+	; TODO:
+end func
+
++func makeDir(path: []char): bool
+	; TODO:
+end func
+
+#exe
++func[d0000.knd, _makeReader, __mki]makeReader(me2: @Reader, path: []char): @Reader
+#cpp,web
++func[__mki]makeReader(me2: @Reader, path: []char): @Reader
+#cpp
+	excode "reader_*r_=newPrim_(reader_)();\n"
+	excode "`0`->`.handle`=reinterpret_cast<int64_t>(r_);\n"
+	excode "std::u16string s_=`1`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "r_->F=newPrim_(std::ifstream)(t_.c_str(),std::ios::in|std::ios::binary);\n"
+	excode "if(!*r_->F)return nullptr;\n"
+	excode "return `0`;\n"
+#web
+	excode "let f_=null,p_=`1`.S;\n"
+	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+	excode "if(f_==null){\n"
+	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
+	excode "f_=F_(p_,true);\n"
+	excode "else{\n"
+	; TODO:
+	excode "}\n"
+	excode "}\n"
+	excode "if(f_==null)return null;\n"
+	excode "`0`.`.handle`={F:f_,I:0};\n"
+	excode "return `0`;\n"
+#any
+end func
+
+#exe
++func[d0000.knd, _makeWriter, __mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+#cpp,web
++func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+#cpp
+	excode "writer_*w_=newPrim_(writer_)();\n"
+	excode "`0`->`.handle`=reinterpret_cast<int64_t>(w_);\n"
+	excode "std::u16string s_=`1`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "w_->F=newPrim_(std::ofstream)(t_.c_str(),std::ios::out|std::ios::binary|(`2`?std::ios::app:std::ios::trunc));\n"
+	excode "if(!*w_->F)return nullptr;\n"
+	excode "return `0`;\n"
+#web
+	excode "`0`.`.handle`={F:\"\",I:0,P:`1`.S};\n"
+	excode "return `0`;\n"
+#any
+end func
+
++func moveDir(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func moveFile(dst: []char, src: []char): bool
+	; TODO:
+end func
+
++func setCurDir(path: []char)
+	; TODO:
+end func
+
++func sysDir(kind: @SysDir): []char
+	; TODO:
+end func
