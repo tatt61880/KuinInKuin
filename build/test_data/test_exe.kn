@@ -1,6 +1,109 @@
+var s: []char :: "abc" ~ "def"
+
+func dump(ns: []bit8)
+	var s: []char :: ""
+	for i(0, ^ns - 1)
+		do s :~ " " ~ ns[i].toStr()
+	end for
+	do cui@print(s ~ "\n")
+end func
+
+; Single line comment #1.
+; Single line comment #2.
+
 func main()
-	var a: int :: 5
-	var b: int :: 3
-	var c: int :: a + b
-	do cui@print("\{a}, \{b}, \{c}\n")
+	do @test7()
+end func
+
+func test7()
+	block
+		class A()
+		end class
+		
+		class B()
+		end class
+		
+		var a: A :: #A
+		var b: B :: #B
+		do cui@print((a =$ kuin@Class).toStr() ~ ", " ~ (b =$ kuin@Class).toStr() ~ ", " ~ (a =$ A).toStr() ~ ", " ~ (b =$ B).toStr() ~ ", " ~ (a =$ B).toStr() ~ ", " ~ (b =$ A).toStr() ~ "\n")
+		do cui@print((a <>$ kuin@Class).toStr() ~ ", " ~ (b <>$ kuin@Class).toStr() ~ ", " ~ (a <>$ A).toStr() ~ ", " ~ (b <>$ B).toStr() ~ ", " ~ (a <>$ B).toStr() ~ ", " ~ (b <>$ A).toStr() ~ "\n")
+	end block
+	
+	block
+		class A()
+			var a: int
+			
+			*func ctor()
+				do me.a :: 5
+			end func
+			
+			+func f(): int
+				ret me.a
+			end func
+		end class
+		
+		class B(A)
+			+*func f(): int
+				ret 1234
+			end func
+		end class
+		
+		do cui@print((#A).f().toStr() ~ ", " ~ (#B).f().toStr() ~ "\n")
+		var a: A :: #A
+		var b: A :: #B
+		do cui@print(a.f().toStr() ~ ", " ~ b.f().toStr() ~ "\n")
+	end block
+	
+	block
+		var ns: list<int> :: #list<int>
+		do ns.add(1)
+		do ns.add(2)
+		do ns.add(3)
+		do ns.head()
+		do ns.ins(4)
+		do ns.ins(5)
+		do ns.tail()
+		do ns.ins(6)
+		do ns.ins(7)
+		do ns.head()
+		while(!ns.term())
+			do cui@print(ns.get().toStr() ~ "\n")
+			do ns.next()
+		end while
+		do ns.head()
+		do ns.del()
+		do ns.tail()
+		do ns.del()
+		do cui@print((^ns).toStr() ~ "\n")
+		do ns.head()
+		while(!ns.term())
+			do cui@print(ns.get().toStr() ~ "\n")
+			do ns.next()
+		end while
+		
+		var ss: list<[]char> :: #list<[]char>
+		do ss.add("ab")
+		do ss.add("cd")
+		do ss.add("ef")
+		do ss.head()
+		do ss.ins("gh")
+		do ss.ins("ij")
+		do ss.tail()
+		do ss.ins("kl")
+		do ss.ins("mn")
+		do ss.tail()
+		while(!ss.term())
+			do cui@print(ss.get() ~ "\n")
+			do ss.prev()
+		end while
+		do ss.head()
+		do ss.del()
+		do ss.tail()
+		do ss.del()
+		do cui@print((^ss).toStr() ~ "\n")
+		while(!ss.term())
+			do cui@print(ss.get() ~ "\n")
+			do ss.prev()
+		end while
+	end block
 end func
