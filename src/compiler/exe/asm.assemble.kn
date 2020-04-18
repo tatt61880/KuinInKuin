@@ -1007,8 +1007,9 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 			if(dbg)
 				var addr: lib@Int :: @addWritableData("HeapCnt", 8)
 				do asms.add(@asmLea(@valReg(8, %dx), @valRip(8, @refValueAddr(addr, true))))
+			else
+				do asms.add(@asmXor(@valReg(4, %dx), @valReg(4, %dx)))
 			end if
-			do asms.add(@asmXor(@valReg(4, %dx), @valReg(4, %dx)))
 			do asms.add(@asmMov(@valReg(8, %r8), @valImmS(8, \option@appCode)))
 			block
 				; TODO: var addr: lib@Int :: @addReadonlyData(@resFlags, false)
@@ -1171,6 +1172,20 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 					do items.setPtr(listPtr)
 					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
 				end if
+				if(l1 <>& null)
+					assert ast.funcOption.and(%any) <> %none
+					var arg: \ast@AstArg :: items.get()
+					assert arg.type.typeId = %typeArray & (arg.type $ \ast@AstTypeArray).itemType.typeId = %typeBit & ((arg.type $ \ast@AstTypeArray).itemType $ \ast@AstTypeBit).size = 1
+					do asms.add(@asmCmp(@valMemS(1, @valReg(8, @regI[0]), null, 0x00), @valImmU(1, 0x80b64)))
+					do asms.add(@asmJb(@valImm(4, @refValueAddr(l1.addr, true))))
+				end if
+				block
+					var arg: \ast@AstArg :: items.get()
+					if(\ast@isRef(arg.type) & !arg.refVar)
+						do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
+						do @gcDec(0, -1, arg.type)
+					end if
+				end block
 				if(l1 <>& null)
 					do asms.add(l1)
 				end if
