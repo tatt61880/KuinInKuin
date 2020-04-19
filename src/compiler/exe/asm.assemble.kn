@@ -2693,7 +2693,7 @@ func assembleExprFromBin(ast: \ast@AstExprFromBin, regI: int, regF: int)
 	do @assembleExpr(ast.child, 0, 0)
 	do @toValue(ast.child, 0, 0)
 	do asms.add(@asmMov(@valReg(8, %cx), @valReg(8, @regI[0])))
-	; TODO: do @setTypeIdForFromBin
+	do @setTypeId(%dx, ast.childType)
 	do asms.add(@asmMov(@valReg(8, %r8), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpVar), false))))
 	do @callKuinLib("_fromBin")
 	do asms.add(@asmMov(@valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpVar), false)), @valReg(8, %ax)))
