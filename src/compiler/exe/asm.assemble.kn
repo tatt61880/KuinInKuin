@@ -1155,7 +1155,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 					var arg: \ast@AstArg :: items.get()
 					do items.setPtr(listPtr)
 					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
-				elif(ast.funcOption.and(%tch) <> %none & idx = 2 | ast.funcOption.and(%tkv) <> %none & idx = 3)
+				elif(ast.funcOption.and(%tch) <> %none & idx = 2 | ast.funcOption.and(%tkv) <> %none & idx = 2)
 					do l1 :: @asmLabel()
 					var listPtr: kuin@ListPtr :: items.getPtr()
 					do items.head()
@@ -1163,16 +1163,25 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 					var arg: \ast@AstArg :: items.get()
 					do items.setPtr(listPtr)
 					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
-					do asms.add(@asmInc(@valReg(8, @regI[0])))
-				elif(ast.funcOption.and(%tkv) <> %none & idx = 4)
+					do asms.add(@asmInc(@valReg(8, @regI[0]))) {Acquire the type of the child or key.}
+				elif(ast.funcOption.and(%tkv) <> %none & idx = 3)
 					do l1 :: @asmLabel()
 					var listPtr: kuin@ListPtr :: items.getPtr()
 					do items.head()
 					do items.next()
-					do items.next()
 					var arg: \ast@AstArg :: items.get()
 					do items.setPtr(listPtr)
-					do asms.add(@asmMov(@valReg(8, @regI[0]), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
+					; Acquire the type of the value.
+					var tmpSi: \ast@AstArg
+					if(ast.ret_ <>& null & !\ast@isFloat(ast.ret_))
+						do tmpSi :: @makeTmpVar(8, null)
+						do asms.add(@asmMov(@valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpSi), false)), @valReg(8, %si)))
+					end if
+					do asms.add(@asmMov(@valReg(8, %cx), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(arg), false))))
+					do @callKuinLib("_dictValueType")
+					if(ast.ret_ <>& null & !\ast@isFloat(ast.ret_))
+						do asms.add(@asmMov(@valReg(8, %si), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpSi), false))))
+					end if
 				end if
 				if(ast.funcOption.and(%any) <> %none & idx = 1)
 					; Skip 'type'.
@@ -2769,15 +2778,6 @@ func assembleExprCall(ast: \ast@AstExprCall, regI: int, regF: int)
 			var meType: \ast@AstType :: items.get().arg.type
 			do items.setPtr(listPtr)
 			do @setTypeId(@regI[1], meType)
-			do asms.add(@asmMov(@valMemS(8, @valReg(8, %sp), null, idx * 8), @valReg(8, @regI[1])))
-		elif(funcOption.and(%tkv) <> %none & idx = 2)
-			; Set the third argument of '__tkv' functions to the type of 'value'.
-			var listPtr: kuin@ListPtr :: items.getPtr()
-			do items.head()
-			var meType: \ast@AstType :: items.get().arg.type
-			do items.setPtr(listPtr)
-			assert meType.typeId = %typeDict
-			do @setTypeId(@regI[1], (meType $ \ast@AstTypeDict).itemTypeValue)
 			do asms.add(@asmMov(@valMemS(8, @valReg(8, %sp), null, idx * 8), @valReg(8, @regI[1])))
 		else
 			var size: int :: item.refVar ?(8, @getSize(item.arg.type))

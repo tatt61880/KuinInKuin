@@ -12,98 +12,93 @@ end func
 ; Single line comment #2.
 
 func main()
-	do @test7()
+	do @test9()
 end func
 
-func test7()
+func test9()
 	block
-		class A()
-		end class
-		
-		class B()
-		end class
-		
-		var a: A :: #A
-		var b: B :: #B
-		do cui@print((a =$ kuin@Class).toStr() ~ ", " ~ (b =$ kuin@Class).toStr() ~ ", " ~ (a =$ A).toStr() ~ ", " ~ (b =$ B).toStr() ~ ", " ~ (a =$ B).toStr() ~ ", " ~ (b =$ A).toStr() ~ "\n")
-		do cui@print((a <>$ kuin@Class).toStr() ~ ", " ~ (b <>$ kuin@Class).toStr() ~ ", " ~ (a <>$ A).toStr() ~ ", " ~ (b <>$ B).toStr() ~ ", " ~ (a <>$ B).toStr() ~ ", " ~ (b <>$ A).toStr() ~ "\n")
+		var n: dict<int, int> :: #dict<int, int>
+		do n.add(6, 16)
+		do n.add(8, 18)
+		do n.add(10, 20)
+		do n.add(4, 14)
+		do n.add(2, 12)
+		do n.add(3, 13)
+		do n.add(7, 17)
+		do n.add(1, 11)
+		do n.add(9, 19)
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			do cui@print(n.get(i, &existed).toStr() ~ "\n")
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
 	end block
 	
 	block
-		class A()
-			var a: int
-			
-			*func ctor()
-				do me.a :: 5
-			end func
-			
-			+func f(): int
-				ret me.a
-			end func
-		end class
-		
-		class B(A)
-			+*func f(): int
-				ret 1234
-			end func
-		end class
-		
-		do cui@print((#A).f().toStr() ~ ", " ~ (#B).f().toStr() ~ "\n")
-		var a: A :: #A
-		var b: A :: #B
-		do cui@print(a.f().toStr() ~ ", " ~ b.f().toStr() ~ "\n")
+		var n: dict<int, []char> :: #dict<int, []char>
+		do n.add(6, "f")
+		do n.add(8, "h")
+		do n.add(10, "j")
+		do n.add(4, "d")
+		do n.add(2, "b")
+		do n.add(3, "c")
+		do n.add(7, "g")
+		do n.add(1, "a")
+		do n.add(9, "i")
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			var s: []char :: n.get(i, &existed)
+			do cui@print(s =& null ?(null, s ~ "\n"))
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
 	end block
 	
 	block
-		var ns: list<int> :: #list<int>
-		do ns.add(1)
-		do ns.add(2)
-		do ns.add(3)
-		do ns.head()
-		do ns.ins(4)
-		do ns.ins(5)
-		do ns.tail()
-		do ns.ins(6)
-		do ns.ins(7)
-		do ns.head()
-		while(!ns.term())
-			do cui@print(ns.get().toStr() ~ "\n")
-			do ns.next()
-		end while
-		do ns.head()
-		do ns.del()
-		do ns.tail()
-		do ns.del()
-		do cui@print((^ns).toStr() ~ "\n")
-		do ns.head()
-		while(!ns.term())
-			do cui@print(ns.get().toStr() ~ "\n")
-			do ns.next()
-		end while
-		
-		var ss: list<[]char> :: #list<[]char>
-		do ss.add("ab")
-		do ss.add("cd")
-		do ss.add("ef")
-		do ss.head()
-		do ss.ins("gh")
-		do ss.ins("ij")
-		do ss.tail()
-		do ss.ins("kl")
-		do ss.ins("mn")
-		do ss.tail()
-		while(!ss.term())
-			do cui@print(ss.get() ~ "\n")
-			do ss.prev()
-		end while
-		do ss.head()
-		do ss.del()
-		do ss.tail()
-		do ss.del()
-		do cui@print((^ss).toStr() ~ "\n")
-		while(!ss.term())
-			do cui@print(ss.get() ~ "\n")
-			do ss.prev()
-		end while
+		var n: dict<[]char, int> :: #dict<[]char, int>
+		do n.add("f", 6)
+		do n.add("h", 8)
+		do n.add("j", 10)
+		do n.add("d", 4)
+		do n.add("b", 2)
+		do n.add("c", 3)
+		do n.add("g", 7)
+		do n.add("a", 1)
+		do n.add("i", 9)
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			do cui@print(n.get((('a' $ int + i - 1) $ char).toStr(), &existed).toStr() ~ "\n")
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
+	end block
+	
+	block
+		var n: dict<[]char, []char> :: #dict<[]char, []char>
+		do n.add("f", "F")
+		do n.add("h", "H")
+		do n.add("j", "J")
+		do n.add("d", "D")
+		do n.add("b", "B")
+		do n.add("c", "C")
+		do n.add("g", "G")
+		do n.add("a", "A")
+		do n.add("i", "I")
+		do cui@print((^n).toStr() ~ "\n")
+		for i(0, 11)
+			var existed: bool
+			var s: []char :: n.get((('a' $ int + i - 1) $ char).toStr(), &existed)
+			do cui@print(s =& null ?(null, s ~ "\n"))
+			if(!existed)
+				do cui@print("Not existed." ~ "\n")
+			end if
+		end for
 	end block
 end func

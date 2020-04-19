@@ -14,6 +14,7 @@
 	do attrs1.add("_mod", true)
 	do attrs1.add("_cmpStr", true)
 	do attrs1.add("_newArray", true)
+	do attrs1.add("_dictValueType", true)
 	
 	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry, funcAttrs)
 	do \exe\machine@convert(pack)
