@@ -77,17 +77,18 @@ end class
 		var m: bit64 :: 0b64 - ((0b64 - n) % n)
 		var r: bit64
 		if(m = 0b64)
-			do r :: (me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64)
+			do r :: me.rndBit64()
 		else
 			while(m <= r, skip)
-				do r :: (me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64)
+				do r :: me.rndBit64()
 			end while
 		end if
 		ret(r % n) $ int + min
 	end func
 	
 	+func rndBit64(): bit64
-		ret(me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64)
+		var t: bit32 :: me.xs128
+		ret(t $ bit64).shl(32).or(me.xs128() $ bit64)
 	end func
 	
 	+func rndFloat(min: float, max: float): float
@@ -96,7 +97,7 @@ end class
 				throw 0xE9170006
 			end if
 		end if
-		ret(me.xs128() $ bit64).shl(32).or(me.xs128() $ bit64) $ float / 18446744073709551616.0 * (max - min) + min
+		ret me.rndBit64() $ float / 18446744073709551616.0 * (max - min) + min
 	end func
 	
 	+func setSeed(seed: bit32)
@@ -194,7 +195,7 @@ end func
 +func cmdLine(): [][]char
 	excode "auto a_=new_(Array_<type_(Array_<char16_t>)>)();\n"
 	excode "a_->L=argc_;\n"
-	excode "a_->B=newPrimArray_(static_cast<size_t>(argc_),type_(Array_<char16_t>));\n"
+	excode "a_->B=newPrimArray_(static_cast<std::size_t>(argc_),type_(Array_<char16_t>));\n"
 	excode "for(int64_t i_=0;i_<argc_;i_++){\n"
 	excode "std::string s_=argv_[i_];\n"
 	excode "const std::u16string t_=utf8ToUtf16_(s_);\n"

@@ -40,9 +40,8 @@ static void GetDictTypesRecursion(const U8** type);
 static void FreeDictRecursion(void* ptr, const U8* child1, const U8* child2);
 static Bool IsStr(const U8* type);
 static void* CopyDictRecursion(void* node, U8* key_type, U8* item_type);
-static void ToBinDictRecursion(void*** buf, void* node, U8* key_type, U8* item_type);
-static void* FromBinDictRecursion(const U8* key_type, const U8* item_type, const U8* bin, S64* idx, const void* type_class);
-static void* CatBin(int num, void** bins);
+static void ToBinDictRecursion(void*** buf, void* node, U8* key_type, U8* item_type, const void* root);
+static void* CatBin(S64 num, S64 writing_num, void** bins);
 static void* AddDictRecursion(void* node, const void* key, const void* item, int cmp_func(const void* a, const void* b), U8* key_type, U8* item_type, Bool* addition);
 static int(*GetCmpFunc(const U8* type))(const void* a, const void* b);
 static void Copy(void* dst, U8 type, const void* src);
@@ -411,7 +410,7 @@ EXPORT void* _copy(const void* me_, const U8* type)
 	}
 }
 
-EXPORT void* _toBin(const void* me_, const U8* type)
+EXPORT void* _toBin(const void* me_, const U8* type, const void* root)
 {
 	if (IsRef(*type) && me_ == NULL || *type == TypeId_Func)
 	{
@@ -498,10 +497,10 @@ EXPORT void* _toBin(const void* me_, const U8* type)
 				{
 					void* value = NULL;
 					memcpy(&value, ptr, size);
-					bins[i] = _toBin(value, type + 1);
+					bins[i] = _toBin(value, type + 1, root);
 					ptr += size;
 				}
-				return CatBin((int)len, bins);
+				return CatBin(len, len, bins);
 			}
 		case TypeId_List:
 			{
@@ -516,7 +515,7 @@ EXPORT void* _toBin(const void* me_, const U8* type)
 				{
 					void* value = NULL;
 					memcpy(&value, (U8*)ptr + 0x10, size);
-					bins[i + 1] = _toBin(value, type + 1);
+					bins[i + 1] = _toBin(value, type + 1, root);
 					if (ptr_cur == ptr)
 						idx = i;
 					ptr = *(void**)((U8*)ptr + 0x08);
@@ -526,7 +525,7 @@ EXPORT void* _toBin(const void* me_, const U8* type)
 				((S64*)bin)[1] = 0x08;
 				((S64*)bin)[2] = idx;
 				bins[0] = bin;
-				return CatBin((int)len + 1, bins);
+				return CatBin(len + 1, len, bins);
 			}
 		case TypeId_Stack:
 		case TypeId_Queue:
@@ -540,10 +539,10 @@ EXPORT void* _toBin(const void* me_, const U8* type)
 				{
 					void* value = NULL;
 					memcpy(&value, (U8*)ptr + 0x08, size);
-					bins[i] = _toBin(value, type + 1);
+					bins[i] = _toBin(value, type + 1, root);
 					ptr = *(void**)ptr;
 				}
-				return CatBin((int)len, bins);
+				return CatBin(len, len, bins);
 			}
 		case TypeId_Dict:
 			{
@@ -551,11 +550,11 @@ EXPORT void* _toBin(const void* me_, const U8* type)
 				U8* child2;
 				GetDictTypes(type, &child1, &child2);
 				S64 len = *(S64*)((U8*)me_ + 0x08);
-				void** bins = (void**)AllocMem(sizeof(void*) * (size_t)len * 3); // 'key' + 'value' + 'info' per node.
+				void** bins = (void**)AllocMem(sizeof(void*) * (size_t)len * 2); // 'key' + 'value' per node.
 				void** ptr = bins;
 				if (len != 0)
-					ToBinDictRecursion(&ptr, *(void**)((U8*)me_ + 0x10), child1, child2);
-				return CatBin((int)len * 3, bins);
+					ToBinDictRecursion(&ptr, *(void**)((U8*)me_ + 0x10), child1, child2, root);
+				return CatBin(len * 2, len, bins);
 			}
 		case TypeId_Enum:
 			{
@@ -566,21 +565,32 @@ EXPORT void* _toBin(const void* me_, const U8* type)
 				return result;
 			}
 		default:
-			ASSERT(*type == TypeId_Class);
-			return ToBinClassAsm(me_);
+			{
+				ASSERT(*type == TypeId_Class);
+				ASSERT(root != NULL);
+				void** bins = (void**)AllocMem(sizeof(void*) * 2);
+				{
+					U8* ptr = (U8*)AllocMem(0x18);
+					((S64*)ptr)[0] = DefaultRefCntOpe;
+					((S64*)ptr)[1] = 0x08;
+					((S64*)ptr)[2] = (S64*)root - (S64*)me_;
+					bins[0] = ptr;
+				}
+				bins[1] = ToBinClassAsm(me_);
+				return CatBin(2, -1, bins);
+			}
 	}
 }
 
-EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
+EXPORT void* _fromBin(const U8* me_, const U8* type, S64* idx, const void* root)
 {
-	const U8* type2 = (const U8*)type[0];
 	void* result = NULL;
-	if (IsRef(*type2) && *(S64*)(me_ + 0x10 + *idx) == -1)
+	if (IsRef(*type) && *(S64*)(me_ + 0x10 + *idx) == -1)
 	{
 		*idx += 8;
 		return NULL;
 	}
-	switch (*type2)
+	switch (*type)
 	{
 		case TypeId_Int:
 			*(S64*)&result = *(S64*)(me_ + 0x10 + *idx);
@@ -618,37 +628,31 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 			{
 				S64 len = *(S64*)(me_ + 0x10 + *idx);
 				*idx += 8;
+				size_t size = GetSize(type[1]);
+				Bool is_str = IsStr(type);
+				result = AllocMem(0x10 + size * (size_t)(len + (is_str ? 1 : 0)));
+				((S64*)result)[0] = DefaultRefCntOpe;
+				((S64*)result)[1] = len;
+				if (is_str)
+					*(Char*)((U8*)result + 0x10 + size * (size_t)len) = L'\0';
+				U8* ptr = (U8*)result + 0x10;
+				S64 i;
+				for (i = 0; i < len; i++)
 				{
-					size_t size = GetSize(type2[1]);
-					Bool is_str = IsStr(type2);
-					result = AllocMem(0x10 + size * (size_t)(len + (is_str ? 1 : 0)));
-					((S64*)result)[0] = DefaultRefCntOpe;
-					((S64*)result)[1] = len;
-					if (is_str)
-						*(Char*)((U8*)result + 0x10 + size * (size_t)len) = L'\0';
-					U8* ptr = (U8*)result + 0x10;
-					S64 i;
-					for (i = 0; i < len; i++)
-					{
-						const void* type3[2];
-						void* value;
-						type3[0] = type2 + 1;
-						type3[1] = type[1];
-						value = _fromBin(me_, type3, idx);;
-						memcpy(ptr, &value, size);
-						ptr += size;
-					}
+					void* value = _fromBin(me_, type + 1, idx, root);
+					memcpy(ptr, &value, size);
+					ptr += size;
 				}
 			}
 			break;
 		case TypeId_List:
 			{
 				S64 idx_cur;
-				S64 len = *(S64*)(me_ + 0x10 + *idx) - 1;
+				S64 len = *(S64*)(me_ + 0x10 + *idx);
 				*idx += 8;
 				idx_cur = *(S64*)(me_ + 0x10 + *idx);
 				*idx += 8;
-				size_t size = GetSize(type2[1]);
+				size_t size = GetSize(type[1]);
 				result = AllocMem(0x28);
 				((S64*)result)[0] = DefaultRefCntOpe;
 				((S64*)result)[1] = len;
@@ -659,13 +663,9 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 				for (i = 0; i < len; i++)
 				{
 					U8* node = (U8*)AllocMem(0x10 + size);
-					const void* type3[2];
-					void* value;
 					if (idx_cur == i)
 						((void**)result)[4] = node;
-					type3[0] = type2 + 1;
-					type3[1] = type[1];
-					value = _fromBin(me_, type3, idx);
+					void* value = _fromBin(me_, type + 1, idx, root);
 					memcpy(node + 0x10, &value, size);
 					*(void**)(node + 0x08) = NULL;
 					if (*(void**)((U8*)result + 0x10) == NULL)
@@ -687,7 +687,7 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 			{
 				S64 len = *(S64*)(me_ + 0x10 + *idx);
 				*idx += 8;
-				size_t size = GetSize(type2[1]);
+				size_t size = GetSize(type[1]);
 				void* top = NULL;
 				void* bottom = NULL;
 				result = AllocMem(0x18);
@@ -698,11 +698,7 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 				for (i = 0; i < len; i++)
 				{
 					U8* node = (U8*)AllocMem(0x08 + size);
-					const void* type3[2];
-					void* value;
-					type3[0] = type2 + 1;
-					type3[1] = type[1];
-					value = _fromBin(me_, type3, idx);
+					void* value = _fromBin(me_, type + 1, idx, root);
 					memcpy(node + 0x08, &value, size);
 					*(void**)node = NULL;
 					if (top == NULL)
@@ -723,7 +719,7 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 			{
 				S64 len = *(S64*)(me_ + 0x10 + *idx);
 				*idx += 8;
-				size_t size = GetSize(type2[1]);
+				size_t size = GetSize(type[1]);
 				result = AllocMem(0x20);
 				((S64*)result)[0] = DefaultRefCntOpe;
 				((S64*)result)[1] = len;
@@ -733,11 +729,7 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 				for (i = 0; i < len; i++)
 				{
 					U8* node = (U8*)AllocMem(0x08 + size);
-					const void* type3[2];
-					void* value;
-					type3[0] = type2 + 1;
-					type3[1] = type[1];
-					value = _fromBin(me_, type3, idx);
+					void* value = _fromBin(me_, type + 1, idx, root);
 					memcpy(node + 0x08, &value, size);
 					*(void**)node = NULL;
 					if (*(void**)((U8*)result + 0x18) == NULL)
@@ -752,15 +744,37 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 			{
 				U8* child1;
 				U8* child2;
-				GetDictTypes(type2, &child1, &child2);
+				GetDictTypes(type, &child1, &child2);
 				S64 len = *(S64*)(me_ + 0x10 + *idx);
 				*idx += 8;
 				result = AllocMem(0x18);
 				((S64*)result)[0] = DefaultRefCntOpe;
 				((S64*)result)[1] = len;
 				((S64*)result)[2] = 0;
-				if (len != 0)
-					*(void**)((U8*)result + 0x10) = FromBinDictRecursion(child1, child2, me_, idx, type[1]);
+				S64 i;
+				Bool is_key_ref = IsRef(*child1);
+				Bool is_value_ref = IsRef(*child2);
+				Bool addition;
+				for (i = 0; i < len; i++)
+				{
+					void* key = _fromBin(me_, child1, idx, root);
+					ASSERT(!(is_key_ref && key == NULL));
+					if (is_key_ref)
+					{
+						ASSERT(*(S64*)key == DefaultRefCntOpe);
+						*(S64*)key = 0;
+					}
+					void* value = _fromBin(me_, child2, idx, root);
+					if (is_value_ref && value != NULL)
+					{
+						ASSERT(*(S64*)value == DefaultRefCntOpe);
+						*(S64*)value = 0;
+					}
+					*(void**)((U8*)result + 0x10) = AddDictRecursion(*(void**)((U8*)result + 0x10), key, value, GetCmpFunc(child1), child1, child2, &addition);
+					ASSERT(addition);
+					ASSERT(!(is_key_ref && *(S64*)key == 0));
+					*(Bool*)((U8*)*(void**)((U8*)result + 0x10) + 0x10) = False;
+				}
 			}
 			break;
 		case TypeId_Func:
@@ -771,14 +785,11 @@ EXPORT void* _fromBin(const U8* me_, const void** type, S64* idx)
 			*idx += 8;
 			break;
 		default:
-			ASSERT(*type2 == TypeId_Class);
-			if (*(S64*)(me_ + 0x10 + *idx) != 0)
-				THROW(EXCPT_ACCESS_VIOLATION); // TODO: What is this code?
+			ASSERT(*type == TypeId_Class);
+			ASSERT(root != NULL);
+			S64 kind = *(S64*)(me_ + 0x10 + *idx);
 			*idx += 8;
-			{
-				const void** type3 = (const void**)type[1];
-				result = FromBinClassAsm(type3[type2[1]], me_, idx);
-			}
+			result = FromBinClassAsm((S64*)root + kind, me_, idx);
 			break;
 	}
 	return result;
@@ -2222,91 +2233,39 @@ static void* CopyDictRecursion(void* node, U8* key_type, U8* item_type)
 	return result;
 }
 
-static void ToBinDictRecursion(void*** buf, void* node, U8* key_type, U8* item_type)
+static void ToBinDictRecursion(void*** buf, void* node, U8* key_type, U8* item_type, const void* root)
 {
+	if (*(void**)node != NULL)
+		ToBinDictRecursion(buf, *(void**)node, key_type, item_type, root);
 	{
 		void* key = NULL;
 		memcpy(&key, (U8*)node + 0x18, GetSize(*key_type));
-		**buf = _toBin(key, key_type);
+		**buf = _toBin(key, key_type, root);
 		(*buf)++;
 	}
 	{
 		void* value = NULL;
 		memcpy(&value, (U8*)node + 0x20, GetSize(*item_type));
-		**buf = _toBin(value, item_type);
+		**buf = _toBin(value, item_type, root);
 		(*buf)++;
 	}
-	{
-		U8* info = (U8*)AllocMem(0x11);
-		((S64*)info)[0] = DefaultRefCntOpe;
-		((S64*)info)[1] = 1;
-		{
-			U8 flag = 0;
-			if (*(void**)node != NULL)
-				flag |= 0x01;
-			if (*(void**)((U8*)node + 0x08) != NULL)
-				flag |= 0x02;
-			if ((Bool) * (S64*)((U8*)node + 0x10))
-				flag |= 0x04;
-			*(info + 0x10) = flag;
-		}
-		**buf = info;
-		(*buf)++;
-	}
-	if (*(void**)node != NULL)
-		ToBinDictRecursion(buf, *(void**)node, key_type, item_type);
 	if (*(void**)((U8*)node + 0x08) != NULL)
-		ToBinDictRecursion(buf, *(void**)((U8*)node + 0x08), key_type, item_type);
+		ToBinDictRecursion(buf, *(void**)((U8*)node + 0x08), key_type, item_type, root);
 }
 
-static void* FromBinDictRecursion(const U8* key_type, const U8* item_type, const U8* bin, S64* idx, const void* type_class)
-{
-	U8* node = (U8*)AllocMem(0x20 + GetSize(*item_type));
-	{
-		const void* type[2];
-		void* key;
-		type[0] = key_type;
-		type[1] = type_class;
-		key = _fromBin(bin, type, idx);
-		*(void**)(node + 0x18) = NULL;
-		memcpy(node + 0x18, &key, GetSize(*key_type));
-	}
-	{
-		const void* type[2];
-		void* value;
-		type[0] = item_type;
-		type[1] = type_class;
-		value = _fromBin(bin, type, idx);
-		memcpy(node + 0x20, &value, GetSize(*item_type));
-	}
-	{
-		U8 info = *(bin + 0x10 + *idx);
-		(*idx)++;
-		if ((info & 0x01) != 0)
-			*(void**)node = FromBinDictRecursion(key_type, item_type, bin, idx, type_class);
-		else
-			*(void**)node = NULL;
-		if ((info & 0x02) != 0)
-			*(void**)(node + 0x08) = FromBinDictRecursion(key_type, item_type, bin, idx, type_class);
-		else
-			*(void**)(node + 0x08) = NULL;
-		*(S64*)(node + 0x10) = (info & 0x04) != 0 ? 1 : 0;
-	}
-	return node;
-}
-
-static void* CatBin(int num, void** bins)
+static void* CatBin(S64 num, S64 writing_num, void** bins)
 {
 	S64 len = 0;
-	int i;
+	S64 i;
 	for (i = 0; i < num; i++)
 		len += *(S64*)((U8*)bins[i] + 0x08);
-	U8* result = (U8*)AllocMem(0x18 + (size_t)len);
+	U8* result = (U8*)AllocMem((writing_num == -1 ? 0x10 : 0x18) + (size_t)len);
 	((S64*)result)[0] = DefaultRefCntOpe;
-	((S64*)result)[1] = 0x08 + len;
-	((S64*)result)[2] = (S64)num;
+	((S64*)result)[1] = (writing_num == -1 ? 0x00 : 0x08) + len;
+	if (writing_num != -1)
+		((S64*)result)[2] = writing_num;
 	{
-		U8* ptr = result + 0x18;
+		U8* ptr = result + (writing_num == -1 ? 0x10 : 0x18);
 		for (i = 0; i < num; i++)
 		{
 			size_t size = (size_t) * (S64*)((U8*)bins[i] + 0x08);

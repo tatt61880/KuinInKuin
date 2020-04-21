@@ -887,6 +887,17 @@ func strToBinAscii(str: []char): []bit8
 	ret r
 end func
 
+func setClassRootAddr(reg: @Reg)
+	var asms: list<@Asm> :: @pack.asms
+	if(^@pack.classTable = 0)
+		do asms.add(@asmXor(@valReg(4, reg), @valReg(4, reg)))
+	else
+		do @pack.classTable.head()
+		var addr: lib@Int :: @pack.classTable.get().addr
+		do asms.add(@asmLea(@valReg(8, reg), @valRip(8, @refValueAddr(addr, true))))
+	end if
+end func
+
 func dbgBreak()
 	if(dbg)
 		; Set a breakpoint to be caught by the debugger.
@@ -2669,6 +2680,11 @@ func assembleExprToBin(ast: \ast@AstExprToBin, regI: int, regF: int)
 		do asms.add(@asmMov(@valMem(size, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpChild), false)), @valReg(size, @regI[0])))
 	end if
 	do @setTypeId(%dx, childType)
+	var type: \ast@AstType :: ast.childType
+	if(\ast@isClass(type))
+		do @refClass(type.refItem $ \ast@AstClass)
+	end if
+	do @setClassRootAddr(%r8)
 	do @callKuinLib("_toBin")
 	do @setGcInstance(0, -1, ast.childType)
 	do asms.add(@asmMov(@valReg(8, %si), @valReg(8, %ax)))
@@ -2695,13 +2711,14 @@ func assembleExprFromBin(ast: \ast@AstExprFromBin, regI: int, regF: int)
 	do asms.add(@asmMov(@valReg(8, %cx), @valReg(8, @regI[0])))
 	do @setTypeId(%dx, ast.childType)
 	do asms.add(@asmMov(@valReg(8, %r8), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpVar), false))))
-	do @callKuinLib("_fromBin")
-	do asms.add(@asmMov(@valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpVar), false)), @valReg(8, %ax)))
 	var type: \ast@AstType :: ast.childType
 	var size: int :: @getSize(type)
 	if(\ast@isClass(type))
 		do @refClass(type.refItem $ \ast@AstClass)
 	end if
+	do @setClassRootAddr(%r9)
+	do @callKuinLib("_fromBin")
+	do asms.add(@asmMov(@valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpVar), false)), @valReg(8, %ax)))
 	if(\ast@isRef(type))
 		do @setGcInstance(0, -1, type)
 	end if

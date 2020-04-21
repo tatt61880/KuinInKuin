@@ -212,7 +212,7 @@
 		do codes.add("distance[i] = LLONG_MAX;\n")
 		do codes.add("distance[\{begin_nodes_.id}] = 0;\n")
 		do codes.add("\n")
-		do codes.add("int64_t* heap = (int64_t*)malloc(sizeof(int64_t) * (2 * (size_t)(node_num * len) + 2));\n")
+		do codes.add("int64_t* heap = (int64_t*)malloc(sizeof(int64_t) * (2 * (std::size_t)(node_num * len) + 2));\n")
 		do codes.add("int heap_cnt = 1;\n")
 		do codes.add("heap[0] = begin_node;\n")
 		do codes.add("heap[1] = 0;\n")
