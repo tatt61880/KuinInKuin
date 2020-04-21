@@ -16,8 +16,8 @@
 #include <type_traits>
 #include <vector>
 
-template<typename T> size_t bufLen_() { return 0; }
-template<> size_t bufLen_<char16_t>() { return 1; }
+template<typename T> std::size_t bufLen_() { return 0; }
+template<> std::size_t bufLen_<char16_t>() { return 1; }
 static int64_t exitCode_ = 0;
 
 struct Class_ {
@@ -30,7 +30,7 @@ template<typename T> struct Array_ {
 	template<typename... A>
 	explicit Array_(A... a) {
 		L = sizeof...(a);
-		B = newPrimArray_(static_cast<size_t>(sizeof...(a) + bufLen_<T>()), T);
+		B = newPrimArray_(static_cast<std::size_t>(sizeof...(a) + bufLen_<T>()), T);
 		BufferCopy(B, std::forward<A>(a)...);
 		if (bufLen_<T>() > 0)
 			B[sizeof...(a)] = 0;
@@ -46,7 +46,7 @@ template<typename T> struct Array_ {
 	}
 	type_(Array_<T>) Cat(const type_(Array_<T>) t) {
 		type_(Array_<T>) r = new_(Array_<T>)();
-		r->B = newPrimArray_(static_cast<size_t>(L + t->L + bufLen_<T>()), T);
+		r->B = newPrimArray_(static_cast<std::size_t>(L + t->L + bufLen_<T>()), T);
 		for (int64_t i = 0; i < L; i++)
 			r->B[i] = B[i];
 		for (int64_t i = 0; i < static_cast<int64_t>(t->L + bufLen_<T>()); i++)
@@ -178,6 +178,7 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#define _A_SUBDIR 0x10
 
 const char newLine_[] = { '\n' };
 
@@ -278,7 +279,7 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 		const std::string& p2 = utf16ToUtf8_(s);
 #if defined(_WIN32)
 		char p3[262];
-		size_t l = p2.size();
+		std::size_t l = p2.size();
 		memcpy(p3, p2.c_str(), l);
 		p3[l] = '*';
 		p3[l + 1] = 0;
@@ -304,11 +305,11 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 			std::string s = t->d_name;
 #endif
 			const std::u16string p2 = utf8ToUtf16_(s);
-			size_t l = p2.size();
+			std::size_t l = p2.size();
 			type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
 			p3->L = p->L + static_cast<int64_t>(l);
-			p3->B = newPrimArray_(static_cast<size_t>(p->L + l + 1), char16_t);
-			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<size_t>(p->L));
+			p3->B = newPrimArray_(static_cast<std::size_t>(p->L + l + 1), char16_t);
+			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<std::size_t>(p->L));
 			memcpy(p3->B + p->L, p2.c_str(), sizeof(char16_t) * (l + 1));
 			if (!f(p3, false, d))
 			{
@@ -326,11 +327,11 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 				continue;
 			std::string s = n;
 			const std::u16string p2 = utf8ToUtf16_(s);
-			size_t l = p2.size();
+			std::size_t l = p2.size();
 			type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
 			p3->L = p->L + static_cast<int64_t>(l) + 1;
-			p3->B = newPrimArray_(static_cast<size_t>(p->L + l + 2), char16_t);
-			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<size_t>(p->L));
+			p3->B = newPrimArray_(static_cast<std::size_t>(p->L + l + 2), char16_t);
+			memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<std::size_t>(p->L));
 			memcpy(p3->B + p->L, p2.c_str(), sizeof(char16_t) * l);
 			p3->B[p->L + l] = '/';
 			p3->B[p->L + l + 1] = 0;
@@ -367,9 +368,9 @@ template<typename T> struct newArraysRec_<type_(Array_<T>)> {
 	template<typename A, typename... B> type_(Array_<T>) operator()(A h, B... t) {
 		type_(Array_<T>) r = new_(Array_<T>)();
 		r->L = h;
-		r->B = newPrimArray_(static_cast<size_t>(h + bufLen_<T>()), T);
+		r->B = newPrimArray_(static_cast<std::size_t>(h + bufLen_<T>()), T);
 		if (sizeof...(t) == 0)
-			memset(r->B, 0, sizeof(T) * static_cast<size_t>(h + bufLen_<T>()));
+			memset(r->B, 0, sizeof(T) * static_cast<std::size_t>(h + bufLen_<T>()));
 		else
 		{
 			for (int64_t i = 0; i < h; i++)
@@ -387,8 +388,8 @@ template<typename T>
 type_(Array_<T>) newArrayBin_(int64_t l, const void* d) {
 	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = l;
-	r->B = newPrimArray_(static_cast<size_t>(l) + bufLen_<T>(), T);
-	memcpy(r->B, d, sizeof(T) * static_cast<size_t>(l));
+	r->B = newPrimArray_(static_cast<std::size_t>(l) + bufLen_<T>(), T);
+	memcpy(r->B, d, sizeof(T) * static_cast<std::size_t>(l));
 	if (bufLen_<T>() > 0)
 		r->B[l] = 0;
 	return r;
@@ -397,7 +398,7 @@ type_(Array_<T>) newArrayBin_(int64_t l, const void* d) {
 template<typename T> type_(Array_<T>) toArray_(type_(List_<T>) l) {
 	type_(Array_<T>) a = new_(Array_<T>)();
 	a->L = l->Len();
-	a->B = newPrimArray_(static_cast<size_t>(a->L) + bufLen_<T>(), T);
+	a->B = newPrimArray_(static_cast<std::size_t>(a->L) + bufLen_<T>(), T);
 	int64_t i = 0;
 	for (auto& e : l->B)
 	{
@@ -415,7 +416,7 @@ template<typename T> struct copy_<type_(Array_<T>)> { type_(Array_<T>) operator(
 		return nullptr;
 	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = t->L;
-	r->B = newPrimArray_(static_cast<size_t>(t->L) + bufLen_<T>(), T);
+	r->B = newPrimArray_(static_cast<std::size_t>(t->L) + bufLen_<T>(), T);
 	for (int64_t i = 0; i < t->L; i++)
 		r->B[i] = copy_<T>()(t->B[i]);
 	if (bufLen_<T>() > 0)
@@ -635,7 +636,7 @@ static int64_t cmp_(uint16_t a, uint16_t b) { return static_cast<int64_t>(a) - s
 static int64_t cmp_(uint32_t a, uint32_t b) { return static_cast<int64_t>(a) - static_cast<int64_t>(b); }
 static int64_t cmp_(uint64_t a, uint64_t b) { return a > b ? 1LL : (a < b ? -1LL : 0LL); }
 
-static type_(Array_<uint8_t>) makeBin_(const void* v, size_t s) {
+static type_(Array_<uint8_t>) makeBin_(const void* v, std::size_t s) {
 	type_(Array_<uint8_t>) r = new_(Array_<uint8_t>)();
 	r->L = s;
 	r->B = newPrimArray_(s, uint8_t);
@@ -644,9 +645,9 @@ static type_(Array_<uint8_t>) makeBin_(const void* v, size_t s) {
 }
 static void mergeBin_(type_(Array_<uint8_t>) a, const type_(Array_<uint8_t>) b) {
 	int64_t l = a->L + b->L;
-	uint8_t* d = newPrimArray_(static_cast<size_t>(l), uint8_t);
-	memcpy(d, a->B, static_cast<size_t>(a->L));
-	memcpy(d + a->L, b->B, static_cast<size_t>(b->L));
+	uint8_t* d = newPrimArray_(static_cast<std::size_t>(l), uint8_t);
+	memcpy(d, a->B, static_cast<std::size_t>(a->L));
+	memcpy(d + a->L, b->B, static_cast<std::size_t>(b->L));
 	a->L = l;
 	a->B = d;
 }
@@ -743,7 +744,7 @@ template<typename T> struct fromBin_<type_(Array_<T>)> { type_(Array_<T>) operat
 	if (l == -1) return nullptr;
 	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = l;
-	r->B = newPrimArray_(static_cast<size_t>(l) + bufLen_<T>(), T);
+	r->B = newPrimArray_(static_cast<std::size_t>(l) + bufLen_<T>(), T);
 	for (int64_t i = 0; i < l; i++)
 		r->B[i] = fromBin_<T>()(b, o);
 	if (bufLen_<T>() > 0)
@@ -831,7 +832,7 @@ template<typename T> type_(Array_<T>) sub_(type_(Array_<T>) a, int64_t start, in
 		return nullptr;
 	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = len;
-	r->B = newPrimArray_(static_cast<size_t>(len + bufLen_<T>()), T);
+	r->B = newPrimArray_(static_cast<std::size_t>(len + bufLen_<T>()), T);
 	for (int64_t i = 0; i < len; i++)
 		r->B[i] = a->B[start + i];
 	if (bufLen_<T>() > 0)
@@ -892,7 +893,7 @@ template<typename T> T max_(type_(Array_<T>) a) {
 template<typename T> type_(Array_<T>) repeat_(type_(Array_<T>) a, int64_t n) {
 	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = a->L * n;
-	r->B = newPrimArray_(static_cast<size_t>(r->L) + bufLen_<T>(), T);
+	r->B = newPrimArray_(static_cast<std::size_t>(r->L) + bufLen_<T>(), T);
 	for (int64_t i = 0; i < n; i++)
 	{
 		for (int64_t j = 0; j < a->L; j++)
@@ -1119,7 +1120,7 @@ static char16_t readUtf8_(std::ifstream* f) {
 
 static void writeUtf8_(std::ofstream* f, char16_t c) {
 	uint64_t u;
-	size_t size;
+	std::size_t size;
 	if ((c >> 7) == 0)
 		u = c, size = 1;
 	else {
