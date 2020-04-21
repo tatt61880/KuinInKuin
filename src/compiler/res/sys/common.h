@@ -1031,7 +1031,7 @@ static int64_t powI_(int64_t a, int64_t b) {
 	if (a == 1LL)
 		return 1LL;
 	if (a == -1LL)
-		return std::abs(b) % 2LL == 0LL ? 1LL : -1LL;
+		return (b & 1LL) == 0LL ? 1LL : -1LL;
 	if (b < 0LL)
 		return 0LL;
 	int64_t r = 1LL;

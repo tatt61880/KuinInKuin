@@ -6,9 +6,9 @@
 		do funcAttrs.add("d0000.knd", attrs1)
 	end if
 	do attrs1.add("_freeSet", true)
+	do attrs1.add("_copy", true)
 	do attrs1.add("_toBin", true)
 	do attrs1.add("_fromBin", true)
-	do attrs1.add("_copy", true)
 	do attrs1.add("_powInt", true)
 	do attrs1.add("_powFloat", true)
 	do attrs1.add("_mod", true)

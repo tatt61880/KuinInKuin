@@ -369,10 +369,6 @@ func[__any, __rme]_shr(me_: int, type: []int, n: int): int
 	excode "return `0`>>`2`;\n"
 end func
 
-func[__any]_shuffle(me_: int, type: []int)
-	; TODO:
-end func
-
 func[__any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
 	excode "return sub_(`0`,`2`,`3`);\n"
 end func

@@ -222,10 +222,6 @@ end func
 	excode "return Math.cosh(`0`);\n"
 end func
 
-+func countUp(min: int, max: int): []int
-	; TODO:
-end func
-
 +func dateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
 	assert 1 <= month & month <= 12 & 1 <= day & day <= 31 & 0 <= hour & hour <= 23 & 0 <= minute & minute <= 59 & 0 <= second & second <= 59
 	var a: int :: year - (month <= 2 ?(1, 0))
@@ -349,6 +345,10 @@ end func
 	; TODO:
 end func
 
++func range(start: int, end_: int, step: int): []int
+	; TODO:
+end func
+
 +func rnd(min: int, max: int): int
 	ret @globalRnd.rnd(min, max)
 end func
@@ -412,6 +412,10 @@ end func
 	end if
 	var diff: int :: (i1 - i2) $ int
 	ret - 24 <= diff & diff <= 24
+end func
+
+func shuffle(n: int): []int
+	; TODO:
 end func
 
 +func sin(x: float): float

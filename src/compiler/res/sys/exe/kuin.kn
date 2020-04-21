@@ -149,7 +149,8 @@ func _findStrLast(me_: []char, pattern: []char, start: int): int
 	ret - 1
 end func
 
-func[d0000.knd]_findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
+func _findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
+	; TODO:
 end func
 
 func[d0000.knd, __any, __kvf]_forEach(me_: int, type: []int, callback: int, data: @Class): bool
@@ -253,7 +254,8 @@ end func
 func[d0000.knd, __any, __rme]_repeat(me_: int, type: []int, len: int): int
 end func
 
-func[d0000.knd]_replace(me_: []char, old: []char, new: []char): []char
+func _replace(me_: []char, old: []char, new: []char): []char
+	; TODO:
 end func
 
 func[d0000.knd, __any]_reverse(me_: int, type: []int)
@@ -277,9 +279,6 @@ func[d0000.knd, __any, __rme]_shl(me_: int, type: []int, n: int): int
 end func
 
 func[d0000.knd, __any, __rme]_shr(me_: int, type: []int, n: int): int
-end func
-
-func[d0000.knd, __any]_shuffle(me_: int, type: []int)
 end func
 
 func[d0000.knd, __any, __rme]_sub(me_: int, type: []int, start: int, len: int): int

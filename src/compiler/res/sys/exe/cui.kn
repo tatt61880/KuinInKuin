@@ -90,7 +90,7 @@ end func
 	ret buf.sub(0, ptr)
 end func
 
-+func[d0002.knd, _print]print(str: []char)
++func[d0000.knd, _print]print(str: []char)
 end func
 
 func inputCharWithDelimiter(): char

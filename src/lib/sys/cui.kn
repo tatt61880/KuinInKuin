@@ -91,7 +91,7 @@ end func
 end func
 
 #exe
-+func[d0002.knd, _print]print(str: []char)
++func[d0000.knd, _print]print(str: []char)
 #cpp,web
 +func print(str: []char)
 #cpp

@@ -348,12 +348,8 @@ func _findStrLast(me_: []char, pattern: []char, start: int): int
 	ret - 1
 end func
 
-#exe
-func[d0000.knd]_findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
-#cpp,web
 func _findStrEx(me_: []char, pattern: []char, start: int, fromLast: bool, ignoreCase: bool, wholeWord: bool): int
 	; TODO:
-#any
 end func
 
 #exe
@@ -699,12 +695,8 @@ func[__any, __rme, __raw, repeat]_repeat(me_: int, type: []int, len: int): int
 #any
 end func
 
-#exe
-func[d0000.knd]_replace(me_: []char, old: []char, new: []char): []char
-#cpp,web
 func _replace(me_: []char, old: []char, new: []char): []char
 	; TODO:
-#any
 end func
 
 #exe
@@ -805,14 +797,6 @@ func[__any, __rme]_shr(me_: int, type: []int, n: int): int
 	excode "else\n"
 	excode "return `2`[1]?Uint32Array.from([`0`[0]>>>`2`[1],(`0`[1]>>>`2`[1])|(`0`[0]<<(32-`2`[1]))]):`0`;\n"
 	excode "}\n"
-#any
-end func
-
-#exe
-func[d0000.knd, __any]_shuffle(me_: int, type: []int)
-#cpp,web
-func[__any]_shuffle(me_: int, type: []int)
-	; TODO:
 #any
 end func
 

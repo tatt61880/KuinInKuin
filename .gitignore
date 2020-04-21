@@ -1,0 +1,14 @@
+*.bak
+*.idb
+*.ilk
+*.ipch
+*.log
+*.obj
+*.opendb
+*.pdb
+*.suo
+*.tlog
+*.user
+*.VC.db
+
+/src/lib/dll/output/
