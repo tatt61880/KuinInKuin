@@ -365,7 +365,7 @@ template<typename T> struct newArraysRec_{
 };
 template<typename T> struct newArraysRec_<type_(Array_<T>)> {
 	type_(Array_<T>) operator()() { throw 0; }
-	template<typename A, typename... B> type_(Array_<T>) operator()(A h, B... t) {
+	template<typename A, typename... C> type_(Array_<T>) operator()(A h, C... t) {
 		type_(Array_<T>) r = new_(Array_<T>)();
 		r->L = h;
 		r->B = newPrimArray_(static_cast<std::size_t>(h + bufLen_<T>()), T);
@@ -374,7 +374,7 @@ template<typename T> struct newArraysRec_<type_(Array_<T>)> {
 		else
 		{
 			for (int64_t i = 0; i < h; i++)
-				r->B[i] = newArraysRec_<T>()(std::forward<B>(t)...);
+				r->B[i] = newArraysRec_<T>()(std::forward<C>(t)...);
 		}
 		return r;
 	}
