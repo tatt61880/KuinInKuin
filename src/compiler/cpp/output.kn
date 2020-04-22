@@ -1379,6 +1379,7 @@ func write(resFiles: list<[]char>)
 	end if
 	
 	func writeCommonCode(writer: file@Writer)
+		do writer.writeStr("#include <cstddef>\n")
 		do writer.writeStr("#include <cstdint>\n")
 		if(^@classTable = 0)
 			do writer.writeStr("static int64_t classTable_[1];\n")
