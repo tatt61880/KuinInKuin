@@ -22,7 +22,8 @@ end enum
 		do me.fin()
 	end func
 	
-	+func[d0000.knd, _readerDelimiter]delimiter(delimiters: []char)
+	+func delimiter(delimiters: []char)
+		do me.delimiters :: delimiters
 	end func
 	
 	+func fileSize(): int
@@ -145,8 +146,7 @@ end enum
 	
 	const strBufSize: int :: 1024
 	var handle: int
-	var delimiterNum: int
-	var delimiters: int
+	var delimiters: []char
 	var fileSize_: int
 end class
 
