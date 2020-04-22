@@ -87,7 +87,7 @@ end class
 	end func
 	
 	+func rndBit64(): bit64
-		var t: bit32 :: me.xs128
+		var t: bit32 :: me.xs128()
 		ret(t $ bit64).shl(32).or(me.xs128() $ bit64)
 	end func
 	
