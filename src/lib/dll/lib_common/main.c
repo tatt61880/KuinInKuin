@@ -573,7 +573,7 @@ EXPORT void* _toBin(const void* me_, const U8* type, const void* root)
 					U8* ptr = (U8*)AllocMem(0x18);
 					((S64*)ptr)[0] = DefaultRefCntOpe;
 					((S64*)ptr)[1] = 0x08;
-					((S64*)ptr)[2] = (S64*)root - (S64*)me_;
+					((S64*)ptr)[2] = (S64*)*(void**)((U8*)me_ + 0x08) - (S64*)root;
 					bins[0] = ptr;
 				}
 				bins[1] = ToBinClassAsm(me_);

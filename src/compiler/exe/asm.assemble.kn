@@ -2679,6 +2679,7 @@ func assembleExprToBin(ast: \ast@AstExprToBin, regI: int, regF: int)
 	else
 		do asms.add(@asmMov(@valMem(size, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpChild), false)), @valReg(size, @regI[0])))
 	end if
+	do asms.add(@asmMov(@valReg(8, %cx), @valMem(8, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmpChild), false))))
 	do @setTypeId(%dx, childType)
 	var type: \ast@AstType :: ast.childType
 	if(\ast@isClass(type))
