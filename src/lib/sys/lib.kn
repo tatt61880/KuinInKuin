@@ -248,6 +248,24 @@ end func
 	ret false
 end func
 
+func clampFloat(x: float, min: float, max: float): float
+	if(dbg)
+		if(min > max)
+			throw 0xE9170006
+		end if
+	end if
+	ret x > max ?(max, x < min ?(min, x))
+end func
+
+func clamp(x: int, min: int, max: int): int
+	if(dbg)
+		if(min > max)
+			throw 0xE9170006
+		end if
+	end if
+	ret x > max ?(max, x < min ?(min, x))
+end func
+
 #exe
 +func[d0000.knd, _cmdLine]cmdLine(): [][]char
 #cpp,web

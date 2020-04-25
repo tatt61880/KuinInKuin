@@ -76,7 +76,8 @@ template<typename T> struct Queue_ {
 	std::queue<T> B;
 };
 template<typename T1, typename T2> struct dictImpl_;
-template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a);
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a);
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelRec_(dictImpl_<T1, T2>* r, T1 k, bool* d, bool* b);
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n);
 template<typename T1, typename T2> void dictToBinRec_(type_(Array_<uint8_t>) a, dictImpl_<T1, T2>* d);
 template<typename T1, typename T2> void dictFreeRec_(dictImpl_<T1, T2>* n);
@@ -87,10 +88,17 @@ template<typename T1, typename T2> struct Dict_ {
 	}
 	int64_t Len() { return L; }
 	void Add(T1 k, T2 v) {
-		bool a;
-		B = dictAdd_<T1, T2>(B, k, v, &a);
+		bool a = false;
+		B = dictAddRec_<T1, T2>(B, k, v, &a);
+		B->R = false;
 		if (a)
 			L++;
+	}
+	void Del(T1 k) {
+		bool d = false, b = false;
+		B = dictDelRec_<T1, T2>(B, k, &d, &b);
+		if (d)
+			L--;
 	}
 	int64_t L;
 	dictImpl_<T1, T2>* B;
@@ -945,11 +953,8 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, 
 	}
 	return n;
 }
-template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a) {
-	*a = false;
-	dictImpl_<T1, T2>* n = dictAddRec_(r, k, v, a);
-	n->R = false;
-	return n;
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelRec_(dictImpl_<T1, T2>* r, T1 k, bool* d, bool* b) {
+	// TODO:
 }
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n) {
 	if (n == nullptr)

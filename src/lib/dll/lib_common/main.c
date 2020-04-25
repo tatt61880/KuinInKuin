@@ -949,7 +949,7 @@ EXPORT S64 _and(const void* me_, const U8* type, const void* n)
 EXPORT void _del(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, 0xe917000a);
 	void* ptr = *(void**)((U8*)me_ + 0x20);
 	void* next = *(void**)((U8*)ptr + 0x08);
 	void* prev = *(void**)ptr;

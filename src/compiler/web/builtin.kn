@@ -16,6 +16,9 @@
 	
 	; 'add' to 'dict'.
 	do writer.writeStr("function DA_(d,t,k,v){\n")
+	if(!\option@rls)
+		do writer.writeStr("if(k===null)throw 0xc0000005;\n")
+	end if
 	do writer.writeStr("let a=false,m=CM_(t[1]);\n")
 	do writer.writeStr("d.B=f(d.B);\n")
 	do writer.writeStr("d.B.R=false;\n")
@@ -46,6 +49,14 @@
 	do writer.writeStr("}\n")
 	do writer.writeStr("return n;\n")
 	do writer.writeStr("}\n")
+	do writer.writeStr("}\n")
+	
+	; 'del' from 'dict'.
+	do writer.writeStr("function DD_(d,t,k){\n")
+	if(!\option@rls)
+		do writer.writeStr("if(k===null)throw 0xc0000005;\n")
+	end if
+	; TODO:
 	do writer.writeStr("}\n")
 	
 	; 'tobin' implementation.
