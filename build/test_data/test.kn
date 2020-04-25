@@ -1777,11 +1777,11 @@ func test19()
 		for i(0, ^a - 1)
 			do d.add(a[i], i)
 		end for
-		do cui@print((^a).toStr() ~ "\n")
+		do cui@print((^d).toStr() ~ "\n")
 		for i(0, ^b - 1)
 			do d.del(b[i])
 		end for
-		do cui@print((^b).toStr() ~ "\n")
+		do cui@print((^d).toStr() ~ "\n")
 	end block
 
 	block
@@ -1791,10 +1791,10 @@ func test19()
 		for i(0, ^a - 1)
 			do d.add(a[i].toStr(), i.toStr())
 		end for
-		do cui@print((^a).toStr() ~ "\n")
+		do cui@print((^d).toStr() ~ "\n")
 		for i(0, ^b - 1)
 			do d.del(b[i].toStr())
 		end for
-		do cui@print((^b).toStr() ~ "\n")
+		do cui@print((^d).toStr() ~ "\n")
 	end block
 end func
