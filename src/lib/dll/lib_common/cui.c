@@ -1,5 +1,10 @@
 #include "cui.h"
 
+EXPORT void _flush(void)
+{
+	fflush(stdout);
+}
+
 EXPORT void _print(const U8* str)
 {
 	const Char* str2;

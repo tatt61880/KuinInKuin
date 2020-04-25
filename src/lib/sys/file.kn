@@ -255,6 +255,14 @@ end class
 	end func
 	
 #exe
+	+func[d0000.knd, _writerFlush]flush()
+#cpp,web
+	+func flush()
+		; TODO:
+#any
+	end func
+
+#exe
 	+func[d0000.knd, _writerGetPos]getPos(): int
 #cpp,web
 	+func getPos(): int

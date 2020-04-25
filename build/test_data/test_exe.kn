@@ -12,195 +12,33 @@ end func
 ; Single line comment #2.
 
 func main()
-	do @test13()
+	do @test19()
 end func
 
-func test13()
+func test19()
 	block
-		var n: int :: 123456789012
-		var m: int
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< int
-		do cui@print(m.toStr() ~ "\n")
+		var n: int :: 0
+		for i(0, 100)
+			if(math@prime(i))
+				do n :+ 1
+			end if
+		end for
+		do cui@print(n.toStr() ~ "\n")
 	end block
-	
+
 	block
-		var n: float :: lib@pi
-		var m: float
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< float
-		do cui@print(m.toStr() ~ "\n")
+		do cui@print(math@modPow(4, 13, 497).toStr() ~ "\n")
+		do cui@print(math@modMul(4, 7, 5).toStr() ~ "\n")
+		do cui@print(math@gcd(40, -15).toStr() ~ "\n")
+		do cui@print(math@lcm(40, -15).toStr() ~ "\n")
+		do cui@print("\{(5).sign()}, \{(-5).sign()}, \{(0).sign()}\n")
+		do cui@print("\{(1.2).sign()}, \{(-1.2).sign()}, \{(0.0).sign()}\n")
 	end block
-	
+
 	block
-		var n: char :: 'X'
-		var m: char
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< char
-		do cui@print(m.toStr() ~ "\n")
-	end block
-	
-	block
-		var n: bool :: true
-		var m: bool
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< bool
-		do cui@print(m.toStr() ~ "\n")
-	end block
-	
-	
-	block
-		var n: bit8 :: 0x12b8
-		var m: bit8
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< bit8
-		do cui@print(m.toStr() ~ "\n")
-	end block
-	
-	block
-		var n: bit16 :: 0x1234b16
-		var m: bit16
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< bit16
-		do cui@print(m.toStr() ~ "\n")
-	end block
-	
-	block
-		var n: bit32 :: 0x12345678b32
-		var m: bit32
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< bit32
-		do cui@print(m.toStr() ~ "\n")
-	end block
-	
-	block
-		var n: bit64 :: 0xF012345678ABCDEFb64
-		var m: bit64
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< bit64
-		do cui@print(m.toStr() ~ "\n")
-	end block
-	
-	block
-		var n: []int :: [1, 2, 3]
-		var m: []int
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< []int
-		do cui@print(m[0].toStr() ~ ", " ~ m[1].toStr() ~ ", " ~ m[2].toStr() ~ "\n")
-	end block
-	
-	block
-		var n: []char :: "abcdef"
-		var m: []char
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< []char
-		do cui@print(m ~ "\n")
-	end block
-	
-	block
-		var n: [][]char :: ["ab", "cd", "ef"]
-		var m: [][]char
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< [][]char
-		do cui@print(m[0] ~ ", " ~ m[1] ~ ", " ~ m[2] ~ "\n")
-	end block
-	
-	block
-		var n: list<char> :: #list<char>
-		var m: list<char>
-		do n.add('a')
-		do n.add('b')
-		do n.add('c')
-		do n.head()
-		do n.next()
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< list<char>
-		do cui@print(m.get().toStr() ~ "\n")
-		do m.head()
-		while(!m.term())
-			do cui@print(m.get().toStr() ~ "\n")
-			do m.next()
-		end while
-	end block
-	
-	block
-		var n: stack<char> :: #stack<char>
-		var m: stack<char>
-		do n.add('a')
-		do n.add('b')
-		do n.add('c')
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< stack<char>
-		while(^m <> 0)
-			do cui@print(m.get().toStr() ~ "\n")
-		end while
-	end block
-	
-	block
-		var n: queue<char> :: #queue<char>
-		var m: queue<char>
-		do n.add('a')
-		do n.add('b')
-		do n.add('c')
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< queue<char>
-		while(^m <> 0)
-			do cui@print(m.get().toStr() ~ "\n")
-		end while
-	end block
-	
-	block
-		var n: dict<[]char, int> :: #dict<[]char, int>
-		var m: dict<[]char, int>
-		do n.add("a", 1)
-		do n.add("c", 3)
-		do n.add("b", 2)
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< dict<[]char, int>
-		do cui@print(m.get("a", &).toStr() ~ ", " ~ m.get("b", &).toStr() ~ ", " ~ m.get("c", &).toStr() ~ "\n")
-	end block
-	
-	block
-		enum E
-			x :: 1234
-		end enum
-		
-		var n: E :: %x
-		var m: E
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< E
-		do cui@print((m $ int).toStr() ~ "\n")
-	end block
-	
-	block
-		class C()
-			+var a: int
-			+var b: []char
-		end class
-		
-		var n: C :: #C
-		var m: C :: #C
-		do n.a :: 5
-		do n.b :: "abc"
-		var bin: []bit8 :: n $> []bit8
-		do @dump(bin)
-		do m :: bin $< C
-		do cui@print(m.a.toStr() ~ ", " ~ m.b ~ "\n")
+		var n: []int :: math@primeFactors(8051)
+		for i(0, ^n - 1)
+			do cui@print(n[i].toStr() ~ "\n")
+		end for
 	end block
 end func

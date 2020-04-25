@@ -110,6 +110,13 @@ EXPORT void _writerFin(SClass* me_)
 	me2->Handle = NULL;
 }
 
+EXPORT void _writerFlush(SClass* me_)
+{
+	SWriter* me2 = (SWriter*)me_;
+	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	fflush(me2->Handle);
+}
+
 EXPORT S64 _writerGetPos(SClass* me_)
 {
 	SWriter* me2 = (SWriter*)me_;

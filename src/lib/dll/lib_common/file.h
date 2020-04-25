@@ -10,6 +10,7 @@ EXPORT Char _readerReadLetter(SClass* me_);
 EXPORT void _readerSetPos(SClass* me_, S64 origin, S64 pos);
 EXPORT Bool _readerTerm(SClass* me_);
 EXPORT void _writerFin(SClass* me_);
+EXPORT void _writerFlush(SClass* me_);
 EXPORT S64 _writerGetPos(SClass* me_);
 EXPORT void _writerSetPos(SClass* me_, S64 origin, S64 pos);
 EXPORT void _writerWrite(SClass* me_, void* bin);

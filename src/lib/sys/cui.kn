@@ -5,6 +5,14 @@ var delimiters: []char :: " ,\n"
 	do @delimiters :: delimiters_
 end func
 
+#exe
++func[d0000.knd, _flush]flush()
+#cpp,web
++func flush()
+	; TODO:
+#any
+end func
+
 +func input(): []char
 	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0
