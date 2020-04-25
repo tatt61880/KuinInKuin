@@ -73,37 +73,16 @@ func[__any, __tme, __rme]_and(me_: int, type: []int, n: int): int
 	excode "return `0`&`2`;\n"
 end func
 
-func _clampFloat(me_: float, min: float, max: float): float
-	ret me_ > max ?(max, me_ < min ?(min, me_))
-end func
-
-func _clampInt(me_: int, min: int, max: int): int
-	ret me_ > max ?(max, me_ < min ?(min, me_))
-end func
-
-func _clampMaxFloat(me_: float, max: float): float
-	ret me_ > max ?(max, me_)
-end func
-
-func _clampMaxInt(me_: int, max: int): int
-	ret me_ > max ?(max, me_)
-end func
-
-func _clampMinFloat(me_: float, min: float): float
-	ret me_ < min ?(min, me_)
-end func
-
-func _clampMinInt(me_: int, min: int): int
-	ret me_ < min ?(min, me_)
-end func
-
 func[__any]_del(me_: int, type: []int)
+	if(dbg)
+		excode "if(`0`->I==`0`->B.end())throw 0xe917000a;\n"
+	end if
 	excode "auto i_=`0`->I++;\n"
 	excode "`0`->B.erase(i_);\n"
 end func
 
 func[__any, __tch]_delDict(me_: int, type: []int, key: int)
-	; TODO:
+	excode "`0`->Del(`2`);\n"
 end func
 
 func[__any]_delNext(me_: int, type: []int)

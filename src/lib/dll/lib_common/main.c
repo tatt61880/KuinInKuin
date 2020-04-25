@@ -59,8 +59,8 @@ static int CmpBit64(const void* a, const void* b);
 static int CmpStr(const void* a, const void* b);
 static void* DictRotateLeft(void* node);
 static void* DictRotateRight(void* node);
-static void* DelDictBalanceLeftRecursion(void* node, Bool* balanced);
-static void* DelDictBalanceRightRecursion(void* node, Bool* balanced);
+static void* DelDictBalanceLeft(void* node, Bool* balanced);
+static void* DelDictBalanceRight(void* node, Bool* balanced);
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -114,15 +114,15 @@ EXPORT void _err(S64 excpt)
 			case 0xc0000094: text = L"Integer division by zero."; break;
 			case 0xc00000fd: text = L"Stack overflow."; break;
 			case 0xc000013a: text = L"Ctrl-C exit."; break;
-			case EXCPT_DBG_ASSERT_FAILED: text = L"Assertion failed."; break;
-			case EXCPT_CLASS_CAST_FAILED: text = L"Class cast failed."; break;
-			case EXCPT_DBG_ARRAY_IDX_OUT_OF_RANGE: text = L"Array index out of range."; break;
-			case EXCPT_INVALID_CMP: text = L"Invalid comparison."; break;
-			case EXCPT_DBG_ARG_OUT_DOMAIN: text = L"Argument outside the domain."; break;
-			case EXCPT_FILE_READ_FAILED: text = L"File reading failed."; break;
-			case EXCPT_INVALID_DATA_FMT: text = L"Invalid data format."; break;
-			case EXCPT_DEVICE_INIT_FAILED: text = L"Device initialization failed."; break;
-			case EXCPT_DBG_INOPERABLE_STATE: text = L"Inoperable state."; break;
+			case 0xe9170000: text = L"Assertion failed."; break;
+			case 0xe9170001: text = L"Class cast failed."; break;
+			case 0xe9170002: text = L"Array index out of range."; break;
+			case 0xe9170004: text = L"Invalid comparison."; break;
+			case 0xe9170006: text = L"Argument outside the domain."; break;
+			case 0xe9170007: text = L"File reading failed."; break;
+			case 0xe9170008: text = L"Invalid data format."; break;
+			case 0xe9170009: text = L"Device initialization failed."; break;
+			case 0xe917000a: text = L"Inoperable state."; break;
 		}
 	}
 	swprintf(str, 1024, L"An exception '0x%08X' occurred.\r\n\r\n> %s", (U32)excpt, text);
@@ -2440,7 +2440,6 @@ static void* DelDictRecursion(void* node, const void* key, int cmp_func(const vo
 			void* ptr = *(void**)((U8*)node + 0x08);
 			while (*(void**)ptr != NULL)
 				ptr = *(void**)ptr;
-			*(void**)((U8*)node + 0x18) = NULL;
 			ASSERT(node != ptr);
 			if (IsRef(*key_type))
 			{
@@ -2462,19 +2461,20 @@ static void* DelDictRecursion(void* node, const void* key, int cmp_func(const vo
 						_freeSet(ptr2, item_type);
 				}
 			}
+			*(void**)((U8*)node + 0x18) = NULL;
 			Copy((U8*)node + 0x18, *key_type, (U8*)ptr + 0x18);
 			Copy((U8*)node + 0x20, *item_type, (U8*)ptr + 0x20);
 		}
 		*(void**)((U8*)node + 0x08) = DelDictRecursion(*(void**)((U8*)node + 0x08), *(void**)((U8*)node + 0x18), cmp_func, key_type, item_type, deleted, balanced);
-		return DelDictBalanceRightRecursion(node, balanced);
+		return DelDictBalanceRight(node, balanced);
 	}
 	if (cmp < 0)
 	{
 		*(void**)node = DelDictRecursion(*(void**)node, key, cmp_func, key_type, item_type, deleted, balanced);
-		return DelDictBalanceLeftRecursion(node, balanced);
+		return DelDictBalanceLeft(node, balanced);
 	}
 	*(void**)((U8*)node + 0x08) = DelDictRecursion(*(void**)((U8*)node + 0x08), key, cmp_func, key_type, item_type, deleted, balanced);
-	return DelDictBalanceRightRecursion(node, balanced);
+	return DelDictBalanceRight(node, balanced);
 }
 
 static Bool ForEachRecursion(void* ptr, const U8* child1, const U8* child2, const void* callback, void* data)
@@ -2600,9 +2600,9 @@ static void* DictRotateRight(void* node)
 	return l;
 }
 
-static void* DelDictBalanceLeftRecursion(void* node, Bool* balanced)
+static void* DelDictBalanceLeft(void* node, Bool* balanced)
 {
-	if (balanced)
+	if (*balanced)
 		return node;
 	if (*(void**)((U8*)node + 0x08) != NULL && *(void**)*(void**)((U8*)node + 0x08) != NULL && !*(Bool*)((U8*)*(void**)*(void**)((U8*)node + 0x08) + 0x10))
 	{
@@ -2622,9 +2622,9 @@ static void* DelDictBalanceLeftRecursion(void* node, Bool* balanced)
 	return node;
 }
 
-static void* DelDictBalanceRightRecursion(void* node, Bool* balanced)
+static void* DelDictBalanceRight(void* node, Bool* balanced)
 {
-	if (balanced)
+	if (*balanced)
 		return node;
 	if (*(void**)node != NULL && *(void**)*(void**)node != NULL && !*(Bool*)((U8*)*(void**)*(void**)node + 0x10))
 	{

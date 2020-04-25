@@ -76,7 +76,8 @@ template<typename T> struct Queue_ {
 	std::queue<T> B;
 };
 template<typename T1, typename T2> struct dictImpl_;
-template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a);
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a);
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelRec_(dictImpl_<T1, T2>* n, T1 k, bool* d, bool* b);
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n);
 template<typename T1, typename T2> void dictToBinRec_(type_(Array_<uint8_t>) a, dictImpl_<T1, T2>* d);
 template<typename T1, typename T2> void dictFreeRec_(dictImpl_<T1, T2>* n);
@@ -87,10 +88,17 @@ template<typename T1, typename T2> struct Dict_ {
 	}
 	int64_t Len() { return L; }
 	void Add(T1 k, T2 v) {
-		bool a;
-		B = dictAdd_<T1, T2>(B, k, v, &a);
+		bool a = false;
+		B = dictAddRec_<T1, T2>(B, k, v, &a);
+		B->R = false;
 		if (a)
 			L++;
+	}
+	void Del(T1 k) {
+		bool d = false, b = false;
+		B = dictDelRec_<T1, T2>(B, k, &d, &b);
+		if (d)
+			L--;
 	}
 	int64_t L;
 	dictImpl_<T1, T2>* B;
@@ -904,6 +912,24 @@ template<typename T> type_(Array_<T>) repeat_(type_(Array_<T>) a, int64_t n) {
 	return r;
 }
 
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictRotateLeft_(dictImpl_<T1, T2>* n)
+{
+	dictImpl_<T1, T2>* r = n->CR;
+	n->CR = r->CL;
+	r->CL = n;
+	r->R = n->R;
+	n->R = true;
+	return r;
+}
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictRotateRight_(dictImpl_<T1, T2>* n)
+{
+	dictImpl_<T1, T2>* l = n->CL;
+	n->CL = l->CR;
+	l->CR = n;
+	l->R = n->R;
+	n->R = true;
+	return l;
+}
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, T2>* n, T1 k, T2 v, bool* a) {
 	if (n == nullptr)
 	{
@@ -923,33 +949,113 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictAddRec_(dictImpl_<T1, 
 			n->CR = dictAddRec_<T1, T2>(n->CR, k, v, a);
 	}
 	if (n->CR != nullptr && n->CR->R)
-	{
-		dictImpl_<T1, T2>* r = n->CR;
-		n->CR = r->CL;
-		r->CL = n;
-		r->R = n->R;
-		n->R = true;
-		n = r;
-	}
+		n = dictRotateLeft_<T1, T2>(n);
 	if (n->CL != nullptr && n->CL->R && n->CL->CL != nullptr && n->CL->CL->R)
 	{
-		dictImpl_<T1, T2>* l = n->CL;
-		n->CL = l->CR;
-		l->CR = n;
-		l->R = n->R;
-		n->R = true;
-		n = l;
+		n = dictRotateRight_<T1, T2>(n);
 		n->R = true;
 		n->CL->R = false;
 		n->CR->R = false;
 	}
 	return n;
 }
-template<typename T1, typename T2> dictImpl_<T1, T2>* dictAdd_(dictImpl_<T1, T2>* r, T1 k, T2 v, bool* a) {
-	*a = false;
-	dictImpl_<T1, T2>* n = dictAddRec_(r, k, v, a);
-	n->R = false;
+template<typename T1, typename T2> dictImpl_<T1, T2>* balanceLeft_(dictImpl_<T1, T2>* n, bool* b)
+{
+	if (*b)
+		return n;
+	if (/*n->CR != nullptr && n->CR->CL != nullptr &&*/ !n->CR->CL->R)
+	{
+		n = dictRotateLeft_<T1, T2>(n);
+		if (!n->R)
+			return n;
+		n->R = false;
+	}
+	else
+	{
+		n->CR = dictRotateRight_<T1, T2>(n->CR);
+		n = dictRotateLeft_<T1, T2>(n);
+		n->CL->R = false;
+		n->CR->R = false;
+	}
+	*b = true;
 	return n;
+}
+template<typename T1, typename T2> dictImpl_<T1, T2>* balanceRight_(dictImpl_<T1, T2>* n, bool* b)
+{
+	if (*b)
+		return n;
+	if (/*n->CL != nullptr && n->CL->CL != nullptr &&*/ !n->CL->CL->R)
+	{
+		if (!n->CL->R)
+		{
+			n->CL->R = true;
+			if (n->R)
+				return n;
+			n->R = false;
+		}
+		else if (/*n->CL != nullptr && n->CL->CR != nullptr && n->CL->CR->CL != nullptr &&*/ !n->CL->CR->CL->R)
+		{
+			n = dictRotateRight_<T1, T2>(n);
+			n->CR->R = false;
+			n->CR->CL->R = true;
+		}
+		else
+		{
+			n->CL = dictRotateLeft_<T1, T2>(n->CL);
+			n = dictRotateRight_<T1, T2>(n);
+			n->CR->R = false;
+			n->CL->CR->R = false;
+		}
+	}
+	else
+	{
+		n = dictRotateRight_<T1, T2>(n);
+		n->CL->R = false;
+		n->CR->R = false;
+	}
+	*b = true;
+	return n;
+}
+template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelRec_(dictImpl_<T1, T2>* n, T1 k, bool* d, bool* b) {
+	if (n == nullptr)
+	{
+		*b = true;
+		return nullptr;
+	}
+	int64_t c = cmp_(k, n->K);
+	if (c == 0)
+	{
+		if (n->CL == nullptr && n->CR == nullptr)
+		{
+			*b = n->R;
+			delPrim_(n);
+			*d = true;
+			return nullptr;
+		}
+		else if (n->CR == nullptr)
+		{
+			n->CL->R = false;
+			*b = true;
+			dictImpl_<T1, T2>* r = n->CL;
+			delPrim_(n);
+			*d = true;
+			return r;
+		}
+		dictImpl_<T1, T2>* p = n->CR;
+		while (p->CL != nullptr)
+			p = p->CL;
+		n->K = p->K;
+		n->V = p->V;
+		n->CR = dictDelRec_<T1, T2>(n->CR, n->K, d, b);
+		return balanceRight_<T1, T2>(n, b);
+	}
+	if (c < 0)
+	{
+		n->CL = dictDelRec_<T1, T2>(n->CL, k, d, b);
+		return balanceLeft_<T1, T2>(n, b);
+	}
+	n->CR = dictDelRec_<T1, T2>(n->CR, k, d, b);
+	return balanceRight_<T1, T2>(n, b);
 }
 template<typename T1, typename T2> dictImpl_<T1, T2>* dictCopyRec_(dictImpl_<T1, T2>* n) {
 	if (n == nullptr)
