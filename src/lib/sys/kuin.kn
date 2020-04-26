@@ -165,7 +165,28 @@ end func
 func[d0000.knd, __any]_delNext(me_: int, type: []int)
 #cpp,web
 func[__any]_delNext(me_: int, type: []int)
-	; TODO:
+#cpp
+	if(dbg)
+		excode "if(`0`->I==`0`->B.end())throw 0xe917000a;\n"
+	end if
+	excode "auto n_=`0`->I;\n"
+	excode "++n_;\n"
+	if(dbg)
+		excode "if(n_==`0`->B.end())throw 0xe917000a;\n"
+	end if
+	excode "`0`->B.erase(n_);\n"
+#web
+	if(dbg)
+		excode "if(`0`.P==null)throw 0xe917000a;\n"
+	end if
+	excode "let n_=`0`.P.N;\n"
+	if(dbg)
+		excode "if(n_==null)throw 0xe917000a;\n"
+	end if
+	excode "let m_=n_.N;\n"
+	excode "`0`.P.N=m_;\n"
+	excode "if(m_==null)`0`->T=`0`.P;else m_.P=`0`.P;\n"
+	excode "`0`.L--;\n"
 #any
 end func
 
@@ -196,7 +217,25 @@ end func
 func[d0000.knd, __any, __tch]_exist(me_: int, type: []int, key: int): bool
 #cpp,web
 func[__any, __tch, __raw, exist]_exist(me_: int, type: []int, key: int): bool
-	; TODO:
+#cpp
+	excode "auto n_=`0`->B;\n"
+	excode "while(n_!=nullptr){\n"
+	excode "int64_t c_=cmp_(`2`, n_->K);\n"
+	excode "if(c_==0)return true;\n"
+	excode "if(c_<0)n_=n_->CL;else n_=n_->CR;\n"
+	excode "}\n"
+	excode "return false;\n"
+#web
+	if(dbg)
+		excode "if(`2`===null)throw 0xc0000005;\n"
+	end if
+	excode "let n_=`0`.B,m_=CM_(`1`[1]);\n"
+	excode "while(n_!=null){\n"
+	excode "let c_=m_(`2`,n_.K);\n"
+	excode "if(c_==0)return true;\n"
+	excode "if(c_<0)n_=n_.CL;else n_=n_.CR;\n"
+	excode "}\n"
+	excode "return false;\n"
 #any
 end func
 
@@ -297,7 +336,21 @@ end func
 func[d0000.knd, __any, __tch]_findLastList(me_: int, type: []int, item: int): bool
 #cpp,web
 func[__any, __tch]_findLastList(me_: int, type: []int, item: int): bool
-	; TODO:
+#cpp
+	excode "for(;;){\n"
+	excode "auto c_=`0`->I;\n"
+	excode "if(c_==`0`->B.end())return false;\n"
+	excode "if(cmp_(*c_,`2`)==0)return true;\n"
+	excode "if(`0`->I==`0`->B.begin())`0`->I=`0`->B.end();else --`0`->I;\n"
+	excode "}\n"
+#web
+	excode "let m_=CM_(`1`[1]);\n"
+	excode "for(;;){\n"
+	excode "let c_=`0`.P;\n"
+	excode "if(c_==null)return false;\n"
+	excode "if(m_(`0`.P.I,`2`)==0)return true;\n"
+	excode "`0`.P=c_.P;\n"
+	excode "}\n"
 #any
 end func
 
@@ -305,11 +358,30 @@ end func
 func[d0000.knd, __any, __tch]_findList(me_: int, type: []int, item: int): bool
 #cpp,web
 func[__any, __tch]_findList(me_: int, type: []int, item: int): bool
-	; TODO:
+#cpp
+	excode "for(;;){\n"
+	excode "auto c_=`0`->I;\n"
+	excode "if(c_==`0`->B.end())return false;\n"
+	excode "if(cmp_(*c_,`2`)==0)return true;\n"
+	excode "++`0`->I;\n"
+	excode "}\n"
+#web
+	excode "let m_=CM_(`1`[1]);\n"
+	excode "for(;;){\n"
+	excode "let c_=`0`.P;\n"
+	excode "if(c_==null)return false;\n"
+	excode "if(m_(`0`.P.I,`2`)==0)return true;\n"
+	excode "`0`.P=c_.N;\n"
+	excode "}\n"
 #any
 end func
 
 func _findStr(me_: []char, pattern: []char, start: int): int
+	if(dbg)
+		if(pattern =& null)
+			throw 0xE9170006
+		end if
+	end if
 	for i(start, ^me_ - ^pattern)
 		for j(0, ^pattern - 1)
 			if(me_[i + j] <> pattern[j])
@@ -322,6 +394,11 @@ func _findStr(me_: []char, pattern: []char, start: int): int
 end func
 
 func _findStrLast(me_: []char, pattern: []char, start: int): int
+	if(dbg)
+		if(pattern =& null)
+			throw 0xE9170006
+		end if
+	end if
 	for i(start < ^me_ - ^pattern ?(start, ^me_ - ^pattern), 0, -1)
 		for j(0, ^pattern - 1)
 			if(me_[i + j] <> pattern[j])
@@ -362,6 +439,9 @@ func[__any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &boo
 #cpp
 	excode "return dictSearch_(`0`->B,`2`,`3`);\n"
 #web
+	if(dbg)
+		excode "if(`2`===null)throw 0xc0000005;\n"
+	end if
 	excode "let n_=`0`.B,m_=CM_(`1`[1]);\n"
 	excode "while(n_!=null){\n"
 	excode "let c_=m_(`2`,n_.K);\n"
@@ -369,22 +449,7 @@ func[__any, __tch, __rch]_getDict(me_: int, type: []int, key: int, existed: &boo
 	excode "if(c_<0)n_=n_.CL;else n_=n_.CR;\n"
 	excode "}\n"
 	excode "`3`.$=false;\n"
-	excode "switch(DT_(`1`.slice(1))[0]){\n"
-	excode "case 0x00:\n"
-	excode "case 0x07:\n"
-	excode "case 0x09:\n"
-	excode "return new Uint32Array(2);\n"
-	excode "case 0x01:\n"
-	excode "case 0x02:\n"
-	excode "case 0x04:\n"
-	excode "case 0x05:\n"
-	excode "case 0x06:\n"
-	excode "return 0;\n"
-	excode "case 0x03:\n"
-	excode "return false;\n"
-	excode "default:\n"
-	excode "return null;\n"
-	excode "}\n"
+	excode "return DV_(DT_(`1`.slice(1))[0]);\n"
 #any
 end func
 
@@ -393,8 +458,14 @@ func[d0000.knd, __any, __rch]_getList(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch]_getList(me_: int, type: []int): int
 #cpp
+	if(dbg)
+		excode "if(`0`->I==`0`->B.end())throw 0xe917000a;\n"
+	end if
 	excode "return *`0`->I;\n"
 #web
+	if(dbg)
+		excode "if(`0`.P==null)throw 0xe917000a;\n"
+	end if
 	excode "return `0`.P.I;\n"
 #any
 end func
@@ -403,7 +474,48 @@ end func
 func[d0000.knd, __any, __rch]_getOffset(me_: int, type: []int, offset: int): int
 #cpp,web
 func[__any, __rch]_getOffset(me_: int, type: []int, offset: int): int
-	; TODO:
+#cpp
+	excode "auto p_=`0`->I;\n"
+	excode "if(`2`>=0){\n"
+	excode "for(int64_t i_=0;i_<`2`;i_++){\n"
+	if(dbg)
+		excode "if(p_==`0`->B.end())throw 0xe917000a;\n"
+	end if
+	excode "++p_;\n"
+	excode "}\n"
+	excode "}else{\n"
+	excode "for(int64_t i_=0;i_>`2`;i_--){\n"
+	if(dbg)
+		excode "if(p_==`0`->B.end())throw 0xe917000a;\n"
+	end if
+	excode "if(p_==`0`->B.begin())p_=`0`->B.end();else --p_;\n"
+	excode "}\n"
+	excode "}\n"
+	if(dbg)
+		excode "if(p_==`0`->B.end())throw 0xe917000a;\n"
+	end if
+	excode "return *p_;\n"
+#web
+	excode "let p_=`0`.P;\n"
+	excode "if(`2`>=0){\n"
+	excode "for(let i_=0;i_<`2`;i_++){\n"
+	if(dbg)
+		excode "if(p_==null)throw 0xe917000a;\n"
+	end if
+	excode "p_=p_.N;\n"
+	excode "}\n"
+	excode "}else{\n"
+	excode "for(let i_=0;i_>`2`;i_--){\n"
+	if(dbg)
+		excode "if(p_==null)throw 0xe917000a;\n"
+	end if
+	excode "p_=p_.P;\n"
+	excode "}\n"
+	excode "}\n"
+	if(dbg)
+		excode "if(p_==null)throw 0xe917000a;\n"
+	end if
+	excode "return p_.I;\n"
 #any
 end func
 
@@ -426,10 +538,16 @@ func[d0000.knd, __any, __rch]_getQueue(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch]_getQueue(me_: int, type: []int): int
 #cpp
+	if(dbg)
+		excode "if(`0`->B.empty())throw 0xe917000a;\n"
+	end if
 	excode "R_ r_=`0`->B.front();\n"
 	excode "`0`->B.pop();\n"
 	excode "return r_;\n"
 #web
+	if(dbg)
+		excode "if(`0`.length==0)throw 0xe917000a;\n"
+	end if
 	excode "return `0`.shift();\n"
 #any
 end func
@@ -439,10 +557,16 @@ func[d0000.knd, __any, __rch]_getStack(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch]_getStack(me_: int, type: []int): int
 #cpp
+	if(dbg)
+		excode "if(`0`->B.empty())throw 0xe917000a;\n"
+	end if
 	excode "R_ r_=`0`->B.top();\n"
 	excode "`0`->B.pop();\n"
 	excode "return r_;\n"
 #web
+	if(dbg)
+		excode "if(`0`.length==0)throw 0xe917000a;\n"
+	end if
 	excode "return `0`.pop();\n"
 #any
 end func
@@ -464,6 +588,7 @@ func[d0000.knd, __any]_idx(me_: int, type: []int): int
 func[__any]_idx(me_: int, type: []int): int
 #cpp
 	excode "int64_t i_=0;\n"
+	excode "if(`0`->I==`0`->B.end())return -1;\n"
 	excode "for(auto t_=`0`->B.begin();t_!=`0`->B.end();++t_){\n"
 	excode "if(t_==`0`->I)return i_;\n"
 	excode "i_++;\n"
@@ -486,8 +611,14 @@ func[d0000.knd, __any, __tch]_ins(me_: int, type: []int, item: int)
 #cpp,web
 func[__any, __tch]_ins(me_: int, type: []int, item: int)
 #cpp
+	if(dbg)
+		excode "if(`0`->I==`0`->B.end())throw 0xe917000a;\n"
+	end if
 	excode "`0`->B.insert(`0`->I,`2`);\n"
 #web
+	if(dbg)
+		excode "if(`0`.P==null)throw 0xe917000a;\n"
+	end if
 	excode "let p_=`0`.P;\n"
 	excode "let n_={P:p_.P,N:p_,I:`2`}\n"
 	excode "if(p_.P==null)`0`.H=n_;else p_.P.N=n_;\n"
@@ -521,7 +652,6 @@ func _join(me_: [][]char, delimiter: []char): []char
 end func
 
 func _lower(me_: []char): []char
-	assert me_ <>& null
 	var s: []char :: #[^me_]char
 	for i(0, ^me_ - 1)
 		if('A' <= me_[i] & me_[i] <= 'Z')
@@ -537,7 +667,31 @@ end func
 func[d0000.knd, __any, __rch]_max(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
-	; TODO:
+#cpp
+	excode "int64_t l_=`0`->L;\n"
+	excode "T_ r_;\n"
+	excode "if(l_==0)return(T_)0;\n"
+	excode "for(int64_t i_=0;i_<l_;i_++){\n"
+	excode "if(i_==0||cmp_(r_,`0`->B[i_])<0)r_=`0`->B[i_];\n"
+	excode "}\n"
+	excode "return r_;\n"
+#web
+	excode "if(`1`[1]==0x02){\n"
+	excode "let l_=`0`.S.length,r_;\n"
+	excode "if(l_==0)return DV_(`1`[1]);\n"
+	excode "for(let i_=0;i_<l_;i_++){\n"
+	excode "let c_=`0`.S.charCodeAt(i_);\n"
+	excode "if(i_==0||r_<c_)r_=c_;\n"
+	excode "}\n"
+	excode "return r_;\n"
+	excode "}else{\n"
+	excode "let m_=CM_(`1`[1]),l_=`0`.length,r_;\n"
+	excode "if(l_==0)return DV_(`1`[1]);\n"
+	excode "for(let i_=0;i_<l_;i_++){\n"
+	excode "if(i_==0||m_(r_,`0`[i_])<0)r_=`0`[i_];\n"
+	excode "}\n"
+	excode "return r_;\n"
+	excode "}\n"
 #any
 end func
 
@@ -545,7 +699,31 @@ end func
 func[d0000.knd, __any, __rch]_min(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch, __raw, min]_min(me_: int, type: []int): int
-	; TODO:
+#cpp
+	excode "int64_t l_=`0`->L;\n"
+	excode "T_ r_;\n"
+	excode "if(l_==0)return(T_)0;\n"
+	excode "for(int64_t i_=0;i_<l_;i_++){\n"
+	excode "if(i_==0||cmp_(r_,`0`->B[i_])>0)r_=`0`->B[i_];\n"
+	excode "}\n"
+	excode "return r_;\n"
+#web
+	excode "if(`1`[1]==0x02){\n"
+	excode "let l_=`0`.S.length,r_;\n"
+	excode "if(l_==0)return DV_(`1`[1]);\n"
+	excode "for(let i_=0;i_<l_;i_++){\n"
+	excode "let c_=`0`.S.charCodeAt(i_);\n"
+	excode "if(i_==0||r_>c_)r_=c_;\n"
+	excode "}\n"
+	excode "return r_;\n"
+	excode "}else{\n"
+	excode "let m_=CM_(`1`[1]),l_=`0`.length,r_;\n"
+	excode "if(l_==0)return DV_(`1`[1]);\n"
+	excode "for(let i_=0;i_<l_;i_++){\n"
+	excode "if(i_==0||m_(r_,`0`[i_])>0)r_=`0`[i_];\n"
+	excode "}\n"
+	excode "return r_;\n"
+	excode "}\n"
 #any
 end func
 
@@ -589,8 +767,10 @@ func[d0000.knd, __any]_next(me_: int, type: []int)
 #cpp,web
 func[__any]_next(me_: int, type: []int)
 #cpp
+	excode "if(`0`->I==`0`->B.end())return;\n"
 	excode "++`0`->I;\n"
 #web
+	excode "if(`0`.P==null)return;\n"
 	excode "`0`.P=`0`.P.N;\n"
 #any
 end func
@@ -663,11 +843,13 @@ func[d0000.knd, __any]_prev(me_: int, type: []int)
 #cpp,web
 func[__any]_prev(me_: int, type: []int)
 #cpp
+	excode "if(`0`->I==`0`->B.end())return;\n"
 	excode "if(`0`->I==`0`->B.begin())\n"
 	excode "`0`->I=`0`->B.end();\n"
 	excode "else\n"
 	excode "--`0`->I;\n"
 #web
+	excode "if(`0`.P==null)return;\n"
 	excode "`0`.P=`0`.P.P;\n"
 #any
 end func
@@ -1068,7 +1250,6 @@ func _toStrFmtInt(me_: int, fmt: []char): []char
 end func
 
 func _trim(me_: []char): []char
-	assert me_ <>& null
 	var f: int :: -1
 	for i(0, ^me_ - 1)
 		var c: bit64 :: me_[i] $ bit64
@@ -1096,7 +1277,6 @@ func _trim(me_: []char): []char
 end func
 
 func _trimLeft(me_: []char): []char
-	assert me_ <>& null
 	var f: int :: -1
 	for i(0, ^me_ - 1)
 		var c: bit64 :: me_[i] $ bit64
@@ -1135,7 +1315,6 @@ func _trimRight(me_: []char): []char
 end func
 
 func _upper(me_: []char): []char
-	assert me_ <>& null
 	var s: []char :: #[^me_]char
 	for i(0, ^me_ - 1)
 		if('a' <= me_[i] & me_[i] <= 'z')

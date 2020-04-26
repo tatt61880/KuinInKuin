@@ -997,10 +997,10 @@ EXPORT void _delDict(void* me_, const U8* type, const void* key)
 EXPORT void _delNext(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, 0xe917000a);
 	void* ptr = *(void**)((U8*)me_ + 0x20);
 	void* next = *(void**)((U8*)ptr + 0x08);
-	THROWDBG(next == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(next == NULL, 0xe917000a);
 	void* next_next = *(void**)((U8*)next + 0x08);
 	*(void**)((U8*)ptr + 0x08) = next_next;
 	if (next_next == NULL)
@@ -1114,8 +1114,7 @@ EXPORT S64 _findArray(const void* me_, const U8* type, const void* item, S64 sta
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	S64 len = *(S64*)((U8*)me_ + 0x08);
 	if (start < -1 || len <= start)
 		return -1;
@@ -1139,8 +1138,7 @@ EXPORT S64 _findBin(const void* me_, const U8* type, const void* item)
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	S64 len = *(S64*)((U8*)me_ + 0x08);
 	U8* ptr = (U8*)me_ + 0x10;
 	S64 min = 0;
@@ -1167,8 +1165,7 @@ EXPORT S64 _findLastArray(const void* me_, const U8* type, const void* item, S64
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	S64 len = *(S64*)((U8*)me_ + 0x08);
 	if (start < -1 || len <= start)
 		return -1;
@@ -1192,20 +1189,18 @@ EXPORT Bool _findLastList(const void* me_, const U8* type, const void* item)
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	for (; ; )
 	{
 		void* cur = *(void**)((U8*)me_ + 0x20);
 		if (cur == NULL)
-			break;
+			return False;
 		void* value = NULL;
 		memcpy(&value, (U8*)cur + 0x10, size);
 		if (cmp(value, item) == 0)
 			return True;
 		*(void**)((U8*)me_ + 0x20) = *(void**)cur;
 	}
-	return False;
 }
 
 EXPORT Bool _findList(const void* me_, const U8* type, const void* item)
@@ -1213,20 +1208,18 @@ EXPORT Bool _findList(const void* me_, const U8* type, const void* item)
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	for (; ; )
 	{
 		void* cur = *(void**)((U8*)me_ + 0x20);
 		if (cur == NULL)
-			break;
+			return False;
 		void* value = NULL;
 		memcpy(&value, (U8*)cur + 0x10, size);
 		if (cmp(value, item) == 0)
 			return True;
 		*(void**)((U8*)me_ + 0x20) = *(void**)((U8*)cur + 0x08);
 	}
-	return False;
 }
 
 EXPORT Bool _forEach(void* me_, const U8* type, const void* callback, void* data)
@@ -1273,7 +1266,7 @@ EXPORT void* _getDict(void* me_, const U8* type, const void* key, Bool* existed)
 EXPORT void* _getList(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, 0xe917000a);
 	void* result = NULL;
 	Copy(&result, type[1], (U8*)*(void**)((U8*)me_ + 0x20) + 0x10);
 	return result;
@@ -1287,14 +1280,20 @@ EXPORT void* _getOffset(void* me_, const U8* type, S64 offset)
 	if (offset >= 0)
 	{
 		for (i = 0; i < offset; i++)
+		{
+			THROWDBG(ptr == NULL, 0xe917000a);
 			ptr = *(void**)((U8*)ptr + 0x08);
+		}
 	}
 	else
 	{
 		for (i = 0; i > offset; i--)
+		{
+			THROWDBG(ptr == NULL, 0xe917000a);
 			ptr = *(void**)ptr;
+		}
 	}
-	THROWDBG(ptr == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(ptr == NULL, 0xe917000a);
 	void* result = NULL;
 	Copy(&result, type[1], (U8*)ptr + 0x10);
 	return result;
@@ -1312,7 +1311,7 @@ EXPORT void* _getQueue(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	void* node = *(void**)((U8*)me_ + 0x10);
-	THROWDBG(node == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(node == NULL, 0xe917000a);
 	void* result = NULL;
 	Copy(&result, type[1], (U8*)node + 0x08);
 	*(void**)((U8*)me_ + 0x10) = *(void**)node;
@@ -1337,7 +1336,7 @@ EXPORT void* _getStack(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	void* node = *(void**)((U8*)me_ + 0x10);
-	THROWDBG(node == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(node == NULL, 0xe917000a);
 	void* result = NULL;
 	Copy(&result, type[1], (U8*)node + 0x08);
 	*(void**)((U8*)me_ + 0x10) = *(void**)node;
@@ -1385,7 +1384,7 @@ EXPORT S64 _idx(void* me_, const U8* type)
 EXPORT void _ins(void* me_, const U8* type, const void* item)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(*(void**)((U8*)me_ + 0x20) == NULL, 0xe917000a);
 	void* ptr = *(void**)((U8*)me_ + 0x20);
 	U8* node = (U8*)AllocMem(0x10 + GetSize(type[1]));
 	Copy(node + 0x10, type[1], &item);
@@ -1404,8 +1403,7 @@ EXPORT void* _max(const void* me_, const U8* type)
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	S64 len = *(S64*)((U8*)me_ + 0x08);
 	U8* ptr = (U8*)me_ + 0x10;
 	void* item = NULL;
@@ -1428,8 +1426,7 @@ EXPORT void* _min(const void* me_, const U8* type)
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	size_t size = GetSize(type[1]);
 	int(*cmp)(const void* a, const void* b) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	S64 len = *(S64*)((U8*)me_ + 0x08);
 	U8* ptr = (U8*)me_ + 0x10;
 	void* item = NULL;
@@ -1478,7 +1475,8 @@ EXPORT void _next(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	void* ptr = *(void**)((U8*)me_ + 0x20);
-	THROWDBG(ptr == NULL, EXCPT_ACCESS_VIOLATION);
+	if (ptr == NULL)
+		return;
 	UNUSED(type);
 	*(void**)((U8*)me_ + 0x20) = *(void**)((U8*)ptr + 0x08);
 }
@@ -1527,7 +1525,8 @@ EXPORT void _prev(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	void* ptr = *(void**)((U8*)me_ + 0x20);
-	THROWDBG(ptr == NULL, EXCPT_ACCESS_VIOLATION);
+	if (ptr == NULL)
+		return;
 	UNUSED(type);
 	*(void**)((U8*)me_ + 0x20) = *(void**)ptr;
 }
@@ -1672,8 +1671,7 @@ EXPORT void _sortArray(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	int(*cmp)(const void*, const void*) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	qsort((U8*)me_ + 0x10, (size_t) * (S64*)((U8*)me_ + 0x08), GetSize(type[1]), cmp);
 }
 
@@ -1681,8 +1679,7 @@ EXPORT void _sortList(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
 	int(*cmp)(const void*, const void*) = GetCmpFunc(type + 1);
-	if (cmp == NULL)
-		THROW(EXCPT_INVALID_CMP);
+	ASSERT(cmp != NULL);
 	size_t size = GetSize(type[1]);
 	S64 len = *(S64*)((U8*)me_ + 0x08);
 	void* buf = AllocMem((size_t)len * size);

@@ -1,4 +1,23 @@
 +func write(writer: file@Writer)
+	; Default values.
+	do writer.writeStr("function DV_(t){\n")
+	do writer.writeStr("switch(t){\n")
+	do writer.writeStr("case 0x00:\n")
+	do writer.writeStr("case 0x07:\n")
+	do writer.writeStr("case 0x09:\n")
+	do writer.writeStr("return new Uint32Array(2);\n")
+	do writer.writeStr("case 0x01:\n")
+	do writer.writeStr("case 0x02:\n")
+	do writer.writeStr("case 0x04:\n")
+	do writer.writeStr("case 0x05:\n")
+	do writer.writeStr("case 0x06:\n")
+	do writer.writeStr("return 0;\n")
+	do writer.writeStr("case 0x03:\n")
+	do writer.writeStr("return false;\n")
+	do writer.writeStr("default:\n")
+	do writer.writeStr("return null;\n")
+	do writer.writeStr("}\n")
+	
 	; Discard types to get the 'value' type of a dictionary.
 	do writer.writeStr("function DT_(t){\n")
 	do writer.writeStr("switch(t[0]){\n")

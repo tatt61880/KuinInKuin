@@ -5,6 +5,9 @@ var delimiters: []char :: " ,\n"
 	do @delimiters :: delimiters_
 end func
 
++func[d0000.knd, _flush]flush()
+end func
+
 +func input(): []char
 	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0

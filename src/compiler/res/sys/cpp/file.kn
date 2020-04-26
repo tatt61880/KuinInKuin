@@ -190,6 +190,10 @@ end class
 		excode "r_->F->close();\n"
 	end func
 	
+	+func flush()
+		; TODO:
+	end func
+
 	+func getPos(): int
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 		excode "return static_cast<int64_t>(r_->F->tellg());\n"

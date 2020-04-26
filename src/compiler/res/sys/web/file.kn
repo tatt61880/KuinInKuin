@@ -180,6 +180,10 @@ end class
 		excode "`0`.`.handle`.F=null;\n"
 	end func
 	
+	+func flush()
+		; TODO:
+	end func
+
 	+func getPos(): int
 		excode "let n_= `0`.`.handle`.I;\n"
 		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
