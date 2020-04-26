@@ -991,7 +991,7 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelMinRec_(dictImpl_<T
 {
 	if (n->CL == nullptr)
 		return nullptr;
-	if (n->CL != nullptr && !n->CL->R && !(n->CL->CL != nullptr && n->CL->CL->R))
+	if (!n->CL->R && !(n->CL->CL != nullptr && n->CL->CL->R))
 		n = dictMoveRedLeft_<T1, T2>(n);
 	n->CL = dictDelMinRec_<T1, T2>(n->CL);
 	return dictFixUp_<T1, T2>(n);
@@ -1020,7 +1020,6 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelRec_(dictImpl_<T1, 
 			dictImpl_<T1, T2>* p = n->CR;
 			while (p->CL != nullptr)
 				p = p->CL;
-			if (n == p) throw 0xe9170000;
 			n->K = p->K;
 			n->V = p->K;
 			n->CR = dictDelMinRec_<T1, T2>(n->CR);

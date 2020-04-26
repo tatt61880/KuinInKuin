@@ -45,7 +45,7 @@ static void* CatBin(S64 num, S64 writing_num, void** bins);
 static void* AddDictRecursion(void* node, const void* key, const void* item, int cmp_func(const void* a, const void* b), U8* key_type, U8* item_type, Bool* addition);
 static int(*GetCmpFunc(const U8* type))(const void* a, const void* b);
 static void Copy(void* dst, U8 type, const void* src);
-static void* DelDictRecursion(void* node, const void* key, int cmp_func(const void* a, const void* b), U8* key_type, U8* item_type, Bool* deleted, Bool* balanced);
+static void* DelDictRecursion(void* node, const void* key, int cmp_func(const void* a, const void* b), U8* key_type, U8* item_type, Bool* deleted);
 static Bool ForEachRecursion(void* ptr, const U8* child1, const U8* child2, const void* callback, void* data);
 static void ToArrayKeyDictRecursion(U8** buf, size_t key_size, void* node);
 static void ToArrayValueDictRecursion(U8** buf, size_t value_size, void* node);
@@ -59,8 +59,11 @@ static int CmpBit64(const void* a, const void* b);
 static int CmpStr(const void* a, const void* b);
 static void* DictRotateLeft(void* node);
 static void* DictRotateRight(void* node);
-static void* DelDictBalanceLeft(void* node, Bool* balanced);
-static void* DelDictBalanceRight(void* node, Bool* balanced);
+static void DictFlip(void* node);
+static void* DictFixUp(void* node);
+static void* DictMoveRedLeft(void* node);
+static void* DictMoveRedRight(void* node);
+static void* DictDelMinRec(void* node, U8* key_type, U8* item_type);
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -984,8 +987,9 @@ EXPORT void _delDict(void* me_, const U8* type, const void* key)
 	GetDictTypes(type, &child1, &child2);
 	THROWDBG(IsRef(*child1) && key == NULL, EXCPT_ACCESS_VIOLATION); // 'key' must not be 'null'.
 	Bool deleted = False;
-	Bool balanced = False;
-	*(void**)((U8*)me_ + 0x10) = DelDictRecursion(*(void**)((U8*)me_ + 0x10), key, GetCmpFunc(child1), child1, child2, &deleted, &balanced);
+	*(void**)((U8*)me_ + 0x10) = DelDictRecursion(*(void**)((U8*)me_ + 0x10), key, GetCmpFunc(child1), child1, child2, &deleted);
+	if (*(void**)((U8*)me_ + 0x10) != NULL)
+		*(Bool*)((U8*)*(void**)((U8*)me_ + 0x10) + 0x10) = False;
 	if (deleted)
 		(*(S64*)((U8*)me_ + 0x08))--;
 }
@@ -2293,39 +2297,28 @@ static void* AddDictRecursion(void* node, const void* key, const void* item, int
 		*addition = True;
 		return n;
 	}
+	int cmp = cmp_func(key, *(void**)((U8*)node + 0x18));
+	if (cmp == 0)
 	{
-		int cmp = cmp_func(key, *(void**)((U8*)node + 0x18));
-		if (cmp == 0)
+		void** ptr = (void**)((U8*)node + 0x20);
+		if (IsRef(*item_type) && *ptr != NULL)
 		{
-			void** ptr = (void**)((U8*)node + 0x20);
-			if (IsRef(*item_type) && *ptr != NULL)
-			{
-				if (item != NULL)
-					(*(S64*)item)++;
-				(*(S64*)*ptr)--;
-				if (*(S64*)*ptr == 0)
-					_freeSet(*ptr, item_type);
-			}
-			*ptr = (void*)item;
-			*addition = False;
-			return node;
+			if (item != NULL)
+				(*(S64*)item)++;
+			(*(S64*)*ptr)--;
+			if (*(S64*)*ptr == 0)
+				_freeSet(*ptr, item_type);
 		}
-		if (cmp < 0)
-			*(void**)node = AddDictRecursion(*(void**)node, key, item, cmp_func, key_type, item_type, addition);
-		else
-			*(void**)((U8*)node + 0x08) = AddDictRecursion(*(void**)((U8*)node + 0x08), key, item, cmp_func, key_type, item_type, addition);
+		*ptr = (void*)item;
+		*addition = False;
+		return node;
 	}
-	if (*(void**)((U8*)node + 0x08) != NULL && *(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10))
-		node = DictRotateLeft(node);
-	if (*(void**)node != NULL && *(Bool*)((U8*)*(void**)node + 0x10) && *(void**)*(void**)node != NULL && *(Bool*)((U8*)*(void**)*(void**)node + 0x10))
-	{
-		node = DictRotateRight(node);
-		*(Bool*)((U8*)node + 0x10) = True;
-		*(Bool*)((U8*)*(void**)node + 0x10) = False;
-		*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) = False;
-	}
+	if (cmp < 0)
+		*(void**)node = AddDictRecursion(*(void**)node, key, item, cmp_func, key_type, item_type, addition);
+	else
+		*(void**)((U8*)node + 0x08) = AddDictRecursion(*(void**)((U8*)node + 0x08), key, item, cmp_func, key_type, item_type, addition);
 	// '*addition' should have been set so far.
-	return node;
+	return DictFixUp(node);
 }
 
 static int(*GetCmpFunc(const U8* type))(const void* a, const void* b)
@@ -2366,77 +2359,50 @@ static void Copy(void* dst, U8 type, const void* src)
 		(*(S64*)*(void**)dst)++;
 }
 
-static void* DelDictRecursion(void* node, const void* key, int cmp_func(const void* a, const void* b), U8* key_type, U8* item_type, Bool* deleted, Bool* balanced)
+static void* DelDictRecursion(void* node, const void* key, int cmp_func(const void* a, const void* b), U8* key_type, U8* item_type, Bool* deleted)
 {
 	if (node == NULL)
-	{
-		*balanced = True;
 		return NULL;
-	}
-	int cmp = cmp_func(key, *(void**)((U8*)node + 0x18));
-	if (cmp == 0)
+	if (cmp_func(key, *(void**)((U8*)node + 0x18)) < 0)
 	{
-		if (*(void**)node == NULL && *(void**)((U8*)node + 0x08) == NULL)
+		if (*(void**)node != NULL && !*(Bool*)((U8*)*(void**)node + 0x10) && !(*(void**)*(void**)node != NULL && *(Bool*)((U8*)*(void**)*(void**)node + 0x10)))
+			node = DictMoveRedLeft(node);
+		*(void**)node = DelDictRecursion(*(void**)node, key, cmp_func, key_type, item_type, deleted);
+	}
+	else
+	{
+		if (*(void**)node != NULL && *(Bool*)((U8*)*(void**)node + 0x10))
+			node = DictRotateRight(node);
+		if (*(void**)((U8*)node + 0x08) != NULL && !*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) && !(*(void**)*(void**)((U8*)node + 0x08) != NULL && *(Bool*)((U8*)*(void**)*(void**)((U8*)node + 0x08) + 0x10)))
+			node = DictMoveRedRight(node);
+		if (cmp_func(key, *(void**)((U8*)node + 0x18)) == 0)
 		{
-			*balanced = *(Bool*)((U8*)node + 0x10);
-
-			if (IsRef(*key_type))
-			{
-				void* ptr2 = *(void**)((U8*)node + 0x18);
-				if (ptr2 != NULL)
-				{
-					(*(S64*)ptr2)--;
-					if (*(S64*)ptr2 == 0)
-						_freeSet(ptr2, key_type);
-				}
-			}
-			if (IsRef(*item_type))
-			{
-				void* ptr2 = *(void**)((U8*)node + 0x20);
-				if (ptr2 != NULL)
-				{
-					(*(S64*)ptr2)--;
-					if (*(S64*)ptr2 == 0)
-						_freeSet(ptr2, item_type);
-				}
-			}
-			FreeMem(node);
 			*deleted = True;
-
-			return NULL;
-		}
-		if (*(void**)((U8*)node + 0x08) == NULL)
-		{
-			*(Bool*)((U8*)*(void**)node + 0x10) = False;
-			*balanced = True;
-			void* result = *(void**)node;
-
-			if (IsRef(*key_type))
+			if (*(void**)((U8*)node + 0x08) == NULL)
 			{
-				void* ptr2 = *(void**)((U8*)node + 0x18);
-				if (ptr2 != NULL)
+				if (IsRef(*key_type))
 				{
-					(*(S64*)ptr2)--;
-					if (*(S64*)ptr2 == 0)
-						_freeSet(ptr2, key_type);
+					void* ptr2 = *(void**)((U8*)node + 0x18);
+					if (ptr2 != NULL)
+					{
+						(*(S64*)ptr2)--;
+						if (*(S64*)ptr2 == 0)
+							_freeSet(ptr2, key_type);
+					}
 				}
-			}
-			if (IsRef(*item_type))
-			{
-				void* ptr2 = *(void**)((U8*)node + 0x20);
-				if (ptr2 != NULL)
+				if (IsRef(*item_type))
 				{
-					(*(S64*)ptr2)--;
-					if (*(S64*)ptr2 == 0)
-						_freeSet(ptr2, item_type);
+					void* ptr2 = *(void**)((U8*)node + 0x20);
+					if (ptr2 != NULL)
+					{
+						(*(S64*)ptr2)--;
+						if (*(S64*)ptr2 == 0)
+							_freeSet(ptr2, item_type);
+					}
 				}
+				FreeMem(node);
+				return NULL;
 			}
-			FreeMem(node);
-			*deleted = True;
-
-			return result;
-		}
-		{
 			void* ptr = *(void**)((U8*)node + 0x08);
 			while (*(void**)ptr != NULL)
 				ptr = *(void**)ptr;
@@ -2464,17 +2430,12 @@ static void* DelDictRecursion(void* node, const void* key, int cmp_func(const vo
 			*(void**)((U8*)node + 0x18) = NULL;
 			Copy((U8*)node + 0x18, *key_type, (U8*)ptr + 0x18);
 			Copy((U8*)node + 0x20, *item_type, (U8*)ptr + 0x20);
+			*(void**)((U8*)node + 0x08) = DictDelMinRec(*(void**)((U8*)node + 0x08), key_type, item_type);
 		}
-		*(void**)((U8*)node + 0x08) = DelDictRecursion(*(void**)((U8*)node + 0x08), *(void**)((U8*)node + 0x18), cmp_func, key_type, item_type, deleted, balanced);
-		return DelDictBalanceRight(node, balanced);
+		else
+			*(void**)((U8*)node + 0x08) = DelDictRecursion(*(void**)((U8*)node + 0x08), key, cmp_func, key_type, item_type, deleted);
 	}
-	if (cmp < 0)
-	{
-		*(void**)node = DelDictRecursion(*(void**)node, key, cmp_func, key_type, item_type, deleted, balanced);
-		return DelDictBalanceLeft(node, balanced);
-	}
-	*(void**)((U8*)node + 0x08) = DelDictRecursion(*(void**)((U8*)node + 0x08), key, cmp_func, key_type, item_type, deleted, balanced);
-	return DelDictBalanceRight(node, balanced);
+	return DictFixUp(node);
 }
 
 static Bool ForEachRecursion(void* ptr, const U8* child1, const U8* child2, const void* callback, void* data)
@@ -2600,61 +2561,76 @@ static void* DictRotateRight(void* node)
 	return l;
 }
 
-static void* DelDictBalanceLeft(void* node, Bool* balanced)
+static void DictFlip(void* node)
 {
-	if (*balanced)
-		return node;
-	if (*(void**)((U8*)node + 0x08) != NULL && *(void**)*(void**)((U8*)node + 0x08) != NULL && !*(Bool*)((U8*)*(void**)*(void**)((U8*)node + 0x08) + 0x10))
-	{
+	*(Bool*)((U8*)node + 0x10) = !*(Bool*)((U8*)node + 0x10);
+	*(Bool*)((U8*)*(void**)node + 0x10) = !*(Bool*)((U8*)*(void**)node + 0x10);
+	*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) = !*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10);
+}
+
+static void* DictFixUp(void* node)
+{
+	if (*(void**)((U8*)node + 0x08) != NULL && *(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10))
 		node = DictRotateLeft(node);
-		if (!*(Bool*)((U8*)node + 0x10))
-			return node;
-		*(Bool*)((U8*)node + 0x10) = False;
-	}
-	else
-	{
-		*(void**)((U8*)node + 0x08) = DictRotateRight(*(void**)((U8*)node + 0x08));
-		node = DictRotateLeft(node);
-		*(Bool*)((U8*)*(void**)node + 0x10) = False;
-		*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) = False;
-	}
-	*balanced = True;
+	if (*(void**)node != NULL && *(Bool*)((U8*)*(void**)node + 0x10) && *(void**)*(void**)node != NULL && *(Bool*)((U8*)*(void**)*(void**)node + 0x10))
+		node = DictRotateRight(node);
+	if (*(void**)node != NULL && *(Bool*)((U8*)*(void**)node + 0x10) && *(void**)((U8*)node + 0x08) != NULL && *(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10))
+		DictFlip(node);
 	return node;
 }
 
-static void* DelDictBalanceRight(void* node, Bool* balanced)
+static void* DictMoveRedLeft(void* node)
 {
-	if (*balanced)
-		return node;
-	if (*(void**)node != NULL && *(void**)*(void**)node != NULL && !*(Bool*)((U8*)*(void**)*(void**)node + 0x10))
+	DictFlip(node);
+	if (*(void**)*(void**)((U8*)node + 0x08) != NULL && *(Bool*)((U8*)*(void**)*(void**)((U8*)node + 0x08) + 0x10))
 	{
-		if (!*(Bool*)((U8*)*(void**)node + 0x10))
-		{
-			*(Bool*)((U8*)*(void**)node + 0x10) = True;
-			if (!*(Bool*)((U8*)node + 0x10))
-				return node;
-			*(Bool*)((U8*)node + 0x10) = False;
-		}
-		else if (*(void**)node != NULL && *(void**)((U8*)*(void**)node + 0x08) != NULL && *(void**)*(void**)((U8*)*(void**)node + 0x08) != NULL && !*(Bool*)((U8*)*(void**)*(void**)((U8*)*(void**)node + 0x08) + 0x10))
-		{
-			node = DictRotateRight(node);
-			*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) = False;
-			*(Bool*)((U8*)*(void**)*(void**)((U8*)node + 0x08) + 0x10) = True;
-		}
-		else
-		{
-			*(void**)node = DictRotateLeft(*(void**)node);
-			node = DictRotateRight(node);
-			*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) = False;
-			*(Bool*)((U8*)*(void**)((U8*)*(void**)node + 0x08) + 0x10) = False;
-		}
+		*(void**)((U8*)node + 0x08) = DictRotateRight(*(void**)((U8*)node + 0x08));
+		node = DictRotateLeft(node);
+		DictFlip(node);
 	}
-	else
+	return node;
+}
+
+static void* DictMoveRedRight(void* node)
+{
+	DictFlip(node);
+	if (*(void**)*(void**)node != NULL && *(Bool*)((U8*)*(void**)*(void**)node + 0x10))
 	{
 		node = DictRotateRight(node);
-		*(Bool*)((U8*)*(void**)node + 0x10) = False;
-		*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) = False;
+		DictFlip(node);
 	}
-	*balanced = True;
 	return node;
+}
+
+static void* DictDelMinRec(void* node, U8* key_type, U8* item_type)
+{
+	if (*(void**)node == NULL)
+	{
+		if (IsRef(*key_type))
+		{
+			void* ptr2 = *(void**)((U8*)node + 0x18);
+			if (ptr2 != NULL)
+			{
+				(*(S64*)ptr2)--;
+				if (*(S64*)ptr2 == 0)
+					_freeSet(ptr2, key_type);
+			}
+		}
+		if (IsRef(*item_type))
+		{
+			void* ptr2 = *(void**)((U8*)node + 0x20);
+			if (ptr2 != NULL)
+			{
+				(*(S64*)ptr2)--;
+				if (*(S64*)ptr2 == 0)
+					_freeSet(ptr2, item_type);
+			}
+		}
+		FreeMem(node);
+		return NULL;
+	}
+	if (!*(Bool*)((U8*)*(void**)node + 0x10) && !(*(void**)*(void**)node != NULL && *(Bool*)((U8*)*(void**)*(void**)node + 0x10)))
+		node = DictMoveRedLeft(node);
+	*(void**)node = DictDelMinRec(*(void**)node, key_type, item_type);
+	return DictFixUp(node);
 }
