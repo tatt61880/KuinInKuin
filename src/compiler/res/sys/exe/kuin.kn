@@ -68,30 +68,6 @@ end func
 func[d0000.knd, __any, __tme, __rme]_and(me_: int, type: []int, n: int): int
 end func
 
-func _clampFloat(me_: float, min: float, max: float): float
-	ret me_ > max ?(max, me_ < min ?(min, me_))
-end func
-
-func _clampInt(me_: int, min: int, max: int): int
-	ret me_ > max ?(max, me_ < min ?(min, me_))
-end func
-
-func _clampMaxFloat(me_: float, max: float): float
-	ret me_ > max ?(max, me_)
-end func
-
-func _clampMaxInt(me_: int, max: int): int
-	ret me_ > max ?(max, me_)
-end func
-
-func _clampMinFloat(me_: float, min: float): float
-	ret me_ < min ?(min, me_)
-end func
-
-func _clampMinInt(me_: int, min: int): int
-	ret me_ < min ?(min, me_)
-end func
-
 func[d0000.knd, __any]_del(me_: int, type: []int)
 end func
 

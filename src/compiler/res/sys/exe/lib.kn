@@ -184,6 +184,24 @@ end func
 	ret false
 end func
 
+func clampFloat(x: float, min: float, max: float): float
+	if(dbg)
+		if(min > max)
+			throw 0xE9170006
+		end if
+	end if
+	ret x > max ?(max, x < min ?(min, x))
+end func
+
+func clamp(x: int, min: int, max: int): int
+	if(dbg)
+		if(min > max)
+			throw 0xE9170006
+		end if
+	end if
+	ret x > max ?(max, x < min ?(min, x))
+end func
+
 +func[d0000.knd, _cmdLine]cmdLine(): [][]char
 end func
 
@@ -391,8 +409,24 @@ end func
 	ret - 24 <= diff & diff <= 24
 end func
 
-func shuffle(n: int): []int
-	; TODO:
++func shuffle(n: int): []int
+	if(dbg)
+		if(n < 0)
+			throw 0xE9170006
+		end if
+	end if
+	var a: []int :: #[n]int
+	for i(0, n - 1)
+		do a[i] :: i
+	end for
+	for i(0, n - 1)
+		var r: int :: @rnd(i, n - 1)
+		if(i = r)
+			skip i
+		end if
+		do a[i] :$ a[r]
+	end for
+	ret a
 end func
 
 +func[d0000.knd, _sin]sin(x: float): float

@@ -128,38 +128,20 @@ func[__any, __tme, __rme]_and(me_: int, type: []int, n: int): int
 #any
 end func
 
-func _clampFloat(me_: float, min: float, max: float): float
-	ret me_ > max ?(max, me_ < min ?(min, me_))
-end func
-
-func _clampInt(me_: int, min: int, max: int): int
-	ret me_ > max ?(max, me_ < min ?(min, me_))
-end func
-
-func _clampMaxFloat(me_: float, max: float): float
-	ret me_ > max ?(max, me_)
-end func
-
-func _clampMaxInt(me_: int, max: int): int
-	ret me_ > max ?(max, me_)
-end func
-
-func _clampMinFloat(me_: float, min: float): float
-	ret me_ < min ?(min, me_)
-end func
-
-func _clampMinInt(me_: int, min: int): int
-	ret me_ < min ?(min, me_)
-end func
-
 #exe
 func[d0000.knd, __any]_del(me_: int, type: []int)
 #cpp,web
 func[__any]_del(me_: int, type: []int)
 #cpp
+	if(dbg)
+		excode "if(`0`->I==`0`->B.end())throw 0xe917000a;\n"
+	end if
 	excode "auto i_=`0`->I++;\n"
 	excode "`0`->B.erase(i_);\n"
 #web
+	if(dbg)
+		excode "if(`0`.P==null)throw 0xe917000a;\n"
+	end if
 	excode "let p_=`0`.P;\n"
 	excode "if(p_.P==null)`0`.H=p_.N;else p_.P.N=p_.N;\n"
 	excode "if(p_.N==null)`0`.T=p_.P;else p_.N.P=p_.P;\n"
@@ -172,7 +154,10 @@ end func
 func[d0000.knd, __any, __tch]_delDict(me_: int, type: []int, key: int)
 #cpp,web
 func[__any, __tch]_delDict(me_: int, type: []int, key: int)
-	; TODO:
+#cpp
+	excode "`0`->Del(`2`);\n"
+#web
+	excode "DD_(`0`,`1`,`2`);\n"
 #any
 end func
 
