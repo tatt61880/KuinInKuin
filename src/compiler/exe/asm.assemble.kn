@@ -635,7 +635,7 @@ func callApi(asms: list<@Asm>, dllName: []char, funcName: []char)
 	
 	func strToBin(str: []char): []bit8
 		var r: []bit8 :: #[^str]bit8
-		for i(0, ^r)
+		for i(0, ^r - 1)
 			do r[i] :: str[i] $ bit8
 		end for
 		ret r

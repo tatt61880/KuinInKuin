@@ -7,6 +7,18 @@ rem Kuin2.kn ->[Kuin1.exe]-> Kuin2.exe
 
 rem ---------------------------------------------------------------------------
 
+.\output\kuin.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_exe" -s "%~dp0../src/compiler/res/sys/" -e exe
+
+.\output\kuin_exe.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_exe2" -s "%~dp0../src/compiler/res/sys/" -e exe
+
+.\output\kuin_exe2.exe -i "%~dp0test_data/test.kn" -o "%~dp0output/test_kuin_exe" -s "%~dp0../src/compiler/res/sys/" -e exe
+
+.\output\test_kuin_exe.exe > .\output\test_kuin_exe_output.txt
+fc /N "%~dp0output\test_kuin_exe_output.txt" "%~dp0output\test_kuin_exe_correct.txt"
+pause
+
+rem ---------------------------------------------------------------------------
+
 rem Kuin2.kn ->[Kuin2.exe]-> Kuin2.cpp
 .\output\kuin.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_cpp" -s "%~dp0../src/compiler/res/sys/" -e cpp
 

@@ -55,7 +55,10 @@ template<typename T> struct Array_ {
 		return r;
 	}
 	int64_t Len() { return L; }
-	T& At(int64_t n) { return B[n]; }
+	T& At(int64_t n) {
+		if (n < 0 || n >= L) throw 0xe9170002;
+		return B[n];
+	}
 	int64_t L;
 	T* B;
 };
