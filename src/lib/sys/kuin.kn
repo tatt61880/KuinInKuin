@@ -667,7 +667,7 @@ func[d0000.knd, __any, __rch]_max(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
 #cpp
-	excode "using TI_=decltype(*`0`->B);
+	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
 	excode "TI_ r_;\n"
 	excode "if(l_==0)return(TI_)0;\n"
@@ -700,7 +700,7 @@ func[d0000.knd, __any, __rch]_min(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch, __raw, min]_min(me_: int, type: []int): int
 #cpp
-	excode "using TI_=decltype(*`0`->B);
+	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
 	excode "TI_ r_;\n"
 	excode "if(l_==0)return(TI_)0;\n"
@@ -877,7 +877,7 @@ func[__any, __rme, __raw, repeat]_repeat(me_: int, type: []int, len: int): int
 		end if
 	end if
 #cpp
-	excode "using TI_=decltype(*`0`->B);
+	excode "using TI_=decltype(*`0`->B);\n"
 	excode "type_(Array_<TI_>)r_=new_(Array_<TI_>)();\n"
 	excode "r_->L=`0`->L*`2`;\n"
 	excode "r_->B=newPrimArray_(static_cast<std::size_t>(r_->L+bufLen_<TI_>()),TI_);\n"
@@ -903,7 +903,7 @@ func _replace(me_: []char, old: []char, new: []char): []char
 	var r: []char :: ""
 	var p: int :: 0
 	while loop(p < ^me_)
-		var p2: int :: me_.find(old, p)
+		var p2: int :: me_.findStr(old, p)
 		if(p2 = -1)
 			do r :~ me_.sub(p, -1)
 			break loop

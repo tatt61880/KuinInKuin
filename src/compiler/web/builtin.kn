@@ -17,6 +17,7 @@
 	do writer.writeStr("default:\n")
 	do writer.writeStr("return null;\n")
 	do writer.writeStr("}\n")
+	do writer.writeStr("}\n")
 	
 	; Discard types to get the 'value' type of a dictionary.
 	do writer.writeStr("function DT_(t){\n")

@@ -443,10 +443,6 @@ end func
 	ret @ln(x) / @ln(base)
 end func
 
-+func makeBmSearch(pattern: []char): @BmSearch
-	; TODO:
-end func
-
 +func makeRnd(seed: bit32): @Rnd
 	var r: @Rnd :: #@Rnd
 	do r.setSeed(seed)
