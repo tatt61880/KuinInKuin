@@ -377,10 +377,11 @@ func[__any, __tch]_findList(me_: int, type: []int, item: int): bool
 end func
 
 func _findStr(me_: []char, pattern: []char, start: int): int
-	if(dbg)
-		if(pattern =& null)
-			throw 0xE9170006
-		end if
+	if(start = -1)
+		do start :: 0
+	end if
+	if(start < 0)
+		ret -1
 	end if
 	for i(start, ^me_ - ^pattern)
 		for j(0, ^pattern - 1)
@@ -394,10 +395,8 @@ func _findStr(me_: []char, pattern: []char, start: int): int
 end func
 
 func _findStrLast(me_: []char, pattern: []char, start: int): int
-	if(dbg)
-		if(pattern =& null)
-			throw 0xE9170006
-		end if
+	if(start = -1)
+		do start :: ^me_ - ^pattern
 	end if
 	for i(start < ^me_ - ^pattern ?(start, ^me_ - ^pattern), 0, -1)
 		for j(0, ^pattern - 1)
@@ -668,9 +667,10 @@ func[d0000.knd, __any, __rch]_max(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
 #cpp
+	excode "using TI_=decltype(*`0`->B);
 	excode "int64_t l_=`0`->L;\n"
-	excode "T_ r_;\n"
-	excode "if(l_==0)return(T_)0;\n"
+	excode "TI_ r_;\n"
+	excode "if(l_==0)return(TI_)0;\n"
 	excode "for(int64_t i_=0;i_<l_;i_++){\n"
 	excode "if(i_==0||cmp_(r_,`0`->B[i_])<0)r_=`0`->B[i_];\n"
 	excode "}\n"
@@ -700,9 +700,10 @@ func[d0000.knd, __any, __rch]_min(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch, __raw, min]_min(me_: int, type: []int): int
 #cpp
+	excode "using TI_=decltype(*`0`->B);
 	excode "int64_t l_=`0`->L;\n"
-	excode "T_ r_;\n"
-	excode "if(l_==0)return(T_)0;\n"
+	excode "TI_ r_;\n"
+	excode "if(l_==0)return(TI_)0;\n"
 	excode "for(int64_t i_=0;i_<l_;i_++){\n"
 	excode "if(i_==0||cmp_(r_,`0`->B[i_])>0)r_=`0`->B[i_];\n"
 	excode "}\n"
@@ -821,8 +822,14 @@ func[d0000.knd, _peek, __any, __rch]_peekQueue(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch]_peekQueue(me_: int, type: []int): int
 #cpp
+	if(dbg)
+		excode "if(`0`->B.empty())throw 0xe917000a;\n"
+	end if
 	excode "return `0`->B.front();\n"
 #web
+	if(dbg)
+		excode "if(`0`.length==0)throw 0xe917000a;\n"
+	end if
 	excode "return `0`[0];\n"
 #any
 end func
@@ -832,8 +839,14 @@ func[d0000.knd, _peek, __any, __rch]_peekStack(me_: int, type: []int): int
 #cpp,web
 func[__any, __rch]_peekStack(me_: int, type: []int): int
 #cpp
+	if(dbg)
+		excode "if(`0`->B.empty())throw 0xe917000a;\n"
+	end if
 	excode "return `0`->B.top();\n"
 #web
+	if(dbg)
+		excode "if(`0`.length==0)throw 0xe917000a;\n"
+	end if
 	excode "return `0`[`0`.length-1];\n"
 #any
 end func
@@ -858,12 +871,47 @@ end func
 func[d0000.knd, __any, __rme]_repeat(me_: int, type: []int, len: int): int
 #cpp,web
 func[__any, __rme, __raw, repeat]_repeat(me_: int, type: []int, len: int): int
-	; TODO:
+	if(dbg)
+		if(len < 0)
+			throw 0xE9170006
+		end if
+	end if
+#cpp
+	excode "using TI_=decltype(*`0`->B);
+	excode "type_(Array_<TI_>)r_=new_(Array_<TI_>)();\n"
+	excode "r_->L=`0`->L*`2`;\n"
+	excode "r_->B=newPrimArray_(static_cast<std::size_t>(r_->L+bufLen_<TI_>()),TI_);\n"
+	excode "for(int64_t i_=0;i_<`2`;i_++){\n"
+	excode "for(int64_t j_=0;j_<`0`->L;j_++)r_->B[i_*`0`->L+j_]=`0`->B[j_];\n"
+	excode "}\n"
+	excode "if(bufLen_<TI_>()>0)r_->B[r_->L]=0;\n"
+	excode "return r_;\n"
+#web
+	excode "if(`1`[1]==0x02)return{S:R_(`0`.S,`2`)};\n"
+	excode "let l_=`0`.length,r_=new Array(l_*`2`);\n"
+	excode "for(let i_=0;i_<`2`;i_++){\n"
+	excode "for(let j_=0;j_<l_;j_++)r_[i_*l_+j_]=`0`[j_];\n"
+	excode "}\n"
+	excode "return r_;\n"
 #any
 end func
 
 func _replace(me_: []char, old: []char, new: []char): []char
-	; TODO:
+	if(^old=0)
+		ret me_
+	end if
+	var r: []char :: ""
+	var p: int :: 0
+	while loop(p < ^me_)
+		var p2: int :: me_.find(old, p)
+		if(p2 = -1)
+			do r :~ me_.sub(p, -1)
+			break loop
+		end if
+		do r :~ me_.sub(p, p2 - p) ~ new
+		do p :: p2 + ^old
+	end while
+	ret r
 end func
 
 #exe
@@ -885,16 +933,31 @@ func[d0000.knd, __any, __rme]_sar(me_: int, type: []int, n: int): int
 #cpp,web
 func[__any, __rme]_sar(me_: int, type: []int, n: int): int
 #cpp
+	if(dbg)
+		excode "if(`2`<0||`2`>=sizeof(`0`)*8)throw 0xe9170006;\n"
+	end if
 	excode "return sar_(`0`,`2`);\n"
 #web
 	excode "switch(`1`[0]){\n"
 	excode "case 0x04:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=8)throw 0xe9170006;\n"
+	end if
 	excode "return `0`<<24>>`2`[1]>>>24;\n"
 	excode "case 0x05:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=16)throw 0xe9170006;\n"
+	end if
 	excode "return `0`<<16>>`2`[1]>>>16;\n"
 	excode "case 0x06:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=32)throw 0xe9170006;\n"
+	end if
 	excode "return `0`>>`2`[1];\n"
 	excode "default:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=64)throw 0xe9170006;\n"
+	end if
 	excode "if(`2`[1]>=32)\n"
 	excode "return Uint32Array.from([`0`[0]&0x80000000?-1:0,`0`[0]>>(`2`[1]-32)]);\n"
 	excode "else\n"
@@ -915,29 +978,36 @@ func[__any]_setPtr(me_: int, type: []int, ptr: @ListPtr)
 #any
 end func
 
-func _signFloat(me_: float): float
-	ret me_ > 0.0 ?(1.0, me_ < 0.0 ?(-1.0, 0.0))
-end func
-
-func _signInt(me_: int): int
-	ret me_ > 0 ?(1, me_ < 0 ?(-1, 0))
-end func
-
 #exe
 func[d0000.knd, __any, __rme]_shl(me_: int, type: []int, n: int): int
 #cpp,web
 func[__any, __rme]_shl(me_: int, type: []int, n: int): int
 #cpp
+	if(dbg)
+		excode "if(`2`<0||`2`>=sizeof(`0`)*8)throw 0xe9170006;\n"
+	end if
 	excode "return `0`<<`2`;\n"
 #web
 	excode "switch(`1`[0]){\n"
 	excode "case 0x04:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=8)throw 0xe9170006;\n"
+	end if
 	excode "return(`0`<<`2`[1])&0xff;\n"
 	excode "case 0x05:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=16)throw 0xe9170006;\n"
+	end if
 	excode "return(`0`<<`2`[1])&0xffff;\n"
 	excode "case 0x06:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=32)throw 0xe9170006;\n"
+	end if
 	excode "return `0`<<`2`[1];\n"
 	excode "default:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=64)throw 0xe9170006;\n"
+	end if
 	excode "if(`2`[1]>=32)\n"
 	excode "return Uint32Array.from([`0`[1]<<(`2`[1]-32),0]);\n"
 	excode "else\n"
@@ -951,14 +1021,31 @@ func[d0000.knd, __any, __rme]_shr(me_: int, type: []int, n: int): int
 #cpp,web
 func[__any, __rme]_shr(me_: int, type: []int, n: int): int
 #cpp
+	if(dbg)
+		excode "if(`2`<0||`2`>=sizeof(`0`)*8)throw 0xe9170006;\n"
+	end if
 	excode "return `0`>>`2`;\n"
 #web
 	excode "switch(`1`[0]){\n"
 	excode "case 0x04:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=8)throw 0xe9170006;\n"
+	end if
+	excode "return `0`>>>`2`[1];\n"
 	excode "case 0x05:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=16)throw 0xe9170006;\n"
+	end if
+	excode "return `0`>>>`2`[1];\n"
 	excode "case 0x06:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=32)throw 0xe9170006;\n"
+	end if
 	excode "return `0`>>>`2`[1];\n"
 	excode "default:\n"
+	if(dbg)
+		excode "if(`2`[0]!=0||`2`[1]>=64)throw 0xe9170006;\n"
+	end if
 	excode "if(`2`[1]>=32)\n"
 	excode "return Uint32Array.from([0,`0`[0]>>>(`2`[1]-32)]);\n"
 	excode "else\n"
@@ -967,24 +1054,18 @@ func[__any, __rme]_shr(me_: int, type: []int, n: int): int
 #any
 end func
 
-#exe
-func[d0000.knd, __any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
-#cpp,web
-func[__any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
-#cpp
-	excode "return sub_(`0`,`2`,`3`);\n"
-#web
-	excode "if(`1`[0]==0x81&&`1`[1]==0x02)\n"
-	excode "return {S:~~`3`[1]==-1?`0`.S.slice(~~`2`[1]):`0`.S.slice(~~`2`[1],~~`2`[1]+~~`3`[1])};\n"
-	excode "else\n"
-	excode "return ~~`3`[1]==-1?`0`.slice(~~`2`[1]):`0`.slice(~~`2`[1],~~`2`[1]+~~`3`[1]);\n"
-#any
+func _signFloat(me_: float): float
+	ret me_ > 0.0 ?(1.0, me_ < 0.0 ?(-1.0, 0.0))
+end func
+
+func _signInt(me_: int): int
+	ret me_ > 0 ?(1, me_ < 0 ?(-1, 0))
 end func
 
 #exe
-func[d0000.knd, __any]_sortArray(me_: int, type: []int)
+func[d0000.knd, __any]_sort(me_: int, type: []int)
 #cpp,web
-func[__any]_sortArray(me_: int, type: []int)
+func[__any]_sort(me_: int, type: []int)
 #cpp
 	excode "sort_(`0`);\n"
 #web
@@ -997,15 +1078,12 @@ func[__any]_sortArray(me_: int, type: []int)
 #any
 end func
 
-#exe
-func[d0000.knd, __any]_sortList(me_: int, type: []int)
-#cpp,web
-func[__any]_sortList(me_: int, type: []int)
-	; TODO:
-#any
-end func
-
 func _split(me_: []char, delimiter: []char): [][]char
+	if(dbg)
+		if(^delimiter = 0)
+			throw 0xE9170006
+		end if
+	end if
 	var result: list<[]char> :: #list<[]char>
 	var p: int :: 0
 	while(true)
@@ -1017,6 +1095,31 @@ func _split(me_: []char, delimiter: []char): [][]char
 		do result.add(me_.sub(p, p2 - p))
 		do p :: p2 + ^delimiter
 	end while
+end func
+
+#exe
+func[d0000.knd, __any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
+#cpp,web
+func[__any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
+#cpp
+	excode "return sub_(`0`,`2`,`3`);\n"
+#web
+	excode "if(`1`[0]==0x81&&`1`[1]==0x02){\n"
+	if(dbg)
+		excode "let s_=~~`2`[1],l_=~~`3`[1];\n"
+		excode "if(l_==-1)l_=`0`.S.length-s_;\n"
+		excode "if(s_<0||l_<0||s_+l_>`0`.S.length)throw 0xe9170006;\n"
+	end if
+	excode "return {S:~~`3`[1]==-1?`0`.S.slice(~~`2`[1]):`0`.S.slice(~~`2`[1],~~`2`[1]+~~`3`[1])};\n"
+	excode "}else{\n"
+	if(dbg)
+		excode "let s_=~~`2`[1],l_=~~`3`[1];\n"
+		excode "if(l_==-1)l_=`0`.length-s_;\n"
+		excode "if(s_<0||l_<0||s_+l_>`0`.length)throw 0xe9170006;\n"
+	end if
+	excode "return ~~`3`[1]==-1?`0`.slice(~~`2`[1]):`0`.slice(~~`2`[1],~~`2`[1]+~~`3`[1]);\n"
+	excode "}\n"
+#any
 end func
 
 #exe
@@ -1047,7 +1150,36 @@ end func
 func[d0000.knd, __any]_termOffset(me_: int, type: []int, offset: int): bool
 #cpp,web
 func[__any]_termOffset(me_: int, type: []int, offset: int): bool
-	; TODO:
+#cpp
+	excode "auto p_=`0`->I;\n"
+	excode "if(p_==`0`->B.end())return true;\n"
+	excode "if(`2`>=0){\n"
+	excode "for(int64_t i_=0;i_<`2`;i_++){\n"
+	excode "++p_;\n"
+	excode "if(p_==`0`->B.end())return true;\n"
+	excode "}\n"
+	excode "}else{\n"
+	excode "for(int64_t i_=0;i_>`2`;i_--){\n"
+	excode "if(`0`->I==`0`->B.begin())`0`->I=`0`->B.end();else --`0`->I;\n"
+	excode "if(p_==`0`->B.end())return true;\n"
+	excode "}\n"
+	excode "}\n"
+	excode "return false;\n"
+#web
+	excode "let p_=`0`.P,o_=~~`2`[1];\n"
+	excode "if(p_==null)return true;\n"
+	excode "if(o_>=0){\n"
+	excode "for(let i_=0;i_<o_;i_++){\n"
+	excode "p_=p_.N;\n"
+	excode "if(p_==null)return true;\n"
+	excode "}\n"
+	excode "}else{\n"
+	excode "for(let i_=0;i_>o_;i_--){\n"
+	excode "p_=p_.P;\n"
+	excode "if(p_==null)return true;\n"
+	excode "}\n"
+	excode "}\n"
+	excode "return false;\n"
 #any
 end func
 
@@ -1253,7 +1385,7 @@ func _trim(me_: []char): []char
 	var f: int :: -1
 	for i(0, ^me_ - 1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do f :: i
 			break i
 		end if
@@ -1264,7 +1396,7 @@ func _trim(me_: []char): []char
 	var l: int :: -1
 	for i(^me_ - 1, 0, -1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do l :: i
 			break i
 		end if
@@ -1280,7 +1412,7 @@ func _trimLeft(me_: []char): []char
 	var f: int :: -1
 	for i(0, ^me_ - 1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do f :: i
 			break i
 		end if
@@ -1299,7 +1431,7 @@ func _trimRight(me_: []char): []char
 	var l: int :: -1
 	for i(^me_ - 1, 0, -1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do l :: i
 			break i
 		end if

@@ -1215,42 +1215,42 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 		do items.head()
 		if(\ast@isChar(ast.itemType))
 			if(^items = 1)
-				do @codes.add("{S:R_(\"\\0\",(")
+				do @codes.add("{S:R_(\"\\0\",CNA_(~~(")
 				do @buildExpr(items.get())
-				do @codes.add(")[1])}")
+				do @codes.add(")[1]))}")
 			else
-				do @codes.add("(function A_(n){if(n.length==1)return{S:R_(\"\\0\",n[0])};else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a;}})([")
+				do @codes.add("(function A_(n){if(n.length==1)return{S:R_(\"\\0\",n[0])};else{let m=n[0],a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n.slice(1));return a;}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
 						do first :: false
-						do @codes.add("(")
+						do @codes.add("CNA_(~~(")
 					else
-						do @codes.add(",(")
+						do @codes.add(",CNA_(~~(")
 					end if
 					do @buildExpr(items.get())
-					do @codes.add(")[1]")
+					do @codes.add(")[1])")
 					do items.next()
 				end while
 				do @codes.add("])")
 			end if
 		else
 			if(^items = 1)
-				do @codes.add("new Array((")
+				do @codes.add("new Array(CNA_(~~(")
 				do @buildExpr(items.get())
-				do @codes.add(")[1]).fill(\{@getDefaultValue(ast.itemType)})")
+				do @codes.add(")[1])).fill(\{@getDefaultValue(ast.itemType)})")
 			else
-				do @codes.add("(function A_(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)});else{let m=n.shift(),a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n);return a}})([")
+				do @codes.add("(function A_(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)});else{let m=n[0],a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n.slice(1));return a}})([")
 				var first: bool :: true
 				while(!items.term())
 					if(first)
 						do first :: false
-						do @codes.add("(")
+						do @codes.add("CNA_(~~(")
 					else
-						do @codes.add(",(")
+						do @codes.add(",CNA_(~~(")
 					end if
 					do @buildExpr(items.get())
-					do @codes.add(")[1]")
+					do @codes.add(")[1])")
 					do items.next()
 				end while
 				do @codes.add("])")

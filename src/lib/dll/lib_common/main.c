@@ -845,7 +845,7 @@ EXPORT S64 _cmpStr(const U8* a, const U8* b)
 
 EXPORT void* _newArray(S64 len, S64* nums, const U8* type)
 {
-	THROWDBG(*nums < 0, EXCPT_DBG_ARRAY_IDX_OUT_OF_RANGE);
+	THROWDBG(*nums < 0, 0xe917000b);
 	size_t size = len == 1 ? GetSize(*type) : 8;
 	Bool is_str = len == 1 && *type == TypeId_Char;
 	U8* result = (U8*)AllocMem(0x10 + size * (size_t)(*nums + (is_str ? 1 : 0)));
@@ -1534,6 +1534,7 @@ EXPORT void _prev(void* me_, const U8* type)
 EXPORT void* _repeat(const void* me_, const U8* type, S64 len)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(len < 0, 0xe9170006);
 	size_t size = GetSize(type[1]);
 	Bool is_str = type[1] == TypeId_Char;
 	size_t len2 = ((const S64*)me_)[1];
@@ -1591,10 +1592,18 @@ EXPORT S64 _sar(const void* me_, const U8* type, S64 n)
 	// In Visual C++, shifting of signed type is guaranteed to be an arithmetic shift.
 	switch (*type)
 	{
-		case TypeId_Bit8: return (S64)((S8) * (U8*)&me_ >> n);
-		case TypeId_Bit16: return (S64)((S16) * (U16*)&me_ >> n);
-		case TypeId_Bit32: return (S64)((S32) * (U32*)&me_ >> n);
-		case TypeId_Bit64: return ((S64) * (U64*)&me_ >> n);
+		case TypeId_Bit8:
+			THROWDBG(n < 0 || n >= 8, 0xe9170006);
+			return (S64)((S8) * (U8*)&me_ >> n);
+		case TypeId_Bit16:
+			THROWDBG(n < 0 || n >= 16, 0xe9170006);
+			return (S64)((S16) * (U16*)&me_ >> n);
+		case TypeId_Bit32:
+			THROWDBG(n < 0 || n >= 32, 0xe9170006);
+			return (S64)((S32) * (U32*)&me_ >> n);
+		case TypeId_Bit64:
+			THROWDBG(n < 0 || n >= 64, 0xe9170006);
+			return ((S64) * (U64*)&me_ >> n);
 		default:
 			ASSERT(False);
 			return 0;
@@ -1612,10 +1621,18 @@ EXPORT S64 _shl(const void* me_, const U8* type, S64 n)
 {
 	switch (*type)
 	{
-		case TypeId_Bit8: return (S64)(U64)(U8)(*(U8*)&me_ << n);
-		case TypeId_Bit16: return (S64)(U64)(U16)(*(U16*)&me_ << n);
-		case TypeId_Bit32: return (S64)(U64)(U32)(*(U32*)&me_ << n);
-		case TypeId_Bit64: return (S64)(*(U64*)&me_ << n);
+		case TypeId_Bit8:
+			THROWDBG(n < 0 || n >= 8, 0xe9170006);
+			return (S64)(U64)(U8)(*(U8*)&me_ << n);
+		case TypeId_Bit16:
+			THROWDBG(n < 0 || n >= 16, 0xe9170006);
+			return (S64)(U64)(U16)(*(U16*)&me_ << n);
+		case TypeId_Bit32:
+			THROWDBG(n < 0 || n >= 32, 0xe9170006);
+			return (S64)(U64)(U32)(*(U32*)&me_ << n);
+		case TypeId_Bit64:
+			THROWDBG(n < 0 || n >= 64, 0xe9170006);
+			return (S64)(*(U64*)&me_ << n);
 		default:
 			ASSERT(False);
 			return 0;
@@ -1627,14 +1644,30 @@ EXPORT S64 _shr(const void* me_, const U8* type, S64 n)
 	// In Visual C++, shifting of unsigned type is guaranteed to be a logical shift.
 	switch (*type)
 	{
-		case TypeId_Bit8: return (S64)(U64)(*(U8*)&me_ >> n);
-		case TypeId_Bit16: return (S64)(U64)(*(U16*)&me_ >> n);
-		case TypeId_Bit32: return (S64)(U64)(*(U32*)&me_ >> n);
-		case TypeId_Bit64: return (S64)(*(U64*)&me_ >> n);
+		case TypeId_Bit8:
+			THROWDBG(n < 0 || n >= 8, 0xe9170006);
+			return (S64)(U64)(*(U8*)&me_ >> n);
+		case TypeId_Bit16:
+			THROWDBG(n < 0 || n >= 16, 0xe9170006);
+			return (S64)(U64)(*(U16*)&me_ >> n);
+		case TypeId_Bit32:
+			THROWDBG(n < 0 || n >= 32, 0xe9170006);
+			return (S64)(U64)(*(U32*)&me_ >> n);
+		case TypeId_Bit64:
+			THROWDBG(n < 0 || n >= 64, 0xe9170006);
+			return (S64)(*(U64*)&me_ >> n);
 		default:
 			ASSERT(False);
 			return 0;
 	}
+}
+
+EXPORT void _sort(void* me_, const U8* type)
+{
+	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
+	int(*cmp)(const void*, const void*) = GetCmpFunc(type + 1);
+	ASSERT(cmp != NULL);
+	qsort((U8*)me_ + 0x10, (size_t) * (S64*)((U8*)me_ + 0x08), GetSize(type[1]), cmp);
 }
 
 EXPORT void* _sub(const void* me_, const U8* type, S64 start, S64 len)
@@ -1643,7 +1676,7 @@ EXPORT void* _sub(const void* me_, const U8* type, S64 start, S64 len)
 	S64 len2 = *(S64*)((U8*)me_ + 0x08);
 	if (len == -1)
 		len = len2 - start;
-	THROWDBG(start < 0 || len < 0 || start + len > len2, EXCPT_DBG_ARRAY_IDX_OUT_OF_RANGE);
+	THROWDBG(start < 0 || len < 0 || start + len > len2, 0xe9170006);
 	Bool is_str = IsStr(type);
 	size_t size = GetSize(type[1]);
 	U8* result = (U8*)AllocMem(0x10 + size * (size_t)(len + (is_str ? 1 : 0)));
@@ -1665,47 +1698,6 @@ EXPORT void* _sub(const void* me_, const U8* type, S64 start, S64 len)
 	if (is_str)
 		*(Char*)(result + 0x10 + size * (size_t)len) = L'\0';
 	return result;
-}
-
-EXPORT void _sortArray(void* me_, const U8* type)
-{
-	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
-	int(*cmp)(const void*, const void*) = GetCmpFunc(type + 1);
-	ASSERT(cmp != NULL);
-	qsort((U8*)me_ + 0x10, (size_t) * (S64*)((U8*)me_ + 0x08), GetSize(type[1]), cmp);
-}
-
-EXPORT void _sortList(void* me_, const U8* type)
-{
-	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);
-	int(*cmp)(const void*, const void*) = GetCmpFunc(type + 1);
-	ASSERT(cmp != NULL);
-	size_t size = GetSize(type[1]);
-	S64 len = *(S64*)((U8*)me_ + 0x08);
-	void* buf = AllocMem((size_t)len * size);
-	S64 i;
-	{
-		void* ptr1 = *(void**)((U8*)me_ + 0x10);
-		void* ptr2 = buf;
-		for (i = 0; i < len; i++)
-		{
-			memcpy(ptr2, (U8*)ptr1 + 0x10, size);
-			ptr1 = *(void**)((U8*)ptr1 + 0x08);
-			ptr2 = (U8*)ptr2 + size;
-		}
-	}
-	qsort(buf, (size_t)len, size, cmp);
-	{
-		void* ptr1 = *(void**)((U8*)me_ + 0x10);
-		void* ptr2 = buf;
-		for (i = 0; i < len; i++)
-		{
-			memcpy((U8*)ptr1 + 0x10, ptr2, size);
-			ptr1 = *(void**)((U8*)ptr1 + 0x08);
-			ptr2 = (U8*)ptr2 + size;
-		}
-	}
-	FreeMem(buf);
 }
 
 EXPORT void _tail(void* me_, const U8* type)

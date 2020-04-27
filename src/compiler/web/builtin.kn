@@ -377,6 +377,14 @@
 	do writer.writeStr("return r;\n")
 	do writer.writeStr("}\n")
 	
+	; 'CheckNewArray'.
+	do writer.writeStr("function CNA_(n){\n")
+	if(!\option@rls)
+		do writer.writeStr("if(n<0)throw 0xe917000b;\n")
+	end if
+	do writer.writeStr("return n;\n")
+	do writer.writeStr("}\n")
+	
 	; Get 'cmp' function.
 	do writer.writeStr("function CM_(t){\n")
 	do writer.writeStr("switch(t){\n")
