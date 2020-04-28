@@ -51,14 +51,14 @@ EXPORT void _readerFin(SClass* me_)
 EXPORT S64 _readerGetPos(SClass* me_)
 {
 	SReader* me2 = (SReader*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	return TellFileStream(me2->Handle);
 }
 
 EXPORT void* _readerRead(SClass* me_, S64 size)
 {
 	SReader* me2 = (SReader*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	U8* result = (U8*)AllocMem(0x10 + (size_t)size);
 	size_t size2;
 	((S64*)result)[0] = DefaultRefCntFunc;
@@ -67,7 +67,6 @@ EXPORT void* _readerRead(SClass* me_, S64 size)
 	if (size2 != (size_t)size)
 	{
 		FreeMem(result);
-		THROW(EXCPT_INVALID_DATA_FMT);
 		return NULL;
 	}
 	return result;
@@ -76,24 +75,22 @@ EXPORT void* _readerRead(SClass* me_, S64 size)
 EXPORT Char _readerReadLetter(SClass* me_)
 {
 	Char result = ReadUtf8((SReader*)me_, False, NULL);
-	if (result == WEOF)
-		THROW(EXCPT_INVALID_DATA_FMT);
-	return result;
+	return result == WEOF ? 0xffff : result;
 }
 
 EXPORT void _readerSetPos(SClass* me_, S64 origin, S64 pos)
 {
-	THROWDBG(origin < 0 || 2 < origin, EXCPT_DBG_ARG_OUT_DOMAIN);
+	THROWDBG(origin < 0 || 2 < origin, 0xe9170006);
 	SReader* me2 = (SReader*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	if (!SeekFileStream(me2->Handle, pos, origin))
-		THROW(EXCPT_INVALID_DATA_FMT);
+		THROW(0xe9170008);
 }
 
 EXPORT Bool _readerTerm(SClass* me_)
 {
 	SReader* me2 = (SReader*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	U8 buf;
 	Bool result = ReadFileStream(me2->Handle, 1, &buf) == 0;
 	if (!result)
@@ -113,14 +110,14 @@ EXPORT void _writerFin(SClass* me_)
 EXPORT void _writerFlush(SClass* me_)
 {
 	SWriter* me2 = (SWriter*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	fflush(me2->Handle);
 }
 
 EXPORT S64 _writerGetPos(SClass* me_)
 {
 	SWriter* me2 = (SWriter*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	return _ftelli64(me2->Handle);
 }
 
@@ -128,7 +125,7 @@ EXPORT void _writerSetPos(SClass* me_, S64 origin, S64 pos)
 {
 	THROWDBG(origin < 0 || 2 < origin, EXCPT_DBG_ARG_OUT_DOMAIN);
 	SWriter* me2 = (SWriter*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	if (_fseeki64(me2->Handle, pos, (int)origin))
 		THROW(EXCPT_INVALID_DATA_FMT);
 }
@@ -136,7 +133,7 @@ EXPORT void _writerSetPos(SClass* me_, S64 origin, S64 pos)
 EXPORT void _writerWrite(SClass* me_, void* bin)
 {
 	SWriter* me2 = (SWriter*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	THROWDBG(bin == NULL, EXCPT_ACCESS_VIOLATION);
 	U8* bin2 = (U8*)bin;
 	fwrite(bin2 + 0x10, 1, (size_t) * (S64*)(bin2 + 0x08), me2->Handle);
@@ -145,7 +142,7 @@ EXPORT void _writerWrite(SClass* me_, void* bin)
 EXPORT void _writerWriteChar(SClass* me_, Char n)
 {
 	SWriter* me2 = (SWriter*)me_;
-	THROWDBG(me2->Handle == NULL, EXCPT_DBG_INOPERABLE_STATE);
+	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	WriteUtf8(me2, n);
 }
 

@@ -4,17 +4,8 @@
 	tail
 end enum
 
-+enum SysDir
-	desktop :: 0x00
-	fonts :: 0x14
-	appData :: 0x1A
-	windows :: 0x24
-	system32 :: 0x25
-	programFiles :: 0x26
-end enum
-
 +class Reader()
-	*func ctor()
+	*func[__ndc]ctor()
 		do me.delimiters :: " ,\n"
 	end func
 	
@@ -27,7 +18,7 @@ end enum
 	end func
 	
 	+func fileSize(): int
-		ret 0 { TODO: }
+		ret me.fileSize_
 	end func
 	
 #exe
@@ -50,9 +41,15 @@ end enum
 #cpp,web
 	+func getPos(): int
 #cpp
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "return static_cast<int64_t>(r_->F->tellp());\n"
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		excode "let n_= `0`.`.handle`.I;\n"
 		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 #any
@@ -64,13 +61,27 @@ end enum
 	+func read(size: int): []bit8
 #cpp
 		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "auto a_=new_(Array_<uint8_t>)();\n"
 		excode "a_->L=`1`;\n"
 		excode "a_->B=newPrimArray_(static_cast<std::size_t>(`1`),uint8_t);\n"
 		excode "r_->F->read(reinterpret_cast<char*>(a_->B),`1`);\n"
-		excode "return r_->F->gcount()==`1`?a_:nullptr;\n"
+		excode "if(r_->F->fail()){\n"
+		excode "r_->F->clear();\n"
+		excode "return nullptr;\n"
+		excode "}\n"
+		excode "return a_;\n"
 #web
-		; TODO:
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
+		excode "if(`0`.`.handle`.F.length<=`0`.`.handle`.I+`1`-1)return null;\n"
+		excode "let a_=`0`.`.handle`.F.slice(`0`.`.handle`.I,`0`.`.handle`.I+`1`),r_=new Array(a_.length);\n"
+		excode "for(let i_=0;i_<r_.length;i_++)\n"
+		excode "r_[i_]=a_[i_];\n"
+		excode "return r_;\n"
 #any
 	end func
 	
@@ -79,8 +90,9 @@ end enum
 			var c: char :: me.readCharWithDelimiters()
 			if(c <> '\0')
 				if(c = '\uFFFF')
-					throw excpt@invalidDataFmt
+					throw 0xE9170008
 				end if
+				do me.skipDelimiters()
 				ret c
 			end if
 		end while
@@ -91,7 +103,7 @@ end enum
 		var b: bool
 		var r: float :: s.toFloat(&b)
 		if(!b)
-			throw excpt@invalidDataFmt
+			throw 0xE9170008
 		end if
 		ret r
 	end func
@@ -101,7 +113,7 @@ end enum
 		var b: bool
 		var r: int :: s.toInt(&b)
 		if(!b)
-			throw excpt@invalidDataFmt
+			throw 0xE9170008
 		end if
 		ret r
 	end func
@@ -112,9 +124,18 @@ end enum
 	+func readLetter(): char
 #cpp
 		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "return readUtf8_(r_->F);\n"
 #web
-		excode "return `0`.`.handle`.F.charCodeAt(`0`.`.handle`.I++);\n"
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
+		excode "if(`0`.`.handle`.I+1>=`0`.`.handle`.F.length)return 0xffff;\n"
+		excode "let a_=`0`.`.handle`.F[`0`.`.handle`.I],b_=`0`.`.handle`.F[`0`.`.handle`.I+1];\n"
+		excode "`0`.`.handle`.I+=2;\n"
+		excode "return a_|(b_<<8);\n"
 #any
 	end func
 	
@@ -127,6 +148,9 @@ end enum
 				skip loop
 			end if
 			if(c = '\uFFFF')
+				if(ptr = 0)
+					ret null
+				end if
 				break loop
 			end if
 			if(c = '\n')
@@ -147,13 +171,13 @@ end enum
 		while loop(true)
 			var c: char :: me.readCharWithDelimiters()
 			if(c = '\uFFFF')
-				if(^buf = 0)
-					throw excpt@invalidDataFmt
+				if(ptr = 0)
+					throw 0xE9170008
 				end if
 				break loop
 			end if
 			if(c = '\0')
-				if(^buf = 0)
+				if(ptr = 0)
 					skip loop
 				end if
 				break loop
@@ -164,6 +188,7 @@ end enum
 			do buf[ptr] :: c
 			do ptr :+ 1
 		end while
+		do me.skipDelimiters()
 		ret buf.sub(0, ptr)
 	end func
 	
@@ -173,19 +198,36 @@ end enum
 	+func setPos(origin: @Origin, pos: int)
 #cpp
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
 		excode "switch(`1`){\n"
 		excode "case 0:o_=std::ios_base::beg;break;\n"
 		excode "case 1:o_=std::ios_base::cur;break;\n"
 		excode "case 2:o_=std::ios_base::end;break;\n"
+		if(dbg)
+			excode "default:throw 0xe9170006\n"
+		end if
 		excode "}\n"
 		excode "r_->F->seekg(`2`,o_);\n"
+		excode "if(r_->F->fail()){\n"
+		excode "r_->F->clear();\n"
+		excode "throw 0xe9170008;\n"
+		excode "}\n"
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		excode "switch(`1`){\n"
 		excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
 		excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
 		excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
+		if(dbg)
+			excode "default:throw 0xe9170006;\n"
+		end if
 		excode "}\n"
+		excode "if(`0`.`.handle`.I<0)throw 0xe9170008;\n"
 #any
 	end func
 	
@@ -195,13 +237,20 @@ end enum
 	+func term(): bool
 #cpp
 		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "char c_;\n"
 		excode "if(r_->F->get(c_)){\n"
 		excode "r_->F->seekg(-1,std::ios_base::cur);\n"
 		excode "return false;\n"
 		excode "}\n"
+		excode "r_->F->clear();\n"
 		excode "return true;\n"
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		excode "return `0`.`.handle`.I>=`0`.`.handle`.F.length;\n"
 #any
 	end func
@@ -221,6 +270,24 @@ end enum
 		end while
 	end func
 	
+	func skipDelimiters()
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					skip loop
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c <> '\uFFFF')
+				do me.setPos(%cur, -1)
+			end if
+			ret
+		end while
+	end func
+	
 	const strBufSize: int :: 1024
 	var handle: int
 	var delimiters: []char
@@ -228,6 +295,9 @@ end enum
 end class
 
 +class Writer()
+	*func[__ndc]ctor()
+	end func
+
 	*func[__frc]_dtor()
 		do me.fin()
 	end func
@@ -502,6 +572,9 @@ end func
 	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
 	excode "r_->F=newPrim_(std::ifstream)(t_.c_str(),std::ios::in|std::ios::binary);\n"
 	excode "if(!*r_->F)return nullptr;\n"
+	excode "r_->F->seekg(0,std::ios_base::end);\n"
+	excode "`0`.`.fileSize_`=r_->F->tellg();\n"
+	excode "r_->F->seekg(0,std::ios_base::beg);\n"
 	excode "return `0`;\n"
 #web
 	excode "let f_=null,p_=`1`.S;\n"
@@ -515,6 +588,7 @@ end func
 	excode "}\n"
 	excode "if(f_==null)return null;\n"
 	excode "`0`.`.handle`={F:f_,I:0};\n"
+	excode "`0`.`.fileSize_`=f_.length;\n"
 	excode "return `0`;\n"
 #any
 end func
@@ -546,9 +620,5 @@ end func
 end func
 
 +func setCurDir(path: []char)
-	; TODO:
-end func
-
-+func sysDir(kind: @SysDir): []char
 	; TODO:
 end func

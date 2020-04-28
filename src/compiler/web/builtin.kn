@@ -378,13 +378,29 @@
 	do writer.writeStr("return r;\n")
 	do writer.writeStr("}\n")
 	
-	; 'CheckNewArray'.
-	do writer.writeStr("function CNA_(n){\n")
+	; 'CheckArrayIndexForString'
 	if(!\option@rls)
-		do writer.writeStr("if(n<0)throw 0xe917000b;\n")
+		do writer.writeStr("function CAS_(s,i){\n")
+		do writer.writeStr("if(i<0||i>=s.length)throw 0xe9170002;\n")
+		do writer.writeStr("return s.charCodeAt(i);\n")
+		do writer.writeStr("}\n")
 	end if
-	do writer.writeStr("return n;\n")
-	do writer.writeStr("}\n")
+	
+	; 'CheckArrayIndex'
+	if(!\option@rls)
+		do writer.writeStr("function CAI_(a,i){\n")
+		do writer.writeStr("if(i<0||i>=a.length)throw 0xe9170002;\n")
+		do writer.writeStr("return a[i];\n")
+		do writer.writeStr("}\n")
+	end if
+	
+	; 'CheckNewArray'.
+	if(!\option@rls)
+		do writer.writeStr("function CNA_(n){\n")
+		do writer.writeStr("if(n<0)throw 0xe917000b;\n")
+		do writer.writeStr("return n;\n")
+		do writer.writeStr("}\n")
+	end if
 	
 	; Get 'cmp' function.
 	do writer.writeStr("function CM_(t){\n")

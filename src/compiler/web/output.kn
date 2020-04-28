@@ -1215,42 +1215,76 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 		do items.head()
 		if(\ast@isChar(ast.itemType))
 			if(^items = 1)
-				do @codes.add("{S:R_(\"\\0\",CNA_(~~(")
-				do @buildExpr(items.get())
-				do @codes.add(")[1]))}")
+				if(\option@rls)
+					do @codes.add("{S:R_(\"\\0\",(")
+					do @buildExpr(items.get())
+					do @codes.add(")[1])}")
+				else
+					do @codes.add("{S:R_(\"\\0\",CNA_(~~(")
+					do @buildExpr(items.get())
+					do @codes.add(")[1]))}")
+				end if
 			else
 				do @codes.add("(function A_(n){if(n.length==1)return{S:R_(\"\\0\",n[0])};else{let m=n[0],a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n.slice(1));return a;}})([")
 				var first: bool :: true
 				while(!items.term())
-					if(first)
-						do first :: false
-						do @codes.add("CNA_(~~(")
+					if(\option@rls)
+						if(first)
+							do first :: false
+							do @codes.add("(")
+						else
+							do @codes.add(",(")
+						end if
+						do @buildExpr(items.get())
+						do @codes.add(")[1]")
 					else
-						do @codes.add(",CNA_(~~(")
+						if(first)
+							do first :: false
+							do @codes.add("CNA_(~~(")
+						else
+							do @codes.add(",CNA_(~~(")
+						end if
+						do @buildExpr(items.get())
+						do @codes.add(")[1])")
 					end if
-					do @buildExpr(items.get())
-					do @codes.add(")[1])")
 					do items.next()
 				end while
 				do @codes.add("])")
 			end if
 		else
 			if(^items = 1)
-				do @codes.add("new Array(CNA_(~~(")
-				do @buildExpr(items.get())
-				do @codes.add(")[1])).fill(\{@getDefaultValue(ast.itemType)})")
+				if(\option@rls)
+					do @codes.add("new Array((")
+					do @buildExpr(items.get())
+					do @codes.add(")[1]).fill(\{@getDefaultValue(ast.itemType)})")
+				else
+					do @codes.add("new Array(CNA_(~~(")
+					do @buildExpr(items.get())
+					do @codes.add(")[1])).fill(\{@getDefaultValue(ast.itemType)})")
+				end if
 			else
 				do @codes.add("(function A_(n){if(n.length==1)return new Array(n[0]).fill(\{@getDefaultValue(ast.itemType)});else{let m=n[0],a=new Array(m),i;for(i=0;i<m;i++)a[i]=A_(n.slice(1));return a}})([")
 				var first: bool :: true
 				while(!items.term())
-					if(first)
-						do first :: false
-						do @codes.add("CNA_(~~(")
+					if(\option@rls)
+						if(first)
+							do first :: false
+							do @codes.add("(")
+						else
+							do @codes.add(",(")
+						end if
+						do @buildExpr(items.get())
+						do @codes.add(")[1]")
 					else
-						do @codes.add(",CNA_(~~(")
+						if(first)
+							do first :: false
+							do @codes.add("CNA_(~~(")
+						else
+							do @codes.add(",CNA_(~~(")
+						end if
+						do @buildExpr(items.get())
+						do @codes.add(")[1])")
 					end if
-					do @buildExpr(items.get())
-					do @codes.add(")[1])")
 					do items.next()
 				end while
 				do @codes.add("])")
@@ -1512,17 +1546,33 @@ end func
 func buildExprArray(ast: \ast@AstExprArray)
 	assert ast.varKind <> %unknown
 	if(\ast@isChar(ast.type))
-		do @codes.add("(")
-		do @buildExpr(ast.var_)
-		do @codes.add(").S.charCodeAt((")
-		do @buildExpr(ast.idx)
-		do @codes.add(")[1])")
+		if(\option@rls)
+			do @codes.add("(")
+			do @buildExpr(ast.var_)
+			do @codes.add(").S.charCodeAt((")
+			do @buildExpr(ast.idx)
+			do @codes.add(")[1])")
+		else
+			do @codes.add("CAS_((")
+			do @buildExpr(ast.var_)
+			do @codes.add(").S,~~(")
+			do @buildExpr(ast.idx)
+			do @codes.add(")[1])")
+		end if
 	else
-		do @codes.add("(")
-		do @buildExpr(ast.var_)
-		do @codes.add(")[(")
-		do @buildExpr(ast.idx)
-		do @codes.add(")[1]]")
+		if(\option@rls)
+			do @codes.add("(")
+			do @buildExpr(ast.var_)
+			do @codes.add(")[(")
+			do @buildExpr(ast.idx)
+			do @codes.add(")[1]]")
+		else
+			do @codes.add("CAI_((")
+			do @buildExpr(ast.var_)
+			do @codes.add("),~~(")
+			do @buildExpr(ast.idx)
+			do @codes.add(")[1])")
+		end if
 	end if
 end func
 
@@ -1773,21 +1823,21 @@ func write(resFiles: list<[]char>)
 				if(resFile[^resFile - 1] = '/')
 					do writer.writeStr("return f?null:true;\n")
 				else
-					do writer.writeStr("return f?\"")
+					do writer.writeStr("return f?Uint8Array.from(")
 					var reader: file@Reader :: file@makeReader(resFile)
 					if(reader =& null)
 						do \err@err(%fileOpenFailed, null, [resFile])
 						ret
 					end if
-					while(!reader.term())
-						var line: []char :: reader.readLine()
-						for i(0, ^line - 1)
-							do writer.writeStr(@escapeChar(line[i]))
-						end for
-						do writer.writeStr("\\n")
-					end while
+					var data: []bit8 :: reader.read(reader.fileSize())
+					for i(0, ^data - 1)
+						if(i <> 0)
+							do writer.writeStr(",")
+						end if
+						do writer.writeStr(data[i].toStr())
+					end for
 					do reader.fin()
-					do writer.writeStr("\":true;\n")
+					do writer.writeStr("):true;\n")
 				end if
 				do resFiles.next()
 			end while

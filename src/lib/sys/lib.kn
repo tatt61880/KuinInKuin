@@ -57,6 +57,9 @@ end class
 end class
 
 +class Rnd()
+	*func[__ndc]ctor()
+	end func
+	
 	+func rnd(min: int, max: int): int
 		if(dbg)
 			if(max - min < 0)

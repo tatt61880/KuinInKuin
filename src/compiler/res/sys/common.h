@@ -1172,7 +1172,10 @@ static char16_t readUtf8_(std::ifstream* f) {
 	int64_t l;
 	uint64_t u;
 	if (!f->get(c))
+	{
+		f->clear();
 		return 0xffff;
+	}
 	if ((c & 0xc0) == 0x80)
 		return 0xffff;
 	if ((c & 0x80) == 0x00)
@@ -1192,7 +1195,10 @@ static char16_t readUtf8_(std::ifstream* f) {
 	u = static_cast<uint64_t>(c);
 	for (int64_t i = 0; i < l; i++) {
 		if (!f->get(c) || (c & 0xc0) != 0x80)
+		{
+			f->clear();
 			return 0xffff;
+		}
 		u = (u << 6) | static_cast<uint64_t>(c & 0x3f);
 	}
 	if (0x00010000 <= u && u <= 0x0010ffff)

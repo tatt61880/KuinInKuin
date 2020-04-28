@@ -122,7 +122,6 @@ EXPORT void _err(S64 excpt)
 			case 0xe9170002: text = L"Array index out of range."; break;
 			case 0xe9170004: text = L"Invalid comparison."; break;
 			case 0xe9170006: text = L"Argument outside the domain."; break;
-			case 0xe9170007: text = L"File reading failed."; break;
 			case 0xe9170008: text = L"Invalid data format."; break;
 			case 0xe9170009: text = L"Device initialization failed."; break;
 			case 0xe917000a: text = L"Inoperable state."; break;

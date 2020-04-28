@@ -44,6 +44,7 @@ end func
 func[d0000.knd]_err(excpt: int)
 #cpp,web
 func _err(excpt: int)
+	; TODO:
 #any
 end func
 
@@ -54,6 +55,9 @@ func _finVars()
 end func
 
 +class ListPtr()
+	*func[__ndc]ctor()
+	end func
+	
 	var ptr: int
 end class
 
