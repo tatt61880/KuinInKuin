@@ -326,12 +326,15 @@ func[d0000.knd, __any, __rav]_toArrayValue(me_: int, type: []int): int
 end func
 
 func[d0000.knd]_toBit64(me_: []char, success: &bool): bit64
+	; TODO:
 end func
 
 func[d0000.knd]_toFloat(me_: []char, success: &bool): float
+	; TODO:
 end func
 
 func[d0000.knd]_toInt(me_: []char, success: &bool): int
+	; TODO:
 end func
 
 func[d0000.knd, __any]_toStr(me_: int, type: []int): []char

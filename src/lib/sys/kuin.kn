@@ -1222,6 +1222,7 @@ end func
 
 #exe
 func[d0000.knd]_toBit64(me_: []char, success: &bool): bit64
+	; TODO:
 #cpp,web
 func _toBit64(me_: []char, success: &bool): bit64
 #cpp
@@ -1265,6 +1266,7 @@ end func
 
 #exe
 func[d0000.knd]_toFloat(me_: []char, success: &bool): float
+	; TODO:
 #cpp,web
 func _toFloat(me_: []char, success: &bool): float
 #cpp
@@ -1293,6 +1295,7 @@ end func
 
 #exe
 func[d0000.knd]_toInt(me_: []char, success: &bool): int
+	; TODO:
 #cpp,web
 func _toInt(me_: []char, success: &bool): int
 #cpp

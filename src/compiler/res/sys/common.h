@@ -1,10 +1,15 @@
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#else
+#define _FILE_OFFSET_BITS 64
+#endif
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <codecvt>
 #include <cstdarg>
+#include <cstdio>
 #include <cstring>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <list>
@@ -1152,13 +1157,13 @@ static uint64_t endian_(uint64_t me_)
 }
 
 struct reader_ {
-	reader_() : F(newPrim_(std::ifstream)()) {}
-	std::ifstream* F;
+	reader_() : F(nullptr) {}
+	std::FILE* F;
 };
 
 struct writer_ {
-	writer_() : F(newPrim_(std::ofstream)()) {}
-	std::ofstream* F;
+	writer_() : F(nullptr) {}
+	std::FILE* F;
 };
 
 template<typename T>
@@ -1166,7 +1171,7 @@ struct listPtr_ {
 	listPtr_<T>() {}
 	typename T::iterator I;
 };
-
+/*
 static char16_t readUtf8_(std::ifstream* f) {
 	char c;
 	int64_t l;
@@ -1242,7 +1247,7 @@ static void writeUtf8_(std::ofstream* f, char16_t c) {
 	}
 	if (size == 1 && u == 0x0a) f->write(newLine_, static_cast<std::streamsize>(sizeof(newLine_))); else f->write(reinterpret_cast<char*>(&u), static_cast<std::streamsize>(size));
 }
-
+*/
 static void init_() {
 	setlocale(LC_ALL, "");
 }

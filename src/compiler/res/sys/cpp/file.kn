@@ -6,7 +6,6 @@ end enum
 
 +class Reader()
 	*func[__ndc]ctor()
-		do me.delimiters :: " ,\n"
 	end func
 	
 	*func[__frc]_dtor()
@@ -18,39 +17,41 @@ end enum
 	end func
 	
 	+func fileSize(): int
-		ret me.fileSize_
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.size
 	end func
 	
 	+func fin()
-		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
-		excode "if(r_->F!=nullptr){\n"
-		excode "r_->F->close();\n"
-		excode "r_->F=nullptr;\n"
-		excode "}\n"
+		if(me.size >= 0)
+			do @readerClose(me.handle)
+			do me.size :: -1
+		end if
 	end func
 	
 	+func getPos(): int
-		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "return static_cast<int64_t>(r_->F->tellg());\n"
+		ret me.cur
 	end func
 	
 	+func read(size: int): []bit8
-		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "auto a_=new_(Array_<uint8_t>)();\n"
-		excode "a_->L=`1`;\n"
-		excode "a_->B=newPrimArray_(static_cast<std::size_t>(`1`),uint8_t);\n"
-		excode "r_->F->read(reinterpret_cast<char*>(a_->B),`1`);\n"
-		excode "if(r_->F->fail()){\n"
-		excode "r_->F->clear();\n"
-		excode "return nullptr;\n"
-		excode "}\n"
-		excode "return a_;\n"
+		var r: []bit8 :: #[size]bit8
+		if(@readerReadImpl(me.handle, r, 0, size))
+			ret r
+		end if
+		ret null
 	end func
 	
 	+func readChar(): char
@@ -87,11 +88,13 @@ end enum
 	end func
 	
 	+func readLetter(): char
-		excode "reader_* r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "return readUtf8_(r_->F);\n"
+		
+		; TODO: 文字コード
 	end func
 	
 	+func readLine(): []char
@@ -148,38 +151,25 @@ end enum
 	end func
 	
 	+func setPos(origin: @Origin, pos: int)
-		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+			if(origin < %head | %tail < origin)
+				throw 0xE9170006
+			end if
 		end if
-		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
-		excode "switch(`1`){\n"
-		excode "case 0:o_=std::ios_base::beg;break;\n"
-		excode "case 1:o_=std::ios_base::cur;break;\n"
-		excode "case 2:o_=std::ios_base::end;break;\n"
-		if(dbg)
-			excode "default:throw 0xe9170006;\n"
-		end if
-		excode "}\n"
-		excode "r_->F->seekg(`2`,o_);\n"
-		excode "if(r_->F->fail()){\n"
-		excode "r_->F->clear();\n"
-		excode "throw 0xe9170008;\n"
-		excode "}\n"
+		do @readerSeekImpl(me.handle, origin, pos)
+		do me.cur :: @readerTellImpl(me.handle)
 	end func
 	
 	+func term(): bool
-		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "char c_;\n"
-		excode "if(r_->F->get(c_)){\n"
-		excode "r_->F->seekg(-1,std::ios_base::cur);\n"
-		excode "return false;\n"
-		excode "}\n"
-		excode "r_->F->clear();\n"
-		excode "return true;\n"
+		ret me.cur >= me.size
 	end func
 	
 	func readCharWithDelimiters(): char
@@ -216,9 +206,10 @@ end enum
 	end func
 	
 	const strBufSize: int :: 1024
-	var handle: int
-	var delimiters: []char
-	var fileSize_: int
+	+var handle: int
+	+var size: int
+	+var cur: int
+	+var delimiters: []char
 end class
 
 +class Writer()
@@ -229,66 +220,69 @@ end class
 		do me.fin()
 	end func
 	
+	+func fileSize(): int
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.size
+	end func
+	
 	+func fin()
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
-		excode "if(r_->F!=nullptr){\n"
-		excode "r_->F->close();\n"
-		excode "r_->F=nullptr;\n"
-		excode "}\n"
+		if(me.size >= 0)
+			do @writerCloseImpl(me.handle)
+			do me.handle :: -1
+		end if
 	end func
 	
 	+func flush()
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "r_->F->flush();\n"
+		do @writerFlushImpl(me.handle)
 	end func
 
 	+func getPos(): int
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "return static_cast<int64_t>(r_->F->tellp());\n"
+		ret me.cur
 	end func
 	
 	+func setPos(origin: @Origin, pos: int)
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+			if(origin < %head | %tail < origin)
+				throw 0xE9170006
+			end if
 		end if
-		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
-		excode "switch(`1`){\n"
-		excode "case 0:o_=std::ios_base::beg;break;\n"
-		excode "case 1:o_=std::ios_base::cur;break;\n"
-		excode "case 2:o_=std::ios_base::end;break;\n"
-		if(dbg)
-			excode "default:throw 0xe9170006;\n"
-		end if
-		excode "}\n"
-		excode "r_->F->seekp(`2`,o_);\n"
-		excode "if(r_->F->fail()){\n"
-		excode "r_->F->clear();\n"
-		excode "throw 0xe9170008;\n"
-		excode "}\n"
-		; TODO: 末端を超えたときの処理
+		do @writerSeekImpl(me.handle, origin, pos)
+		do me.cur :: @writerTellImpl(me.handle)
 	end func
 	
 	+func write(bin: []bit8)
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "r_->F->write(reinterpret_cast<char*>(`1`->B),`1`->L);\n"
+		do @writerWriteImpl(me.handle, bin, 0, ^bin)
 	end func
 	
 	+func writeChar(n: char)
-		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
 		if(dbg)
-			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
 		end if
-		excode "writeUtf8_(r_->F,`1`);\n"
+		; TODO: 文字コード
 	end func
 	
 	+func writeFloat(n: float)
@@ -311,7 +305,9 @@ end class
 		end for
 	end func
 	
-	var handle: int
+	+var handle: int
+	+var size: int
+	+var cur: int
 end class
 
 +func copyDir(dst: []char, src: []char): bool
@@ -424,26 +420,35 @@ end func
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
-	excode "reader_*r_=newPrim_(reader_)();\n"
-	excode "`0`->`.handle`=reinterpret_cast<int64_t>(r_);\n"
-	excode "std::u16string s_=`1`->B;\n"
-	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "r_->F=newPrim_(std::ifstream)(t_.c_str(),std::ios::in|std::ios::binary);\n"
-	excode "if(!*r_->F)return nullptr;\n"
-	excode "r_->F->seekg(0,std::ios_base::end);\n"
-	excode "`0`->`.fileSize_`=r_->F->tellg();\n"
-	excode "r_->F->seekg(0,std::ios_base::beg);\n"
-	excode "return `0`;\n"
+	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
+	var success: bool
+	do me2.handle :: @openAsReadingImpl(path, pack, &success)
+	if(!success)
+		ret null
+	end if
+	do me2.delimiters :: " ,\n"
+	do @readerSeekImpl(me2.handle, %tail, 0)
+	do me2.size :: @readerTellImpl(me2.handle)
+	do @readerSeekImpl(me2.handle, %head, 0)
+	do me2.cur :: 0
+	ret me2
 end func
 
 +func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
-	excode "writer_*w_=newPrim_(writer_)();\n"
-	excode "`0`->`.handle`=reinterpret_cast<int64_t>(w_);\n"
-	excode "std::u16string s_=`1`->B;\n"
-	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "w_->F=newPrim_(std::ofstream)(t_.c_str(),std::ios::out|std::ios::binary|(`2`?std::ios::app:std::ios::trunc));\n"
-	excode "if(!*w_->F)return nullptr;\n"
-	excode "return `0`;\n"
+	var success: bool
+	do me2.handle :: @openAsWritingImpl(path, append, &success)
+	if(!success)
+		ret null
+	end if
+	if(append)
+		do @writerSeekImpl(me2.handle, %tail, 0)
+		do me2.size :: @writerTellImpl(me2.handle)
+		do @writerSeekImpl(me2.handle, %head, 0)
+	else
+		do me2.size :: 0
+	end if
+	do me2.cur :: 0
+	ret me2
 end func
 
 +func moveDir(dst: []char, src: []char): bool
@@ -456,4 +461,80 @@ end func
 
 +func setCurDir(path: []char)
 	; TODO:
+end func
+
+func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
+	excode "std::u16string s_=`0`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "std::FILE*f_=std::fopen(t_.c_str(),\"rb\");\n"
+	excode "if(f_==nullptr){\n"
+	excode "*`2`=false;\n"
+	excode "return 0;\n"
+	excode "}\n"
+	excode "*`2`=true;\n"
+	excode "return reinterpret_cast<int64_t>(f_);\n"
+end func
+
+func readerClose(handle: int)
+	excode "fclose(reinterpret_cast<std::FILE*>(`0`));\n"
+end func
+
+func readerSeekImpl(handle: int, origin: @Origin, pos: int)
+	excode "#if defined(_WIN32)\n"
+	excode "_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	excode "#else\n"
+	excode "fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	excode "#endif\n"
+end func
+
+func readerTellImpl(handle: int): int
+	excode "#if defined(_WIN32)\n"
+	excode "return _ftelli64(reinterpret_cast<std::FILE*>(`0`));\n"
+	excode "#else\n"
+	excode "return ftello(reinterpret_cast<std::FILE*>(`0`));\n"
+	excode "#endif\n"
+end func
+
+func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
+	excode "return fread(`1`->B+`2`,1,`3`,reinterpret_cast<std::FILE*>(`0`))==`3`;\n"
+end func
+
+func openAsWritingImpl(path: []char, append: bool, success: &bool): int
+	excode "std::u16string s_=`0`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "std::FILE*f_=std::fopen(t_.c_str(),`1`?\"ab\":\"wb\");\n"
+	excode "if(f_==nullptr){\n"
+	excode "*`2`=false;\n"
+	excode "return 0;\n"
+	excode "}\n"
+	excode "*`2`=true;\n"
+	excode "return reinterpret_cast<int64_t>(f_);\n"
+end func
+
+func writerCloseImpl(handle: int)
+	excode "fclose(reinterpret_cast<std::FILE*>(`0`));\n"
+end func
+
+func writerFlushImpl(handle: int)
+	excode "fflush(reinterpret_cast<std::FILE*>(`0`));\n"
+end func
+
+func writerSeekImpl(handle: int, origin: @Origin, pos: int)
+	excode "#if defined(_WIN32)\n"
+	excode "_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	excode "#else\n"
+	excode "fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	excode "#endif\n"
+end func
+
+func writerTellImpl(handle: int): int
+	excode "#if defined(_WIN32)\n"
+	excode "return _ftelli64(reinterpret_cast<std::FILE*>(`0`));\n"
+	excode "#else\n"
+	excode "return ftello(reinterpret_cast<std::FILE*>(`0`));\n"
+	excode "#endif\n"
+end func
+
+func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
+	excode "fwrite(`1`->B+`2`,1,`3`,reinterpret_cast<std::FILE*>(`0`));\n"
 end func

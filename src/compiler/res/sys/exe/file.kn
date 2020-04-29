@@ -6,7 +6,6 @@ end enum
 
 +class Reader()
 	*func[__ndc]ctor()
-		do me.delimiters :: " ,\n"
 	end func
 	
 	*func[__frc]_dtor()
@@ -18,16 +17,41 @@ end enum
 	end func
 	
 	+func fileSize(): int
-		ret me.fileSize_
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.size
 	end func
 	
-	+func[d0000.knd, _readerFin]fin()
+	+func fin()
+		if(me.size >= 0)
+			do @readerClose(me.handle)
+			do me.size :: -1
+		end if
 	end func
 	
-	+func[d0000.knd, _readerGetPos]getPos(): int
+	+func getPos(): int
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.cur
 	end func
 	
-	+func[d0000.knd, _readerRead]read(size: int): []bit8
+	+func read(size: int): []bit8
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		var r: []bit8 :: #[size]bit8
+		if(@readerReadImpl(me.handle, r, 0, size))
+			ret r
+		end if
+		ret null
 	end func
 	
 	+func readChar(): char
@@ -63,7 +87,14 @@ end enum
 		ret r
 	end func
 	
-	+func[d0000.knd, _readerReadLetter]readLetter(): char
+	+func readLetter(): char
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		
+		; TODO: 文字コード
 	end func
 	
 	+func readLine(): []char
@@ -119,10 +150,26 @@ end enum
 		ret buf.sub(0, ptr)
 	end func
 	
-	+func[d0000.knd, _readerSetPos]setPos(origin: @Origin, pos: int)
+	+func setPos(origin: @Origin, pos: int)
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+			if(origin < %head | %tail < origin)
+				throw 0xE9170006
+			end if
+		end if
+		do @readerSeekImpl(me.handle, origin, pos)
+		do me.cur :: @readerTellImpl(me.handle)
 	end func
 	
-	+func[d0000.knd, _readerTerm]term(): bool
+	+func term(): bool
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.cur >= me.size
 	end func
 	
 	func readCharWithDelimiters(): char
@@ -159,9 +206,10 @@ end enum
 	end func
 	
 	const strBufSize: int :: 1024
-	var handle: int
-	var delimiters: []char
-	var fileSize_: int
+	+var handle: int
+	+var size: int
+	+var cur: int
+	+var delimiters: []char
 end class
 
 +class Writer()
@@ -172,22 +220,69 @@ end class
 		do me.fin()
 	end func
 	
-	+func[d0000.knd, _writerFin]fin()
+	+func fileSize(): int
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.size
 	end func
 	
-	+func[d0000.knd, _writerFlush]flush()
+	+func fin()
+		if(me.size >= 0)
+			do @writerCloseImpl(me.handle)
+			do me.handle :: -1
+		end if
+	end func
+	
+	+func flush()
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		do @writerFlushImpl(me.handle)
 	end func
 
-	+func[d0000.knd, _writerGetPos]getPos(): int
+	+func getPos(): int
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.cur
 	end func
 	
-	+func[d0000.knd, _writerSetPos]setPos(origin: @Origin, pos: int)
+	+func setPos(origin: @Origin, pos: int)
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+			if(origin < %head | %tail < origin)
+				throw 0xE9170006
+			end if
+		end if
+		do @writerSeekImpl(me.handle, origin, pos)
+		do me.cur :: @writerTellImpl(me.handle)
 	end func
 	
-	+func[d0000.knd, _writerWrite]write(bin: []bit8)
+	+func write(bin: []bit8)
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		do @writerWriteImpl(me.handle, bin, 0, ^bin)
 	end func
 	
-	+func[d0000.knd, _writerWriteChar]writeChar(n: char)
+	+func writeChar(n: char)
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		; TODO: 文字コード
 	end func
 	
 	+func writeFloat(n: float)
@@ -210,7 +305,9 @@ end class
 		end for
 	end func
 	
-	var handle: int
+	+var handle: int
+	+var size: int
+	+var cur: int
 end class
 
 +func copyDir(dst: []char, src: []char): bool
@@ -320,10 +417,36 @@ end func
 	; TODO:
 end func
 
-+func[d0000.knd, _makeReader, __mki]makeReader(me2: @Reader, path: []char): @Reader
++func[__mki]makeReader(me2: @Reader, path: []char): @Reader
+	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
+	var success: bool
+	do me2.handle :: @openAsReadingImpl(path, pack, &success)
+	if(!success)
+		ret null
+	end if
+	do me2.delimiters :: " ,\n"
+	do @readerSeekImpl(me2.handle, %tail, 0)
+	do me2.size :: @readerTellImpl(me2.handle)
+	do @readerSeekImpl(me2.handle, %head, 0)
+	do me2.cur :: 0
+	ret me2
 end func
 
-+func[d0000.knd, _makeWriter, __mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
++func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
+	var success: bool
+	do me2.handle :: @openAsWritingImpl(path, append, &success)
+	if(!success)
+		ret null
+	end if
+	if(append)
+		do @writerSeekImpl(me2.handle, %tail, 0)
+		do me2.size :: @writerTellImpl(me2.handle)
+		do @writerSeekImpl(me2.handle, %head, 0)
+	else
+		do me2.size :: 0
+	end if
+	do me2.cur :: 0
+	ret me2
 end func
 
 +func moveDir(dst: []char, src: []char): bool
@@ -336,4 +459,37 @@ end func
 
 +func setCurDir(path: []char)
 	; TODO:
+end func
+
+func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
+end func
+
+func readerClose(handle: int)
+end func
+
+func readerSeekImpl(handle: int, origin: @Origin, pos: int)
+end func
+
+func readerTellImpl(handle: int): int
+end func
+
+func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
+end func
+
+func openAsWritingImpl(path: []char, append: bool, success: &bool): int
+end func
+
+func writerCloseImpl(handle: int)
+end func
+
+func writerFlushImpl(handle: int)
+end func
+
+func writerSeekImpl(handle: int, origin: @Origin, pos: int)
+end func
+
+func writerTellImpl(handle: int): int
+end func
+
+func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
 end func
