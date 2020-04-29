@@ -33,6 +33,7 @@ func _fin()
 end func
 
 func _err(excpt: int)
+	; TODO:
 end func
 
 func _initVars()
@@ -42,6 +43,9 @@ func _finVars()
 end func
 
 +class ListPtr()
+	*func[__ndc]ctor()
+	end func
+	
 	var ptr: int
 end class
 

@@ -45,7 +45,7 @@ end enum
 		if(dbg)
 			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
 		end if
-		excode "return static_cast<int64_t>(r_->F->tellp());\n"
+		excode "return static_cast<int64_t>(r_->F->tellg());\n"
 #web
 		if(dbg)
 			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
@@ -207,7 +207,7 @@ end enum
 		excode "case 1:o_=std::ios_base::cur;break;\n"
 		excode "case 2:o_=std::ios_base::end;break;\n"
 		if(dbg)
-			excode "default:throw 0xe9170006\n"
+			excode "default:throw 0xe9170006;\n"
 		end if
 		excode "}\n"
 		excode "r_->F->seekg(`2`,o_);\n"
@@ -308,8 +308,12 @@ end class
 	+func fin()
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		excode "if(r_->F!=nullptr){\n"
 		excode "r_->F->close();\n"
+		excode "r_->F=nullptr;\n"
+		excode "}\n"
 #web
+		excode "if(`0`.`.handle`.F!=null){\n"
 		excode "let d_=`0`.`.handle`.F.replace(/\\n/g, \"\\u000D\\n\");\n"
 		excode "if(O_&&O_.writeFile){O_.writeFile(`0`.`.handle`.P,d_);return;}\n"
 		excode "let b_=new Blob([d_]);\n"
@@ -321,6 +325,8 @@ end class
 		excode "l_.click();\n"
 		excode "document.body.removeChild(l_);\n"
 		excode "`0`.`.handle`.F=null;\n"
+		excode "}\n"
+		; TODO: バイナリ
 #any
 	end func
 	
@@ -328,7 +334,16 @@ end class
 	+func[d0000.knd, _writerFlush]flush()
 #cpp,web
 	+func flush()
-		; TODO:
+#cpp
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
+		excode "r_->F->flush();\n"
+#web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 #any
 	end func
 
@@ -337,9 +352,15 @@ end class
 #cpp,web
 	+func getPos(): int
 #cpp
-		excode "reader_*r_=reinterpret_cast<reader_*>(`0`->`.handle`);\n"
-		excode "return static_cast<int64_t>(r_->F->tellg());\n"
+		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
+		excode "return static_cast<int64_t>(r_->F->tellp());\n"
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		excode "let n_= `0`.`.handle`.I;\n"
 		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 #any
@@ -351,18 +372,36 @@ end class
 	+func setPos(origin: @Origin, pos: int)
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "std::ios_base::seekdir o_=std::ios_base::beg;\n"
 		excode "switch(`1`){\n"
 		excode "case 0:o_=std::ios_base::beg;break;\n"
 		excode "case 1:o_=std::ios_base::cur;break;\n"
 		excode "case 2:o_=std::ios_base::end;break;\n"
+		if(dbg)
+			excode "default:throw 0xe9170006;\n"
+		end if
 		excode "}\n"
 		excode "r_->F->seekp(`2`,o_);\n"
+		excode "if(r_->F->fail()){\n"
+		excode "r_->F->clear();\n"
+		excode "throw 0xe9170008;\n"
+		excode "}\n"
+		; TODO: 末端を超えたときの処理
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		excode "switch(`1`){\n"
 		excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
 		excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
 		excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
+		if(dbg)
+			excode "default:throw 0xe9170006;\n"
+		end if
+		excode "if(`0`.`.handle`.I<0)throw 0xe9170008;\n"
 		excode "}\n"
 #any
 	end func
@@ -373,8 +412,14 @@ end class
 	+func write(bin: []bit8)
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "r_->F->write(reinterpret_cast<char*>(`1`->B),`1`->L);\n"
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		; TODO:
 #any
 	end func
@@ -385,8 +430,14 @@ end class
 	+func writeChar(n: char)
 #cpp
 		excode "writer_*r_=reinterpret_cast<writer_*>(`0`->`.handle`);\n"
+		if(dbg)
+			excode "if(r_->F==nullptr)throw 0xe917000a;\n"
+		end if
 		excode "writeUtf8_(r_->F,`1`);\n"
 #web
+		if(dbg)
+			excode "if(`0`.`.handle`.F==null)throw 0xe917000a;\n"
+		end if
 		excode "if(`0`.`.handle`.I<`0`.`.handle`.F.length)\n"
 		excode "`0`.`.handle`.F=`0`.`.handle`.F.slice(0,`0`.`.handle`.I)+String.fromCharCode(`1`)+`0`.`.handle`.F.slice(`0`.`.handle`.I+1);\n"
 		excode "else\n"
@@ -431,13 +482,12 @@ end func
 end func
 
 +func delExt(path: []char): []char
-	assert path <>& null
 	var p: int :: ^path - 1
 	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
 		do p :- 1
 	end while
 	if(p < 0 | path[p] <> '.')
-		ret path
+		do p :: ^path
 	end if
 	var r: []char :: #[p]char
 	for i(0, p - 1)
@@ -458,13 +508,12 @@ end func
 	end while
 	if(p < 0)
 		ret "./"
-	else
-		var r: []char :: #[p + 1]char
-		for i(0, p)
-			do r[i] :: path[i] = '\\' ?('/', path[i])
-		end for
-		ret r
 	end if
+	var r: []char :: #[p + 1]char
+	for i(0, p)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
 end func
 
 +func exeDir(): []char
@@ -499,14 +548,13 @@ end func
 	end while
 	if(path[p] <> '.')
 		ret ""
-	else
-		do p :+ 1
-		var r: []char :: #[^path - p]char
-		for i(0, ^path - p - 1)
-			do r[i] :: path[p + i]
-		end for
-		ret r
 	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
 end func
 
 +func fileName(path: []char): []char
@@ -573,7 +621,7 @@ end func
 	excode "r_->F=newPrim_(std::ifstream)(t_.c_str(),std::ios::in|std::ios::binary);\n"
 	excode "if(!*r_->F)return nullptr;\n"
 	excode "r_->F->seekg(0,std::ios_base::end);\n"
-	excode "`0`.`.fileSize_`=r_->F->tellg();\n"
+	excode "`0`->`.fileSize_`=r_->F->tellg();\n"
 	excode "r_->F->seekg(0,std::ios_base::beg);\n"
 	excode "return `0`;\n"
 #web

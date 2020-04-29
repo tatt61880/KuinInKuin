@@ -4,17 +4,8 @@
 	tail
 end enum
 
-+enum SysDir
-	desktop :: 0x00
-	fonts :: 0x14
-	appData :: 0x1A
-	windows :: 0x24
-	system32 :: 0x25
-	programFiles :: 0x26
-end enum
-
 +class Reader()
-	*func ctor()
+	*func[__ndc]ctor()
 		do me.delimiters :: " ,\n"
 	end func
 	
@@ -27,7 +18,7 @@ end enum
 	end func
 	
 	+func fileSize(): int
-		ret 0 { TODO: }
+		ret me.fileSize_
 	end func
 	
 	+func[d0000.knd, _readerFin]fin()
@@ -44,8 +35,9 @@ end enum
 			var c: char :: me.readCharWithDelimiters()
 			if(c <> '\0')
 				if(c = '\uFFFF')
-					throw excpt@invalidDataFmt
+					throw 0xE9170008
 				end if
+				do me.skipDelimiters()
 				ret c
 			end if
 		end while
@@ -56,7 +48,7 @@ end enum
 		var b: bool
 		var r: float :: s.toFloat(&b)
 		if(!b)
-			throw excpt@invalidDataFmt
+			throw 0xE9170008
 		end if
 		ret r
 	end func
@@ -66,7 +58,7 @@ end enum
 		var b: bool
 		var r: int :: s.toInt(&b)
 		if(!b)
-			throw excpt@invalidDataFmt
+			throw 0xE9170008
 		end if
 		ret r
 	end func
@@ -83,6 +75,9 @@ end enum
 				skip loop
 			end if
 			if(c = '\uFFFF')
+				if(ptr = 0)
+					ret null
+				end if
 				break loop
 			end if
 			if(c = '\n')
@@ -103,13 +98,13 @@ end enum
 		while loop(true)
 			var c: char :: me.readCharWithDelimiters()
 			if(c = '\uFFFF')
-				if(^buf = 0)
-					throw excpt@invalidDataFmt
+				if(ptr = 0)
+					throw 0xE9170008
 				end if
 				break loop
 			end if
 			if(c = '\0')
-				if(^buf = 0)
+				if(ptr = 0)
 					skip loop
 				end if
 				break loop
@@ -120,6 +115,7 @@ end enum
 			do buf[ptr] :: c
 			do ptr :+ 1
 		end while
+		do me.skipDelimiters()
 		ret buf.sub(0, ptr)
 	end func
 	
@@ -144,6 +140,24 @@ end enum
 		end while
 	end func
 	
+	func skipDelimiters()
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					skip loop
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c <> '\uFFFF')
+				do me.setPos(%cur, -1)
+			end if
+			ret
+		end while
+	end func
+	
 	const strBufSize: int :: 1024
 	var handle: int
 	var delimiters: []char
@@ -151,6 +165,9 @@ end enum
 end class
 
 +class Writer()
+	*func[__ndc]ctor()
+	end func
+
 	*func[__frc]_dtor()
 		do me.fin()
 	end func
@@ -209,13 +226,12 @@ end func
 end func
 
 +func delExt(path: []char): []char
-	assert path <>& null
 	var p: int :: ^path - 1
 	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
 		do p :- 1
 	end while
 	if(p < 0 | path[p] <> '.')
-		ret path
+		do p :: ^path
 	end if
 	var r: []char :: #[p]char
 	for i(0, p - 1)
@@ -236,13 +252,12 @@ end func
 	end while
 	if(p < 0)
 		ret "./"
-	else
-		var r: []char :: #[p + 1]char
-		for i(0, p)
-			do r[i] :: path[i] = '\\' ?('/', path[i])
-		end for
-		ret r
 	end if
+	var r: []char :: #[p + 1]char
+	for i(0, p)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
 end func
 
 +func exeDir(): []char
@@ -260,14 +275,13 @@ end func
 	end while
 	if(path[p] <> '.')
 		ret ""
-	else
-		do p :+ 1
-		var r: []char :: #[^path - p]char
-		for i(0, ^path - p - 1)
-			do r[i] :: path[p + i]
-		end for
-		ret r
 	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
 end func
 
 +func fileName(path: []char): []char
@@ -321,9 +335,5 @@ end func
 end func
 
 +func setCurDir(path: []char)
-	; TODO:
-end func
-
-+func sysDir(kind: @SysDir): []char
 	; TODO:
 end func

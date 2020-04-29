@@ -123,11 +123,11 @@ EXPORT S64 _writerGetPos(SClass* me_)
 
 EXPORT void _writerSetPos(SClass* me_, S64 origin, S64 pos)
 {
-	THROWDBG(origin < 0 || 2 < origin, EXCPT_DBG_ARG_OUT_DOMAIN);
+	THROWDBG(origin < 0 || 2 < origin, 0xe9170006);
 	SWriter* me2 = (SWriter*)me_;
 	THROWDBG(me2->Handle == NULL, 0xe917000a);
 	if (_fseeki64(me2->Handle, pos, (int)origin))
-		THROW(EXCPT_INVALID_DATA_FMT);
+		THROW(0xe9170008);
 }
 
 EXPORT void _writerWrite(SClass* me_, void* bin)
@@ -358,7 +358,7 @@ static Char ReadUtf8(SReader* me_, Bool replace_delimiter, int* char_cnt)
 		for (i = 0; i < len; i++)
 		{
 			if (ReadFileStream(me_->Handle, 1, &c) == 0 || (c & 0xc0) != 0x80)
-				THROW(EXCPT_INVALID_DATA_FMT);
+				THROW(0xe9170008);
 			u = (u << 6) | (c & 0x3f);
 		}
 	}
