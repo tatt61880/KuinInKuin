@@ -572,7 +572,9 @@ end func
 		if(i = r)
 			skip i
 		end if
-		do a[i] :$ a[r]
+		var t: int :: a[i]
+		do a[i] :: a[r]
+		do a[r] :: t
 	end for
 	ret a
 end func

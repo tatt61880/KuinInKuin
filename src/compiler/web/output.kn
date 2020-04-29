@@ -754,21 +754,30 @@ func buildExpr2(ast: \ast@AstExpr2)
 	var type: \ast@AstType :: ast.children0.type
 	switch(ast.kind)
 	case %assign
-		if(ast.children0.typeId = %exprArray & \ast@isChar((ast.children0 $ \ast@AstExprArray).type))
+		if(ast.children0.typeId = %exprArray)
 			var ast2: \ast@AstExprArray :: ast.children0 $ \ast@AstExprArray
+			var tmpVar: []char :: @addTmpVar()
 			var tmpIdx: []char :: @addTmpVar()
-			var tmpChar: []char :: @addTmpVar()
-			do @codes.add("(")
+			do @codes.add("\{tmpVar}=(")
 			do @buildExpr(ast2.var_)
-			do @codes.add(").S=(\{tmpIdx}=(")
+			do @codes.add("),\{tmpIdx}=(")
 			do @buildExpr(ast2.idx)
-			do @codes.add("),(")
-			do @buildExpr(ast2.var_)
-			do @codes.add(").S.slice(0,\{tmpIdx}[1])+String.fromCharCode(")
-			do @buildExpr(ast.children1)
-			do @codes.add(")+(")
-			do @buildExpr(ast2.var_)
-			do @codes.add(").S.slice(\{tmpIdx}[1]+1))")
+			do @codes.add("),")
+			if(\ast@isChar((ast.children0 $ \ast@AstExprArray).type))
+				if(!\option@rls)
+					do @codes.add("_CAS(\{tmpVar}.S,~~\{tmpIdx}[1]),")
+				end if
+				do @codes.add("\{tmpVar}.S=\{tmpVar}.S.slice(0,\{tmpIdx}[1])+String.fromCharCode(")
+				do @buildExpr(ast.children1)
+				do @codes.add(")+\{tmpVar}.S.slice(\{tmpIdx}[1]+1)")
+			else
+				if(!\option@rls)
+					do @codes.add("_CAI(\{tmpVar},~~\{tmpIdx}[1]),")
+				end if
+				do @codes.add("\{tmpVar}[\{tmpIdx}[1]]=(")
+				do @buildExpr(ast.children1)
+				do @codes.add(")")
+			end if
 		else
 			do @codes.add("(")
 			do @buildExpr(ast.children0)
@@ -1154,17 +1163,6 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @buildExpr(ast.children1)
 			do @codes.add("))")
 		end if
-	case %swap
-		var tmpVar: []char :: @addTmpVar()
-		do @codes.add("\{tmpVar}=(")
-		do @buildExpr(ast.children0)
-		do @codes.add("),(")
-		do @buildExpr(ast.children0)
-		do @codes.add(")=(")
-		do @buildExpr(ast.children1)
-		do @codes.add("),(")
-		do @buildExpr(ast.children1)
-		do @codes.add(")=(\{tmpVar})")
 	default
 		assert false
 	end switch

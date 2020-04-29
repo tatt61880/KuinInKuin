@@ -1455,8 +1455,6 @@ func parseExpr(): \ast@AstExpr
 			do ast2.kind :: %assignPow
 		case '~'
 			do ast2.kind :: %assignCat
-		case '$'
-			do ast2.kind :: %swap
 		default
 			do \err@err(%wrongOperator, ast2.pos, [@charToStr(c2)])
 			do @readUntilRet(c2)

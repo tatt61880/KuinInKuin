@@ -272,12 +272,18 @@ func test4()
 	block
 		var a: int :: 3
 		var b: int :: 5
-		do a :$ b
+		var t: int
+		do t :: a
+		do a :: b
+		do b :: t
 		do cui@print(a.toStr() ~ ", " ~ b.toStr() ~ "\n")
 		
 		var c: []char :: "abc"
 		var d: []char :: "def"
-		do c :$ d
+		var s: []char
+		do s :: c
+		do c :: d
+		do d :: s
 		do cui@print(c ~ ", " ~ d ~ "\n")
 	end block
 	

@@ -57,6 +57,9 @@ end class
 end class
 
 +class Rnd()
+	*func[__ndc]ctor()
+	end func
+	
 	+func rnd(min: int, max: int): int
 		if(dbg)
 			if(max - min < 0)
@@ -434,7 +437,9 @@ end func
 		if(i = r)
 			skip i
 		end if
-		do a[i] :$ a[r]
+		var t: int :: a[i]
+		do a[i] :: a[r]
+		do a[r] :: t
 	end for
 	ret a
 end func
