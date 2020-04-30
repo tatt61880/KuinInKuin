@@ -3411,6 +3411,9 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 	if(type1 =& null | type2 =& null)
 		ret false
 	end if
+	if(type1 =& type2)
+		ret true
+	end if
 	var typeId1: \ast@TypeId :: type1.typeId
 	var typeId2: \ast@TypeId :: type2.typeId
 	block

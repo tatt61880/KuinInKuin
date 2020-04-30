@@ -2,6 +2,7 @@ var funcs: queue<\ast@AstFunc>
 var classes: queue<\ast@AstClass>
 
 var uniqueId: []char
+var classPrototypes: list<[]char>
 var classDefs: list<[]char>
 var funcPrototypes: list<[]char>
 var codes: list<[]char>
@@ -37,6 +38,7 @@ const nonGcBufSize: []char :: "0x2000000"
 	do @classes :: #queue<\ast@AstClass>
 	
 	do @uniqueId :: "a"
+	do @classPrototypes :: #list<[]char>
 	do @classDefs :: #list<[]char>
 	do @funcPrototypes :: #list<[]char>
 	do @codes :: #list<[]char>
@@ -229,6 +231,7 @@ func buildClass(ast: \ast@AstClass)
 		do parentId :: "Class_"
 	end if
 	var info: @CppInfo :: @getInfo(ast)
+	do @classPrototypes.add("class \{info.id};\n")
 	if(ast.name <>& null)
 		do @classDefs.add("// \{ast.name}\n")
 	end if
@@ -1368,6 +1371,11 @@ func write(resFiles: list<[]char>)
 	end if
 	
 	func writeCommonCode(writer: file@Writer)
+		do writer.writeStr("#if defined(_WIN32)\n")
+		do writer.writeStr("#define _CRT_SECURE_NO_WARNINGS\n")
+		do writer.writeStr("#else\n")
+		do writer.writeStr("#define _FILE_OFFSET_BITS 64\n")
+		do writer.writeStr("#endif\n")
 		do writer.writeStr("#include <cstddef>\n")
 		do writer.writeStr("#include <cstdint>\n")
 		if(^@classTable = 0)
@@ -1430,10 +1438,10 @@ func write(resFiles: list<[]char>)
 	func writeCpp(writer: file@Writer, resFiles: list<[]char>)
 		do writer.writeStr("namespace {\n")
 		
-		do @classDefs.head()
-		while(!@classDefs.term())
-			do writer.writeStr(@classDefs.get())
-			do @classDefs.next()
+		do @classPrototypes.head()
+		while(!@classPrototypes.term())
+			do writer.writeStr(@classPrototypes.get())
+			do @classPrototypes.next()
 		end while
 		do @funcPrototypes.head()
 		while(!@funcPrototypes.term())
@@ -1443,6 +1451,11 @@ func write(resFiles: list<[]char>)
 		; TODO: ResFiles
 		do writer.writeStr("static int64_t argc_;\n")
 		do writer.writeStr("static char** argv_;\n")
+		do @classDefs.head()
+		while(!@classDefs.term())
+			do writer.writeStr(@classDefs.get())
+			do @classDefs.next()
+		end while
 		do @globalVars.head()
 		while(!@globalVars.term())
 			var globalVar: \ast@AstArg :: @globalVars.get()

@@ -1406,6 +1406,7 @@ func test14()
 	block
 		; Single line comment #3.
 		; Single line comment #4.
+		; 日本語のコメント
 		{
 				{
 					Nest comment.

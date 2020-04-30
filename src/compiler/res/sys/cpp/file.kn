@@ -1,3 +1,17 @@
+const strBufSize: int :: 1024
+var strBuf: []char
+var eBuf: []bit8
+
+func _init()
+	do @strBuf :: #[@strBufSize]char
+	do @eBuf :: #[8]bit8
+end func
+
++enum Encoding
+	utf8
+	utf16le
+end enum
+
 +enum Origin
 	head
 	cur
@@ -10,6 +24,16 @@ end enum
 	
 	*func[__frc]_dtor()
 		do me.fin()
+	end func
+	
+	+func _init(handle: int)
+		do me.handle :: handle
+		do me.delimiters :: " ,\n"
+		do @readerSeekImpl(me.handle, %tail, 0)
+		do me.size :: @readerTellImpl(me.handle)
+		do @readerSeekImpl(me.handle, %head, 0)
+		do me.cur :: 0
+		do me.parser :: @readUtf8
 	end func
 	
 	+func delimiter(delimiters: []char)
@@ -49,6 +73,7 @@ end enum
 		end if
 		var r: []bit8 :: #[size]bit8
 		if(@readerReadImpl(me.handle, r, 0, size))
+			do me.cur :+ size
 			ret r
 		end if
 		ret null
@@ -93,12 +118,12 @@ end enum
 				throw 0xE917000A
 			end if
 		end if
-		
-		; TODO: 文字コード
+		var parser: func<(int, &int): char> :: me.parser
+		ret parser(me.handle, &me.cur)
 	end func
 	
 	+func readLine(): []char
-		var buf: []char :: #[strBufSize]char
+		var buf: []char :: @strBuf
 		var ptr: int :: 0
 		while loop(true)
 			var c: char :: me.readLetter()
@@ -115,7 +140,7 @@ end enum
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[strBufSize]char
+				do buf :~ #[@strBufSize]char
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
@@ -124,7 +149,7 @@ end enum
 	end func
 	
 	+func readStr(): []char
-		var buf: []char :: #[strBufSize]char
+		var buf: []char :: @strBuf
 		var ptr: int :: 0
 		while loop(true)
 			var c: char :: me.readCharWithDelimiters()
@@ -141,7 +166,7 @@ end enum
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[strBufSize]char
+				do buf :~ #[@strBufSize]char
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
@@ -205,11 +230,11 @@ end enum
 		end while
 	end func
 	
-	const strBufSize: int :: 1024
-	+var handle: int
-	+var size: int
-	+var cur: int
-	+var delimiters: []char
+	var handle: int
+	var size: int
+	var cur: int
+	var delimiters: []char
+	var parser: func<(int, &int): char>
 end class
 
 +class Writer()
@@ -218,6 +243,19 @@ end class
 
 	*func[__frc]_dtor()
 		do me.fin()
+	end func
+	
+	+func _init(handle: int, append: bool)
+		do me.handle :: handle
+		if(append)
+			do @writerSeekImpl(me.handle, %tail, 0)
+			do me.size :: @writerTellImpl(me.handle)
+			do @writerSeekImpl(me.handle, %head, 0)
+		else
+			do me.size :: 0
+		end if
+		do me.cur :: 0
+		do me.parser :: @writeUtf8
 	end func
 	
 	+func fileSize(): int
@@ -274,6 +312,7 @@ end class
 			end if
 		end if
 		do @writerWriteImpl(me.handle, bin, 0, ^bin)
+		do me.cur :+ ^bin
 	end func
 	
 	+func writeChar(n: char)
@@ -282,7 +321,8 @@ end class
 				throw 0xE917000A
 			end if
 		end if
-		; TODO: 文字コード
+		var parser: func<(int, char, &int)> :: me.parser
+		do parser(me.handle, n, &me.cur)
 	end func
 	
 	+func writeFloat(n: float)
@@ -305,9 +345,10 @@ end class
 		end for
 	end func
 	
-	+var handle: int
-	+var size: int
-	+var cur: int
+	var handle: int
+	var size: int
+	var cur: int
+	var parser: func<(int, char, &int)>
 end class
 
 +func copyDir(dst: []char, src: []char): bool
@@ -422,32 +463,21 @@ end func
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
 	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
 	var success: bool
-	do me2.handle :: @openAsReadingImpl(path, pack, &success)
+	var handle: int :: @openAsReadingImpl(path, pack, &success)
 	if(!success)
 		ret null
 	end if
-	do me2.delimiters :: " ,\n"
-	do @readerSeekImpl(me2.handle, %tail, 0)
-	do me2.size :: @readerTellImpl(me2.handle)
-	do @readerSeekImpl(me2.handle, %head, 0)
-	do me2.cur :: 0
+	do me2._init(handle)
 	ret me2
 end func
 
 +func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
 	var success: bool
-	do me2.handle :: @openAsWritingImpl(path, append, &success)
+	var handle: int :: @openAsWritingImpl(path, append, &success)
 	if(!success)
 		ret null
 	end if
-	if(append)
-		do @writerSeekImpl(me2.handle, %tail, 0)
-		do me2.size :: @writerTellImpl(me2.handle)
-		do @writerSeekImpl(me2.handle, %head, 0)
-	else
-		do me2.size :: 0
-	end if
-	do me2.cur :: 0
+	do me2._init(handle, append)
 	ret me2
 end func
 
@@ -537,4 +567,115 @@ end func
 
 func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
 	excode "fwrite(`1`->B+`2`,1,`3`,reinterpret_cast<std::FILE*>(`0`));\n"
+end func
+
+func writerWriteNewLineImpl(handle: int): int
+	excode "fwrite(newLine_,1,sizeof(newLine_),reinterpret_cast<std::FILE*>(`0`));\n"
+	excode "return sizeof(newLine_);\n"
+end func
+
+func readUtf8(handle: int, cur: &int): char
+	var u: bit64
+	var len: int
+	while loop(true)
+		if(!@readerReadImpl(handle, @eBuf, 0, 1))
+			ret '\uFFFF'
+		end if
+		do cur :+ 1
+		var c: bit8 :: @eBuf[0]
+		if(c.and(0xC0b8) = 0x80b8)
+			skip loop
+		end if
+		if(c.and(0x80b8) = 0x00b8)
+			do len :: 0
+		elif(c.and(0xE0b8) = 0xC0b8)
+			do len :: 1
+			do c :: c.and(0x1Fb8)
+		elif(c.and(0xF0b8) = 0xE0b8)
+			do len :: 2
+			do c :: c.and(0x0Fb8)
+		elif(c.and(0xF8b8) = 0xF0b8)
+			do len :: 3
+			do c :: c.and(0x07b8)
+		elif(c.and(0xFCb8) = 0xF8b8)
+			do len :: 4
+			do c :: c.and(0x03b8)
+		elif(c.and(0xFEb8) = 0xFCb8)
+			do len :: 5
+			do c :: c.and(0x01b8)
+		else
+			skip loop
+		end if
+		do u :: c $ bit64
+		break loop
+	end while
+	for i(0, len - 1)
+		if(!@readerReadImpl(handle, @eBuf, 0, 1))
+			throw 0xE9170008
+		end if
+		do cur :+ 1
+		var c: bit8 :: @eBuf[0]
+		if(c.and(0xC0b8) <> 0x80b8)
+			throw 0xE9170008
+		end if
+		do u :: u.shl(6).or((c $ bit64).and(0x3Fb64))
+	end for
+	ret u $ char
+end func
+
+func writeUtf8(handle: int, c: char, cur: &int)
+	var d: bit64 :: c $ bit64
+	var u: bit64
+	var size: int
+	if(d.shr(7) = 0b64)
+		do u :: d
+		do size :: 1
+	else
+		do u :: (0x80b64).or(d.and(0x3Fb64)).shl(8)
+		do d :: d.shr(6)
+		if(d.shr(5) = 0b64)
+			do u :: u.or(0xC0b64).or(d)
+			do size :: 2
+		else
+			do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+			do d :: d.shr(6)
+			if(d.shr(4) = 0b64)
+				do u :: u.or(0xE0b64).or(d)
+				do size :: 3
+			else
+				do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+				do d :: d.shr(6)
+				if(d.shr(3) = 0b64)
+					do u :: u.or(0xF0b64).or(d)
+					do size :: 4
+				else
+					do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+					do d :: d.shr(6)
+					if(d.shr(2) = 0b64)
+						do u :: u.or(0xF8b64).or(d)
+						do size :: 5
+					else
+						do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+						do d :: d.shr(6)
+						if(d.shr(1) = 0b64)
+							do u :: u.or(0xFCb64).or(d)
+							do size :: 6
+						else
+							ret
+						end if
+					end if
+				end if
+			end if
+		end if
+	end if
+	if(size = 1 & u = 0x0Ab64)
+		do cur :+ @writerWriteNewLineImpl(handle)
+	else
+		for i(0, size - 1)
+			do @eBuf[i] :: u $ bit8
+			do u :: u.shr(8)
+		end for
+		do @writerWriteImpl(handle, @eBuf, 0, size)
+		do cur :+ size
+	end if
 end func

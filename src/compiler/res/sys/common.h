@@ -1,8 +1,3 @@
-#if defined(_WIN32)
-#define _CRT_SECURE_NO_WARNINGS
-#else
-#define _FILE_OFFSET_BITS 64
-#endif
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -737,8 +732,9 @@ template<typename T> struct toBin_<type_(T)> { type_(Array_<uint8_t>) operator()
 	if (std::is_class<T>::value)
 	{
 		if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-		type_(Array_<uint8_t>) r = makeBin_(&v->Y, sizeof(int64_t));
-		mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[v->Y + 5])(v));
+		auto w = dcast_(Class_)(v);
+		type_(Array_<uint8_t>) r = makeBin_(&w->Y, sizeof(int64_t));
+		mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[w->Y + 5])(w));
 		return r;
 	}
 	else
