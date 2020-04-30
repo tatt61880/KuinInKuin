@@ -44,8 +44,14 @@ end func
 func[d0000.knd]_err(excpt: int)
 #cpp,web
 func _err(excpt: int)
-	; TODO:
+	if(dbg)
+#cpp
+		; TODO:
+#web
+		excode "console.log('An error occurred: 0x'+`0`.toString(16));\n"
+		; TODO:
 #any
+	end if
 end func
 
 func _initVars()

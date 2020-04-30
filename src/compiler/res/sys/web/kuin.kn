@@ -33,7 +33,10 @@ func _fin()
 end func
 
 func _err(excpt: int)
-	; TODO:
+	if(dbg)
+		excode "console.log('An error occurred: 0x'+`0`.toString(16));\n"
+		; TODO:
+	end if
 end func
 
 func _initVars()

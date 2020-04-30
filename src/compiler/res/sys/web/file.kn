@@ -511,51 +511,100 @@ end func
 end func
 
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
-	; TODO:
+	excode "let f_=null,p_=`0`.S;\n"
+	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+	excode "if(f_==null)\n"
+	excode "f_=F_(p_,true);\n"
+	excode "if(f_==null){`2`.$=false;return null;}\n"
+	excode "`2`.$=true;return{F:f_,I:0};\n"
 end func
 
 func readerClose(handle: int)
-	; TODO:
+	excode "`0`.F=null;\n"
 end func
 
 func readerSeekImpl(handle: int, origin: @Origin, pos: int)
-	; TODO:
+	excode "let i_;\n"
+	excode "switch(`1`[1]){\n"
+	excode "case 0:i_=~~`2`[1];break;\n"
+	excode "case 1:i_=`0`.I+~~`2`[1];break;\n"
+	excode "case 2:i_=`0`.F.length+~~`2`[1];break;\n"
+	excode "}\n"
+	if(dbg)
+		excode "if(i_>=0)`0`.I=i_;else throw 0xe9170006;\n"
+	else
+		excode "if(i_>=0)`0`.I=i_;\n"
+	end if
 end func
 
 func readerTellImpl(handle: int): int
-	; TODO:
+	excode "let n_=`0`.I;\n"
+	excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 end func
 
 func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
-	; TODO:
+	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
+	excode "if(c_+s_>`0`.F.length)return false;\n"
+	excode "for(let i_=0;i_<s_;i_++)`1`[b_+i_]=`0`.F[c_+i_];\n"
+	excode "`0`.I+=s_;\n"
+	excode "return true;\n"
 end func
 
 func openAsWritingImpl(path: []char, append: bool, success: &bool): int
-	; TODO:
+	excode "`2`.$=true;\n"
+	excode "return {F:new Array(0),I:0,P:`0`.S};\n"
 end func
 
 func writerCloseImpl(handle: int)
-	; TODO:
+	excode "let d_=Uint8Array.from(`0`.F);\n"
+	excode "`0`.F=null;\n"
+	excode "if(O_&&O_.writeFile){O_.writeFile(`0`.P,d_);return;}\n"
+	excode "let b_=new Blob([`0`.d_.buffer]);\n"
+	excode "let l_=document.createElement(\"a\");\n"
+	excode "l_.download=`0`.P;\n"
+	excode "l_.href=(URL||webkitURL).createObjectURL(b_);\n"
+	excode "l_.setAttribute(\"style\",\"display:none\");\n"
+	excode "document.body.appendChild(l_);\n"
+	excode "l_.click();\n"
+	excode "document.body.removeChild(l_);\n"
 end func
 
 func writerFlushImpl(handle: int)
-	; TODO:
 end func
 
 func writerSeekImpl(handle: int, origin: @Origin, pos: int)
-	; TODO:
+	excode "let i_;\n"
+	excode "switch(`1`[1]){\n"
+	excode "case 0:i_=~~`2`[1];break;\n"
+	excode "case 1:i_=`0`.I+~~`2`[1];break;\n"
+	excode "case 2:i_=`0`.F.length+~~`2`[1];break;\n"
+	excode "}\n"
+	excode "if(i_>=`0`.F.length)`0`.F=`0`.F.concat(new Array(i_-`0`.F.length+1));\n"
+	if(dbg)
+		excode "if(i_>=0)`0`.I=i_;else throw 0xe9170006;\n"
+	else
+		excode "if(i_>=0)`0`.I=i_;\n"
+	end if
 end func
 
 func writerTellImpl(handle: int): int
-	; TODO:
+	excode "let n_=`0`.I;\n"
+	excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
 end func
 
 func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
-	; TODO:
+	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
+	excode "if(c_+s_>`0`.F.length)`0`.F=`0`.F.concat(new Array(c_+s_-`0`.F.length+1));\n"
+	excode "for(let i_=0;i_<s_;i_++)`0`.F[c_+i_]=`1`[b_+i_];\n"
+	excode "`0`.I+=s_;\n"
 end func
 
 func writerWriteNewLineImpl(handle: int): int
-	; TODO:
+	excode "let c_=`0`.I;\n"
+	excode "if(c_+1>`0`.F.length)`0`.F=`0`.F.concat(new Array(c_+1-`0`.F.length+1));\n"
+	excode "`0`.F[c_]=0x0a;\n"
+	excode "`0`.I+=1;\n"
+	excode "return Uint32Array.from([0,1]);\n"
 end func
 
 func readUtf8(handle: int, cur: &int): char

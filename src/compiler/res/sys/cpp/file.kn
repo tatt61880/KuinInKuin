@@ -551,9 +551,17 @@ end func
 
 func writerSeekImpl(handle: int, origin: @Origin, pos: int)
 	excode "#if defined(_WIN32)\n"
-	excode "_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	if(dbg)
+		excode "if(_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`))!=0)throw 0xe9170006;\n"
+	else
+		excode "_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	end if
 	excode "#else\n"
-	excode "fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	if(dbg)
+		excode "if(fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`))!=0)throw 0xe9170006;\n"
+	else
+		excode "fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+	end if
 	excode "#endif\n"
 end func
 

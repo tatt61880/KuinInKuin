@@ -765,14 +765,14 @@ func buildExpr2(ast: \ast@AstExpr2)
 			do @codes.add("),")
 			if(\ast@isChar((ast.children0 $ \ast@AstExprArray).type))
 				if(!\option@rls)
-					do @codes.add("_CAS(\{tmpVar}.S,~~\{tmpIdx}[1]),")
+					do @codes.add("CAS_(\{tmpVar}.S,~~\{tmpIdx}[1]),")
 				end if
 				do @codes.add("\{tmpVar}.S=\{tmpVar}.S.slice(0,\{tmpIdx}[1])+String.fromCharCode(")
 				do @buildExpr(ast.children1)
 				do @codes.add(")+\{tmpVar}.S.slice(\{tmpIdx}[1]+1)")
 			else
 				if(!\option@rls)
-					do @codes.add("_CAI(\{tmpVar},~~\{tmpIdx}[1]),")
+					do @codes.add("CAI_(\{tmpVar},~~\{tmpIdx}[1]),")
 				end if
 				do @codes.add("\{tmpVar}[\{tmpIdx}[1]]=(")
 				do @buildExpr(ast.children1)
@@ -1821,7 +1821,7 @@ func write(resFiles: list<[]char>)
 				if(resFile[^resFile - 1] = '/')
 					do writer.writeStr("return f?null:true;\n")
 				else
-					do writer.writeStr("return f?Uint8Array.from(")
+					do writer.writeStr("return f?Uint8Array.from([")
 					var reader: file@Reader :: file@makeReader(resFile)
 					if(reader =& null)
 						do \err@err(%fileOpenFailed, null, [resFile])
@@ -1835,7 +1835,7 @@ func write(resFiles: list<[]char>)
 						do writer.writeStr(data[i].toStr())
 					end for
 					do reader.fin()
-					do writer.writeStr("):true;\n")
+					do writer.writeStr("]):true;\n")
 				end if
 				do resFiles.next()
 			end while

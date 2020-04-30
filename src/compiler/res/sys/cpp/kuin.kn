@@ -33,7 +33,9 @@ func _fin()
 end func
 
 func _err(excpt: int)
-	; TODO:
+	if(dbg)
+		; TODO:
+	end if
 end func
 
 func _initVars()
