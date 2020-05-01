@@ -537,10 +537,11 @@ func[__any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
 	excode "auto l_=newPrim_(listPtr_<decltype(`0`->B)>)();\n"
 	excode "`2`->`.ptr`=reinterpret_cast<int64_t>(l_);\n"
 	excode "l_->I=`0`->I;\n"
+	excode "return `2`;"
 #web
 	excode "`2`.`.ptr`=`0`.P;\n"
+	excode "return `2`;"
 #any
-	ret me2
 end func
 
 #exe

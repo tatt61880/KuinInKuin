@@ -270,7 +270,7 @@ end class
 	+func fin()
 		if(me.size >= 0)
 			do @writerCloseImpl(me.handle)
-			do me.handle :: -1
+			do me.size :: -1
 		end if
 	end func
 	

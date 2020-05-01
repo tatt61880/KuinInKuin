@@ -307,7 +307,7 @@ end func
 
 func[__any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
 	excode "`2`.`.ptr`=`0`.P;\n"
-	ret me2
+	excode "return `2`;"
 end func
 
 func[__any, __rch]_getQueue(me_: int, type: []int): int

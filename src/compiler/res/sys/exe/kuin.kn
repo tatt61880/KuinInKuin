@@ -154,7 +154,6 @@ func[d0000.knd, __any, __rch]_getOffset(me_: int, type: []int, offset: int): int
 end func
 
 func[d0000.knd, __any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
-	ret me2
 end func
 
 func[d0000.knd, __any, __rch]_getQueue(me_: int, type: []int): int

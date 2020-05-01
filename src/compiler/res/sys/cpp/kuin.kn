@@ -248,7 +248,7 @@ func[__any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
 	excode "auto l_=newPrim_(listPtr_<decltype(`0`->B)>)();\n"
 	excode "`2`->`.ptr`=reinterpret_cast<int64_t>(l_);\n"
 	excode "l_->I=`0`->I;\n"
-	ret me2
+	excode "return `2`;"
 end func
 
 func[__any, __rch]_getQueue(me_: int, type: []int): int
