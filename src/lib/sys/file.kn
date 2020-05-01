@@ -613,7 +613,7 @@ func openAsWritingImpl(path: []char, append: bool, success: &bool): int
 	excode "return reinterpret_cast<int64_t>(f_);\n"
 #web
 	excode "`2`.$=true;\n"
-	excode "return {F:new Array(0),I:0,P:`0`.S};\n"
+	excode "return {F:new Array(1024),S:0,I:0,P:`0`.S};\n"
 #any
 end func
 
@@ -621,10 +621,10 @@ func writerCloseImpl(handle: int)
 #cpp
 	excode "fclose(reinterpret_cast<std::FILE*>(`0`));\n"
 #web
-	excode "let d_=Uint8Array.from(`0`.F);\n"
+	excode "let d_=Uint8Array.from(`0`.F.slice(0,`0`.S));\n"
 	excode "`0`.F=null;\n"
 	excode "if(O_&&O_.writeFile){O_.writeFile(`0`.P,d_);return;}\n"
-	excode "let b_=new Blob([`0`.d_.buffer]);\n"
+	excode "let b_=new Blob([d_.buffer]);\n"
 	excode "let l_=document.createElement(\"a\");\n"
 	excode "l_.download=`0`.P;\n"
 	excode "l_.href=(URL||webkitURL).createObjectURL(b_);\n"
@@ -662,9 +662,10 @@ func writerSeekImpl(handle: int, origin: @Origin, pos: int)
 	excode "switch(`1`[1]){\n"
 	excode "case 0:i_=~~`2`[1];break;\n"
 	excode "case 1:i_=`0`.I+~~`2`[1];break;\n"
-	excode "case 2:i_=`0`.F.length+~~`2`[1];break;\n"
+	excode "case 2:i_=`0`.S+~~`2`[1];break;\n"
 	excode "}\n"
-	excode "if(i_>=`0`.F.length)`0`.F=`0`.F.concat(new Array(i_-`0`.F.length+1));\n"
+	excode "while(i_>=`0`.F.length)`0`.F=`0`.F.concat(new Array(`0`.F.length));\n"
+	excode "if(`0`.S<i_)`0`.S=i_;\n"
 	if(dbg)
 		excode "if(i_>=0)`0`.I=i_;else throw 0xe9170006;\n"
 	else
@@ -691,7 +692,8 @@ func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
 	excode "fwrite(`1`->B+`2`,1,`3`,reinterpret_cast<std::FILE*>(`0`));\n"
 #web
 	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
-	excode "if(c_+s_>`0`.F.length)`0`.F=`0`.F.concat(new Array(c_+s_-`0`.F.length+1));\n"
+	excode "while(c_+s_>`0`.F.length)`0`.F=`0`.F.concat(new Array(`0`.F.length));\n"
+	excode "if(`0`.S<c_+s_)`0`.S=c_+s_;\n"
 	excode "for(let i_=0;i_<s_;i_++)`0`.F[c_+i_]=`1`[b_+i_];\n"
 	excode "`0`.I+=s_;\n"
 #any
@@ -703,7 +705,8 @@ func writerWriteNewLineImpl(handle: int): int
 	excode "return sizeof(newLine_);\n"
 #web
 	excode "let c_=`0`.I;\n"
-	excode "if(c_+1>`0`.F.length)`0`.F=`0`.F.concat(new Array(c_+1-`0`.F.length+1));\n"
+	excode "while(c_+1>`0`.F.length)`0`.F=`0`.F.concat(new Array(`0`.F.length));\n"
+	excode "if(`0`.S<c_+1)`0`.S=c_+1;\n"
 	excode "`0`.F[c_]=0x0a;\n"
 	excode "`0`.I+=1;\n"
 	excode "return Uint32Array.from([0,1]);\n"
