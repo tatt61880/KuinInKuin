@@ -347,9 +347,9 @@ func gcDec(regI: int, regF: int, type: \ast@AstType)
 	do asms.add(@asmJe(@valImm(4, @refValueAddr(l1.addr, true))))
 	do asms.add(@asmDec(@valMemS(8, @valReg(8, @regI[regI]), null, 0x00)))
 	if(dbg)
-		; Since reference counters rarely exceeds 0x20, it is regarded as memory corruption.
+		; Since reference counters rarely exceeds 0x10000, it is regarded as memory corruption.
 		var l2: @AsmLabel :: @asmLabel()
-		do asms.add(@asmCmp(@valMemS(8, @valReg(8, @regI[regI]), null, 0x00), @valImmU(8, 0x20b64)))
+		do asms.add(@asmCmp(@valMemS(8, @valReg(8, @regI[regI]), null, 0x00), @valImmU(8, 0x10000b64)))
 		do asms.add(@asmJbe(@valImm(4, @refValueAddr(l2.addr, true))))
 		do asms.add(@asmInt(@valImmU(8, 0x03b64)))
 		do asms.add(l2)

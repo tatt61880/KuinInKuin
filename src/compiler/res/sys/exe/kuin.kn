@@ -33,7 +33,6 @@ func[d0000.knd]_fin()
 end func
 
 func[d0000.knd]_err(excpt: int)
-	end if
 end func
 
 func _initVars()

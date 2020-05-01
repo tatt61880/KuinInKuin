@@ -491,40 +491,40 @@ end func
 	; TODO:
 end func
 
-func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
+func[d0000.knd, _openAsReadingImpl]openAsReadingImpl(path: []char, pack: bool, success: &bool): int
 end func
 
-func readerClose(handle: int)
+func[d0000.knd, _readerClose]readerClose(handle: int)
 end func
 
-func readerSeekImpl(handle: int, origin: @Origin, pos: int)
+func[d0000.knd, _readerSeekImpl]readerSeekImpl(handle: int, origin: @Origin, pos: int)
 end func
 
-func readerTellImpl(handle: int): int
+func[d0000.knd, _readerTellImpl]readerTellImpl(handle: int): int
 end func
 
-func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
+func[d0000.knd, _readerReadImpl]readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
 end func
 
-func openAsWritingImpl(path: []char, append: bool, success: &bool): int
+func[d0000.knd, _openAsWritingImpl]openAsWritingImpl(path: []char, append: bool, success: &bool): int
 end func
 
-func writerCloseImpl(handle: int)
+func[d0000.knd, _writerCloseImpl]writerCloseImpl(handle: int)
 end func
 
-func writerFlushImpl(handle: int)
+func[d0000.knd, _writerFlushImpl]writerFlushImpl(handle: int)
 end func
 
-func writerSeekImpl(handle: int, origin: @Origin, pos: int)
+func[d0000.knd, _writerSeekImpl]writerSeekImpl(handle: int, origin: @Origin, pos: int)
 end func
 
-func writerTellImpl(handle: int): int
+func[d0000.knd, _writerTellImpl]writerTellImpl(handle: int): int
 end func
 
-func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
+func[d0000.knd, _writerWriteImpl]writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
 end func
 
-func writerWriteNewLineImpl(handle: int): int
+func[d0000.knd, _writerWriteNewLineImpl]writerWriteNewLineImpl(handle: int): int
 end func
 
 func readUtf8(handle: int, cur: &int): char

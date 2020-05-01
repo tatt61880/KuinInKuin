@@ -50,8 +50,9 @@ func _err(excpt: int)
 #web
 		excode "console.log('An error occurred: 0x'+`0`.toString(16));\n"
 		; TODO:
-#any
+#cpp,web
 	end if
+#any
 end func
 
 func _initVars()
