@@ -1063,7 +1063,7 @@ EXPORT Bool _exist(void* me_, const U8* type, const void* key)
 	const void* node = *(void**)((U8*)me_ + 0x10);
 	while (node != NULL)
 	{
-		int cmp = cmp_func(key, *(void**)((U8*)node + 0x18));
+		int cmp = cmp_func(&key, (void**)((U8*)node + 0x18));
 		if (cmp == 0)
 			return True;
 		if (cmp < 0)
@@ -1125,7 +1125,7 @@ EXPORT S64 _findArray(const void* me_, const U8* type, const void* item, S64 sta
 	{
 		void* value = NULL;
 		memcpy(&value, ptr, size);
-		if (cmp(value, item) == 0)
+		if (cmp(&value, &item) == 0)
 			return i;
 		ptr += size;
 	}
@@ -1148,7 +1148,7 @@ EXPORT S64 _findBin(const void* me_, const U8* type, const void* item)
 		void* value = NULL;
 		S64 cmp2;
 		memcpy(&value, ptr + size * (size_t)mid, size);
-		cmp2 = cmp(item, value);
+		cmp2 = cmp(&item, &value);
 		if (cmp2 < 0)
 			max = mid - 1;
 		else if (cmp2 > 0)
@@ -1176,7 +1176,7 @@ EXPORT S64 _findLastArray(const void* me_, const U8* type, const void* item, S64
 	{
 		void* value = NULL;
 		memcpy(&value, ptr, size);
-		if (cmp(value, item) == 0)
+		if (cmp(&value, &item) == 0)
 			return i;
 		ptr -= size;
 	}
@@ -1196,7 +1196,7 @@ EXPORT Bool _findLastList(const void* me_, const U8* type, const void* item)
 			return False;
 		void* value = NULL;
 		memcpy(&value, (U8*)cur + 0x10, size);
-		if (cmp(value, item) == 0)
+		if (cmp(&value, &item) == 0)
 			return True;
 		*(void**)((U8*)me_ + 0x20) = *(void**)cur;
 	}
@@ -1215,7 +1215,7 @@ EXPORT Bool _findList(const void* me_, const U8* type, const void* item)
 			return False;
 		void* value = NULL;
 		memcpy(&value, (U8*)cur + 0x10, size);
-		if (cmp(value, item) == 0)
+		if (cmp(&value, &item) == 0)
 			return True;
 		*(void**)((U8*)me_ + 0x20) = *(void**)((U8*)cur + 0x08);
 	}
@@ -1245,7 +1245,7 @@ EXPORT void* _getDict(void* me_, const U8* type, const void* key, Bool* existed)
 	const void* node = *(void**)((U8*)me_ + 0x10);
 	while (node != NULL)
 	{
-		int cmp = cmp_func(key, *(void**)((U8*)node + 0x18));
+		int cmp = cmp_func(&key, (void**)((U8*)node + 0x18));
 		if (cmp == 0)
 		{
 			void* result = NULL;
@@ -1411,7 +1411,7 @@ EXPORT void* _max(const void* me_, const U8* type)
 	{
 		void* value = NULL;
 		memcpy(&value, ptr, size);
-		if (i == 0 || cmp(item, value) < 0)
+		if (i == 0 || cmp(&item, &value) < 0)
 			item = value;
 		ptr += size;
 	}
@@ -1434,7 +1434,7 @@ EXPORT void* _min(const void* me_, const U8* type)
 	{
 		void* value = NULL;
 		memcpy(&value, ptr, size);
-		if (i == 0 || cmp(item, value) > 0)
+		if (i == 0 || cmp(&item, &value) > 0)
 			item = value;
 		ptr += size;
 	}
@@ -2285,7 +2285,7 @@ static void* AddDictRecursion(void* node, const void* key, const void* item, int
 		*addition = True;
 		return n;
 	}
-	int cmp = cmp_func(key, *(void**)((U8*)node + 0x18));
+	int cmp = cmp_func(&key, (void**)((U8*)node + 0x18));
 	if (cmp == 0)
 	{
 		void** ptr = (void**)((U8*)node + 0x20);
@@ -2351,7 +2351,7 @@ static void* DelDictRecursion(void* node, const void* key, int cmp_func(const vo
 {
 	if (node == NULL)
 		return NULL;
-	if (cmp_func(key, *(void**)((U8*)node + 0x18)) < 0)
+	if (cmp_func(&key, (void**)((U8*)node + 0x18)) < 0)
 	{
 		if (*(void**)node != NULL && !*(Bool*)((U8*)*(void**)node + 0x10) && !(*(void**)*(void**)node != NULL && *(Bool*)((U8*)*(void**)*(void**)node + 0x10)))
 			node = DictMoveRedLeft(node);
@@ -2363,7 +2363,7 @@ static void* DelDictRecursion(void* node, const void* key, int cmp_func(const vo
 			node = DictRotateRight(node);
 		if (*(void**)((U8*)node + 0x08) != NULL && !*(Bool*)((U8*)*(void**)((U8*)node + 0x08) + 0x10) && !(*(void**)*(void**)((U8*)node + 0x08) != NULL && *(Bool*)((U8*)*(void**)*(void**)((U8*)node + 0x08) + 0x10)))
 			node = DictMoveRedRight(node);
-		if (cmp_func(key, *(void**)((U8*)node + 0x18)) == 0)
+		if (cmp_func(&key, (void**)((U8*)node + 0x18)) == 0)
 		{
 			*deleted = True;
 			if (*(void**)((U8*)node + 0x08) == NULL)
@@ -2475,57 +2475,57 @@ static void ToArrayValueDictRecursion(U8** buf, size_t value_size, void* node)
 
 static int CmpInt(const void* a, const void* b)
 {
-	S64 a2 = *(S64*)&a;
-	S64 b2 = *(S64*)&b;
+	S64 a2 = *(S64*)a;
+	S64 b2 = *(S64*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpFloat(const void* a, const void* b)
 {
-	double a2 = *(double*)&a;
-	double b2 = *(double*)&b;
+	double a2 = *(double*)a;
+	double b2 = *(double*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpChar(const void* a, const void* b)
 {
-	Char a2 = *(Char*)&a;
-	Char b2 = *(Char*)&b;
+	Char a2 = *(Char*)a;
+	Char b2 = *(Char*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpBit8(const void* a, const void* b)
 {
-	U8 a2 = *(U8*)&a;
-	U8 b2 = *(U8*)&b;
+	U8 a2 = *(U8*)a;
+	U8 b2 = *(U8*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpBit16(const void* a, const void* b)
 {
-	U16 a2 = *(U16*)&a;
-	U16 b2 = *(U16*)&b;
+	U16 a2 = *(U16*)a;
+	U16 b2 = *(U16*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpBit32(const void* a, const void* b)
 {
-	U32 a2 = *(U32*)&a;
-	U32 b2 = *(U32*)&b;
+	U32 a2 = *(U32*)a;
+	U32 b2 = *(U32*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpBit64(const void* a, const void* b)
 {
-	U64 a2 = *(U64*)&a;
-	U64 b2 = *(U64*)&b;
+	U64 a2 = *(U64*)a;
+	U64 b2 = *(U64*)b;
 	return a2 > b2 ? 1 : (a2 < b2 ? -1 : 0);
 }
 
 static int CmpStr(const void* a, const void* b)
 {
-	const Char* a2 = (const Char*)((U8*)a + 0x10);
-	const Char* b2 = (const Char*)((U8*)b + 0x10);
+	const Char* a2 = (const Char*)((U8*)*(void**)a + 0x10);
+	const Char* b2 = (const Char*)((U8*)*(void**)b + 0x10);
 	return wcscmp(a2, b2);
 }
 
