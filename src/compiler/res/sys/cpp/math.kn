@@ -330,7 +330,9 @@ end func
 		do b :: -b
 	end if
 	if(b > a)
-		do a :$ b
+		var t: int :: a
+		do a :: b
+		do b :: t
 	end if
 	var r: int
 	while loop(true)

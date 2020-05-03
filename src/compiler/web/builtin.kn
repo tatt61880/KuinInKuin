@@ -1,4 +1,24 @@
 +func write(writer: file@Writer)
+	; Default values.
+	do writer.writeStr("function DV_(t){\n")
+	do writer.writeStr("switch(t){\n")
+	do writer.writeStr("case 0x00:\n")
+	do writer.writeStr("case 0x07:\n")
+	do writer.writeStr("case 0x09:\n")
+	do writer.writeStr("return new Uint32Array(2);\n")
+	do writer.writeStr("case 0x01:\n")
+	do writer.writeStr("case 0x02:\n")
+	do writer.writeStr("case 0x04:\n")
+	do writer.writeStr("case 0x05:\n")
+	do writer.writeStr("case 0x06:\n")
+	do writer.writeStr("return 0;\n")
+	do writer.writeStr("case 0x03:\n")
+	do writer.writeStr("return false;\n")
+	do writer.writeStr("default:\n")
+	do writer.writeStr("return null;\n")
+	do writer.writeStr("}\n")
+	do writer.writeStr("}\n")
+	
 	; Discard types to get the 'value' type of a dictionary.
 	do writer.writeStr("function DT_(t){\n")
 	do writer.writeStr("switch(t[0]){\n")
@@ -357,6 +377,30 @@
 	do writer.writeStr("for(let i=0;i<n;i++)r+=c;\n")
 	do writer.writeStr("return r;\n")
 	do writer.writeStr("}\n")
+	
+	; 'CheckArrayIndexForString'
+	if(!\option@rls)
+		do writer.writeStr("function CAS_(s,i){\n")
+		do writer.writeStr("if(i<0||i>=s.length)throw 0xe9170002;\n")
+		do writer.writeStr("return s.charCodeAt(i);\n")
+		do writer.writeStr("}\n")
+	end if
+	
+	; 'CheckArrayIndex'
+	if(!\option@rls)
+		do writer.writeStr("function CAI_(a,i){\n")
+		do writer.writeStr("if(i<0||i>=a.length)throw 0xe9170002;\n")
+		do writer.writeStr("return a[i];\n")
+		do writer.writeStr("}\n")
+	end if
+	
+	; 'CheckNewArray'.
+	if(!\option@rls)
+		do writer.writeStr("function CNA_(n){\n")
+		do writer.writeStr("if(n<0)throw 0xe917000b;\n")
+		do writer.writeStr("return n;\n")
+		do writer.writeStr("}\n")
+	end if
 	
 	; Get 'cmp' function.
 	do writer.writeStr("function CM_(t){\n")

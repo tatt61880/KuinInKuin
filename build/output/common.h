@@ -3,8 +3,8 @@
 #include <cmath>
 #include <codecvt>
 #include <cstdarg>
+#include <cstdio>
 #include <cstring>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <list>
@@ -55,7 +55,10 @@ template<typename T> struct Array_ {
 		return r;
 	}
 	int64_t Len() { return L; }
-	T& At(int64_t n) { return B[n]; }
+	T& At(int64_t n) {
+		if (n < 0 || n >= L) throw 0xe9170002;
+		return B[n];
+	}
 	int64_t L;
 	T* B;
 };
@@ -376,6 +379,7 @@ template<typename T> struct newArraysRec_{
 template<typename T> struct newArraysRec_<type_(Array_<T>)> {
 	type_(Array_<T>) operator()() { throw 0; }
 	template<typename A, typename... C> type_(Array_<T>) operator()(A h, C... t) {
+		if (h < 0) throw 0xe917000b;
 		type_(Array_<T>) r = new_(Array_<T>)();
 		r->L = h;
 		r->B = newPrimArray_(static_cast<std::size_t>(h + bufLen_<T>()), T);
@@ -728,8 +732,9 @@ template<typename T> struct toBin_<type_(T)> { type_(Array_<uint8_t>) operator()
 	if (std::is_class<T>::value)
 	{
 		if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-		type_(Array_<uint8_t>) r = makeBin_(&v->Y, sizeof(int64_t));
-		mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[v->Y + 5])(v));
+		auto w = dcast_(Class_)(v);
+		type_(Array_<uint8_t>) r = makeBin_(&w->Y, sizeof(int64_t));
+		mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[w->Y + 5])(w));
 		return r;
 	}
 	else
@@ -839,7 +844,7 @@ template<typename T> type_(Array_<T>) sub_(type_(Array_<T>) a, int64_t start, in
 	if (len == -1)
 		len = a->L - start;
 	if (start < 0 || len < 0 || start + len > a->L)
-		return nullptr;
+		throw 0xe9170006;
 	type_(Array_<T>) r = new_(Array_<T>)();
 	r->L = len;
 	r->B = newPrimArray_(static_cast<std::size_t>(len + bufLen_<T>()), T);
@@ -1148,13 +1153,13 @@ static uint64_t endian_(uint64_t me_)
 }
 
 struct reader_ {
-	reader_() : F(newPrim_(std::ifstream)()) {}
-	std::ifstream* F;
+	reader_() : F(nullptr) {}
+	std::FILE* F;
 };
 
 struct writer_ {
-	writer_() : F(newPrim_(std::ofstream)()) {}
-	std::ofstream* F;
+	writer_() : F(nullptr) {}
+	std::FILE* F;
 };
 
 template<typename T>
@@ -1162,76 +1167,6 @@ struct listPtr_ {
 	listPtr_<T>() {}
 	typename T::iterator I;
 };
-
-static char16_t readUtf8_(std::ifstream* f) {
-	char c;
-	int64_t l;
-	uint64_t u;
-	if (!f->get(c))
-		return 0xffff;
-	if ((c & 0xc0) == 0x80)
-		return 0xffff;
-	if ((c & 0x80) == 0x00)
-		l = 0;
-	else if ((c & 0xe0) == 0xc0)
-		l = 1, c &= 0x1f;
-	else if ((c & 0xf0) == 0xe0)
-		l = 2, c &= 0x0f;
-	else if ((c & 0xf8) == 0xf0)
-		l = 3, c &= 0x07;
-	else if ((c & 0xfc) == 0xf8)
-		l = 4, c &= 0x03;
-	else if ((c & 0xfe) == 0xfc)
-		l = 5, c &= 0x01;
-	else
-		return 0xffff;
-	u = static_cast<uint64_t>(c);
-	for (int64_t i = 0; i < l; i++) {
-		if (!f->get(c) || (c & 0xc0) != 0x80)
-			return 0xffff;
-		u = (u << 6) | static_cast<uint64_t>(c & 0x3f);
-	}
-	if (0x00010000 <= u && u <= 0x0010ffff)
-		u = 0x20;
-	return static_cast<char16_t>(u);
-}
-
-static void writeUtf8_(std::ofstream* f, char16_t c) {
-	uint64_t u;
-	std::size_t size;
-	if ((c >> 7) == 0)
-		u = c, size = 1;
-	else {
-		u = static_cast<uint64_t>(0x80 | (c & 0x3f)) << 8;
-		c >>= 6;
-		if ((c >> 5) == 0)
-			u |= 0xc0 | c, size = 2;
-		else {
-			u = (u | 0x80 | (c & 0x3f)) << 8;
-			c >>= 6;
-			if ((c >> 4) == 0)
-				u |= 0xe0 | c, size = 3;
-			else {
-				u = (u | 0x80 | (c & 0x3f)) << 8;
-				c >>= 6;
-				if ((c >> 3) == 0)
-					u |= 0xf0 | c, size = 4;
-				else {
-					u = (u | 0x80 | (c & 0x3f)) << 8;
-					c >>= 6;
-					if ((c >> 2) == 0)
-						u |= 0xf8 | c, size = 5;
-					else {
-						u = (u | 0x80 | (c & 0x3f)) << 8;
-						c >>= 6;
-						if ((c >> 1) == 0) u |= 0xfc | c, size = 6; else return;
-					}
-				}
-			}
-		}
-	}
-	if (size == 1 && u == 0x0a) f->write(newLine_, static_cast<std::streamsize>(sizeof(newLine_))); else f->write(reinterpret_cast<char*>(&u), static_cast<std::streamsize>(size));
-}
 
 static void init_() {
 	setlocale(LC_ALL, "");

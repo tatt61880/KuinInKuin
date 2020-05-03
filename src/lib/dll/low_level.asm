@@ -137,8 +137,10 @@ CmpClassAsm PROC FRAME
 	movsd QWORD PTR 00a0h[rsp], xmm15
 	.ENDPROLOG
 	; begin
+	mov rcx, QWORD PTR 00h[rcx]
 	inc QWORD PTR 00h[rcx]
 	mov QWORD PTR 00h[rsp], rcx
+	mov rdx, QWORD PTR 00h[rdx]
 	inc QWORD PTR 00h[rdx]
 	mov QWORD PTR 08h[rsp], rdx
 	mov rax, QWORD PTR 08h[rcx]

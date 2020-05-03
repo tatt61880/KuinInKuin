@@ -347,9 +347,9 @@ func gcDec(regI: int, regF: int, type: \ast@AstType)
 	do asms.add(@asmJe(@valImm(4, @refValueAddr(l1.addr, true))))
 	do asms.add(@asmDec(@valMemS(8, @valReg(8, @regI[regI]), null, 0x00)))
 	if(dbg)
-		; Since reference counters rarely exceeds 0x20, it is regarded as memory corruption.
+		; Since reference counters rarely exceeds 0x10000, it is regarded as memory corruption.
 		var l2: @AsmLabel :: @asmLabel()
-		do asms.add(@asmCmp(@valMemS(8, @valReg(8, @regI[regI]), null, 0x00), @valImmU(8, 0x20b64)))
+		do asms.add(@asmCmp(@valMemS(8, @valReg(8, @regI[regI]), null, 0x00), @valImmU(8, 0x10000b64)))
 		do asms.add(@asmJbe(@valImm(4, @refValueAddr(l2.addr, true))))
 		do asms.add(@asmInt(@valImmU(8, 0x03b64)))
 		do asms.add(l2)
@@ -635,7 +635,7 @@ func callApi(asms: list<@Asm>, dllName: []char, funcName: []char)
 	
 	func strToBin(str: []char): []bit8
 		var r: []bit8 :: #[^str]bit8
-		for i(0, ^r)
+		for i(0, ^r - 1)
 			do r[i] :: str[i] $ bit8
 		end for
 		ret r
@@ -2092,8 +2092,6 @@ func assembleExpr2(ast: \ast@AstExpr2, regI: int, regF: int)
 			else
 				do useReg :: 1 {Use 'reg_i' and 'reg_i + 1'.}
 			end if
-		elif(ast.kind = %swap)
-			do useReg :: 1 {Use 'reg_i' and 'reg_i + 1'.}
 		else
 			if(\ast@isFloat(ast.children0.type))
 				do useReg :: 2 {Use 'reg_f' and 'reg_f + 1'.}
@@ -2121,7 +2119,7 @@ func assembleExpr2(ast: \ast@AstExpr2, regI: int, regF: int)
 			end if
 		end if
 		do @assembleExpr(ast.children0, regI, regF)
-		if(ast.kind <> %assign & ast.kind <> %swap)
+		if(ast.kind <> %assign)
 			do @toValue(ast.children0, regI, regF)
 		end if
 		if(useReg = 0)
@@ -2129,9 +2127,7 @@ func assembleExpr2(ast: \ast@AstExpr2, regI: int, regF: int)
 			do @toValue(ast.children1, regI + 1, regF)
 		elif(useReg = 1)
 			do @assembleExpr(ast.children1, regI + 1, regF) {This value is stored in 'reg_i + 1'.}
-			if(ast.kind <> %swap)
-				do @toValue(ast.children1, regI + 1, regF)
-			end if
+			do @toValue(ast.children1, regI + 1, regF)
 		else
 			assert useReg = 2
 			do @assembleExpr(ast.children1, regI, regF + 1) {This value is stored in 'reg_f + 1'.}
@@ -2412,13 +2408,6 @@ func assembleExpr2(ast: \ast@AstExpr2, regI: int, regF: int)
 			do @popRegs(tmp)
 			do asms.add(@asmMovsd(@valReg(4, @regF[regF]), @valReg(4, %xmm14)))
 		end if
-	case %swap
-		do @toRef(ast.children0, %si, @regI[regI])
-		do @toRef(ast.children1, %di, @regI[regI + 1])
-		do asms.add(@asmMov(@valReg(size, @regI[regI]), @valMemS(size, @valReg(8, %si), null, 0x00)))
-		do asms.add(@asmMov(@valReg(size, @regI[regI + 1]), @valMemS(size, @valReg(8, %di), null, 0x00)))
-		do asms.add(@asmMov(@valMemS(size, @valReg(8, %si), null, 0x00), @valReg(size, @regI[regI + 1])))
-		do asms.add(@asmMov(@valMemS(size, @valReg(8, %di), null, 0x00), @valReg(size, @regI[regI])))
 	default
 		assert false
 	end switch

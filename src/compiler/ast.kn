@@ -393,7 +393,6 @@ end class
 	div
 	mod
 	pow
-	swap
 end enum
 
 +class AstExpr2(@AstExpr)

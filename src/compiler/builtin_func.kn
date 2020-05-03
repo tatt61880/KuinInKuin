@@ -62,7 +62,7 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		do @builtinFuncs.add("shl", %bit)
 		do @builtinFuncs.add("shr", %bit)
 		do @builtinFuncs.add("sign", %intFloat)
-		do @builtinFuncs.add("sort", %comparableArrayList)
+		do @builtinFuncs.add("sort", %comparableArray)
 		do @builtinFuncs.add("split", %str)
 		do @builtinFuncs.add("sub", %array)
 		do @builtinFuncs.add("tail", %list_)
@@ -221,8 +221,6 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		if(type.typeId = %typeArray)
 			if(\ast@isComparable((type $ \ast@AstTypeArray).itemType, true))
 				switch(member)
-				case "sort"
-					do member :: "sortArray"
 				case "find"
 					do member :: "findArray"
 				case "findLast"
@@ -236,8 +234,6 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		if(type.typeId = %typeGen & (type $ \ast@AstTypeGen).kind = %list_)
 			if(\ast@isComparable((type $ \ast@AstTypeGen).itemType, true))
 				switch(member)
-				case "sort"
-					do member :: "sortList"
 				case "find"
 					do member :: "findList"
 				case "findLast"

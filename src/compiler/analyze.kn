@@ -1618,7 +1618,7 @@ func rebuildDo(ast: \ast@AstStatDo): \ast@AstStat
 		ret null
 	end if
 	; 'do' needs to end with side effects.
-	if(!(ast.expr.typeId = %expr2 & ((ast.expr $ \ast@AstExpr2).kind = %assign | (ast.expr $ \ast@AstExpr2).kind = %swap) | ast.expr.typeId = %exprCall))
+	if(!(ast.expr.typeId = %expr2 & ((ast.expr $ \ast@AstExpr2).kind = %assign) | ast.expr.typeId = %exprCall))
 		do \err@err(%noSideEffectDo, ast.expr.pos, null)
 	end if
 	ret ast
@@ -2225,15 +2225,6 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 			end if
 		case %pow
 			if(\ast@isInt(ast.children0.type) | \ast@isFloat(ast.children0.type))
-				do ast.type :: ast.children0.type
-				do correct :: true
-			end if
-		case %swap
-			if(ast.children0.varKind = %value | ast.children1.varKind = %value)
-				do \err@err(%wrongLeftOrRightValueOfSwapOperator, ast.pos, null)
-				ret null
-			end if
-			if(!(\ast@isClass(ast.children0.type) & ast.children0.type.refItem <>& ast.children1.type.refItem))
 				do ast.type :: ast.children0.type
 				do correct :: true
 			end if
@@ -3419,6 +3410,9 @@ end func
 func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 	if(type1 =& null | type2 =& null)
 		ret false
+	end if
+	if(type1 =& type2)
+		ret true
 	end if
 	var typeId1: \ast@TypeId :: type1.typeId
 	var typeId2: \ast@TypeId :: type2.typeId

@@ -42,6 +42,9 @@ func _finVars()
 end func
 
 +class ListPtr()
+	*func[__ndc]ctor()
+	end func
+	
 	var ptr: int
 end class
 
@@ -102,6 +105,12 @@ func[d0000.knd, __any, __tch]_findList(me_: int, type: []int, item: int): bool
 end func
 
 func _findStr(me_: []char, pattern: []char, start: int): int
+	if(start = -1)
+		do start :: 0
+	end if
+	if(start < 0)
+		ret -1
+	end if
 	for i(start, ^me_ - ^pattern)
 		for j(0, ^pattern - 1)
 			if(me_[i + j] <> pattern[j])
@@ -114,6 +123,9 @@ func _findStr(me_: []char, pattern: []char, start: int): int
 end func
 
 func _findStrLast(me_: []char, pattern: []char, start: int): int
+	if(start = -1)
+		do start :: ^me_ - ^pattern
+	end if
 	for i(start < ^me_ - ^pattern ?(start, ^me_ - ^pattern), 0, -1)
 		for j(0, ^pattern - 1)
 			if(me_[i + j] <> pattern[j])
@@ -142,7 +154,6 @@ func[d0000.knd, __any, __rch]_getOffset(me_: int, type: []int, offset: int): int
 end func
 
 func[d0000.knd, __any, __mki]_getPtr(me_: int, type: []int, me2: @ListPtr): @ListPtr
-	ret me2
 end func
 
 func[d0000.knd, __any, __rch]_getQueue(me_: int, type: []int): int
@@ -184,7 +195,6 @@ func _join(me_: [][]char, delimiter: []char): []char
 end func
 
 func _lower(me_: []char): []char
-	assert me_ <>& null
 	var s: []char :: #[^me_]char
 	for i(0, ^me_ - 1)
 		if('A' <= me_[i] & me_[i] <= 'Z')
@@ -231,7 +241,21 @@ func[d0000.knd, __any, __rme]_repeat(me_: int, type: []int, len: int): int
 end func
 
 func _replace(me_: []char, old: []char, new: []char): []char
-	; TODO:
+	if(^old=0)
+		ret me_
+	end if
+	var r: []char :: ""
+	var p: int :: 0
+	while loop(p < ^me_)
+		var p2: int :: me_.findStr(old, p)
+		if(p2 = -1)
+			do r :~ me_.sub(p, -1)
+			break loop
+		end if
+		do r :~ me_.sub(p, p2 - p) ~ new
+		do p :: p2 + ^old
+	end while
+	ret r
 end func
 
 func[d0000.knd, __any]_reverse(me_: int, type: []int)
@@ -243,6 +267,12 @@ end func
 func[d0000.knd, __any]_setPtr(me_: int, type: []int, ptr: @ListPtr)
 end func
 
+func[d0000.knd, __any, __rme]_shl(me_: int, type: []int, n: int): int
+end func
+
+func[d0000.knd, __any, __rme]_shr(me_: int, type: []int, n: int): int
+end func
+
 func _signFloat(me_: float): float
 	ret me_ > 0.0 ?(1.0, me_ < 0.0 ?(-1.0, 0.0))
 end func
@@ -251,22 +281,15 @@ func _signInt(me_: int): int
 	ret me_ > 0 ?(1, me_ < 0 ?(-1, 0))
 end func
 
-func[d0000.knd, __any, __rme]_shl(me_: int, type: []int, n: int): int
-end func
-
-func[d0000.knd, __any, __rme]_shr(me_: int, type: []int, n: int): int
-end func
-
-func[d0000.knd, __any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
-end func
-
-func[d0000.knd, __any]_sortArray(me_: int, type: []int)
-end func
-
-func[d0000.knd, __any]_sortList(me_: int, type: []int)
+func[d0000.knd, __any]_sort(me_: int, type: []int)
 end func
 
 func _split(me_: []char, delimiter: []char): [][]char
+	if(dbg)
+		if(^delimiter = 0)
+			throw 0xE9170006
+		end if
+	end if
 	var result: list<[]char> :: #list<[]char>
 	var p: int :: 0
 	while(true)
@@ -278,6 +301,9 @@ func _split(me_: []char, delimiter: []char): [][]char
 		do result.add(me_.sub(p, p2 - p))
 		do p :: p2 + ^delimiter
 	end while
+end func
+
+func[d0000.knd, __any, __rme]_sub(me_: int, type: []int, start: int, len: int): int
 end func
 
 func[d0000.knd, __any]_tail(me_: int, type: []int)
@@ -299,12 +325,15 @@ func[d0000.knd, __any, __rav]_toArrayValue(me_: int, type: []int): int
 end func
 
 func[d0000.knd]_toBit64(me_: []char, success: &bool): bit64
+	; TODO:
 end func
 
 func[d0000.knd]_toFloat(me_: []char, success: &bool): float
+	; TODO:
 end func
 
 func[d0000.knd]_toInt(me_: []char, success: &bool): int
+	; TODO:
 end func
 
 func[d0000.knd, __any]_toStr(me_: int, type: []int): []char
@@ -317,11 +346,10 @@ func[d0000.knd]_toStrFmtInt(me_: int, fmt: []char): []char
 end func
 
 func _trim(me_: []char): []char
-	assert me_ <>& null
 	var f: int :: -1
 	for i(0, ^me_ - 1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do f :: i
 			break i
 		end if
@@ -332,7 +360,7 @@ func _trim(me_: []char): []char
 	var l: int :: -1
 	for i(^me_ - 1, 0, -1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do l :: i
 			break i
 		end if
@@ -345,11 +373,10 @@ func _trim(me_: []char): []char
 end func
 
 func _trimLeft(me_: []char): []char
-	assert me_ <>& null
 	var f: int :: -1
 	for i(0, ^me_ - 1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do f :: i
 			break i
 		end if
@@ -368,7 +395,7 @@ func _trimRight(me_: []char): []char
 	var l: int :: -1
 	for i(^me_ - 1, 0, -1)
 		var c: bit64 :: me_[i] $ bit64
-		if(!(0x09b64 <= c & c <= 0x0Db64 | c = 0x20b64 | c = 0xA0b64))
+		if(!(c <= 0x20b64 | c = 0xA0b64))
 			do l :: i
 			break i
 		end if
@@ -384,7 +411,6 @@ func _trimRight(me_: []char): []char
 end func
 
 func _upper(me_: []char): []char
-	assert me_ <>& null
 	var s: []char :: #[^me_]char
 	for i(0, ^me_ - 1)
 		if('a' <= me_[i] & me_[i] <= 'z')

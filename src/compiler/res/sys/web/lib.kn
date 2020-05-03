@@ -8,16 +8,6 @@ func _init()
 	do @globalRnd.setSeed((@sysTime() $ bit32).xor(@now() $ bit32))
 end func
 
-+class BmSearch()
-	+func find(text: []char, start: int): int
-		; TODO:
-	end func
-	
-	var pattern: int
-	var dists: int
-	var len: int
-end class
-
 +class Bool()
 	+*func cmp(t: @Bool): int
 		ret(me.value $ int - t.value $ int).sign()
@@ -67,9 +57,12 @@ end class
 end class
 
 +class Rnd()
+	*func[__ndc]ctor()
+	end func
+	
 	+func rnd(min: int, max: int): int
 		if(dbg)
-			if(min > max)
+			if(max - min < 0)
 				throw 0xE9170006
 			end if
 		end if
@@ -93,7 +86,7 @@ end class
 	
 	+func rndFloat(min: float, max: float): float
 		if(dbg)
-			if(min > max)
+			if(min >= max)
 				throw 0xE9170006
 			end if
 		end if
@@ -325,10 +318,6 @@ end func
 	ret @ln(x) / @ln(base)
 end func
 
-+func makeBmSearch(pattern: []char): @BmSearch
-	; TODO:
-end func
-
 +func makeRnd(seed: bit32): @Rnd
 	var r: @Rnd :: #@Rnd
 	do r.setSeed(seed)
@@ -448,7 +437,9 @@ end func
 		if(i = r)
 			skip i
 		end if
-		do a[i] :$ a[r]
+		var t: int :: a[i]
+		do a[i] :: a[r]
+		do a[r] :: t
 	end for
 	ret a
 end func

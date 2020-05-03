@@ -115,7 +115,6 @@ end enum
 	enumTypeNotInferred
 	concatNull
 	dividedBy0
-	wrongLeftOrRightValueOfSwapOperator
 	condForCondOperatorMustBeBool
 	twoValueForCondOperatorMustSameType
 	wrongTypeForNewOperator
@@ -874,13 +873,6 @@ end enum
 			ret "0で除算しました。"
 		default
 			ret "Divided by 0."
-		end switch
-	case %wrongLeftOrRightValueOfSwapOperator
-		switch(@lang)
-		case %ja
-			ret "「:$」演算子の左辺値もしくは右辺値が代入可能な変数ではありません。"
-		default
-			ret "The left or right value of the ':$' operator is not an assignable variable."
 		end switch
 	case %condForCondOperatorMustBeBool
 		switch(@lang)

@@ -1,25 +1,39 @@
+const strBufSize: int :: 1024
+var strBuf: []char
+var eBuf: []bit8
+
+func _init()
+	do @strBuf :: #[@strBufSize]char
+	do @eBuf :: #[8]bit8
+end func
+
++enum Encoding
+	utf8
+	utf16le
+end enum
+
 +enum Origin
 	head
 	cur
 	tail
 end enum
 
-+enum SysDir
-	desktop :: 0x00
-	fonts :: 0x14
-	appData :: 0x1A
-	windows :: 0x24
-	system32 :: 0x25
-	programFiles :: 0x26
-end enum
-
 +class Reader()
-	*func ctor()
-		do me.delimiters :: " ,\n"
+	*func[__ndc]ctor()
 	end func
 	
 	*func[__frc]_dtor()
 		do me.fin()
+	end func
+	
+	+func _init(handle: int)
+		do me.handle :: handle
+		do me.delimiters :: " ,\n"
+		do @readerSeekImpl(me.handle, %tail, 0)
+		do me.size :: @readerTellImpl(me.handle)
+		do @readerSeekImpl(me.handle, %head, 0)
+		do me.cur :: 0
+		do me.parser :: @readUtf8
 	end func
 	
 	+func delimiter(delimiters: []char)
@@ -27,20 +41,42 @@ end enum
 	end func
 	
 	+func fileSize(): int
-		ret 0 { TODO: }
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.size
 	end func
 	
 	+func fin()
-		excode "`0`.`.handle`.F=null;\n"
+		if(me.size >= 0)
+			do @readerClose(me.handle)
+			do me.size :: -1
+		end if
 	end func
 	
 	+func getPos(): int
-		excode "let n_= `0`.`.handle`.I;\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.cur
 	end func
 	
 	+func read(size: int): []bit8
-		; TODO:
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		var r: []bit8 :: #[size]bit8
+		if(@readerReadImpl(me.handle, r, 0, size))
+			do me.cur :+ size
+			ret r
+		end if
+		ret null
 	end func
 	
 	+func readChar(): char
@@ -48,8 +84,9 @@ end enum
 			var c: char :: me.readCharWithDelimiters()
 			if(c <> '\0')
 				if(c = '\uFFFF')
-					throw excpt@invalidDataFmt
+					throw 0xE9170008
 				end if
+				do me.skipDelimiters()
 				ret c
 			end if
 		end while
@@ -60,7 +97,7 @@ end enum
 		var b: bool
 		var r: float :: s.toFloat(&b)
 		if(!b)
-			throw excpt@invalidDataFmt
+			throw 0xE9170008
 		end if
 		ret r
 	end func
@@ -70,17 +107,23 @@ end enum
 		var b: bool
 		var r: int :: s.toInt(&b)
 		if(!b)
-			throw excpt@invalidDataFmt
+			throw 0xE9170008
 		end if
 		ret r
 	end func
 	
 	+func readLetter(): char
-		excode "return `0`.`.handle`.F.charCodeAt(`0`.`.handle`.I++);\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		var parser: func<(int, &int): char> :: me.parser
+		ret parser(me.handle, &me.cur)
 	end func
 	
 	+func readLine(): []char
-		var buf: []char :: #[strBufSize]char
+		var buf: []char :: @strBuf
 		var ptr: int :: 0
 		while loop(true)
 			var c: char :: me.readLetter()
@@ -88,13 +131,16 @@ end enum
 				skip loop
 			end if
 			if(c = '\uFFFF')
+				if(ptr = 0)
+					ret null
+				end if
 				break loop
 			end if
 			if(c = '\n')
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[strBufSize]char
+				do buf :~ #[@strBufSize]char
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
@@ -103,41 +149,52 @@ end enum
 	end func
 	
 	+func readStr(): []char
-		var buf: []char :: #[strBufSize]char
+		var buf: []char :: @strBuf
 		var ptr: int :: 0
 		while loop(true)
 			var c: char :: me.readCharWithDelimiters()
 			if(c = '\uFFFF')
-				if(^buf = 0)
-					throw excpt@invalidDataFmt
+				if(ptr = 0)
+					throw 0xE9170008
 				end if
 				break loop
 			end if
 			if(c = '\0')
-				if(^buf = 0)
+				if(ptr = 0)
 					skip loop
 				end if
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[strBufSize]char
+				do buf :~ #[@strBufSize]char
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
 		end while
+		do me.skipDelimiters()
 		ret buf.sub(0, ptr)
 	end func
 	
 	+func setPos(origin: @Origin, pos: int)
-		excode "switch(`1`){\n"
-		excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
-		excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
-		excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
-		excode "}\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+			if(origin < %head | %tail < origin)
+				throw 0xE9170006
+			end if
+		end if
+		do @readerSeekImpl(me.handle, origin, pos)
+		do me.cur :: @readerTellImpl(me.handle)
 	end func
 	
 	+func term(): bool
-		excode "return `0`.`.handle`.I>=`0`.`.handle`.F.length;\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.cur >= me.size
 	end func
 	
 	func readCharWithDelimiters(): char
@@ -155,54 +212,117 @@ end enum
 		end while
 	end func
 	
-	const strBufSize: int :: 1024
+	func skipDelimiters()
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters - 1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					skip loop
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c <> '\uFFFF')
+				do me.setPos(%cur, -1)
+			end if
+			ret
+		end while
+	end func
+	
 	var handle: int
+	var size: int
+	var cur: int
 	var delimiters: []char
-	var fileSize_: int
+	var parser: func<(int, &int): char>
 end class
 
 +class Writer()
+	*func[__ndc]ctor()
+	end func
+
 	*func[__frc]_dtor()
 		do me.fin()
 	end func
 	
-	+func fin()
-		excode "let d_=`0`.`.handle`.F.replace(/\\n/g, \"\\u000D\\n\");\n"
-		excode "if(O_&&O_.writeFile){O_.writeFile(`0`.`.handle`.P,d_);return;}\n"
-		excode "let b_=new Blob([d_]);\n"
-		excode "let l_=document.createElement(\"a\");\n"
-		excode "l_.download=`0`.`.handle`.P;\n"
-		excode "l_.href=(URL||webkitURL).createObjectURL(b_);\n"
-		excode "l_.setAttribute(\"style\",\"display:none\");\n"
-		excode "document.body.appendChild(l_);\n"
-		excode "l_.click();\n"
-		excode "document.body.removeChild(l_);\n"
-		excode "`0`.`.handle`.F=null;\n"
+	+func _init(handle: int, append: bool)
+		do me.handle :: handle
+		if(append)
+			do @writerSeekImpl(me.handle, %tail, 0)
+			do me.size :: @writerTellImpl(me.handle)
+			do @writerSeekImpl(me.handle, %head, 0)
+		else
+			do me.size :: 0
+		end if
+		do me.cur :: 0
+		do me.parser :: @writeUtf8
 	end func
 	
+	+func fileSize(): int
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.size
+	end func
+	
+	+func fin()
+		if(me.size >= 0)
+			do @writerCloseImpl(me.handle)
+			do me.size :: -1
+		end if
+	end func
+	
+	+func flush()
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		do @writerFlushImpl(me.handle)
+	end func
+
 	+func getPos(): int
-		excode "let n_= `0`.`.handle`.I;\n"
-		excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		ret me.cur
 	end func
 	
 	+func setPos(origin: @Origin, pos: int)
-		excode "switch(`1`){\n"
-		excode "case 0:`0`.`.handle`.I=~~`2`[1];break;\n"
-		excode "case 1:`0`.`.handle`.I+=~~`2`[1];break;\n"
-		excode "case 2:`0`.`.handle`.I=`0`.`.handle`.F.length+~~`2`[1];break;\n"
-		excode "}\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+			if(origin < %head | %tail < origin)
+				throw 0xE9170006
+			end if
+		end if
+		do @writerSeekImpl(me.handle, origin, pos)
+		do me.cur :: @writerTellImpl(me.handle)
 	end func
 	
 	+func write(bin: []bit8)
-		; TODO:
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		do @writerWriteImpl(me.handle, bin, 0, ^bin)
+		do me.cur :+ ^bin
 	end func
 	
 	+func writeChar(n: char)
-		excode "if(`0`.`.handle`.I<`0`.`.handle`.F.length)\n"
-		excode "`0`.`.handle`.F=`0`.`.handle`.F.slice(0,`0`.`.handle`.I)+String.fromCharCode(`1`)+`0`.`.handle`.F.slice(`0`.`.handle`.I+1);\n"
-		excode "else\n"
-		excode "`0`.`.handle`.F+=String.fromCharCode(`1`);\n"
-		excode "`0`.`.handle`.I++;\n"
+		if(dbg)
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		var parser: func<(int, char, &int)> :: me.parser
+		do parser(me.handle, n, &me.cur)
 	end func
 	
 	+func writeFloat(n: float)
@@ -226,6 +346,9 @@ end class
 	end func
 	
 	var handle: int
+	var size: int
+	var cur: int
+	var parser: func<(int, char, &int)>
 end class
 
 +func copyDir(dst: []char, src: []char): bool
@@ -241,13 +364,12 @@ end func
 end func
 
 +func delExt(path: []char): []char
-	assert path <>& null
 	var p: int :: ^path - 1
 	while(p >= 0 & path[p] <> '/' & path[p] <> '\\' & path[p] <> '.')
 		do p :- 1
 	end while
 	if(p < 0 | path[p] <> '.')
-		ret path
+		do p :: ^path
 	end if
 	var r: []char :: #[p]char
 	for i(0, p - 1)
@@ -268,13 +390,12 @@ end func
 	end while
 	if(p < 0)
 		ret "./"
-	else
-		var r: []char :: #[p + 1]char
-		for i(0, p)
-			do r[i] :: path[i] = '\\' ?('/', path[i])
-		end for
-		ret r
 	end if
+	var r: []char :: #[p + 1]char
+	for i(0, p)
+		do r[i] :: path[i] = '\\' ?('/', path[i])
+	end for
+	ret r
 end func
 
 +func exeDir(): []char
@@ -302,14 +423,13 @@ end func
 	end while
 	if(path[p] <> '.')
 		ret ""
-	else
-		do p :+ 1
-		var r: []char :: #[^path - p]char
-		for i(0, ^path - p - 1)
-			do r[i] :: path[p + i]
-		end for
-		ret r
 	end if
+	do p :+ 1
+	var r: []char :: #[^path - p]char
+	for i(0, ^path - p - 1)
+		do r[i] :: path[p + i]
+	end for
+	ret r
 end func
 
 +func fileName(path: []char): []char
@@ -358,23 +478,24 @@ end func
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
-	excode "let f_=null,p_=`1`.S;\n"
-	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
-	excode "if(f_==null){\n"
-	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
-	excode "f_=F_(p_,true);\n"
-	excode "else{\n"
-	; TODO:
-	excode "}\n"
-	excode "}\n"
-	excode "if(f_==null)return null;\n"
-	excode "`0`.`.handle`={F:f_,I:0};\n"
-	excode "return `0`;\n"
+	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
+	var success: bool
+	var handle: int :: @openAsReadingImpl(path, pack, &success)
+	if(!success)
+		ret null
+	end if
+	do me2._init(handle)
+	ret me2
 end func
 
 +func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
-	excode "`0`.`.handle`={F:\"\",I:0,P:`1`.S};\n"
-	excode "return `0`;\n"
+	var success: bool
+	var handle: int :: @openAsWritingImpl(path, append, &success)
+	if(!success)
+		ret null
+	end if
+	do me2._init(handle, append)
+	ret me2
 end func
 
 +func moveDir(dst: []char, src: []char): bool
@@ -389,6 +510,208 @@ end func
 	; TODO:
 end func
 
-+func sysDir(kind: @SysDir): []char
-	; TODO:
+func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
+	excode "let f_=null,p_=`0`.S;\n"
+	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+	excode "if(f_==null)\n"
+	excode "f_=F_(p_,true);\n"
+	excode "if(f_==null){`2`.$=false;return null;}\n"
+	excode "`2`.$=true;return{F:f_,I:0};\n"
+end func
+
+func readerClose(handle: int)
+	excode "`0`.F=null;\n"
+end func
+
+func readerSeekImpl(handle: int, origin: @Origin, pos: int)
+	excode "let i_;\n"
+	excode "switch(`1`[1]){\n"
+	excode "case 0:i_=~~`2`[1];break;\n"
+	excode "case 1:i_=`0`.I+~~`2`[1];break;\n"
+	excode "case 2:i_=`0`.F.length+~~`2`[1];break;\n"
+	excode "}\n"
+	if(dbg)
+		excode "if(i_>=0)`0`.I=i_;else throw 0xe9170006;\n"
+	else
+		excode "if(i_>=0)`0`.I=i_;\n"
+	end if
+end func
+
+func readerTellImpl(handle: int): int
+	excode "let n_=`0`.I;\n"
+	excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+end func
+
+func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
+	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
+	excode "if(c_+s_>`0`.F.length)return false;\n"
+	excode "for(let i_=0;i_<s_;i_++)`1`[b_+i_]=`0`.F[c_+i_];\n"
+	excode "`0`.I+=s_;\n"
+	excode "return true;\n"
+end func
+
+func openAsWritingImpl(path: []char, append: bool, success: &bool): int
+	excode "`2`.$=true;\n"
+	excode "return {F:new Array(1024),S:0,I:0,P:`0`.S};\n"
+end func
+
+func writerCloseImpl(handle: int)
+	excode "let d_=Uint8Array.from(`0`.F.slice(0,`0`.S));\n"
+	excode "`0`.F=null;\n"
+	excode "if(O_&&O_.writeFile){O_.writeFile(`0`.P,d_);return;}\n"
+	excode "let b_=new Blob([d_.buffer]);\n"
+	excode "let l_=document.createElement(\"a\");\n"
+	excode "l_.download=`0`.P;\n"
+	excode "l_.href=(URL||webkitURL).createObjectURL(b_);\n"
+	excode "l_.setAttribute(\"style\",\"display:none\");\n"
+	excode "document.body.appendChild(l_);\n"
+	excode "l_.click();\n"
+	excode "document.body.removeChild(l_);\n"
+end func
+
+func writerFlushImpl(handle: int)
+end func
+
+func writerSeekImpl(handle: int, origin: @Origin, pos: int)
+	excode "let i_;\n"
+	excode "switch(`1`[1]){\n"
+	excode "case 0:i_=~~`2`[1];break;\n"
+	excode "case 1:i_=`0`.I+~~`2`[1];break;\n"
+	excode "case 2:i_=`0`.S+~~`2`[1];break;\n"
+	excode "}\n"
+	excode "while(i_>=`0`.F.length)`0`.F=`0`.F.concat(new Array(`0`.F.length));\n"
+	excode "if(`0`.S<i_)`0`.S=i_;\n"
+	if(dbg)
+		excode "if(i_>=0)`0`.I=i_;else throw 0xe9170006;\n"
+	else
+		excode "if(i_>=0)`0`.I=i_;\n"
+	end if
+end func
+
+func writerTellImpl(handle: int): int
+	excode "let n_=`0`.I;\n"
+	excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+end func
+
+func writerWriteImpl(handle: int, data: []bit8, start: int, size: int)
+	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
+	excode "while(c_+s_>`0`.F.length)`0`.F=`0`.F.concat(new Array(`0`.F.length));\n"
+	excode "if(`0`.S<c_+s_)`0`.S=c_+s_;\n"
+	excode "for(let i_=0;i_<s_;i_++)`0`.F[c_+i_]=`1`[b_+i_];\n"
+	excode "`0`.I+=s_;\n"
+end func
+
+func writerWriteNewLineImpl(handle: int): int
+	excode "let c_=`0`.I;\n"
+	excode "while(c_+1>`0`.F.length)`0`.F=`0`.F.concat(new Array(`0`.F.length));\n"
+	excode "if(`0`.S<c_+1)`0`.S=c_+1;\n"
+	excode "`0`.F[c_]=0x0a;\n"
+	excode "`0`.I+=1;\n"
+	excode "return Uint32Array.from([0,1]);\n"
+end func
+
+func readUtf8(handle: int, cur: &int): char
+	var u: bit64
+	var len: int
+	while loop(true)
+		if(!@readerReadImpl(handle, @eBuf, 0, 1))
+			ret '\uFFFF'
+		end if
+		do cur :+ 1
+		var c: bit8 :: @eBuf[0]
+		if(c.and(0xC0b8) = 0x80b8)
+			skip loop
+		end if
+		if(c.and(0x80b8) = 0x00b8)
+			do len :: 0
+		elif(c.and(0xE0b8) = 0xC0b8)
+			do len :: 1
+			do c :: c.and(0x1Fb8)
+		elif(c.and(0xF0b8) = 0xE0b8)
+			do len :: 2
+			do c :: c.and(0x0Fb8)
+		elif(c.and(0xF8b8) = 0xF0b8)
+			do len :: 3
+			do c :: c.and(0x07b8)
+		elif(c.and(0xFCb8) = 0xF8b8)
+			do len :: 4
+			do c :: c.and(0x03b8)
+		elif(c.and(0xFEb8) = 0xFCb8)
+			do len :: 5
+			do c :: c.and(0x01b8)
+		else
+			skip loop
+		end if
+		do u :: c $ bit64
+		break loop
+	end while
+	for i(0, len - 1)
+		if(!@readerReadImpl(handle, @eBuf, 0, 1))
+			throw 0xE9170008
+		end if
+		do cur :+ 1
+		var c: bit8 :: @eBuf[0]
+		if(c.and(0xC0b8) <> 0x80b8)
+			throw 0xE9170008
+		end if
+		do u :: u.shl(6).or((c $ bit64).and(0x3Fb64))
+	end for
+	ret u $ char
+end func
+
+func writeUtf8(handle: int, c: char, cur: &int)
+	var d: bit64 :: c $ bit64
+	var u: bit64
+	var size: int
+	if(d.shr(7) = 0b64)
+		do u :: d
+		do size :: 1
+	else
+		do u :: (0x80b64).or(d.and(0x3Fb64)).shl(8)
+		do d :: d.shr(6)
+		if(d.shr(5) = 0b64)
+			do u :: u.or(0xC0b64).or(d)
+			do size :: 2
+		else
+			do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+			do d :: d.shr(6)
+			if(d.shr(4) = 0b64)
+				do u :: u.or(0xE0b64).or(d)
+				do size :: 3
+			else
+				do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+				do d :: d.shr(6)
+				if(d.shr(3) = 0b64)
+					do u :: u.or(0xF0b64).or(d)
+					do size :: 4
+				else
+					do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+					do d :: d.shr(6)
+					if(d.shr(2) = 0b64)
+						do u :: u.or(0xF8b64).or(d)
+						do size :: 5
+					else
+						do u :: u.or(0x80b64).or(d.and(0x3Fb64)).shl(8)
+						do d :: d.shr(6)
+						if(d.shr(1) = 0b64)
+							do u :: u.or(0xFCb64).or(d)
+							do size :: 6
+						else
+							ret
+						end if
+					end if
+				end if
+			end if
+		end if
+	end if
+	if(size = 1 & u = 0x0Ab64)
+		do cur :+ @writerWriteNewLineImpl(handle)
+	else
+		for i(0, size - 1)
+			do @eBuf[i] :: u $ bit8
+			do u :: u.shr(8)
+		end for
+		do @writerWriteImpl(handle, @eBuf, 0, size)
+		do cur :+ size
+	end if
 end func
