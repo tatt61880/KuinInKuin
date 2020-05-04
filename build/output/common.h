@@ -185,6 +185,11 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 	const std::string& t2 = utf16ToUtf8_(s2);
 	return ::MoveFileExA(t2.c_str(), t1.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) != 0;
 }
+static void sleep_(int64_t t) {
+	for (int64_t i = 0; i < t / 10000; i++)
+		Sleep(10000);
+	Sleep(static_cast<DWORD>(t % 10000));
+}
 
 #else
 
@@ -272,9 +277,11 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 	const std::string& t2 = utf16ToUtf8_(s2);
 	return ::rename(t2.c_str(), t1.c_str()) == 0;
 }
+static void sleep_(int64_t t) {
+	timespec r = { t / 1000, t % 1000 * 1000000 };
+	nanosleep(&r, nullptr);
+}
 
-#   define BOOST_COPY_FILE(F,T,FailIfExistsBool)
-#   define BOOST_MOVE_FILE(OLD,NEW)()
 #endif
 
 static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array_<char16_t>), bool, type_(Class_)), type_(Class_) d) {

@@ -351,16 +351,13 @@ end class
 	var parser: func<(int, char, &int)>
 end class
 
-+func copyDir(dst: []char, src: []char): bool
-	; TODO:
++func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
 end func
 
 +func copyFile(dst: []char, src: []char): bool
-	ret false {TODO:}
 end func
 
 +func delDir(path: []char): bool
-	; TODO:
 end func
 
 +func delExt(path: []char): []char

@@ -351,16 +351,37 @@ end class
 	var parser: func<(int, char, &int)>
 end class
 
+#exe
++func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
+#cpp,web
 +func copyDir(dst: []char, src: []char): bool
+#cpp
+	excode "return copyDir_(`0`->B, `1`->B);\n"
+#web
 	; TODO:
+#any
 end func
 
+#exe
 +func copyFile(dst: []char, src: []char): bool
-	ret false {TODO:}
+#cpp,web
++func copyFile(dst: []char, src: []char): bool
+#cpp
+	excode "return copyFile_(`0`->B, `1`->B);\n"
+#web
+	; TODO:
+#any
 end func
 
+#exe
 +func delDir(path: []char): bool
+#cpp,web
++func delDir(path: []char): bool
+#cpp
+	excode "return delDir_(`0`->B);\n"
+#web
 	; TODO:
+#any
 end func
 
 +func delExt(path: []char): []char

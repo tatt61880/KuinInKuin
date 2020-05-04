@@ -272,10 +272,10 @@ end func
 +func factInt(n: int): int
 	; TODO: Refactoring.
 	if(n < 0)
-		throw excpt@dbgArgOutDomain
+		throw 0xE9170006
 	end if
 	if(n > 20)
-		throw excpt@dbgIntOverflow
+		throw 0xE9170006
 	end if
 	var result: int :: 1
 	for i(1, n)
@@ -287,10 +287,10 @@ end func
 +func fibonacci(n: int): int
 	; TODO: Refactoring.
 	if(n < 0)
-		throw excpt@dbgArgOutDomain
+		throw 0xE9170006
 	end if
 	if(n > 92)
-		throw excpt@dbgIntOverflow
+		throw 0xE9170006
 	end if
 	if(n = 0)
 		ret 0
@@ -316,7 +316,7 @@ end func
 +func gcd(a: int, b: int): int
 	if(a = 0)
 		if(b = 0)
-			throw excpt@dbgArgOutDomain
+			throw 0xE9170006
 		end if
 		ret b
 	end if
@@ -377,7 +377,7 @@ end func
 +func lcm(a: int, b: int): int
 	if(a = 0)
 		if(b = 0)
-			throw excpt@dbgArgOutDomain
+			throw 0xE9170006
 		end if
 		ret 0
 	end if
@@ -395,14 +395,14 @@ end func
 
 +func modMul(a: int, b: int, modulus: int): int
 	if(a < 0 | b < 0 | modulus < 0)
-		throw excpt@dbgArgOutDomain
+		throw 0xE9170006
 	end if
 	ret @modMulUnsigned(a $ bit64, b $ bit64, modulus $ bit64) $ int
 end func
 
 +func modPow(value: int, exponent: int, modulus: int): int
 	if(value < 0 | exponent < 0 | modulus < 0)
-		throw excpt@dbgArgOutDomain
+		throw 0xE9170006
 	end if
 	ret @modPowUnsigned(value $ bit64, exponent $ bit64, modulus $ bit64) $ int
 end func

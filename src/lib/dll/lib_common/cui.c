@@ -5,6 +5,14 @@ EXPORT void _flush(void)
 	fflush(stdout);
 }
 
+EXPORT Char _inputLetter(void)
+{
+	Char c = fgetwc(stdin);
+	if (c == WEOF)
+		return 0xffff;
+	return c;
+}
+
 EXPORT void _print(const U8* str)
 {
 	const Char* str2;

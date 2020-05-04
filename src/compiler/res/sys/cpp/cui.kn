@@ -6,7 +6,7 @@ var delimiters: []char :: " ,\n"
 end func
 
 +func flush()
-	; TODO:
+	excode "std::cout<<std::flush;\n"
 end func
 
 +func input(): []char
@@ -18,6 +18,9 @@ end func
 			skip loop
 		end if
 		if(c = '\uFFFF')
+			if(ptr = 0)
+				ret null
+			end if
 			break loop
 		end if
 		if(c = '\n')
@@ -74,13 +77,13 @@ end func
 	while loop(true)
 		var c: char :: @inputCharWithDelimiter()
 		if(c = '\uFFFF')
-			if(^buf = 0)
+			if(ptr = 0)
 				throw 0xE9170008
 			end if
 			break loop
 		end if
 		if(c = '\0')
-			if(^buf = 0)
+			if(ptr = 0)
 				skip loop
 			end if
 			break loop
@@ -101,7 +104,7 @@ end func
 	excode "}\n"
 	excode "std::u16string s_=`0`->B;\n"
 	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "std::cout<<t_<<std::flush;\n"
+	excode "std::cout<<t_;\n"
 end func
 
 func inputCharWithDelimiter(): char
@@ -118,4 +121,3 @@ func inputCharWithDelimiter(): char
 		ret c
 	end while
 end func
-

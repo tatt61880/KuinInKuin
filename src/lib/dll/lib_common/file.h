@@ -3,6 +3,9 @@
 #include "..\common.h"
 
 // 'file'
+EXPORT Bool _copyDir(const U8* dst, const U8* src);
+EXPORT Bool _copyFile(const U8* dst, const U8* src);
+EXPORT Bool _delFile(const U8* path);
 EXPORT Bool _existPath(const U8* path);
 EXPORT Bool _forEachDir(const U8* path, Bool recursion, void* callback, void* data);
 EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success);

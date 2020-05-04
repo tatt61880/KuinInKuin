@@ -22,6 +22,7 @@ EXPORT double _ln(double x);
 EXPORT S64 _now(void);
 EXPORT double _sin(double x);
 EXPORT double _sinh(double x);
+EXPORT void __sleep(S64 ms);
 EXPORT double _sqrt(double x);
 EXPORT S64 _sysTime(void);
 EXPORT double _tan(double x);

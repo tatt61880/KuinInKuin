@@ -9,11 +9,14 @@ end func
 +func[d0000.knd, _flush]flush()
 #cpp,web
 +func flush()
-	; TODO:
+#cpp
+	excode "std::cout<<std::flush;\n"
+#web
 #any
 end func
 
 +func input(): []char
+#exe,cpp
 	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0
 	while loop(true)
@@ -22,6 +25,9 @@ end func
 			skip loop
 		end if
 		if(c = '\uFFFF')
+			if(ptr = 0)
+				ret null
+			end if
 			break loop
 		end if
 		if(c = '\n')
@@ -34,9 +40,13 @@ end func
 		do ptr :+ 1
 	end while
 	ret buf.sub(0, ptr)
+#web
+	ret null
+#any
 end func
 
 +func inputChar(): char
+#exe,cpp
 	while loop(true)
 		var c: char :: @inputCharWithDelimiter()
 		if(c <> '\0')
@@ -46,9 +56,13 @@ end func
 			ret c
 		end if
 	end while
+#web
+	ret 0 $ char
+#any
 end func
 
 +func inputFloat(): float
+#exe,cpp
 	var s: []char :: @inputStr()
 	var b: bool
 	var r: float :: s.toFloat(&b)
@@ -56,9 +70,13 @@ end func
 		throw 0xE9170008
 	end if
 	ret r
+#web
+	ret 0.0
+#any
 end func
 
 +func inputInt(): int
+#exe,cpp
 	var s: []char :: @inputStr()
 	var b: bool
 	var r: int :: s.toInt(&b)
@@ -66,25 +84,36 @@ end func
 		throw 0xE9170008
 	end if
 	ret r
+#web
+	ret 0
+#any
 end func
 
+#exe
++func[d0000.knd, _inputLetter]inputLetter(): char
+#cpp,web
 +func inputLetter(): char
+#cpp
 	; TODO:
+#web
+	ret 0 $ char
+#any
 end func
 
 +func inputStr(): []char
+#exe,cpp
 	var buf: []char :: #[@strBufSize]char
 	var ptr: int :: 0
 	while loop(true)
 		var c: char :: @inputCharWithDelimiter()
 		if(c = '\uFFFF')
-			if(^buf = 0)
+			if(ptr = 0)
 				throw 0xE9170008
 			end if
 			break loop
 		end if
 		if(c = '\0')
-			if(^buf = 0)
+			if(ptr = 0)
 				skip loop
 			end if
 			break loop
@@ -96,6 +125,9 @@ end func
 		do ptr :+ 1
 	end while
 	ret buf.sub(0, ptr)
+#web
+	ret null
+#any
 end func
 
 #exe
@@ -109,7 +141,7 @@ end func
 	excode "}\n"
 	excode "std::u16string s_=`0`->B;\n"
 	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "std::cout<<t_<<std::flush;\n"
+	excode "std::cout<<t_;\n"
 #web
 	excode "if(`0`==null)`0`={S:\"(null)\"};\n"
 	excode "if(O_&&O_.print){O_.print(`0`.S);return;}\n"
@@ -117,6 +149,7 @@ end func
 #any
 end func
 
+#exe,cpp
 func inputCharWithDelimiter(): char
 	while loop(true)
 		var c: char :: @inputLetter()
@@ -131,4 +164,4 @@ func inputCharWithDelimiter(): char
 		ret c
 	end while
 end func
-
+#any

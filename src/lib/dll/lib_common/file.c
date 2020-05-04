@@ -4,6 +4,28 @@ static char* NewLine = "\r\n";
 
 static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback, void* data);
 
+EXPORT Bool _copyDir(const U8* dst, const U8* src)
+{
+	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
+	// TODO:
+}
+
+EXPORT Bool _copyFile(const U8* dst, const U8* src)
+{
+	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
+	return CopyFile((const Char*)(src + 0x10), (const Char*)(dst + 0x10), FALSE) != 0;
+}
+
+EXPORT Bool _delFile(const U8* path)
+{
+	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	if (!PathFileExists((const Char*)(path + 0x10)))
+		return True;
+	return DeleteFile((const Char*)(path + 0x10)) != 0;
+}
+
 EXPORT Bool _existPath(const U8* path)
 {
 	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);

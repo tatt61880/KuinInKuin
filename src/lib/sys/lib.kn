@@ -147,7 +147,7 @@ end func
 #cpp
 	excode "return std::acosh(`0`);\n"
 #web
-	excode "return Math.log(`0`+Math.sqrt(`0`*`0`-1));\n"
+	ret @ln(x + @sqrt(x * x - 1.0))
 #any
 end func
 
@@ -180,7 +180,7 @@ end func
 #cpp
 	excode "return std::asinh(`0`);\n"
 #web
-	excode "return Math.log(`0`+Math.sqrt(`0`*`0`+1));\n"
+	ret @ln(x + @sqrt(x * x + 1.0))
 #any
 end func
 
@@ -202,7 +202,7 @@ end func
 #cpp
 	excode "return std::atanh(`0`);\n"
 #web
-	excode "return 0.5*Math.log((1+`0`)/(1-`0`));\n"
+	ret 0.5 * @ln((1.0 + x) / (1.0 - x))
 #any
 end func
 
@@ -218,7 +218,13 @@ end func
 end func
 
 +func cerp(first: float, last: float, rate: float): float
-	; TODO:
+	if(rate < 0.0)
+		do rate :: 0.0
+	elif(rate > 1.0)
+		do rate :: 1.0
+	end if
+	var r: float :: rate * rate * (3.0 - 2.0 * rate)
+	ret first * (1.0 - r) + last * r
 end func
 
 +func chase(x: &float, target: float, vel: float): bool
@@ -286,18 +292,37 @@ end func
 end func
 
 +func cmp(s1: []char, s2: []char): int
-	var p: int :: 0
-	while(p < ^s1 & p < ^s2)
-		if(s1[p] <> s2[p])
-			ret s1[p] > s2[p] ?(1, s1[p] < s2[p] ?(-1, 0))
+	var l: int :: ^s1 < ^s2 ?(^s1, ^s2)
+	for i(0, l - 1)
+		if(s1[i] > s2[i])
+			ret 1
 		end if
-		do p :+ 1
-	end while
+		if(s1[i] < s2[i])
+			ret -1
+		end if
+	end for
 	ret ^ s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0))
 end func
 
 +func cmpEx(s1: []char, s2: []char, len: int, ignoreCase: bool): int
-	; TODO:
+	var l: int :: ^s1 < ^s2 ?(^s1, ^s2)
+	for i(0, (len < l ?(len, l)) - 1)
+		var c1: char :: s1[i]
+		var c2: char :: s2[i]
+		if('A' <= c1 & c1 <= 'Z')
+			do c1 :: (c1 $ bit64 + 0x20b64) $ char
+		end if
+		if('A' <= c2 & c2 <= 'Z')
+			do c2 :: (c2 $ bit64 + 0x20b64) $ char
+		end if
+		if(c1 > c2)
+			ret 1
+		end if
+		if(c1 < c2)
+			ret -1
+		end if
+	end for
+	ret len <= l ?(0, ^s1 > ^s2 ?(1, ^s1 < ^s2 ?(-1, 0)))
 end func
 
 #exe
@@ -323,7 +348,11 @@ end func
 end func
 
 +func dateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
-	assert 1 <= month & month <= 12 & 1 <= day & day <= 31 & 0 <= hour & hour <= 23 & 0 <= minute & minute <= 59 & 0 <= second & second <= 59
+	if(dbg)
+		if(!(1 <= month & month <= 12 & 1 <= day & day <= 31 & 0 <= hour & hour <= 23 & 0 <= minute & minute <= 59 & 0 <= second & second <= 59))
+			throw 0xE9170006
+		end if
+	end if
 	var a: int :: year - (month <= 2 ?(1, 0))
 	var b: int :: (a >= 0 ?(a, a - 399)) / 400
 	var c: int :: a - b * 400
@@ -338,8 +367,9 @@ end func
 #cpp
 	excode "return std::hypot(`0`-`2`,`1`-`3`);\n"
 #web
-	excode "let x_=`0`-`2`,y_=`1`-`3`;\n"
-	excode "return Math.sqrt(x_*x_+y_*y_);\n"
+	var x2: float :: x - centerX
+	var y2: float :: y - centerY
+	ret @sqrt(x2 * x2 + y2 * y2)
 #any
 end func
 
@@ -379,7 +409,34 @@ end func
 end func
 
 +func hermite(pos: []float, rate: float): float
-	; TODO:
+	var len: int :: ^pos
+	if(rate < 0.0)
+		do rate :: 0.0
+	elif(rate > len $ float - 1.0)
+		do rate :: len $ float - 1.0
+	end if
+	if(len <= 1)
+		ret len = 1 ?(pos[0], 0.0)
+	end if
+	var idx: int :: rate $ int
+	var idxM1: int :: idx - 1
+	if(idxM1 < 0)
+		do idxM1 :: 0
+	end if
+	var idxP1: int :: idx + 1
+	if(idxP1 > len - 1)
+		do idxP1 :: len - 1
+	end if
+	var idxP2: int :: idx + 2
+	if(idxP2 > len - 1)
+		do idxP2 :: len - 1
+	end if
+	var dx0: float :: pos[idxP1] - pos[idxM1] / 2.0
+	var dx1: float :: pos[idxP2] - pos[idx] / 2.0
+	var x0: float :: pos[idx]
+	var x1: float :: pos[idxP1]
+	var r2: float :: rate - idx $ float
+	ret (((2.0 * (x0 - x1) + (dx0 + dx1)) * r2 + (-3.0 * (x0 - x1) - (2.0 * dx0 + dx1))) * r2 + dx0) * r2 + x0
 end func
 
 +func intToDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
@@ -402,10 +459,6 @@ end func
 	ret g >= -4 ?((g + 4) % 7, (g + 5) % 7 + 6)
 end func
 
-+func intToLocalDate(time: int, year: &int, month: &int, day: &int, hour: &int, minute: &int, second: &int): int
-	; TODO:
-end func
-
 #exe
 +func[d0000.knd, _invRot]invRot(x: float, y: float, centerX: float, centerY: float): float
 #cpp,web
@@ -420,11 +473,39 @@ end func
 end func
 
 +func lerp(first: float, last: float, rate: float): float
-	; TODO:
+	if(rate < 0.0)
+		do rate :: 0.0
+	elif(rate > 1.0)
+		do rate :: 1.0
+	end if
+	ret first * (1.0 - rate) + last * rate
 end func
 
 +func levenshtein(s1: []char, s2: []char): int
-	; TODO:
+	var l1: int :: ^s1
+	var l2: int :: ^s2
+	var buf: []int :: #[(l1 + 1) * (l2 + 1)]int
+	for i(0, l1)
+		do buf[i * (l2 + 1)] :: i
+	end for
+	for i(1, l2)
+		do buf[i] :: i
+	end for
+	for i(1, l1)
+		for j(1, l2)
+			var min: int :: buf[(i - 1) * (l2 + 1) + j] + 1
+			var value: int :: buf[i * (l2 + 1) + (j - 1)] + 1
+			if(min > value)
+				do min :: value
+			end if
+			do value :: buf[(i - 1) * (l2 + 1) + (j - 1)] + (s1[i - 1] = s2[j - 1] ?(0, 1))
+			if(min > value)
+				do min :: value
+			end if
+			do buf[i * (l2 + 1) + j] :: min
+		end for
+	end for
+	ret buf[l1 * (l2 + 1) + l2]
 end func
 
 #exe
@@ -436,10 +517,6 @@ end func
 #web
 	excode "return Math.log(`0`);\n"
 #any
-end func
-
-+func localDateToInt(year: int, month: int, day: int, hour: int, minute: int, second: int): int
-	; TODO:
 end func
 
 +func log(base: float, x: float): float
@@ -481,15 +558,49 @@ end func
 end func
 
 +func padding(value: int, align: int): int
+	if(dbg)
+		if(align <= 0)
+			throw 0xE9170006
+		end if
+	end if
 	ret(align - 1) - (value + align - 1) % align
 end func
 
 +func qerp(first: float, last: float, easeIn: bool, rate: float): float
-	; TODO:
+	if(rate < 0.0)
+		do rate :: 0.0
+	elif(rate > 1.0)
+		do rate :: 1.0
+	end if
+	var r: float :: easeIn ?(rate * rate, rate * (2.0 - rate))
+	ret first * (1.0 - r) + last * r
 end func
 
 +func range(start: int, end_: int, step: int): []int
-	; TODO:
+	if(dbg)
+		if(step = 0)
+			throw 0xE9170006
+		end if
+	end if
+	var r: []int
+	if(step > 0)
+		if(start > end_)
+			ret #[0]int
+		end if
+		do r :: #[(end_ - start) / step + 1]int
+		for i(0, ^r - 1)
+			do r[i] :: start + i * step
+		end for
+	else
+		if(start < end_)
+			ret #[0]int
+		end if
+		do r :: #[(start - end_) / -step + 1]int
+		for i(0, ^r - 1)
+			do r[i] :: start + i * step
+		end for
+	end if
+	ret r
 end func
 
 +func rnd(min: int, max: int): int
@@ -601,8 +712,25 @@ end func
 #any
 end func
 
+#exe
++func[d0000.knd, __sleep]sleep(ms: int)
+#cpp,web
 +func sleep(ms: int)
-	; TODO:
+#cpp
+	if(dbg)
+		excode "if(`0`<0)throw 0xe9170006;\n"
+	end if
+	excode "sleep_(`0`);\n"
+#web
+	if(dbg)
+		if(ms < 0)
+			throw 0xE9170006
+		end if
+	end if
+	var b: int :: @sysTime()
+	while(@sysTime() - b < ms)
+	end while
+#any
 end func
 
 #exe

@@ -117,6 +117,15 @@ EXPORT double _sinh(double x)
 	return sinh(x);
 }
 
+EXPORT void __sleep(S64 ms)
+{
+	THROWDBG(ms < 0, 0xe9170006);
+	S64 i;
+	for (i = 0; i < ms / 10000; i++)
+		Sleep(10000);
+	Sleep((DWORD)(ms % 10000));
+}
+
 EXPORT double _sqrt(double x)
 {
 	return sqrt(x);

@@ -17,6 +17,9 @@ end func
 			skip loop
 		end if
 		if(c = '\uFFFF')
+			if(ptr = 0)
+				ret null
+			end if
 			break loop
 		end if
 		if(c = '\n')
@@ -63,8 +66,7 @@ end func
 	ret r
 end func
 
-+func inputLetter(): char
-	; TODO:
++func[d0000.knd, _inputLetter]inputLetter(): char
 end func
 
 +func inputStr(): []char
@@ -73,13 +75,13 @@ end func
 	while loop(true)
 		var c: char :: @inputCharWithDelimiter()
 		if(c = '\uFFFF')
-			if(^buf = 0)
+			if(ptr = 0)
 				throw 0xE9170008
 			end if
 			break loop
 		end if
 		if(c = '\0')
-			if(^buf = 0)
+			if(ptr = 0)
 				skip loop
 			end if
 			break loop
@@ -110,4 +112,3 @@ func inputCharWithDelimiter(): char
 		ret c
 	end while
 end func
-

@@ -352,15 +352,15 @@ end class
 end class
 
 +func copyDir(dst: []char, src: []char): bool
-	; TODO:
+	excode "return copyDir_(`0`->B, `1`->B);\n"
 end func
 
 +func copyFile(dst: []char, src: []char): bool
-	ret false {TODO:}
+	excode "return copyFile_(`0`->B, `1`->B);\n"
 end func
 
 +func delDir(path: []char): bool
-	; TODO:
+	excode "return delDir_(`0`->B);\n"
 end func
 
 +func delExt(path: []char): []char
