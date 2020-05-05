@@ -18,10 +18,23 @@
 	
 	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry, funcAttrs)
 	do \exe\machine@convert(pack)
-	do @deploy()
+	if(!@deploy(funcAttrs))
+		ret false
+	end if
 	ret true
 end func
 
-func deploy()
-	; TODO:
+func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
+	block
+		var dataPath: []char :: \option@outputDir ~ "data/"
+		if(!file@makeDir(dataPath))
+			; TODO:
+			ret false
+		end if
+	end block
+	ret funcAttrs.forEach(deployDll, null)
+	
+	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+		ret file@copyFile(\option@outputDir ~ "data/" ~ key, \option@sysDir ~ "data/" ~ key)
+	end func
 end func

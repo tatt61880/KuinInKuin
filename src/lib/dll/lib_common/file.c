@@ -3,6 +3,7 @@
 static char* NewLine = "\r\n";
 
 static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback, void* data);
+static void NormPath(Char* path, Bool dir);
 
 EXPORT Bool _copyDir(const U8* dst, const U8* src)
 {
@@ -16,6 +17,12 @@ EXPORT Bool _copyFile(const U8* dst, const U8* src)
 	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
 	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
 	return CopyFile((const Char*)(src + 0x10), (const Char*)(dst + 0x10), FALSE) != 0;
+}
+
+EXPORT Bool _delDir(const U8* path)
+{
+	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	// TODO:
 }
 
 EXPORT Bool _delFile(const U8* path)
@@ -39,6 +46,60 @@ EXPORT Bool _forEachDir(const U8* path, Bool recursion, void* callback, void* da
 	return ForEachDirRecursion((const Char*)(path + 0x10), recursion, callback, data);
 }
 
+EXPORT void* _getCurDir(void)
+{
+	Char path[KUIN_MAX_PATH + 2];
+	if (GetCurrentDirectory(KUIN_MAX_PATH + 1, path) == 0)
+		return NULL;
+	NormPath(path, True);
+	size_t len = wcslen(path);
+	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
+	*(S64*)(result + 0x00) = DefaultRefCntFunc;
+	*(S64*)(result + 0x08) = (S64)len;
+	wcscpy((Char*)(result + 0x10), path);
+	return result;
+}
+
+EXPORT Bool _makeDir(const U8* path)
+{
+	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	if (*(S64*)(path + 0x08) > KUIN_MAX_PATH)
+		return False;
+	if (!DelDirRecursion((const Char*)(path + 0x10)))
+		return False;
+	Char path2[KUIN_MAX_PATH + 1];
+	if (GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH, path2, NULL) == 0)
+		return False;
+	return SHCreateDirectory(NULL, path2) == ERROR_SUCCESS;
+}
+
+EXPORT Bool _moveDir(const U8* dst, const U8* src)
+{
+	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
+	if (MoveFileEx((const Char*)(src + 0x10), (const Char*)(dst + 0x10), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) == 0)
+	{
+		if (CopyDirRecursion((const Char*)(dst + 0x10), (const Char*)(src + 0x10)) == 0)
+			return False;
+		if (DelDirRecursion((const Char*)(src + 0x10)) == 0)
+			return False;
+	}
+	return True;
+}
+
+EXPORT Bool _moveFile(const U8* dst, const U8* src)
+{
+	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
+	return MoveFileEx((const Char*)(src + 0x10), (const Char*)(dst + 0x10), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) != 0;
+}
+
+EXPORT void _setCurDir(const U8* path)
+{
+	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	SetCurrentDirectory((const Char*)(path + 0x10));
+}
+
 EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 {
 	FILE* file_ptr = _wfopen((Char*)(path + 0x10), L"rb");
@@ -51,7 +112,7 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 	return file_ptr;
 }
 
-EXPORT void _readerClose(void* handle)
+EXPORT void _readerCloseImpl(void* handle)
 {
 	fclose((FILE*)handle);
 }
@@ -191,4 +252,22 @@ static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback
 		FindClose(handle);
 	}
 	return True;
+}
+
+static void NormPath(Char* path, Bool dir)
+{
+	Char* ptr = path;
+	if (*ptr == L'\0')
+		return;
+	do
+	{
+		if (*ptr == L'\\')
+			*ptr = L'/';
+		ptr++;
+	} while (*ptr != L'\0');
+	if (dir && ptr[-1] != L'/')
+	{
+		ptr[0] = L'/';
+		ptr[1] = L'\0';
+	}
 }

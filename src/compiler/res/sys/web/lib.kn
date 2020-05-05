@@ -278,7 +278,6 @@ end func
 	ret @sqrt(x2 * x2 + y2 * y2)
 end func
 
-; TODO: 'exe'
 +func exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)

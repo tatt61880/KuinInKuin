@@ -379,7 +379,7 @@ end func
 end func
 
 +func delFile(path: []char): bool
-	; TODO:
+	excode "return delFile_(`0`->B);\n"
 end func
 
 +func dir(path: []char): []char
@@ -396,10 +396,6 @@ end func
 		do r[i] :: path[i] = '\\' ?('/', path[i])
 	end for
 	ret r
-end func
-
-+func exeDir(): []char
-	; TODO:
 end func
 
 +func exist(path: []char): bool
@@ -441,23 +437,31 @@ end func
 end func
 
 +func fileSize(path: []char): int
-	; TODO:
+	var r: @Reader :: @makeReader(path)
+	if(r =& null)
+		ret -1
+	end if
+	var s: int :: r.fileSize()
+	do r.fin()
+	ret s
 end func
 
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
 end func
 
-+func fullPath(path: []char): []char
++func fullPath(path: []char, base: []char): []char
 	; TODO:
+	ret null
 end func
 
 +func getCurDir(): []char
 	; TODO:
+	ret null
 end func
 
 +func makeDir(path: []char): bool
-	; TODO:
+	excode "return makeDir_(`0`->B);\n"
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
@@ -483,14 +487,20 @@ end func
 
 +func moveDir(dst: []char, src: []char): bool
 	; TODO:
+	ret false
 end func
 
 +func moveFile(dst: []char, src: []char): bool
+	excode "return moveFile_(`0`->B, `1`->B);\n"
+end func
+
++func myDir(): []char
 	; TODO:
+	ret null
 end func
 
 +func setCurDir(path: []char)
-	; TODO:
+	excode "setCurDir_(`0`->B);\n"
 end func
 
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int

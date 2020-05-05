@@ -144,10 +144,10 @@ static std::u16string utf8ToUtf16_(const std::string& s) {
 
 const char newLine_[] = { '\r', '\n' };
 
-static bool setCurDir_(const char16_t* p) {
+static void setCurDir_(const char16_t* p) {
 	std::u16string s = p;
 	const std::string& t = utf16ToUtf8_(s);
-	return ::SetCurrentDirectoryA(t.c_str()) != 0;
+	::SetCurrentDirectoryA(t.c_str());
 }
 static bool makeDir_(const char16_t* p) {
 	std::u16string s = p;
@@ -200,10 +200,10 @@ static void sleep_(int64_t t) {
 
 const char newLine_[] = { '\n' };
 
-static bool setCurDir_(const char16_t* p) {
+static void setCurDir_(const char16_t* p) {
 	std::u16string s = p;
 	const std::string& t = utf16ToUtf8_(s);
-	return ::chdir(t.c_str()) == 0;
+	::chdir(t.c_str());
 }
 static bool makeDir_(const char16_t* p) {
 	std::u16string s = p;

@@ -1,47 +1,5 @@
 +func write(codes: list<[]char>, attr: []char, args: list<\ast@AstArg>, members: list<\ast@AstClassItem>)
 	switch(attr)
-	case "exist"
-		; TODO:
-	case "max"
-		; TODO:
-	case "min"
-		; TODO:
-	case "repeat"
-		; TODO:
-	case "cui_inputLetter"
-		; TODO:
-	case "file_copyFile"
-		; TODO:
-		do codes.add("return false;\n")
-	case "wnd_editBaseGetText"
-		do args.head()
-		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		var handle: \web\output@WebInfo :: search(members, "handle")
-		do codes.add("return \{me_.id}.\{handle.id}.H.value;\n")
-	case "wnd_makeEditMulti"
-		do args.head()
-		var me_: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var parent: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var x: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var y: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var width: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var height: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var anchorX: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		do args.next()
-		var anchorY: \web\output@WebInfo :: \web\output@getInfo(args.get())
-		var handle: \web\output@WebInfo :: search(members, "handle")
-		do codes.add("let h_=document.createElement(\"textarea\");\n")
-		do codes.add("h_.setAttribute(\"cols\",\"\{width.id}\");\n")
-		do codes.add("h_.setAttribute(\"rows\",\"\{height.id}\");\n")
-		do codes.add("document.body.appendChild(c_);\n")
-		do codes.add("\{me_.id}.\{handle.id}={C:c_};\n")
-		do codes.add("return \{me_.id};\n")
 	case "toStrFmtFloat"
 		; TODO:
 	case "toStrFmtInt"

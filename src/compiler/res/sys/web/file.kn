@@ -398,10 +398,6 @@ end func
 	ret r
 end func
 
-+func exeDir(): []char
-	; TODO:
-end func
-
 +func exist(path: []char): bool
 	excode "let f_=false,p_=`0`.S;\n"
 	excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!=null;\n"
@@ -450,7 +446,13 @@ end func
 end func
 
 +func fileSize(path: []char): int
-	; TODO:
+	var r: @Reader :: @makeReader(path)
+	if(r =& null)
+		ret -1
+	end if
+	var s: int :: r.fileSize()
+	do r.fin()
+	ret s
 end func
 
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
@@ -465,16 +467,19 @@ end func
 	excode "return true;\n"
 end func
 
-+func fullPath(path: []char): []char
++func fullPath(path: []char, base: []char): []char
 	; TODO:
+	ret null
 end func
 
 +func getCurDir(): []char
 	; TODO:
+	ret null
 end func
 
 +func makeDir(path: []char): bool
 	; TODO:
+	ret false
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
@@ -500,10 +505,17 @@ end func
 
 +func moveDir(dst: []char, src: []char): bool
 	; TODO:
+	ret false
 end func
 
 +func moveFile(dst: []char, src: []char): bool
 	; TODO:
+	ret false
+end func
+
++func myDir(): []char
+	; TODO:
+	ret null
 end func
 
 +func setCurDir(path: []char)

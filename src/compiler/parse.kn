@@ -56,13 +56,30 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	if(key[0] = '\\')
 		do truePath :: \option@inputDir ~ replacePath(key.sub(1, -1)) ~ ".kn"
 	else
-		do truePath :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/" ~ replacePath(key) ~ ".kn" {TODO:}
+		do truePath :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/" ~ replacePath(key) ~ ".kn"
 	end if
 	do @filePtr :: file@makeReader(truePath)
 	if(@filePtr =& null)
 		do \err@err(%fileOpenFailed, null, [truePath])
 		ret true
 	end if
+	
+	block
+		var reload: []char :: null
+		var fileSize: int :: @filePtr.fileSize()
+		if(fileSize = 0)
+			do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset00.kn"
+		end if
+		if(reload <>& null)
+			do @filePtr.fin()
+			do truePath :: reload
+			do @filePtr :: file@makeReader(truePath)
+			if(@filePtr =& null)
+				do \err@err(%fileOpenFailed, null, [truePath])
+				ret true
+			end if
+		end if
+	end block
 	
 	do @srcName :: key
 	do @row :: 1
@@ -85,6 +102,7 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 			do parentAstRoot :: @srcesNext.get(@srcName.sub(0, dot), &existence) $ \ast@AstRoot
 			if(!existence)
 				do \err@err(%parentOfSubsourceNotFound, null, [@srcName])
+				do @filePtr.fin()
 				ret true
 			end if
 			assert parentAstRoot <>& null
@@ -231,6 +249,10 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 					case 'a'
 						if(s[3] = 'n' & s[4] = 'y')
 							do ast.funcOption :: ast.funcOption.or(%any)
+						end if
+					case 'e'
+						if(s[3] = 'x' & s[4] = '0')
+							do ast.funcOption :: ast.funcOption.or(%ex0)
 						end if
 					case 'f'
 						if(s[3] = 'r' & s[4] = 'c')

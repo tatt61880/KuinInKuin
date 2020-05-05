@@ -373,8 +373,11 @@ end func
 #any
 end func
 
-; TODO: 'exe'
+#exe
++func[__ex0]exitCode(code: int)
+#cpp,web
 +func exitCode(code: int)
+#any
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
 			throw 0xE9170006

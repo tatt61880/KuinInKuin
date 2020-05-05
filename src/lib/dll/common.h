@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ShlObj.h> // 'SHCreateDirectory'
 #include <Shlwapi.h> // 'PathFileExists'
 #include <Windows.h>
 

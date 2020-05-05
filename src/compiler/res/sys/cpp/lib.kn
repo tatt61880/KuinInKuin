@@ -283,7 +283,6 @@ end func
 	excode "return std::hypot(`0`-`2`,`1`-`3`);\n"
 end func
 
-; TODO: 'exe'
 +func exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)

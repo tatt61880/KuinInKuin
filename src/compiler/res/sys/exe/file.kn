@@ -354,10 +354,10 @@ end class
 +func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
 end func
 
-+func copyFile(dst: []char, src: []char): bool
++func[d0000.knd, _copyFile]copyFile(dst: []char, src: []char): bool
 end func
 
-+func delDir(path: []char): bool
++func[d0000.knd, _delDir]delDir(path: []char): bool
 end func
 
 +func delExt(path: []char): []char
@@ -375,8 +375,7 @@ end func
 	ret r
 end func
 
-+func delFile(path: []char): bool
-	; TODO:
++func[d0000.knd, _delFile]delFile(path: []char): bool
 end func
 
 +func dir(path: []char): []char
@@ -393,10 +392,6 @@ end func
 		do r[i] :: path[i] = '\\' ?('/', path[i])
 	end for
 	ret r
-end func
-
-+func exeDir(): []char
-	; TODO:
 end func
 
 +func[d0000.knd, _existPath]exist(path: []char): bool
@@ -437,22 +432,27 @@ end func
 end func
 
 +func fileSize(path: []char): int
-	; TODO:
+	var r: @Reader :: @makeReader(path)
+	if(r =& null)
+		ret -1
+	end if
+	var s: int :: r.fileSize()
+	do r.fin()
+	ret s
 end func
 
 +func[d0000.knd, _forEachDir]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 end func
 
-+func fullPath(path: []char): []char
++func fullPath(path: []char, base: []char): []char
 	; TODO:
+	ret null
 end func
 
-+func getCurDir(): []char
-	; TODO:
++func[d0000.knd,  _getCurDir]getCurDir(): []char
 end func
 
-+func makeDir(path: []char): bool
-	; TODO:
++func[d0000.knd,  _makeDir]makeDir(path: []char): bool
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
@@ -476,22 +476,24 @@ end func
 	ret me2
 end func
 
-+func moveDir(dst: []char, src: []char): bool
-	; TODO:
++func[d0000.knd,  _moveDir]moveDir(dst: []char, src: []char): bool
 end func
 
-+func moveFile(dst: []char, src: []char): bool
-	; TODO:
++func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool
 end func
 
-+func setCurDir(path: []char)
++func myDir(): []char
 	; TODO:
+	ret null
+end func
+
++func[d0000.knd, _setCurDir]setCurDir(path: []char)
 end func
 
 func[d0000.knd, _openAsReadingImpl]openAsReadingImpl(path: []char, pack: bool, success: &bool): int
 end func
 
-func[d0000.knd, _readerClose]readerClose(handle: int)
+func[d0000.knd, _readerCloseImpl]readerClose(handle: int)
 end func
 
 func[d0000.knd, _readerSeekImpl]readerSeekImpl(handle: int, origin: @Origin, pos: int)

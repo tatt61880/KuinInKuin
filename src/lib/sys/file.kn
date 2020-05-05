@@ -363,7 +363,7 @@ end class
 end func
 
 #exe
-+func copyFile(dst: []char, src: []char): bool
++func[d0000.knd, _copyFile]copyFile(dst: []char, src: []char): bool
 #cpp,web
 +func copyFile(dst: []char, src: []char): bool
 #cpp
@@ -374,7 +374,7 @@ end func
 end func
 
 #exe
-+func delDir(path: []char): bool
++func[d0000.knd, _delDir]delDir(path: []char): bool
 #cpp,web
 +func delDir(path: []char): bool
 #cpp
@@ -399,8 +399,15 @@ end func
 	ret r
 end func
 
+#exe
++func[d0000.knd, _delFile]delFile(path: []char): bool
+#cpp,web
 +func delFile(path: []char): bool
+#cpp
+	excode "return delFile_(`0`->B);\n"
+#web
 	; TODO:
+#any
 end func
 
 +func dir(path: []char): []char
@@ -417,10 +424,6 @@ end func
 		do r[i] :: path[i] = '\\' ?('/', path[i])
 	end for
 	ret r
-end func
-
-+func exeDir(): []char
-	; TODO:
 end func
 
 #exe
@@ -478,7 +481,13 @@ end func
 end func
 
 +func fileSize(path: []char): int
-	; TODO:
+	var r: @Reader :: @makeReader(path)
+	if(r =& null)
+		ret -1
+	end if
+	var s: int :: r.fileSize()
+	do r.fin()
+	ret s
 end func
 
 #exe
@@ -500,16 +509,34 @@ end func
 #any
 end func
 
-+func fullPath(path: []char): []char
++func fullPath(path: []char, base: []char): []char
 	; TODO:
+	ret null
 end func
 
+#exe
++func[d0000.knd,  _getCurDir]getCurDir(): []char
+#cpp,web
 +func getCurDir(): []char
+#cpp
 	; TODO:
+	ret null
+#web
+	; TODO:
+	ret null
+#any
 end func
 
+#exe
++func[d0000.knd,  _makeDir]makeDir(path: []char): bool
+#cpp,web
 +func makeDir(path: []char): bool
+#cpp
+	excode "return makeDir_(`0`->B);\n"
+#web
 	; TODO:
+	ret false
+#any
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
@@ -533,16 +560,45 @@ end func
 	ret me2
 end func
 
+#exe
++func[d0000.knd,  _moveDir]moveDir(dst: []char, src: []char): bool
+#cpp,web
 +func moveDir(dst: []char, src: []char): bool
+#cpp
 	; TODO:
+	ret false
+#web
+	; TODO:
+	ret false
+#any
 end func
 
+#exe
++func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool
+#cpp,web
 +func moveFile(dst: []char, src: []char): bool
+#cpp
+	excode "return moveFile_(`0`->B, `1`->B);\n"
+#web
 	; TODO:
+	ret false
+#any
 end func
 
-+func setCurDir(path: []char)
++func myDir(): []char
 	; TODO:
+	ret null
+end func
+
+#exe
++func[d0000.knd, _setCurDir]setCurDir(path: []char)
+#cpp,web
++func setCurDir(path: []char)
+#cpp
+	excode "setCurDir_(`0`->B);\n"
+#web
+	; TODO:
+#any
 end func
 
 #exe
@@ -570,7 +626,7 @@ func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
 end func
 
 #exe
-func[d0000.knd, _readerClose]readerClose(handle: int)
+func[d0000.knd, _readerCloseImpl]readerClose(handle: int)
 #cpp,web
 func readerClose(handle: int)
 #cpp
