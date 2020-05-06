@@ -177,9 +177,6 @@ static void setCurDir_(const char16_t* p) {
 static bool makeDir_(const char16_t* p) {
 	return ::CreateDirectoryW(reinterpret_cast<const wchar_t*>(p), 0) != 0;
 }
-static bool delDir_(const char16_t* p) {
-	return ::RemoveDirectoryW(reinterpret_cast<const wchar_t*>(p)) != 0;
-}
 static bool delFile_(const char16_t* p) {
 	if (!PathFileExistsW(reinterpret_cast<const wchar_t*>(p)))
 		return true;
@@ -230,7 +227,7 @@ static void normPath_(char* p, bool d) {
 static bool fileExists_(const char16_t* p) {
 	struct stat b;
 	std::u16string s = p;
-	const std::string t = utf16ToUtf8_(s);
+	const std::string& t = utf16ToUtf8_(s);
 	return ::stat(t.c_str(), &b) == 0;
 }
 static int64_t getCurDir_(char16_t* p) {
@@ -254,11 +251,6 @@ static bool makeDir_(const char16_t* p) {
 	std::u16string s = p;
 	const std::string& t = utf16ToUtf8_(s);
 	return ::mkdir(t.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0;
-}
-static bool delDir_(const char16_t* p) {
-	std::u16string s = p;
-	const std::string& t = utf16ToUtf8_(s);
-	return ::rmdir(t.c_str()) == 0;
 }
 static bool delFile_(const char16_t* p) {
 	struct stat b;
@@ -392,7 +384,7 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 		while ((t = readdir(h)) != nullptr) {
 			if ((t->d_type & _A_SUBDIR) == 0) {
 				std::string s = t->d_name;
-				const std::u16string p2 = utf8ToUtf16_(s);
+				const std::u16string& p2 = utf8ToUtf16_(s);
 				std::size_t l = p2.size();
 				const char16_t* b = p2.c_str();
 #endif
@@ -417,7 +409,7 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 				if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
 					continue;
 				std::string s = n;
-				const std::u16string p2 = utf8ToUtf16_(s);
+				const std::u16string& p2 = utf8ToUtf16_(s);
 				std::size_t l = p2.size();
 				const char16_t* b = p2.c_str();
 #endif
@@ -444,6 +436,90 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 #else
 	closedir(h);
 #endif
+	return a;
+}
+
+static bool delDir_(const std::u16string& p) {
+	if (p.size() > 512)
+		return false;
+	if (!fileExists_(p.c_str()))
+		return true;
+#if defined(_WIN32)
+	WIN32_FIND_DATA t;
+	HANDLE h;
+#else
+	dirent* t;
+	DIR* h;
+#endif
+	bool a = true;
+	{
+#if defined(_WIN32)
+		wchar_t p3[514];
+		memcpy(p3, p.c_str(), sizeof(wchar_t) * static_cast<std::size_t>(p.size()));
+		p3[p.size()] = '*';
+		p3[p.size() + 1] = 0;
+		h = FindFirstFile(p3, &t);
+		if (h == INVALID_HANDLE_VALUE)
+			return false;
+#else
+		h = opendir(p2.c_str());
+		if (h == nullptr)
+			return false;
+#endif
+	}
+#if defined(_WIN32)
+	do {
+		if ((t.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+			std::u16string b = p;
+			b += reinterpret_cast<const char16_t*>(t.cFileName);
+#else
+	while ((t = readdir(h)) != nullptr) {
+		if ((t->d_type & _A_SUBDIR) == 0) {
+			std::string n = t->d_name;
+			const std::u16string& n2 = utf8ToUtf16_(n);
+			std::u16string b = p;
+			b += n2;
+#endif
+			if (!delFile_(b.c_str()))
+			{
+				a = false;
+				break;
+			}
+		} else {
+			std::u16string p2 = p;
+#if defined(_WIN32)
+			const wchar_t* n = t.cFileName;
+			if (wcscmp(n, L".") == 0 || wcscmp(n, L"..") == 0)
+				continue;
+			p2 += reinterpret_cast<const char16_t*>(n);
+#else
+			if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
+				continue;
+			std::string s = n;
+			const std::u16string& n2 = utf8ToUtf16_(s);
+			p2 += n2;
+#endif
+			p2 += u"/";
+			if (!delDir_(p2))
+			{
+				a = false;
+				break;
+			}
+		}
+	}
+#if defined(_WIN32)
+	while (FindNextFile(h, &t));
+	FindClose(h);
+#else
+	closedir(h);
+#endif
+	if (a) {
+#if defined(_WIN32)
+		a = ::RemoveDirectoryW(reinterpret_cast<const wchar_t*>(p.c_str())) != 0;
+#else
+		a = ::rmdir(p2.c_str()) == 0;
+#endif
+	}
 	return a;
 }
 

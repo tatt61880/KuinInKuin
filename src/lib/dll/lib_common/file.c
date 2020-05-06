@@ -11,7 +11,7 @@ EXPORT Bool _copyDir(const U8* dst, const U8* src)
 {
 	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
 	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
-	return CopyDirRecursion((const Char*)(dst + 0x10), (const Char*)(src + 0x10)) != 0;
+	return CopyDirRecursion((const Char*)(dst + 0x10), (const Char*)(src + 0x10));
 }
 
 EXPORT Bool _copyFile(const U8* dst, const U8* src)
@@ -24,7 +24,7 @@ EXPORT Bool _copyFile(const U8* dst, const U8* src)
 EXPORT Bool _delDir(const U8* path)
 {
 	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
-	return DelDirRecursion((const Char*)(path + 0x10)) != 0;
+	return DelDirRecursion((const Char*)(path + 0x10));
 }
 
 EXPORT Bool _delFile(const U8* path)
@@ -97,9 +97,9 @@ EXPORT Bool _moveDir(const U8* dst, const U8* src)
 	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
 	if (MoveFileEx((const Char*)(src + 0x10), (const Char*)(dst + 0x10), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) == 0)
 	{
-		if (CopyDirRecursion((const Char*)(dst + 0x10), (const Char*)(src + 0x10)) == 0)
+		if (!CopyDirRecursion((const Char*)(dst + 0x10), (const Char*)(src + 0x10)))
 			return False;
-		if (DelDirRecursion((const Char*)(src + 0x10)) == 0)
+		if (!DelDirRecursion((const Char*)(src + 0x10)))
 			return False;
 	}
 	return True;
@@ -288,97 +288,144 @@ static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback
 
 static Bool DelDirRecursion(const Char* path)
 {
-	Char path2[KUIN_MAX_PATH + 1];
-	if (wcslen(path) > KUIN_MAX_PATH)
+	size_t len = wcslen(path);
+	if (len > KUIN_MAX_PATH)
 		return False;
 	if (!PathFileExists(path))
 		return True;
-	wcscpy(path2, path);
-	wcscat(path2, L"*");
+	WIN32_FIND_DATA find_data;
+	HANDLE handle;
+	Bool continue_loop = True;
 	{
-		WIN32_FIND_DATA find_data;
-		HANDLE handle = FindFirstFile(path2, &find_data);
-		if (handle == INVALID_HANDLE_VALUE)
-			return False;
-		do
-		{
-			if (wcscmp(find_data.cFileName, L".") == 0 || wcscmp(find_data.cFileName, L"..") == 0)
-				continue;
-			{
-				wcscpy(path2, path);
-				wcscat(path2, find_data.cFileName);
-				if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-				{
-					wcscat(path2, L"/");
-					if (!DelDirRecursion(path2))
-					{
-						FindClose(handle);
-						return False;
-					}
-				}
-				else
-				{
-					if (DeleteFile(path2) == 0)
-					{
-						FindClose(handle);
-						return False;
-					}
-				}
-			}
-		} while (FindNextFile(handle, &find_data));
-		FindClose(handle);
+		Char path2[KUIN_MAX_PATH + 2];
+		memcpy(path2, path, sizeof(Char) * len);
+		path2[len] = L'*';
+		path2[len + 1] = 0;
+		handle = FindFirstFile(path2, &find_data);
 	}
-	return RemoveDirectory(path) != 0;
+	if (handle == INVALID_HANDLE_VALUE)
+		return False;
+	do
+	{
+		Char* name = find_data.cFileName;
+		if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+		{
+			size_t len2 = wcslen(name);
+			if (len + len2 + 1 > KUIN_MAX_PATH + 1)
+			{
+				continue_loop = False;
+				break;
+			}
+			Char path2[KUIN_MAX_PATH + 1];
+			memcpy(path2, path, sizeof(Char) * len);
+			memcpy(path2 + len, name, sizeof(Char) * (len2 + 1));
+			if (DeleteFile(path2) == 0)
+			{
+				continue_loop = False;
+				break;
+			}
+		}
+		else
+		{
+			if (wcscmp(name, L".") == 0 || wcscmp(name, L"..") == 0)
+				continue;
+			size_t len2 = wcslen(name);
+			if (len + len2 + 2 > KUIN_MAX_PATH + 2)
+			{
+				continue_loop = False;
+				break;
+			}
+			Char path2[KUIN_MAX_PATH + 2];
+			memcpy(path2, path, sizeof(Char) * len);
+			memcpy(path2 + len, name, sizeof(Char) * len2);
+			path2[len + len2] = '/';
+			path2[len + len2 + 1] = 0;
+			if (!DelDirRecursion(path2))
+			{
+				continue_loop = False;
+				break;
+			}
+		}
+	} while (FindNextFile(handle, &find_data));
+	FindClose(handle);
+	if (continue_loop)
+		continue_loop = RemoveDirectory(path) != 0;
+	return continue_loop;
 }
 
 static Bool CopyDirRecursion(const Char* dst, const Char* src)
 {
-	Char src2[KUIN_MAX_PATH + 1];
-	Char dst2[KUIN_MAX_PATH + 1];
-	if (wcslen(src) > KUIN_MAX_PATH)
+	size_t len_src = wcslen(src);
+	if (len_src > KUIN_MAX_PATH)
 		return False;
-	if (!PathFileExists(src))
-		return False;
-	CreateDirectory(dst, NULL);
-	wcscpy(src2, src);
-	wcscat(src2, L"*");
+	WIN32_FIND_DATA find_data;
+	HANDLE handle;
+	Bool continue_loop = True;
 	{
-		WIN32_FIND_DATA find_data;
-		HANDLE handle = FindFirstFile(src2, &find_data);
-		if (handle == INVALID_HANDLE_VALUE)
-			return False;
-		do
-		{
-			if (wcscmp(find_data.cFileName, L".") == 0 || wcscmp(find_data.cFileName, L"..") == 0)
-				continue;
-			{
-				wcscpy(src2, src);
-				wcscat(src2, find_data.cFileName);
-				wcscpy(dst2, dst);
-				wcscat(dst2, find_data.cFileName);
-				if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-				{
-					wcscat(src2, L"/");
-					wcscat(dst2, L"/");
-					if (!CopyDirRecursion(dst2, src2))
-					{
-						FindClose(handle);
-						return False;
-					}
-				}
-				else
-				{
-					if (!CopyFile(src2, dst2, FALSE))
-					{
-						FindClose(handle);
-						return False;
-					}
-				}
-			}
-		} while (FindNextFile(handle, &find_data));
-		FindClose(handle);
+		Char src2[KUIN_MAX_PATH + 2];
+		memcpy(src2, src, sizeof(Char) * len_src);
+		src2[len_src] = L'*';
+		src2[len_src + 1] = 0;
+		handle = FindFirstFile(src2, &find_data);
 	}
-	return True;
+	if (handle == INVALID_HANDLE_VALUE)
+		return False;
+	if (!PathFileExists(dst))
+		CreateDirectory(dst, NULL);
+	do
+	{
+		Char* name = find_data.cFileName;
+		if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+		{
+			size_t len_name = wcslen(name);
+			size_t len_dst = wcslen(dst);
+			if (len_src + len_name + 1 > KUIN_MAX_PATH + 1 || len_dst + len_name + 1 > KUIN_MAX_PATH + 1)
+			{
+				continue_loop = False;
+				break;
+			}
+			Char dst2[KUIN_MAX_PATH + 1];
+			Char src2[KUIN_MAX_PATH + 1];
+			memcpy(src2, src, sizeof(Char) * len_src);
+			memcpy(src2 + len_src, name, sizeof(Char) * (len_name + 1));
+			memcpy(dst2, dst, sizeof(Char) * len_src);
+			memcpy(dst2 + len_src, name, sizeof(Char) * (len_name + 1));
+			if (!CopyFile(src2, dst2, FALSE))
+			{
+				continue_loop = False;
+				break;
+			}
+		}
+		else
+		{
+			if (wcscmp(name, L".") == 0 || wcscmp(name, L"..") == 0)
+				continue;
+			size_t len_name = wcslen(name);
+			size_t len_dst = wcslen(dst);
+			if (len_src + len_name + 2 > KUIN_MAX_PATH + 2 || len_dst + len_name + 2 > KUIN_MAX_PATH + 2)
+			{
+				continue_loop = False;
+				break;
+			}
+			Char dst2[KUIN_MAX_PATH + 2];
+			Char src2[KUIN_MAX_PATH + 2];
+			memcpy(src2, src, sizeof(Char) * len_src);
+			memcpy(src2 + len_src, name, sizeof(Char) * len_name);
+			src2[len_src + len_name] = '/';
+			src2[len_src + len_name + 1] = 0;
+			memcpy(dst2, dst, sizeof(Char) * len_src);
+			memcpy(dst2 + len_src, name, sizeof(Char) * len_name);
+			dst2[len_src + len_name] = '/';
+			dst2[len_src + len_name + 1] = 0;
+			if (!CopyDirRecursion(dst2, src2))
+			{
+				continue_loop = False;
+				break;
+			}
+		}
+	} while (FindNextFile(handle, &find_data));
+	FindClose(handle);
+	return continue_loop;
 }
 
 static void NormPath(Char* path, Bool dir)

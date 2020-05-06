@@ -384,9 +384,10 @@ end func
 #cpp,web
 +func delDir(path: []char): bool
 #cpp
-	excode "return delDir_(`0`->B);\n"
+	excode "const std::u16string s_=`0`->B;\n"
+	excode "return delDir_(s_);\n"
 #web
-	; TODO:
+	ret false;
 #any
 end func
 
