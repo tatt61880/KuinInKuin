@@ -352,7 +352,9 @@ end class
 end class
 
 +func copyDir(dst: []char, src: []char): bool
-	excode "return copyDir_(`0`->B, `1`->B);\n"
+	excode "const std::u16string d_=`0`->B;\n"
+	excode "const std::u16string s_=`1`->B;\n"
+	excode "return copyDir_(d_,s_);\n"
 end func
 
 +func copyFile(dst: []char, src: []char): bool
@@ -360,7 +362,8 @@ end func
 end func
 
 +func delDir(path: []char): bool
-	excode "return delDir_(`0`->B);\n"
+	excode "const std::u16string s_=`0`->B;\n"
+	excode "return delDir_(s_);\n"
 end func
 
 +func delExt(path: []char): []char
@@ -498,8 +501,7 @@ end func
 end func
 
 +func moveDir(dst: []char, src: []char): bool
-	; TODO:
-	ret false
+	excode "return moveDir_(`0`->B,`1`->B);\n"
 end func
 
 +func moveFile(dst: []char, src: []char): bool

@@ -362,7 +362,7 @@ end func
 end func
 
 +func delDir(path: []char): bool
-	; TODO:
+	ret false;
 end func
 
 +func delExt(path: []char): []char
@@ -505,7 +505,6 @@ end func
 end func
 
 +func moveDir(dst: []char, src: []char): bool
-	; TODO:
 	ret false
 end func
 
