@@ -399,7 +399,7 @@ end func
 end func
 
 +func exist(path: []char): bool
-	excode "return fileExists_(`0`);\n"
+	excode "return fileExists_(`0`->B);\n"
 end func
 
 +func ext(path: []char): []char
@@ -450,14 +450,26 @@ end func
 	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
 end func
 
-+func fullPath(path: []char, base: []char): []char
-	; TODO:
-	ret null
++func fullPath(path: []char): []char
+	excode "char16_t b_[512];\n"
+	excode "int64_t l_=fullPath_(b_,`0`->B);\n"
+	excode "if(l_==0)return null;\n"
+	excode "type_(Array_<char16_t>)a_=new_(Array_<char16_t>)();\n"
+	excode "a_->L=l_;\n"
+	excode "a_->B=newPrimArray_(static_cast<std::size_t>(l_+1),char16_t);\n"
+	excode "memcpy(a_->B,b_,sizeof(char16_t)*static_cast<std::size_t>(l_+1));\n"
+	excode "return a_;\n"
 end func
 
 +func getCurDir(): []char
-	; TODO:
-	ret null
+	excode "char16_t b_[512];\n"
+	excode "int64_t l_=getCurDir_(b_);\n"
+	excode "if(l_==0)return null;\n"
+	excode "type_(Array_<char16_t>)a_=new_(Array_<char16_t>)();\n"
+	excode "a_->L=l_;\n"
+	excode "a_->B=newPrimArray_(static_cast<std::size_t>(l_+1),char16_t);\n"
+	excode "memcpy(a_->B,b_,sizeof(char16_t)*static_cast<std::size_t>(l_+1));\n"
+	excode "return a_;\n"
 end func
 
 +func makeDir(path: []char): bool

@@ -1,10 +1,16 @@
 const strBufSize: int :: 1024
 var strBuf: []char
 var eBuf: []bit8
+#web
+var curDir: []char
+#any
 
 func _init()
 	do @strBuf :: #[@strBufSize]char
 	do @eBuf :: #[8]bit8
+#web
+	do @curDir :: "/"
+#any
 end func
 
 +enum Encoding
@@ -406,7 +412,7 @@ end func
 #cpp
 	excode "return delFile_(`0`->B);\n"
 #web
-	; TODO:
+	ret false
 #any
 end func
 
@@ -431,7 +437,7 @@ end func
 #cpp,web
 +func exist(path: []char): bool
 #cpp
-	excode "return fileExists_(`0`);\n"
+	excode "return fileExists_(`0`->B);\n"
 #web
 	excode "let f_=false,p_=`0`.S;\n"
 	excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!=null;\n"
@@ -509,18 +515,19 @@ end func
 #any
 end func
 
-+func fullPath(path: []char, base: []char): []char
-	; TODO:
-	ret null
-end func
-
 #exe
-+func[d0000.knd,  _getCurDir]getCurDir(): []char
++func[d0000.knd, _fullPath]fullPath(path: []char): []char
 #cpp,web
-+func getCurDir(): []char
++func fullPath(path: []char): []char
 #cpp
-	; TODO:
-	ret null
+	excode "char16_t b_[512];\n"
+	excode "int64_t l_=fullPath_(b_,`0`->B);\n"
+	excode "if(l_==0)return null;\n"
+	excode "type_(Array_<char16_t>)a_=new_(Array_<char16_t>)();\n"
+	excode "a_->L=l_;\n"
+	excode "a_->B=newPrimArray_(static_cast<std::size_t>(l_+1),char16_t);\n"
+	excode "memcpy(a_->B,b_,sizeof(char16_t)*static_cast<std::size_t>(l_+1));\n"
+	excode "return a_;\n"
 #web
 	; TODO:
 	ret null
@@ -528,7 +535,25 @@ end func
 end func
 
 #exe
-+func[d0000.knd,  _makeDir]makeDir(path: []char): bool
++func[d0000.knd, _getCurDir]getCurDir(): []char
+#cpp,web
++func getCurDir(): []char
+#cpp
+	excode "char16_t b_[512];\n"
+	excode "int64_t l_=getCurDir_(b_);\n"
+	excode "if(l_==0)return null;\n"
+	excode "type_(Array_<char16_t>)a_=new_(Array_<char16_t>)();\n"
+	excode "a_->L=l_;\n"
+	excode "a_->B=newPrimArray_(static_cast<std::size_t>(l_+1),char16_t);\n"
+	excode "memcpy(a_->B,b_,sizeof(char16_t)*static_cast<std::size_t>(l_+1));\n"
+	excode "return a_;\n"
+#web
+	ret @curDir
+#any
+end func
+
+#exe
++func[d0000.knd, _makeDir]makeDir(path: []char): bool
 #cpp,web
 +func makeDir(path: []char): bool
 #cpp
@@ -561,7 +586,7 @@ end func
 end func
 
 #exe
-+func[d0000.knd,  _moveDir]moveDir(dst: []char, src: []char): bool
++func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
 #cpp,web
 +func moveDir(dst: []char, src: []char): bool
 #cpp
@@ -580,7 +605,6 @@ end func
 #cpp
 	excode "return moveFile_(`0`->B, `1`->B);\n"
 #web
-	; TODO:
 	ret false
 #any
 end func
@@ -597,7 +621,7 @@ end func
 #cpp
 	excode "setCurDir_(`0`->B);\n"
 #web
-	; TODO:
+	do @curDir :: path
 #any
 end func
 

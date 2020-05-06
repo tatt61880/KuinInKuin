@@ -1,10 +1,12 @@
 const strBufSize: int :: 1024
 var strBuf: []char
 var eBuf: []bit8
+var curDir: []char
 
 func _init()
 	do @strBuf :: #[@strBufSize]char
 	do @eBuf :: #[8]bit8
+	do @curDir :: "/"
 end func
 
 +enum Encoding
@@ -379,7 +381,7 @@ end func
 end func
 
 +func delFile(path: []char): bool
-	; TODO:
+	ret false
 end func
 
 +func dir(path: []char): []char
@@ -467,14 +469,13 @@ end func
 	excode "return true;\n"
 end func
 
-+func fullPath(path: []char, base: []char): []char
++func fullPath(path: []char): []char
 	; TODO:
 	ret null
 end func
 
 +func getCurDir(): []char
-	; TODO:
-	ret null
+	ret @curDir
 end func
 
 +func makeDir(path: []char): bool
@@ -509,7 +510,6 @@ end func
 end func
 
 +func moveFile(dst: []char, src: []char): bool
-	; TODO:
 	ret false
 end func
 
@@ -519,7 +519,7 @@ end func
 end func
 
 +func setCurDir(path: []char)
-	; TODO:
+	do @curDir :: path
 end func
 
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int

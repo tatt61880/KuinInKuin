@@ -9,6 +9,7 @@ EXPORT Bool _delDir(const U8* path);
 EXPORT Bool _delFile(const U8* path);
 EXPORT Bool _existPath(const U8* path);
 EXPORT Bool _forEachDir(const U8* path, Bool recursion, void* callback, void* data);
+EXPORT void* _fullPath(const U8* path);
 EXPORT void* _getCurDir(void);
 EXPORT Bool _makeDir(const U8* path);
 EXPORT Bool _moveDir(const U8* dst, const U8* src);

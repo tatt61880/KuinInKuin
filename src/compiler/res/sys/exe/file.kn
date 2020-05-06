@@ -444,15 +444,13 @@ end func
 +func[d0000.knd, _forEachDir]forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 end func
 
-+func fullPath(path: []char, base: []char): []char
-	; TODO:
-	ret null
++func[d0000.knd, _fullPath]fullPath(path: []char): []char
 end func
 
-+func[d0000.knd,  _getCurDir]getCurDir(): []char
++func[d0000.knd, _getCurDir]getCurDir(): []char
 end func
 
-+func[d0000.knd,  _makeDir]makeDir(path: []char): bool
++func[d0000.knd, _makeDir]makeDir(path: []char): bool
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
@@ -476,7 +474,7 @@ end func
 	ret me2
 end func
 
-+func[d0000.knd,  _moveDir]moveDir(dst: []char, src: []char): bool
++func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
 end func
 
 +func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool

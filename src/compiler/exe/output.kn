@@ -28,13 +28,21 @@ func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	block
 		var dataPath: []char :: \option@outputDir ~ "data/"
 		if(!file@makeDir(dataPath))
-			; TODO:
+			do \err@err(%fileSaveFailed, null, [dataPath])
 			ret false
 		end if
 	end block
-	ret funcAttrs.forEach(deployDll, null)
+	if(!funcAttrs.forEach(deployDll, null))
+		ret false
+	end if
+	ret true
 	
 	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
-		ret file@copyFile(\option@outputDir ~ "data/" ~ key, \option@sysDir ~ "data/" ~ key)
+		var path: []char :: \option@outputDir ~ "data/" ~ key
+		if(!file@copyFile(path, \option@sysDir ~ "data/" ~ key))
+			do \err@err(%fileSaveFailed, null, [path])
+			ret false
+		end if
+		ret true
 	end func
 end func
