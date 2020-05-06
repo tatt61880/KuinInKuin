@@ -362,7 +362,9 @@ end class
 #cpp,web
 +func copyDir(dst: []char, src: []char): bool
 #cpp
-	excode "return copyDir_(`0`->B, `1`->B);\n"
+	excode "const std::u16string d_=`0`->B;\n"
+	excode "const std::u16string s_=`1`->B;\n"
+	excode "return copyDir_(d_,s_);\n"
 #web
 	; TODO:
 #any
@@ -591,10 +593,8 @@ end func
 #cpp,web
 +func moveDir(dst: []char, src: []char): bool
 #cpp
-	; TODO:
-	ret false
+	excode "return moveDir_(`0`->B,`1`->B);\n"
 #web
-	; TODO:
 	ret false
 #any
 end func

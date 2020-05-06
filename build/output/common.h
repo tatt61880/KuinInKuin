@@ -182,9 +182,6 @@ static bool delFile_(const char16_t* p) {
 		return true;
 	return ::DeleteFileW(reinterpret_cast<const wchar_t*>(p)) != 0;
 }
-static bool copyDir_(const char16_t* d, const char16_t* s) {
-	return ::CreateDirectoryExW(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), 0) != 0;
-}
 static bool copyFile_(const char16_t* d, const char16_t* s) {
 	return ::CopyFileW(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), false) != 0;
 }
@@ -259,14 +256,6 @@ static bool delFile_(const char16_t* p) {
 	if (::stat(t.c_str(), &b) != 0)
 		return true;
 	return ::unlink(t.c_str()) == 0;
-}
-static bool copyDir_(const char16_t* d, const char16_t* s) {
-	std::u16string s1 = d;
-	const std::string& t1 = utf16ToUtf8_(s1);
-	std::u16string s2 = s;
-	const std::string& t2 = utf16ToUtf8_(s2);
-	struct stat f;
-	return !(::stat(t2.c_str(), &f) != 0 || ::mkdir(t1.c_str(), f.st_mode) != 0);
 }
 static bool copyFile_(const char16_t* d, const char16_t* s) {
 	std::u16string s1 = d;
@@ -521,6 +510,113 @@ static bool delDir_(const std::u16string& p) {
 #endif
 	}
 	return a;
+}
+
+static bool copyDir_(const std::u16string& d, const std::u16string& s) {
+	if (s.size() > 512)
+		return false;
+#if defined(_WIN32)
+	WIN32_FIND_DATA t;
+	HANDLE h;
+#else
+	dirent* t;
+	DIR* h;
+#endif
+	bool a = true;
+	{
+#if defined(_WIN32)
+		wchar_t p3[514];
+		memcpy(p3, s.c_str(), sizeof(wchar_t) * static_cast<std::size_t>(s.size()));
+		p3[s.size()] = '*';
+		p3[s.size() + 1] = 0;
+		h = FindFirstFile(p3, &t);
+		if (h == INVALID_HANDLE_VALUE)
+			return false;
+#else
+		h = opendir(p2.c_str());
+		if (h == nullptr)
+			return false;
+#endif
+	}
+	if (!fileExists_(d.c_str()))
+	{
+		if (!makeDir_(d.c_str()))
+			a = false;
+	}
+	if (a) {
+#if defined(_WIN32)
+		do {
+			if ((t.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+				std::u16string s2 = s;
+				s2 += reinterpret_cast<const char16_t*>(t.cFileName);
+				std::u16string d2 = d;
+				d2 += reinterpret_cast<const char16_t*>(t.cFileName);
+#else
+		while ((t = readdir(h)) != nullptr) {
+			if ((t->d_type & _A_SUBDIR) == 0) {
+				std::string n = t->d_name;
+				const std::u16string& n2 = utf8ToUtf16_(n);
+				std::u16string s2 = s;
+				s2 += n2;
+				std::u16string d2 = d;
+				d2 += n2;
+#endif
+				if (!copyFile_(d2.c_str(), s2.c_str()))
+				{
+					a = false;
+					break;
+				}
+			}
+			else {
+				std::u16string s2 = s;
+				std::u16string d2 = d;
+#if defined(_WIN32)
+				const wchar_t* n = t.cFileName;
+				if (wcscmp(n, L".") == 0 || wcscmp(n, L"..") == 0)
+					continue;
+				s2 += reinterpret_cast<const char16_t*>(n);
+				d2 += reinterpret_cast<const char16_t*>(n);
+#else
+				if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
+					continue;
+				std::string t = n;
+				const std::u16string& n2 = utf8ToUtf16_(t);
+				s2 += n2;
+				d2 += n2;
+#endif
+				s2 += u"/";
+				d2 += u"/";
+				if (!copyDir_(d2, s2))
+				{
+					a = false;
+					break;
+				}
+			}
+		}
+#if defined(_WIN32)
+		while (FindNextFile(h, &t));
+#endif
+	}
+#if defined(_WIN32)
+	FindClose(h);
+#else
+	closedir(h);
+#endif
+	return a;
+}
+
+static bool moveDir_(const char16_t* d, const char16_t* s) {
+#if defined(_WIN32)
+	if (::MoveFileEx(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) != 0)
+		return true;
+#endif
+	std::u16string d2 = d;
+	std::u16string s2 = s;
+	if (!copyDir_(d2, s2))
+		return false;
+	if (!delDir_(s2))
+		return false;
+	return true;
 }
 
 template<typename T> struct newArraysRec_ {
