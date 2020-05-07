@@ -970,11 +970,9 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 	end if
 	if(entry)
 		; Initialize the program.
-		{
 		var tmp: \ast@AstArg :: @makeTmpVar(4, null)
-		do asms.add(@asmMov(@valMem(4, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmp), false)), @valImmU(4, 0x00007F00b64)))
+		do asms.add(@asmMov(@valMem(4, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmp), false)), @valImmU(4, 0x00007F80b64)))
 		do asms.add(@asmLdmxcsr(@valMem(4, @valReg(8, %sp), null, @refValueAddr(@refLocalVar(tmp), false))))
-		}
 		do asms.add(@asmXor(@valReg(4, %cx), @valReg(4, %cx)))
 		do asms.add(@asmMov(@valReg(8, %dx), @valImmU(8, 4096b64))) {The initial size of the heap.}
 		do asms.add(@asmXor(@valReg(4, %r8), @valReg(4, %r8)))
