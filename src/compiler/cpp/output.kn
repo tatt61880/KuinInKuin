@@ -1590,6 +1590,7 @@ func getType(type: \ast@AstType): []char
 	default
 		assert false
 	end switch
+	ret ""
 end func
 
 func getId(): []char

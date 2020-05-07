@@ -1814,7 +1814,7 @@ func write(resFiles: list<[]char>)
 				else
 					do writer.writeStr("else if(p==\"")
 				end if
-				for i(^\option@inputDir, ^resFile - 1)
+				for i(^file@fullPath(\option@inputDir), ^resFile - 1)
 					do writer.writeStr(@escapeChar(resFile[i]))
 				end for
 				do writer.writeStr("\")\n")
@@ -2053,6 +2053,7 @@ func getDefaultValue(type: \ast@AstType): []char
 	default
 		assert false
 	end switch
+	ret ""
 end func
 
 func makeTypeId(type: \ast@AstType): []char
@@ -2099,4 +2100,5 @@ func roundBit(size: int): []char
 	default
 		assert false
 	end switch
+	ret ""
 end func

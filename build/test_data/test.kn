@@ -1760,7 +1760,7 @@ func test19()
 		end for
 		do cui@print(n.toStr() ~ "\n")
 	end block
-
+	
 	block
 		do cui@print(math@modPow(4, 13, 497).toStr() ~ "\n")
 		do cui@print(math@modMul(4, 7, 5).toStr() ~ "\n")
@@ -1769,14 +1769,14 @@ func test19()
 		do cui@print("\{(5).sign()}, \{(-5).sign()}, \{(0).sign()}\n")
 		do cui@print("\{(1.2).sign()}, \{(-1.2).sign()}, \{(0.0).sign()}\n")
 	end block
-
+	
 	block
 		var n: []int :: math@primeFactors(8051)
 		for i(0, ^n - 1)
 			do cui@print(n[i].toStr() ~ "\n")
 		end for
 	end block
-
+	
 	block
 		var d: dict<int, int> :: #dict<int, int>
 		var a: []int :: lib@shuffle(100)
@@ -1790,7 +1790,7 @@ func test19()
 		end for
 		do cui@print((^d).toStr() ~ "\n")
 	end block
-
+	
 	block
 		var d: dict<[]char, []char> :: #dict<[]char, []char>
 		var a: []int :: lib@shuffle(100)
@@ -1804,4 +1804,76 @@ func test19()
 		end for
 		do cui@print((^d).toStr() ~ "\n")
 	end block
+	
+	block
+		do cui@print(math@prime(9999601).toStr() ~ "\n")
+		do cui@print(math@prime(9999603).toStr() ~ "\n")
+		do cui@print(math@prime(9999637).toStr() ~ "\n")
+		do cui@print(math@prime(9999639).toStr() ~ "\n")
+		do cui@print(math@prime(9999653).toStr() ~ "\n")
+		do cui@print(math@prime(9999655).toStr() ~ "\n")
+		do cui@print(math@prime(9999659).toStr() ~ "\n")
+		do cui@print(math@prime(9999661).toStr() ~ "\n")
+		do cui@print(math@prime(9999667).toStr() ~ "\n")
+		do cui@print(math@prime(9999669).toStr() ~ "\n")
+	end block
+	
+	block
+		var s: int :: 1
+		for(0, 9)
+			do s :: r(s)
+			do cui@print(s.toStr() ~ "\n")
+		end for
+		
+		func r(s: int): int
+			var a: int :: 0x1234567812345678
+			var c: int :: 0x5757393957573939
+			var d: int :: 917
+			var e: int :: 0x3636484836364848
+			var m: int :: 0xFFFFFFFF
+			do s :: ((s * a + c) / d - e) % m
+			ret s
+		end func
+	end block
+	
+	if(env <> "web")
+		do file@setCurDir("./output/")
+		do cui@print(file@delDir("./testdir/").toStr() ~ "\n")
+		do cui@print(file@delDir("./testdir/").toStr() ~ "\n")
+		do cui@print(file@makeDir("./testdir/").toStr() ~ "\n")
+		do file@setCurDir("./testdir/")
+		var writer: file@Writer :: file@makeWriter("./test.txt", false)
+		do writer.writeStr("Hello")
+		do writer.fin()
+		do cui@print(file@forEach("./", false, d, null).toStr() ~ "\n")
+		do cui@print(file@forEach("./", true, d, null).toStr() ~ "\n")
+		do cui@print(file@forEach(file@fullPath("./"), true, d, null).toStr() ~ "\n")
+		do cui@print(file@fileSize("./test.txt").toStr() ~ "\n")
+		do writer :: file@makeWriter("./test.txt", true)
+		do writer.writeStr(", world!")
+		do writer.fin()
+		var reader: file@Reader :: file@makeReader("./test.txt")
+		do cui@print(reader.readLine() ~ "\n")
+		do reader.fin()
+		do cui@print(file@makeDir("./a/b/").toStr() ~ "\n")
+		do cui@print(file@moveFile("./a/b/test2.txt", "./test.txt").toStr() ~ "\n")
+		do cui@print(file@moveDir("./a/c/", "./a/b/").toStr() ~ "\n")
+		do cui@print(file@copyDir("./d/", "./a/").toStr() ~ "\n")
+		do cui@print(file@copyFile("./d/test3.txt", "./d/c/test2.txt").toStr() ~ "\n")
+		do cui@print(file@makeDir("./a/c/").toStr() ~ "\n")
+		do cui@print(file@exist("./d/c/test2.txt").toStr() ~ "\n")
+		do cui@print(file@delFile("./d/c/test2.txt").toStr() ~ "\n")
+		do cui@print(file@exist("./d/c/test2.txt").toStr() ~ "\n")
+		do cui@print(file@forEach("./", false, d, null).toStr() ~ "\n")
+		do cui@print(file@forEach("./", true, d, null).toStr() ~ "\n")
+		do cui@print(file@delDir("./a/").toStr() ~ "\n")
+		do cui@print(file@delDir("./d/").toStr() ~ "\n")
+		do cui@print(file@forEach("./", false, d, null).toStr() ~ "\n")
+		do cui@print(file@forEach("./", true, d, null).toStr() ~ "\n")
+		
+		func d(path: []char, dir: bool, data: kuin@Class): bool
+			do cui@print("\{dir}, \{file@fileName(dir ?(path.sub(0, ^path - 1), path))}\n")
+			ret true
+		end func
+	end if
 end func

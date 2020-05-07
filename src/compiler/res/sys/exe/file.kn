@@ -352,12 +352,22 @@ end class
 end class
 
 +func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
+	if(dbg)
+		if(dst[^dst - 1] <> '/' | src[^src - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 end func
 
 +func[d0000.knd, _copyFile]copyFile(dst: []char, src: []char): bool
 end func
 
 +func[d0000.knd, _delDir]delDir(path: []char): bool
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 end func
 
 +func delExt(path: []char): []char
@@ -451,6 +461,11 @@ end func
 end func
 
 +func[d0000.knd, _makeDir]makeDir(path: []char): bool
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 end func
 
 +func[__mki]makeReader(me2: @Reader, path: []char): @Reader
@@ -475,17 +490,22 @@ end func
 end func
 
 +func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
+	if(dbg)
+		if(dst[^dst - 1] <> '/' | src[^src - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 end func
 
 +func[d0000.knd, _moveFile]moveFile(dst: []char, src: []char): bool
 end func
 
-+func myDir(): []char
-	; TODO:
-	ret null
-end func
-
 +func[d0000.knd, _setCurDir]setCurDir(path: []char)
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 end func
 
 func[d0000.knd, _openAsReadingImpl]openAsReadingImpl(path: []char, pack: bool, success: &bool): int

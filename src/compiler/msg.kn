@@ -1052,4 +1052,5 @@ end enum
 	default
 		assert false
 	end switch
+	ret "An unknown error occurred."
 end func

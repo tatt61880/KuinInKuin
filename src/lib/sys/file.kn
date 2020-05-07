@@ -361,6 +361,12 @@ end class
 +func[d0000.knd, _copyDir]copyDir(dst: []char, src: []char): bool
 #cpp,web
 +func copyDir(dst: []char, src: []char): bool
+#any
+	if(dbg)
+		if(dst[^dst - 1] <> '/' | src[^src - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 #cpp
 	excode "const std::u16string d_=`0`->B;\n"
 	excode "const std::u16string s_=`1`->B;\n"
@@ -385,11 +391,17 @@ end func
 +func[d0000.knd, _delDir]delDir(path: []char): bool
 #cpp,web
 +func delDir(path: []char): bool
+#any
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 #cpp
 	excode "const std::u16string s_=`0`->B;\n"
 	excode "return delDir_(s_);\n"
 #web
-	ret false;
+	ret false
 #any
 end func
 
@@ -504,7 +516,10 @@ end func
 #cpp,web
 +func forEach(path: []char, recursion: bool, callback: func<([]char, bool, kuin@Class): bool>, data: kuin@Class): bool
 #cpp
-	excode "return fileForEach_(`0`,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
+	excode "char16_t b_[512];\n"
+	excode "if(fullPath_(b_,`0`->B)==0)return false;\n"
+	excode "std::u16string s_=b_;\n"
+	excode "return fileForEach_(s_,`1`,reinterpret_cast<bool(*)(type_(Array_<char16_t>),bool,type_(Class_))>(`2`),`3`);\n"
 #web
 	excode "let f_,p_=`0`.S;\n"
 	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
@@ -525,7 +540,7 @@ end func
 #cpp
 	excode "char16_t b_[512];\n"
 	excode "int64_t l_=fullPath_(b_,`0`->B);\n"
-	excode "if(l_==0)return null;\n"
+	excode "if(l_==0)return nullptr;\n"
 	excode "type_(Array_<char16_t>)a_=new_(Array_<char16_t>)();\n"
 	excode "a_->L=l_;\n"
 	excode "a_->B=newPrimArray_(static_cast<std::size_t>(l_+1),char16_t);\n"
@@ -533,7 +548,7 @@ end func
 	excode "return a_;\n"
 #web
 	; TODO:
-	ret null
+	ret path
 #any
 end func
 
@@ -559,8 +574,14 @@ end func
 +func[d0000.knd, _makeDir]makeDir(path: []char): bool
 #cpp,web
 +func makeDir(path: []char): bool
+#any
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 #cpp
-	excode "return makeDir_(`0`->B);\n"
+	excode "return makeDir2_(`0`->B);\n"
 #web
 	; TODO:
 	ret false
@@ -592,6 +613,12 @@ end func
 +func[d0000.knd, _moveDir]moveDir(dst: []char, src: []char): bool
 #cpp,web
 +func moveDir(dst: []char, src: []char): bool
+#any
+	if(dbg)
+		if(dst[^dst - 1] <> '/' | src[^src - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 #cpp
 	excode "return moveDir_(`0`->B,`1`->B);\n"
 #web
@@ -610,15 +637,16 @@ end func
 #any
 end func
 
-+func myDir(): []char
-	; TODO:
-	ret null
-end func
-
 #exe
 +func[d0000.knd, _setCurDir]setCurDir(path: []char)
 #cpp,web
 +func setCurDir(path: []char)
+#any
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 #cpp
 	excode "setCurDir_(`0`->B);\n"
 #web

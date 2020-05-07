@@ -354,6 +354,11 @@ end class
 end class
 
 +func copyDir(dst: []char, src: []char): bool
+	if(dbg)
+		if(dst[^dst - 1] <> '/' | src[^src - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 	; TODO:
 end func
 
@@ -362,7 +367,12 @@ end func
 end func
 
 +func delDir(path: []char): bool
-	ret false;
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
+	ret false
 end func
 
 +func delExt(path: []char): []char
@@ -479,6 +489,11 @@ end func
 end func
 
 +func makeDir(path: []char): bool
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 	; TODO:
 	ret false
 end func
@@ -505,6 +520,11 @@ end func
 end func
 
 +func moveDir(dst: []char, src: []char): bool
+	if(dbg)
+		if(dst[^dst - 1] <> '/' | src[^src - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 	ret false
 end func
 
@@ -512,12 +532,12 @@ end func
 	ret false
 end func
 
-+func myDir(): []char
-	; TODO:
-	ret null
-end func
-
 +func setCurDir(path: []char)
+	if(dbg)
+		if(path[^path - 1] <> '/')
+			throw 0xE9170006
+		end if
+	end if
 	do @curDir :: path
 end func
 

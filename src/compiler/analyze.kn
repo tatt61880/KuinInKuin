@@ -3338,6 +3338,7 @@ func makeExprDefaultValue(type: \ast@AstType, pos: \pos@Pos): \ast@AstExprValue
 	default
 		assert false
 	end switch
+	ret null
 end func
 
 func refreshStats(stats: list<\ast@AstStat>, retType: \ast@AstType, parentFunc: \ast@AstFunc): list<\ast@AstStat>
@@ -3666,6 +3667,6 @@ func getTypeName(type: \ast@AstType): []char
 		ret "(UNKNOWN)"
 	default
 		assert false
-		ret ""
 	end switch
+	ret ""
 end func

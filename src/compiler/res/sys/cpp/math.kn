@@ -459,6 +459,7 @@ end func
 	while loop(i < enough)
 		var x: bit64 :: @modPowUnsigned(@primes[i $ int	], d, n2)
 		if(x = 1b64 | x = n2 - 1b64)
+			do i :+ 1b64
 			skip loop
 		end if
 		var prob: bool :: false

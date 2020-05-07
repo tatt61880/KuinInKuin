@@ -45,7 +45,12 @@ EXPORT Bool _forEachDir(const U8* path, Bool recursion, void* callback, void* da
 {
 	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
 	THROWDBG(callback == NULL, EXCPT_ACCESS_VIOLATION);
-	return ForEachDirRecursion((const Char*)(path + 0x10), recursion, callback, data);
+	Char path2[KUIN_MAX_PATH + 1];
+	Char* file_name_pos;
+	if (!GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH, path2, &file_name_pos))
+		return False;
+	NormPath(path2, True);
+	return ForEachDirRecursion(path2, recursion, callback, data);
 }
 
 EXPORT void* _fullPath(const U8* path)
@@ -53,7 +58,7 @@ EXPORT void* _fullPath(const U8* path)
 	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
 	Char path2[KUIN_MAX_PATH + 1];
 	Char* file_name_pos;
-	if (GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH, path2, &file_name_pos) == 0)
+	if (!GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH, path2, &file_name_pos))
 		return NULL;
 	NormPath(path2, ((const Char*)(path + 0x10))[*(S64*)(path + 0x08) - 1] == L'/');
 	size_t len = wcslen(path2);
@@ -67,7 +72,7 @@ EXPORT void* _fullPath(const U8* path)
 EXPORT void* _getCurDir(void)
 {
 	Char path[KUIN_MAX_PATH + 1];
-	if (GetCurrentDirectory(KUIN_MAX_PATH, path) == 0)
+	if (!GetCurrentDirectory(KUIN_MAX_PATH, path))
 		return NULL;
 	NormPath(path, True);
 	size_t len = wcslen(path);
@@ -81,21 +86,34 @@ EXPORT void* _getCurDir(void)
 EXPORT Bool _makeDir(const U8* path)
 {
 	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
-	if (*(S64*)(path + 0x08) > KUIN_MAX_PATH)
-		return False;
-	if (!DelDirRecursion((const Char*)(path + 0x10)))
-		return False;
 	Char path2[KUIN_MAX_PATH + 1];
-	if (GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH + 1, path2, NULL) == 0)
+	Char* file_name_pos;
+	if (!GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH, path2, &file_name_pos))
 		return False;
-	return SHCreateDirectory(NULL, path2) == ERROR_SUCCESS;
+	NormPath(path2, True);
+	const Char* ptr = path2;
+	while (*ptr != L'\0')
+	{
+		ptr = wcschr(ptr, L'/');
+		ASSERT(ptr != NULL);
+		Char path3[KUIN_MAX_PATH + 1];
+		memcpy(path3, path2, sizeof(Char) * (size_t)(ptr - path2 + 1));
+		path3[ptr - path2 + 1] = L'\0';
+		if (!PathFileExists(path3))
+		{
+			if (!CreateDirectory(path3, NULL))
+				return False;
+		}
+		ptr++;
+	}
+	return True;
 }
 
 EXPORT Bool _moveDir(const U8* dst, const U8* src)
 {
 	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
 	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
-	if (MoveFileEx((const Char*)(src + 0x10), (const Char*)(dst + 0x10), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) == 0)
+	if (!MoveFileEx((const Char*)(src + 0x10), (const Char*)(dst + 0x10), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING))
 	{
 		if (!CopyDirRecursion((const Char*)(dst + 0x10), (const Char*)(src + 0x10)))
 			return False;
@@ -242,6 +260,11 @@ static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback
 			if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 			{
 				size_t len2 = wcslen(name);
+				if (len + len2 + 1 > KUIN_MAX_PATH)
+				{
+					continue_loop = False;
+					break;
+				}
 				U8* path3 = (U8*)AllocMem(0x10 + sizeof(Char) * (len + len2 + 1));
 				((S64*)path3)[0] = 2;
 				((S64*)path3)[1] = len + len2;
@@ -319,7 +342,7 @@ static Bool DelDirRecursion(const Char* path)
 			Char path2[KUIN_MAX_PATH + 1];
 			memcpy(path2, path, sizeof(Char) * len);
 			memcpy(path2 + len, name, sizeof(Char) * (len2 + 1));
-			if (DeleteFile(path2) == 0)
+			if (!DeleteFile(path2))
 			{
 				continue_loop = False;
 				break;

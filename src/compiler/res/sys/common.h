@@ -166,7 +166,7 @@ static bool fileExists_(const char16_t* p) {
 	return PathFileExistsW(reinterpret_cast<const wchar_t*>(p)) != 0;
 }
 static int64_t getCurDir_(char16_t* p) {
-	if (::GetCurrentDirectoryW(511, reinterpret_cast<wchar_t*>(p)) == 0)
+	if (!::GetCurrentDirectoryW(511, reinterpret_cast<wchar_t*>(p)))
 		return 0;
 	normPath_(p, true);
 	return ::wcslen(reinterpret_cast<wchar_t*>(p));
@@ -190,7 +190,7 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 }
 static int64_t fullPath_(char16_t* p, const char16_t* q) {
 	wchar_t* f;
-	if (::GetFullPathNameW(reinterpret_cast<const wchar_t*>(q), 511, reinterpret_cast<wchar_t*>(p), &f) == 0)
+	if (!::GetFullPathNameW(reinterpret_cast<const wchar_t*>(q), 511, reinterpret_cast<wchar_t*>(p), &f))
 		return 0;
 	normPath_(p, q[::wcslen(reinterpret_cast<const wchar_t*>(q)) - 1] == '/');
 	return ::wcslen(reinterpret_cast<wchar_t*>(p));
@@ -333,8 +333,8 @@ static void sleep_(int64_t t) {
 
 #endif
 
-static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array_<char16_t>), bool, type_(Class_)), type_(Class_) d) {
-	if (p->L > 512)
+static bool fileForEach_(const std::u16string& p, bool r, bool(*f)(type_(Array_<char16_t>), bool, type_(Class_)), type_(Class_) d) {
+	if (p.size() > 512)
 		return false;
 #if defined(_WIN32)
 	WIN32_FIND_DATA t;
@@ -347,22 +347,27 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 	{
 #if defined(_WIN32)
 		wchar_t p3[514];
-		memcpy(p3, p->B, sizeof(wchar_t) * static_cast<std::size_t>(p->L));
-		p3[p->L] = '*';
-		p3[p->L + 1] = 0;
+		memcpy(p3, p.c_str(), sizeof(wchar_t) * static_cast<std::size_t>(p.size()));
+		p3[p.size()] = '*';
+		p3[p.size() + 1] = 0;
 		h = FindFirstFile(p3, &t);
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
-		std::u16string s = p->B;
-		const std::string& p2 = utf16ToUtf8_(s);
+		const std::string& p2 = utf16ToUtf8_(p);
 		h = opendir(p2.c_str());
 		if (h == nullptr)
 			return false;
 #endif
 	}
-	if (!f(p, true, d))
-		a = false;
+	{
+		type_(Array_<char16_t>) x = new_(Array_<char16_t>)();
+		x->L = static_cast<int64_t>(p.size());
+		x->B = newPrimArray_(static_cast<std::size_t>(p.size() + 1), char16_t);
+		memcpy(x->B, p.c_str(), sizeof(char16_t) * static_cast<std::size_t>(p.size() + 1));
+		if (!f(x, true, d))
+			a = false;
+	}
 	if (a) {
 #if defined(_WIN32)
 		do {
@@ -378,10 +383,10 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 				const char16_t* b = p2.c_str();
 #endif
 				type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
-				p3->L = p->L + static_cast<int64_t>(l);
-				p3->B = newPrimArray_(static_cast<std::size_t>(p->L + l + 1), char16_t);
-				memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<std::size_t>(p->L));
-				memcpy(p3->B + p->L, b, sizeof(char16_t) * (l + 1));
+				p3->L = p.size() + static_cast<int64_t>(l);
+				p3->B = newPrimArray_(static_cast<std::size_t>(p.size() + l + 1), char16_t);
+				memcpy(p3->B, p.c_str(), sizeof(char16_t) * static_cast<std::size_t>(p.size()));
+				memcpy(p3->B + p.size(), b, sizeof(char16_t) * (l + 1));
 				if (!f(p3, false, d))
 				{
 					a = false;
@@ -389,26 +394,21 @@ static bool fileForEach_(type_(Array_<char16_t>) p, bool r, bool(*f)(type_(Array
 				}
 			}
 			else if (r) {
+				std::u16string p3 = p;
 #if defined(_WIN32)
 				if (wcscmp(b, L".") == 0 || wcscmp(b, L"..") == 0)
 					continue;
-				std::size_t l = ::wcslen(b);
+				p3 += reinterpret_cast<const char16_t*>(b);
+
 #else
 				const char* n = t->d_name;
 				if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
 					continue;
 				std::string s = n;
 				const std::u16string& p2 = utf8ToUtf16_(s);
-				std::size_t l = p2.size();
-				const char16_t* b = p2.c_str();
+				p3 += p2;
 #endif
-				type_(Array_<char16_t>) p3 = new_(Array_<char16_t>)();
-				p3->L = p->L + static_cast<int64_t>(l) + 1;
-				p3->B = newPrimArray_(static_cast<std::size_t>(p->L + l + 2), char16_t);
-				memcpy(p3->B, p->B, sizeof(char16_t) * static_cast<std::size_t>(p->L));
-				memcpy(p3->B + p->L, b, sizeof(char16_t) * l);
-				p3->B[p->L + l] = '/';
-				p3->B[p->L + l + 1] = 0;
+				p3 += u'/';
 				if (!fileForEach_(p3, r, f, d))
 				{
 					a = false;
@@ -607,7 +607,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 
 static bool moveDir_(const char16_t* d, const char16_t* s) {
 #if defined(_WIN32)
-	if (::MoveFileEx(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) != 0)
+	if (::MoveFileEx(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING))
 		return true;
 #endif
 	std::u16string d2 = d;
@@ -616,6 +616,28 @@ static bool moveDir_(const char16_t* d, const char16_t* s) {
 		return false;
 	if (!delDir_(s2))
 		return false;
+	return true;
+}
+
+static bool makeDir2_(const char16_t* p) {
+	char16_t b[512];
+	int64_t l = fullPath_(b, p);
+	if (l == 0)
+		return false;
+	const char16_t* q = b;
+	while (*q != 0){
+		while (*q != '/')
+			q++;
+		char16_t a[512];
+		memcpy(a, b, sizeof(char16_t) * static_cast<std::size_t>(q - b + 1));
+		a[q - b + 1] = 0;
+		if (!fileExists_(a))
+		{
+			if (!makeDir_(a))
+				return false;
+		}
+		q++;
+	}
 	return true;
 }
 
