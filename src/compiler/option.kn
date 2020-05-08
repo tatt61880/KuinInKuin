@@ -14,7 +14,7 @@ end enum
 +var version: bool
 +var quiet: bool
 +var appCode: int
-+var notDeploy: bool
++var resDir: []char
 +var extra: dict<[]char, bool>
 
 +var inputDir: []char
@@ -35,18 +35,22 @@ end enum
 				if(!getArg1(&@inputFile, cmdLines, &i, c))
 					ret false
 				end if
+				do @inputFile :: file@fullPath(@inputFile)
 			case 'o'
 				if(!getArg1(&@outputFile, cmdLines, &i, c))
 					ret false
 				end if
+				do @outputFile :: file@fullPath(@outputFile)
 			case 's'
 				if(!getArg1(&@sysDir, cmdLines, &i, c))
 					ret false
 				end if
+				do @sysDir :: file@fullPath(@sysDir)
 			case 'c'
 				if(!getArg1(&@icon, cmdLines, &i, c))
 					ret false
 				end if
+				do @icon :: file@fullPath(@icon)
 			case 'r'
 				if(!getArg0(&@rls, c))
 					ret false
@@ -71,10 +75,11 @@ end enum
 				if(!getArg1(&appCodeStr, cmdLines, &i, c))
 					ret false
 				end if
-			case 'd' {This option is only used in Kuin Editor builds.}
-				if(!getArg0(&@notDeploy, c))
+			case 'p'
+				if(!getArg1(&@resDir, cmdLines, &i, c))
 					ret false
 				end if
+				do @resDir :: file@fullPath(@resDir)
 			case 'x'
 				var extra: []char
 				if(!getArg1(&extra, cmdLines, &i, c))
@@ -138,6 +143,10 @@ end enum
 	do @inputDir :: file@dir(@inputFile)
 	do @inputName :: file@delExt(file@fileName(@inputFile))
 	do @outputDir :: file@dir(@outputFile)
+	
+	if(@resDir =& null)
+		do @resDir :: @inputDir ~ "res/"
+	end if
 	
 	if(file@ext(@inputFile) <> "kn")
 		do \err@err(%incorrectExt, null, [@inputName])

@@ -481,7 +481,7 @@ end func
 
 +func fullPath(path: []char): []char
 	; TODO:
-	ret null
+	ret path
 end func
 
 +func getCurDir(): []char

@@ -1,5 +1,6 @@
 const strBufSize: int :: 1024
 var delimiters: []char :: " ,\n"
+var buf: char :: '\0'
 
 +func delimiter(delimiters_: []char)
 	do @delimiters :: delimiters_
@@ -41,6 +42,7 @@ end func
 			if(c = '\uFFFF')
 				throw 0xE9170008
 			end if
+			do @skipDelimiters()
 			ret c
 		end if
 	end while
@@ -92,6 +94,7 @@ end func
 		do buf[ptr] :: c
 		do ptr :+ 1
 	end while
+	do @skipDelimiters()
 	ret buf.sub(0, ptr)
 end func
 
@@ -110,5 +113,21 @@ func inputCharWithDelimiter(): char
 			skip loop
 		end if
 		ret c
+	end while
+end func
+
+func skipDelimiters()
+	while loop(true)
+		var c: char :: @inputLetter()
+		for i(0, ^@delimiters - 1)
+			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
+				skip loop
+			end if
+		end for
+		if(c = '\u000D')
+			skip loop
+		end if
+		do @buf :: c
+		ret
 	end while
 end func

@@ -12,3 +12,5 @@
 *.VC.db
 
 /src/lib/dll/output/
+/build/output/
+/build/deploy_*/

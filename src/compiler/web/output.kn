@@ -1810,11 +1810,11 @@ func write(resFiles: list<[]char>)
 				var resFile: []char :: resFiles.get()
 				if(first)
 					do first :: false
-					do writer.writeStr("if(p==\"")
+					do writer.writeStr("if(p==\"res/")
 				else
-					do writer.writeStr("else if(p==\"")
+					do writer.writeStr("else if(p==\"res/")
 				end if
-				for i(^file@fullPath(\option@inputDir), ^resFile - 1)
+				for i(^file@fullPath(\option@resDir), ^resFile - 1)
 					do writer.writeStr(@escapeChar(resFile[i]))
 				end for
 				do writer.writeStr("\")\n")

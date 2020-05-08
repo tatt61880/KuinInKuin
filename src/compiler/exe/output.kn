@@ -39,7 +39,8 @@ func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	
 	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
 		var path: []char :: \option@outputDir ~ "data/" ~ key
-		if(!file@copyFile(path, \option@sysDir ~ "data/" ~ key))
+		var cfg: []char :: \option@rls ?("rls/", "dbg/")
+		if(!file@copyFile(path, \option@sysDir ~ "data/" ~ cfg ~ key))
 			do \err@err(%fileSaveFailed, null, [path])
 			ret false
 		end if

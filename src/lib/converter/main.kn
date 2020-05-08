@@ -4,7 +4,7 @@ func main()
 	var target: [][]char :: ["cpp", "web", "exe"]
 	for i(0, ^target - 1)
 		do @curTarget :: target[i]
-		do file@makeDir("./../compiler/res/sys/\{@curTarget}/")
+		do file@makeDir("./../sys/\{@curTarget}/")
 		do file@forEach("./sys/", false, @convert, null)
 	end for
 end func
@@ -14,7 +14,7 @@ func convert(path: []char, dir: bool, data: kuin@Class): bool
 		ret true
 	end if
 	var reader: file@Reader :: file@makeReader(path)
-	var writer: file@Writer :: file@makeWriter("./../compiler/res/sys/\{@curTarget}/\{file@fileName(path)}", false)
+	var writer: file@Writer :: file@makeWriter("./../sys/\{@curTarget}/\{file@fileName(path)}", false)
 	var skip_: bool :: false
 	while loop(!reader.term())
 		var s: []char :: reader.readLine()

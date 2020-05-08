@@ -16,7 +16,7 @@ func main()
 	end if
 	
 	if(\option@help | \option@inputFile =& null)
-		do cui@print("Usage: kuincl [-i input.kn] [-o output.kn] [-s 'sys' directory] [-c icon.ico] [-e environment] [-a appcode] [-r] [-h] [-v] [-q]\n")
+		do cui@print("Usage: kuincl [-i input.kn] [-o output.kn] [-s 'sys' directory] [-e environment] [-a appcode] [-p 'res' directory] [-c icon.ico] [-r] [-h] [-v] [-q] [-x extended option]\n")
 		do lib@exitCode(0)
 		ret
 	end if
@@ -56,14 +56,13 @@ func build(): bool
 	end if
 	
 	; 'Res' files.
-	var resDir: []char :: \option@inputDir ~ "res/"
 	class ResFiles()
 		+var files: list<[]char>
 	end class
 	var resFiles: ResFiles :: #ResFiles
 	do resFiles.files :: #list<[]char>
-	if(file@exist(resDir))
-		do file@forEach(resDir, true, searchResFiles, resFiles)
+	if(file@exist(\option@resDir))
+		do file@forEach(\option@resDir, true, searchResFiles, resFiles)
 	end if
 	
 	; 'Output'
