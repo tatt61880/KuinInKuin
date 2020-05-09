@@ -1,4 +1,4 @@
-﻿#include "main.h"
+#include "main.h"
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {

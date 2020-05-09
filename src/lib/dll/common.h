@@ -92,8 +92,19 @@ void FreeMem(void* ptr);
 void ThrowImpl(U32 code);
 
 // Assembly functions.
+#ifdef __cplusplus
+extern "C" void* ToBinClassAsm(const void* me_);
+extern "C" void* FromBinClassAsm(const void* me_, const U8* bin, S64* idx);
+extern "C" int CmpClassAsm(const void* me_, const void* target);
+extern "C" void DtorClassAsm(void* me_);
+extern "C" void* CopyClassAsm(const void* me_);
+extern "C" void* Call0Asm(void* func);
+extern "C" void* Call1Asm(void* arg1, void* func);
+extern "C" void* Call2Asm(void* arg1, void* arg2, void* func);
+extern "C" void* Call3Asm(void* arg1, void* arg2, void* arg3, void* func);
+#else
 void* ToBinClassAsm(const void* me_);
-void* FromBinClassAsm(const void* me_, const U8* bin, S64* idx);
+void* FromBinClassAsm(const void* me_, const U8 * bin, S64 * idx);
 int CmpClassAsm(const void* me_, const void* target);
 void DtorClassAsm(void* me_);
 void* CopyClassAsm(const void* me_);
@@ -101,3 +112,4 @@ void* Call0Asm(void* func);
 void* Call1Asm(void* arg1, void* func);
 void* Call2Asm(void* arg1, void* arg2, void* func);
 void* Call3Asm(void* arg1, void* arg2, void* arg3, void* func);
+#endif

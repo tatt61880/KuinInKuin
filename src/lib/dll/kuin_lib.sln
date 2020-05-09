@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_common", "lib_common\lib_common.vcxproj", "{C9E43926-3AD9-4605-99B4-BC4231331DE8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_win", "lib_win\lib_win.vcxproj", "{36364803-1FE7-40BD-A8BA-8582EE13CF1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -18,6 +20,12 @@ Global
 		{C9E43926-3AD9-4605-99B4-BC4231331DE8}.R_dbg|x64.Build.0 = Release_dbg|x64
 		{C9E43926-3AD9-4605-99B4-BC4231331DE8}.R_rls|x64.ActiveCfg = Release_rls|x64
 		{C9E43926-3AD9-4605-99B4-BC4231331DE8}.R_rls|x64.Build.0 = Release_rls|x64
+		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.Debug|x64.ActiveCfg = Debug|x64
+		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.Debug|x64.Build.0 = Debug|x64
+		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_dbg|x64.ActiveCfg = Release_dbg|x64
+		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_dbg|x64.Build.0 = Release_dbg|x64
+		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_rls|x64.ActiveCfg = Release_rls|x64
+		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_rls|x64.Build.0 = Release_rls|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

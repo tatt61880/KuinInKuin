@@ -2,7 +2,6 @@
 
 #include "..\common.h"
 
-// 'lib'
 EXPORT double _acos(double x);
 EXPORT double _acosh(double x);
 EXPORT U64 _addr(SClass* me_);

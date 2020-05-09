@@ -1,0 +1,532 @@
+#include "wnd_wnd.h"
+
+static int WndCnt;
+static Bool ExitAct;
+static HINSTANCE Instance;
+static HFONT FontCtrl;
+static void* OnKeyPress;
+static Char FileDialogDir[KUIN_MAX_PATH + 1];
+
+static LRESULT CALLBACK CommonWndProc(HWND wnd, SWndBase* wnd2, SWnd* wnd3, UINT msg, WPARAM w_param, LPARAM l_param);
+static LRESULT CALLBACK WndProcWndNormal(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
+static LRESULT CALLBACK WndProcWndFix(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
+static LRESULT CALLBACK WndProcWndAspect(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
+
+EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
+{
+	if (!InitEnvVars(heap, heap_cnt, app_code, use_res_flags))
+		return;
+
+	WndCnt = 0;
+	ExitAct = False;
+
+	Instance = (HINSTANCE)GetModuleHandle(NULL);
+	HICON icon = LoadIcon(Instance, reinterpret_cast<LPCWSTR>(static_cast<S64>(0x65))); // 0x65 is the resource ID of the application icon.
+	{
+		WNDCLASSEX wnd_class;
+		wnd_class.cbSize = sizeof(WNDCLASSEX);
+		wnd_class.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+		wnd_class.lpfnWndProc = WndProcWndNormal;
+		wnd_class.cbClsExtra = 0;
+		wnd_class.cbWndExtra = 0;
+		wnd_class.hInstance = Instance;
+		wnd_class.hIcon = icon;
+		wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
+		wnd_class.lpszMenuName = NULL;
+		wnd_class.lpszClassName = L"KuinWndNormalClass";
+		wnd_class.hIconSm = icon;
+		RegisterClassEx(&wnd_class);
+	}
+	{
+		WNDCLASSEX wnd_class;
+		wnd_class.cbSize = sizeof(WNDCLASSEX);
+		wnd_class.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+		wnd_class.lpfnWndProc = WndProcWndFix;
+		wnd_class.cbClsExtra = 0;
+		wnd_class.cbWndExtra = 0;
+		wnd_class.hInstance = Instance;
+		wnd_class.hIcon = icon;
+		wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
+		wnd_class.lpszMenuName = NULL;
+		wnd_class.lpszClassName = L"KuinWndFixClass";
+		wnd_class.hIconSm = icon;
+		RegisterClassEx(&wnd_class);
+	}
+	{
+		WNDCLASSEX wnd_class;
+		wnd_class.cbSize = sizeof(WNDCLASSEX);
+		wnd_class.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+		wnd_class.lpfnWndProc = WndProcWndFix;
+		wnd_class.cbClsExtra = 0;
+		wnd_class.cbWndExtra = 0;
+		wnd_class.hInstance = Instance;
+		wnd_class.hIcon = NULL;
+		wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
+		wnd_class.lpszMenuName = NULL;
+		wnd_class.lpszClassName = L"KuinWndDialogClass";
+		wnd_class.hIconSm = NULL;
+		RegisterClassEx(&wnd_class);
+	}
+	{
+		WNDCLASSEX wnd_class;
+		wnd_class.cbSize = sizeof(WNDCLASSEX);
+		wnd_class.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+		wnd_class.lpfnWndProc = WndProcWndAspect;
+		wnd_class.cbClsExtra = 0;
+		wnd_class.cbWndExtra = 0;
+		wnd_class.hInstance = Instance;
+		wnd_class.hIcon = icon;
+		wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
+		wnd_class.lpszMenuName = NULL;
+		wnd_class.lpszClassName = L"KuinWndAspectClass";
+		wnd_class.hIconSm = icon;
+		RegisterClassEx(&wnd_class);
+	}
+
+	{
+		HDC dc = GetDC(NULL);
+		FontCtrl = CreateFont(-MulDiv(9, GetDeviceCaps(dc, LOGPIXELSY), 72), 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, DEFAULT_PITCH, L"Yu Gothic UI");
+		ReleaseDC(NULL, dc);
+	}
+
+	// TODO:
+	/*
+	Draw::Init();
+	Snd::Init();
+	Input::Init();
+	*/
+
+	OnKeyPress = NULL;
+	FileDialogDir[0] = L'\0';
+}
+
+EXPORT_CPP void _fin()
+{
+	// TODO:
+	/*
+	Input::Fin();
+	Snd::Fin();
+	Draw::Fin();
+	*/
+
+	DeleteObject(static_cast<HGDIOBJ>(FontCtrl));
+}
+
+EXPORT_CPP Bool _act()
+{
+	if (ExitAct || WndCnt == 0)
+		return False;
+
+	{
+		MSG msg;
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			switch (msg.message)
+			{
+				case WM_QUIT:
+					ExitAct = True;
+					return False;
+				case WM_KEYDOWN:
+				case WM_SYSKEYDOWN:
+					if (OnKeyPress != NULL)
+					{
+						U64 shiftCtrl = 0;
+						shiftCtrl |= (GetKeyState(VK_SHIFT) & 0x8000) != 0 ? 1 : 0;
+						shiftCtrl |= (GetKeyState(VK_CONTROL) & 0x8000) != 0 ? 2 : 0;
+						if (static_cast<Bool>(reinterpret_cast<U64>(Call2Asm(reinterpret_cast<void*>(static_cast<U64>(msg.wParam)), reinterpret_cast<void*>(shiftCtrl), OnKeyPress))))
+							continue;
+					}
+					break;
+			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	// TODO:
+	/*
+	Input::Update();
+	*/
+
+	Sleep(1);
+
+	return True;
+}
+
+EXPORT_CPP SClass* _makeWnd(SClass* me_, SClass* parent, S64 style, S64 width, S64 height, const U8* text)
+{
+	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
+	me2->Kind = static_cast<EWndKind>(static_cast<S64>(WndKind_WndNormal) + (style & 0xffff));
+	THROWDBG(width <= 0 || height <= 0, 0xe9170006);
+	int width2 = static_cast<int>(width);
+	int height2 = static_cast<int>(height);
+	HWND parent2 = parent == NULL ? NULL : reinterpret_cast<SWndBase*>(parent)->WndHandle;
+	DWORD ex_style = 0;
+	if ((style & static_cast<S64>(WndKind_WndLayered)) != 0)
+		ex_style |= WS_EX_LAYERED;
+	switch (me2->Kind)
+	{
+		case WndKind_WndNormal:
+			me2->WndHandle = CreateWindowEx(ex_style, L"KuinWndNormalClass", text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, width2, height2, parent2, NULL, Instance, NULL);
+			break;
+		case WndKind_WndFix:
+			me2->WndHandle = CreateWindowEx(ex_style, L"KuinWndFixClass", text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, width2, height2, parent2, NULL, Instance, NULL);
+			break;
+		case WndKind_WndAspect:
+			me2->WndHandle = CreateWindowEx(ex_style, L"KuinWndAspectClass", text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10), (WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX) | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, width2, height2, parent2, NULL, Instance, NULL);
+			break;
+		case WndKind_WndPopup:
+			me2->WndHandle = CreateWindowEx(ex_style | WS_EX_TOOLWINDOW, L"KuinWndDialogClass", text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10), WS_POPUP | WS_BORDER | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, width2, height2, parent2, NULL, Instance, NULL);
+			break;
+		case WndKind_WndDialog:
+			me2->WndHandle = CreateWindowEx(ex_style | WS_EX_TOOLWINDOW, L"KuinWndDialogClass", text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, width2, height2, parent2, NULL, Instance, NULL);
+			break;
+		default:
+			THROWDBG(True, 0xe9170006);
+			break;
+	}
+	if (me2->WndHandle == NULL)
+		THROW(0xe9170009);
+	if ((style & static_cast<S64>(WndKind_WndLayered)) != 0)
+		SetLayeredWindowAttributes(me2->WndHandle, NULL, 255, LWA_ALPHA);
+	if ((style & static_cast<S64>(WndKind_WndNoMinimize)) != 0)
+		SetWindowLongPtr(me2->WndHandle, GWL_STYLE, GetWindowLongPtr(me2->WndHandle, GWL_STYLE) & ~WS_MINIMIZEBOX);
+	int border_x;
+	int border_y;
+	{
+		RECT window;
+		RECT client;
+		GetWindowRect(me2->WndHandle, &window);
+		GetClientRect(me2->WndHandle, &client);
+		border_x = static_cast<int>((window.right - window.left) - (client.right - client.left));
+		border_y = static_cast<int>((window.bottom - window.top) - (client.bottom - client.top));
+	}
+	me2->Name = NULL;
+	me2->DefaultWndProc = NULL;
+	me2->CtrlFlag = static_cast<U64>(CtrlFlag_AnchorLeft) | static_cast<U64>(CtrlFlag_AnchorTop);
+	me2->DefaultX = 0;
+	me2->DefaultY = 0;
+	me2->DefaultWidth = static_cast<U16>(width);
+	me2->DefaultHeight = static_cast<U16>(height);
+	me2->RedrawEnabled = True;
+	me2->Children = AllocMem(0x28);
+	*(S64*)me2->Children = 1;
+	memset((U8*)me2->Children + 0x08, 0x00, 0x20);
+	SetWindowPos(me2->WndHandle, NULL, 0, 0, static_cast<int>(width) + border_x, static_cast<int>(height) + border_y, SWP_NOMOVE | SWP_NOZORDER);
+	if (me2->Kind == WndKind_WndAspect)
+	{
+		RECT rect;
+		GetClientRect(me2->WndHandle, &rect);
+		double w = static_cast<double>(rect.right) - static_cast<double>(rect.left);
+		double h = static_cast<double>(rect.bottom) - static_cast<double>(rect.top);
+		if (w / h > static_cast<double>(width) / static_cast<double>(height))
+			w = h * static_cast<double>(width) / static_cast<double>(height);
+		else
+			h = w * static_cast<double>(height) / static_cast<double>(width);
+		SetWindowPos(me2->WndHandle, NULL, 0, 0, static_cast<int>(w) + border_x, static_cast<int>(h) + border_y, SWP_NOMOVE | SWP_NOZORDER);
+	}
+	SetWindowLongPtr(me2->WndHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(me2));
+	{
+		SWnd* me3 = reinterpret_cast<SWnd*>(me_);
+		me3->MinWidth = 128;
+		me3->MinHeight = 128;
+		me3->MaxWidth = static_cast<U16>(-1);
+		me3->MaxHeight = static_cast<U16>(-1);
+		me3->OnClose = NULL;
+		me3->OnActivate = NULL;
+		me3->OnPushMenu = NULL;
+		me3->OnDropFiles = NULL;
+		me3->OnResize = NULL;
+		me3->ModalLock = False;
+	}
+	SendMessage(me2->WndHandle, WM_SETFONT, reinterpret_cast<WPARAM>(FontCtrl), static_cast<LPARAM>(FALSE));
+	ShowWindow(me2->WndHandle, SW_SHOWNORMAL);
+	WndCnt++;
+	return me_;
+}
+
+EXPORT_CPP void _wndBaseDtor(SClass* me_)
+{
+	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
+	DestroyWindow(me2->WndHandle);
+}
+
+EXPORT_CPP void _wndBaseClientToScreen(SClass* me_, S64* screenX, S64* screenY, S64 clientX, S64 clientY)
+{
+	POINT point;
+	point.x = static_cast<LONG>(clientX);
+	point.y = static_cast<LONG>(clientY);
+	ClientToScreen(reinterpret_cast<SWndBase*>(me_)->WndHandle, &point);
+	*screenX = static_cast<S64>(point.x);
+	*screenY = static_cast<S64>(point.y);
+}
+
+EXPORT_CPP void _wndBaseFocus(SClass* me_)
+{
+	SetFocus(reinterpret_cast<SWndBase*>(me_)->WndHandle);
+}
+
+EXPORT_CPP Bool _wndBaseFocused(SClass* me_)
+{
+	return GetFocus() == reinterpret_cast<SWndBase*>(me_)->WndHandle;
+}
+
+EXPORT_CPP Bool _wndBaseGetEnabled(SClass* me_)
+{
+	return IsWindowEnabled(reinterpret_cast<SWndBase*>(me_)->WndHandle) != FALSE;
+}
+
+EXPORT_CPP void _wndBaseGetPos(SClass* me_, S64* x, S64* y, S64* width, S64* height)
+{
+	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
+	RECT rect;
+	GetClientRect(me2->WndHandle, &rect);
+	*x = static_cast<S64>(rect.left);
+	*y = static_cast<S64>(rect.top);
+	*width = static_cast<S64>(rect.right - rect.left);
+	*height = static_cast<S64>(rect.bottom - rect.top);
+}
+
+EXPORT_CPP void _wndBaseGetPosScreen(SClass* me_, S64* x, S64* y, S64* width, S64* height)
+{
+	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
+	RECT rect;
+	GetWindowRect(me2->WndHandle, &rect);
+	*x = static_cast<S64>(rect.left);
+	*y = static_cast<S64>(rect.top);
+	*width = static_cast<S64>(rect.right - rect.left);
+	*height = static_cast<S64>(rect.bottom - rect.top);
+}
+
+EXPORT_CPP Bool _wndBaseGetVisible(SClass* me_)
+{
+	return IsWindowVisible(reinterpret_cast<SWndBase*>(me_)->WndHandle) != FALSE;
+}
+
+EXPORT_CPP void _wndBaseScreenToClient(SClass* me_, S64* clientX, S64* clientY, S64 screenX, S64 screenY)
+{
+	POINT point;
+	point.x = static_cast<LONG>(screenX);
+	point.y = static_cast<LONG>(screenY);
+	ScreenToClient(reinterpret_cast<SWndBase*>(me_)->WndHandle, &point);
+	*clientX = static_cast<S64>(point.x);
+	*clientY = static_cast<S64>(point.y);
+}
+
+EXPORT_CPP void _wndBaseSetEnabled(SClass* me_, Bool is_enabled)
+{
+	EnableWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle, is_enabled ? TRUE : FALSE);
+}
+
+EXPORT_CPP void _wndBaseSetPos(SClass* me_, S64 x, S64 y, S64 width, S64 height)
+{
+	SetWindowPos(reinterpret_cast<SWndBase*>(me_)->WndHandle, NULL, (int)x, (int)y, (int)width, (int)height, SWP_NOZORDER);
+}
+
+EXPORT_CPP void _wndBaseSetRedraw(SClass* me_, Bool is_enabled)
+{
+	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
+	HWND wnd = me2->WndHandle;
+	if (me2->RedrawEnabled != is_enabled)
+	{
+		me2->RedrawEnabled = is_enabled;
+		if (is_enabled)
+		{
+			SendMessage(wnd, WM_SETREDRAW, TRUE, 0);
+			InvalidateRect(wnd, NULL, TRUE);
+		}
+		else
+			SendMessage(wnd, WM_SETREDRAW, FALSE, 0);
+	}
+}
+
+EXPORT_CPP void _wndBaseSetVisible(SClass* me_, Bool is_visible)
+{
+	ShowWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle, is_visible ? SW_SHOW : SW_HIDE);
+}
+
+static LRESULT CALLBACK CommonWndProc(HWND wnd, SWndBase* wnd2, SWnd* wnd3, UINT msg, WPARAM w_param, LPARAM l_param)
+{
+	switch (msg)
+	{
+		case WM_CLOSE:
+			if (wnd3->OnClose != NULL)
+			{
+				if (!static_cast<Bool>(reinterpret_cast<U64>(Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), wnd3->OnClose))))
+					return 0;
+			}
+			DestroyWindow(wnd);
+			return 0;
+		case WM_DESTROY:
+			WndCnt--;
+			if (wnd3->ModalLock)
+			{
+				HWND parent = GetWindow(wnd2->WndHandle, GW_OWNER);
+				if (parent != NULL)
+				{
+					EnableWindow(parent, TRUE);
+					SetActiveWindow(parent);
+				}
+				wnd3->ModalLock = False;
+			}
+			return 0;
+		case WM_ACTIVATE:
+			if (wnd3->OnActivate != NULL)
+				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(LOWORD(w_param) != 0)), reinterpret_cast<void*>(static_cast<S64>(HIWORD(w_param) != 0)), wnd3->OnActivate);
+			return 0;
+		case WM_DROPFILES:
+			if (wnd3->OnDropFiles != NULL)
+			{
+				HDROP drop = reinterpret_cast<HDROP>(w_param);
+				UINT num = DragQueryFile(drop, 0xffffffff, NULL, 0);
+				void* buf = AllocMem(0x10 + sizeof(void*) * static_cast<size_t>(num));
+				(static_cast<S64*>(buf))[0] = 1;
+				(static_cast<S64*>(buf))[1] = static_cast<S64>(num);
+				void** ptr = reinterpret_cast<void**>(static_cast<U8*>(buf) + 0x10);
+				for (UINT i = 0; i < num; i++)
+				{
+					UINT len = DragQueryFile(drop, i, NULL, 0);
+					void* buf2 = AllocMem(0x10 + sizeof(Char) * (static_cast<size_t>(len) + 1));
+					(static_cast<S64*>(buf2))[0] = 1;
+					(static_cast<S64*>(buf2))[1] = static_cast<S64>(len);
+					Char* str = static_cast<Char*>(buf2) + 0x08;
+					DragQueryFile(drop, i, str, len + 1);
+					for (UINT j = 0; j < len; j++)
+						str[j] = str[j] == L'\\' ? L'/' : str[j];
+					ptr[i] = buf2;
+				}
+				DragFinish(drop);
+				Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), buf, wnd3->OnDropFiles);
+			}
+			return 0;
+		case WM_COMMAND:
+		case WM_NOTIFY:
+			CommandAndNotify(wnd, msg, w_param, l_param);
+			return 0;
+	}
+	return DefWindowProc(wnd, msg, w_param, l_param);
+}
+
+static LRESULT CALLBACK WndProcWndNormal(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
+{
+	SWndBase* wnd2 = ToWnd(wnd);
+	SWnd* wnd3 = reinterpret_cast<SWnd*>(wnd2);
+	if (wnd2 == NULL)
+		return DefWindowProc(wnd, msg, w_param, l_param);
+	ASSERT(wnd2->Kind == WndKind_WndNormal);
+	switch (msg)
+	{
+		case WM_SIZE:
+			EnumChildWindows(wnd, ResizeCallback, NULL);
+			if (wnd3->OnResize != NULL)
+			{
+				Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), wnd3->OnResize);
+			}
+			return 0;
+		case WM_GETMINMAXINFO:
+			{
+				LPMINMAXINFO info = reinterpret_cast<LPMINMAXINFO>(l_param);
+				if (wnd3->MinWidth != -1)
+					info->ptMinTrackSize.x = static_cast<LONG>(wnd3->MinWidth);
+				if (wnd3->MinHeight != -1)
+					info->ptMinTrackSize.y = static_cast<LONG>(wnd3->MinHeight);
+				if (wnd3->MaxWidth != -1)
+					info->ptMaxTrackSize.x = static_cast<LONG>(wnd3->MaxWidth);
+				if (wnd3->MaxHeight != -1)
+					info->ptMaxTrackSize.y = static_cast<LONG>(wnd3->MaxHeight);
+			}
+			return 0;
+	}
+	return CommonWndProc(wnd, wnd2, wnd3, msg, w_param, l_param);
+}
+
+static LRESULT CALLBACK WndProcWndFix(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
+{
+	SWndBase* wnd2 = ToWnd(wnd);
+	SWnd* wnd3 = reinterpret_cast<SWnd*>(wnd2);
+	if (wnd2 == NULL)
+		return DefWindowProc(wnd, msg, w_param, l_param);
+	ASSERT(wnd2->Kind == WndKind_WndFix || wnd2->Kind == WndKind_WndPopup || wnd2->Kind == WndKind_WndDialog);
+	return CommonWndProc(wnd, wnd2, wnd3, msg, w_param, l_param);
+}
+
+static LRESULT CALLBACK WndProcWndAspect(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
+{
+	SWndBase* wnd2 = ToWnd(wnd);
+	SWnd* wnd3 = reinterpret_cast<SWnd*>(wnd2);
+	if (wnd2 == NULL)
+		return DefWindowProc(wnd, msg, w_param, l_param);
+	ASSERT(wnd2->Kind == WndKind_WndAspect);
+	switch (msg)
+	{
+		case WM_SIZE:
+			EnumChildWindows(wnd, ResizeCallback, NULL);
+			if (wnd3->OnResize != NULL)
+			{
+				Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), wnd3->OnResize);
+			}
+			return 0;
+		case WM_GETMINMAXINFO:
+			{
+				LPMINMAXINFO info = reinterpret_cast<LPMINMAXINFO>(l_param);
+				if (wnd3->MinWidth != -1)
+					info->ptMinTrackSize.x = static_cast<LONG>(wnd3->MinWidth);
+				if (wnd3->MinHeight != -1)
+					info->ptMinTrackSize.y = static_cast<LONG>(wnd3->MinHeight);
+				if (wnd3->MaxWidth != -1)
+					info->ptMaxTrackSize.x = static_cast<LONG>(wnd3->MaxWidth);
+				if (wnd3->MaxHeight != -1)
+					info->ptMaxTrackSize.y = static_cast<LONG>(wnd3->MaxHeight);
+			}
+			return 0;
+		case WM_SIZING:
+			{
+				RECT* r = reinterpret_cast<RECT*>(l_param);
+				double caption = static_cast<double>(GetSystemMetrics(SM_CYCAPTION));
+				double border = static_cast<double>(GetSystemMetrics(SM_CYFRAME));
+				double w = static_cast<double>(r->right) - static_cast<double>(r->left) - border * 2.0;
+				double h = static_cast<double>(r->bottom) - static_cast<double>(r->top) - caption - border * 2.0;
+				switch (w_param)
+				{
+					case WMSZ_TOP:
+					case WMSZ_BOTTOM:
+						r->right = static_cast<LONG>(static_cast<double>(r->left) + h * static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight) + border * 2.0);
+						return 0;
+					case WMSZ_LEFT:
+					case WMSZ_RIGHT:
+						r->bottom = static_cast<LONG>(static_cast<double>(r->top) + w * static_cast<double>(wnd2->DefaultHeight) / static_cast<double>(wnd2->DefaultWidth) + caption + border * 2.0);
+						return 0;
+					case WMSZ_TOPLEFT:
+						if (w / h < static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight))
+							r->left = static_cast<LONG>(static_cast<double>(r->right) - h * static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight) - border * 2.0);
+						else
+							r->top = static_cast<LONG>(static_cast<double>(r->bottom) - w * static_cast<double>(wnd2->DefaultHeight) / static_cast<double>(wnd2->DefaultWidth) - caption - border * 2.0);
+						return 0;
+					case WMSZ_TOPRIGHT:
+						if (w / h < static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight))
+							r->right = static_cast<LONG>(static_cast<double>(r->left) + h * static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight) + border * 2.0);
+						else
+							r->top = static_cast<LONG>(static_cast<double>(r->bottom) - w * static_cast<double>(wnd2->DefaultHeight) / static_cast<double>(wnd2->DefaultWidth) - caption - border * 2.0);
+						return 0;
+					case WMSZ_BOTTOMLEFT:
+						if (w / h < static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight))
+							r->left = static_cast<LONG>(static_cast<double>(r->right) - h * static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight) - border * 2.0);
+						else
+							r->bottom = static_cast<LONG>(static_cast<double>(r->top) + w * static_cast<double>(wnd2->DefaultHeight) / static_cast<double>(wnd2->DefaultWidth) + caption + border * 2.0);
+						return 0;
+					case WMSZ_BOTTOMRIGHT:
+						if (w / h < static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight))
+							r->right = static_cast<LONG>(static_cast<double>(r->left) + h * static_cast<double>(wnd2->DefaultWidth) / static_cast<double>(wnd2->DefaultHeight) + border * 2.0);
+						else
+							r->bottom = static_cast<LONG>(static_cast<double>(r->top) + w * static_cast<double>(wnd2->DefaultHeight) / static_cast<double>(wnd2->DefaultWidth) + caption + border * 2.0);
+						return 0;
+				}
+			}
+			break;
+	}
+	return CommonWndProc(wnd, wnd2, wnd3, msg, w_param, l_param);
+}

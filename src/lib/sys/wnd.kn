@@ -1,0 +1,108 @@
+func[d0001.knd]_init()
+end func
+
+func[d0001.knd]_fin()
+end func
+
++enum Anchor
+	fix
+	move
+	scale
+end enum
+
++class WndBase()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	end func
+	
+	+func addChild(child: kuin@Class)
+		do me.children.add(child)
+	end func
+	
+	+func[d0001.knd, _wndBaseClientToScreen]clientToScreen(screenX: &int, screenY: &int, clientX: int, clientY: int)
+	end func
+	
+	+func findChild(name: []char): @WndBase
+		if(dbg)
+			if(name =& null)
+				throw 0xE9170006
+			end if
+		end if
+		ret findRecursion(me, name)
+		
+		func findRecursion(wnd: @WndBase, name: []char): @WndBase
+			if(wnd.name <>& null & wnd.name = name)
+				ret wnd
+			end if
+			do wnd.children.head()
+			while(!wnd.children.term())
+				var child: kuin@Class :: wnd.children.get()
+				if(child =$ @WndBase)
+					var result: @WndBase :: findRecursion(child $ @WndBase, name)
+					if(result <>& null)
+						ret result
+					end if
+				end if
+				do wnd.children.next()
+			end while
+			ret null
+		end func
+	end func
+	
+	+func[d0001.knd, _wndBaseFocus]focus()
+	end func
+	
+	+func[d0001.knd, _wndBaseFocused]focused(): bool
+	end func
+	
+	+func[d0001.knd, _wndBaseGetEnabled]getEnabled(): bool
+	end func
+	
+	+func[d0001.knd, _wndBaseGetPos]getPos(x: &int, y: &int, width: &int, height: &int)
+	end func
+	
+	+func[d0001.knd, _wndBaseGetPosScreen]getPosScreen(x: &int, y: &int, width: &int, height: &int)
+	end func
+	
+	+func[d0001.knd, _wndBaseGetVisible]getVisible(): bool
+	end func
+	
+	+func[d0001.knd, _wndBaseScreenToClient]screenToClient(clientX: &int, clientY: &int, screenX: int, screenY: int)
+	end func
+	
+	+func[d0001.knd, _wndBaseSetEnabled]setEnabled(isEnabled: bool)
+	end func
+	
+	+func[d0001.knd, _wndBaseSetPos]setPos(x: int, y: int, width: int, height: int)
+	end func
+	
+	+func[d0001.knd, _wndBaseSetRedraw]setRedraw(isEnabled: bool)
+	end func
+	
+	+func[d0001.knd, _wndBaseSetVisible]setVisible(isVisible: bool)
+	end func
+	
+	+var name: []char
+	var kind: int
+	var handle: int
+	var defaultWndProc: int
+	var ctrlFlag: int
+	var defaultRect: int
+	var redrawEnabled: int
+	+var children: list<kuin@Class>
+end class
+
++enum WndStyle
+	normal
+	fix
+	aspect
+	popup
+	dialog
+	layered :: 0x10000
+	noMinimize :: 0x20000
+end enum
+
++func[d0001.knd, _act]act(): bool
+end func

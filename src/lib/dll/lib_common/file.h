@@ -2,7 +2,6 @@
 
 #include "..\common.h"
 
-// 'file'
 EXPORT Bool _copyDir(const U8* dst, const U8* src);
 EXPORT Bool _copyFile(const U8* dst, const U8* src);
 EXPORT Bool _delDir(const U8* path);

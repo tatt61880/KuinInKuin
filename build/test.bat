@@ -15,7 +15,7 @@ xcopy /s /e /q /i /y "..\src\compiler\exe" ".\output\test_res\exe"
 copy /Y ".\test_data\test.kn" ".\output\test_res\"
 mkdir ".\output\test_res\sys\data"
 mkdir ".\output\test_res\sys\data\dbg"
-copy /Y ".\libs\Debug\d0000.knd" ".\output\test_res\sys\data\dbg\"
+copy /Y ".\libs\Debug\*.knd" ".\output\test_res\sys\data\dbg\"
 
 rem ---------------------------------------------------------------------------
 

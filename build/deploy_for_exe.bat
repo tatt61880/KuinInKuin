@@ -19,8 +19,8 @@ xcopy /s /e /q /i /y "..\src\sys" "%~dp0deploy_exe\sys"
 mkdir ".\deploy_exe\sys\data"
 mkdir ".\deploy_exe\sys\data\dbg"
 mkdir ".\deploy_exe\sys\data\rls"
-copy /Y ".\libs\Release_dbg\d0000.knd" ".\deploy_exe\sys\data\dbg\"
-copy /Y ".\libs\Release_rls\d0000.knd" ".\deploy_exe\sys\data\rls\"
+copy /Y ".\libs\Release_dbg\*.knd" ".\deploy_exe\sys\data\dbg\"
+copy /Y ".\libs\Release_rls\*.knd" ".\deploy_exe\sys\data\rls\"
 pause
 
 popd
