@@ -61,6 +61,9 @@ const nonGcBufSize: []char :: "0x2000000"
 	end while
 	
 	do @write(resFiles, funcAttrs)
+	if(!@deploy(funcAttrs))
+		ret false
+	end if
 	ret true
 end func
 
@@ -1841,4 +1844,28 @@ func findFunc(ast: \ast@AstClass, name: []char): \ast@AstFunc
 		do items.next()
 	end while
 	ret null
+end func
+
+func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
+	block
+		var dataPath: []char :: \option@outputDir ~ "data/"
+		if(!file@makeDir(dataPath))
+			do \err@err(%fileSaveFailed, null, [dataPath])
+			ret false
+		end if
+	end block
+	if(!funcAttrs.forEach(deployDll, null))
+		ret false
+	end if
+	ret true
+	
+	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+		var path: []char :: \option@outputDir ~ "data/" ~ key
+		var cfg: []char :: \option@rls ?("rls/", "dbg/")
+		if(!file@copyFile(path, \option@sysDir ~ "data/" ~ cfg ~ key))
+			do \err@err(%fileSaveFailed, null, [path])
+			ret false
+		end if
+		ret true
+	end func
 end func

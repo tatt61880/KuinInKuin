@@ -11,7 +11,10 @@ end func
 end enum
 
 +class Wnd(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _wndAcceptDraggedFiles]acceptDraggedFiles(isAccepted: bool)
@@ -78,7 +81,7 @@ end class
 	*func[__ndc]ctor()
 	end func
 	
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func addChild(child: kuin@Class)
@@ -169,4 +172,10 @@ end class
 end enum
 
 +func[d0001.knd, _act]act(): bool
+end func
+
++func[d0001.knd, _makeWnd, __mki]makeWnd(me2: @Wnd, parent: @Wnd, style: @WndStyle, width: int, height: int, text: []char): @Wnd
+	if(parent <>& null)
+		do parent.addChild(me2)
+	end if
 end func
