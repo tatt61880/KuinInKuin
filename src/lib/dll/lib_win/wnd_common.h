@@ -252,6 +252,8 @@ SClass* IncWndRef(SClass* wnd);
 void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 SWndBase* ToWnd(HWND wnd);
 BOOL CALLBACK ResizeCallback(HWND wnd, LPARAM l_param);
+const U8* NToRN(const Char* str);
+const U8* RNToN(const Char* str);
 
 // TODO:
 /*
@@ -269,20 +271,6 @@ EXPORT_CPP void _getCaretPos(S64* x, S64* y);
 EXPORT_CPP void _screenSize(S64* width, S64* height);
 EXPORT_CPP void _target(SClass* draw_ctrl);
 EXPORT_CPP Bool _key(S64 key);
-EXPORT_CPP void _wndMinMax(SClass* me_, S64 minWidth, S64 minHeight, S64 maxWidth, S64 maxHeight);
-EXPORT_CPP void _wndClose(SClass* me_);
-EXPORT_CPP void _wndExit(SClass* me_);
-EXPORT_CPP void _wndSetText(SClass* me_, const U8* text);
-EXPORT_CPP const U8* _wndGetText(SClass* me_);
-EXPORT_CPP void _wndSetMenu(SClass* me_, SClass* menu);
-EXPORT_CPP void _wndActivate(SClass* me_);
-EXPORT_CPP Bool _wndActivated(SClass* me_);
-EXPORT_CPP Bool _wndFocusedWnd(SClass* me_);
-EXPORT_CPP void _wndSetAlpha(SClass* me_, S64 alpha);
-EXPORT_CPP S64 _wndGetAlpha(SClass* me_);
-EXPORT_CPP void _wndAcceptDraggedFiles(SClass* me_, Bool is_accepted);
-EXPORT_CPP void _wndUpdateMenu(SClass* me_);
-EXPORT_CPP void _wndSetModalLock(SClass* me_);
 EXPORT_CPP SClass* _makeDraw(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchorX, S64 anchorY, Bool equalMagnification);
 EXPORT_CPP SClass* _makeDrawReduced(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchorX, S64 anchorY, Bool equalMagnification, S64 split);
 EXPORT_CPP SClass* _makeDrawEditable(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height);

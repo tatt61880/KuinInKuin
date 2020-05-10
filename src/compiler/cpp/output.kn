@@ -31,7 +31,7 @@ end class
 
 const nonGcBufSize: []char :: "0x2000000"
 
-+func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
++func output(entry: \ast@AstFunc, resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	do @gc :: \option@extra.get("gc", &)
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
@@ -60,7 +60,7 @@ const nonGcBufSize: []char :: "0x2000000"
 		end while
 	end while
 	
-	do @write(resFiles)
+	do @write(resFiles, funcAttrs)
 	ret true
 end func
 
@@ -174,52 +174,82 @@ func buildFunc(ast: \ast@AstFunc)
 	do @funcPrototypes.add("\{template}static \{retType} \{info.id}(\{arg});\n")
 	do @codes.add("\{template}static \{retType} \{info.id}(\{arg}){\n")
 	
-	if(ast.funcOption.and(%raw) = %raw)
-		if(^ast.funcAttr = 1)
-			do ast.funcAttr.head()
-			var hasMembers: bool :: false
-			if(^ast.args > 0)
-				do ast.args.head()
-				var arg2: \ast@AstArg :: ast.args.get()
-				if(arg2.type.refItem <>& null & arg2.type.refItem.typeId = %class_)
-					var members: list<\ast@AstClassItem> :: (arg2.type.refItem $ \ast@AstClass).items
-					do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, members, @gc)
-					do hasMembers :: true
+	do @codes.tail()
+	var listPtr: kuin@ListPtr :: @codes.getPtr()
+	
+	do @buildStats(ast.stats, null, null)
+	if(^ast.funcAttr >= 2)
+		do @codes.add("#if defined(_WIN32)\n")
+		do ast.funcAttr.head()
+		var attr1: []char :: ast.funcAttr.get()
+		do ast.funcAttr.next()
+		var attr2: []char :: ast.funcAttr.get()
+		var name: []char
+		do ast.funcAttr.next()
+		do name :: "k_dll_\{file@delExt(attr1)}_\{attr2}"
+		var s: []char :: ast.ret_ =& null ?("", "return ")
+		do s :~ "reinterpret_cast<\{@getType(ast.ret_)}(*)("
+		block
+			var first: bool :: true
+			var items: list<\ast@AstArg> :: ast.args
+			do items.head()
+			while(!items.term())
+				var arg2: \ast@AstArg :: items.get()
+				if(first)
+					do first :: false
+				else
+					do s :~ ","
 				end if
-			end if
-			if(!hasMembers)
-				do \cpp\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null, @gc)
-			end if
-			do @codes.add("}\n")
-		end if
-	else
-		do @codes.tail()
-		var listPtr: kuin@ListPtr :: @codes.getPtr()
-		
-		do @buildStats(ast.stats, null, null)
-		
-		do @codes.add("}\n")
-		
-		do @codes.setPtr(listPtr)
-		do @codes.next()
-		do @localVars.head()
-		while(!@localVars.term())
-			var localVar: \ast@AstArg :: @localVars.get()
-			var info2: @CppInfo :: @getInfo(localVar)
-			if(localVar.name =& null)
-				do @codes.ins("\{@getType(localVar.type)} \{info2.id};\n")
-			else
-				do @codes.ins("\{@getType(localVar.type)} \{info2.id}; // \{localVar.name}\n")
-			end if
-			do @localVars.del()
-		end while
-		do @tmpVars.head()
-		while(!@tmpVars.term())
-			var tmpVar: @TmpVar :: @tmpVars.get()
-			do @codes.ins("\{tmpVar.type} \{tmpVar.identifier};\n")
-			do @tmpVars.del()
-		end while
+				do s :~ @getType(arg2.type)
+				if(arg2.refVar)
+					do s :~ "*"
+				end if
+				do items.next()
+			end while
+		end block
+		do s :~ ")>(\{name})("
+		block
+			var first: bool :: true
+			var items: list<\ast@AstArg> :: ast.args
+			do items.head()
+			while(!items.term())
+				var arg2: \ast@AstArg :: items.get()
+				var info2: @CppInfo :: @getInfo(arg2)
+				if(first)
+					do first :: false
+				else
+					do s :~ ","
+				end if
+				do s :~ info2.id
+				do items.next()
+			end while
+		end block
+		do s :~ ");\n"
+		do @codes.add(s)
+		do @codes.add("#endif\n")
 	end if
+	
+	do @codes.add("}\n")
+	
+	do @codes.setPtr(listPtr)
+	do @codes.next()
+	do @localVars.head()
+	while(!@localVars.term())
+		var localVar: \ast@AstArg :: @localVars.get()
+		var info2: @CppInfo :: @getInfo(localVar)
+		if(localVar.name =& null)
+			do @codes.ins("\{@getType(localVar.type)} \{info2.id};\n")
+		else
+			do @codes.ins("\{@getType(localVar.type)} \{info2.id}; // \{localVar.name}\n")
+		end if
+		do @localVars.del()
+	end while
+	do @tmpVars.head()
+	while(!@tmpVars.term())
+		var tmpVar: @TmpVar :: @tmpVars.get()
+		do @codes.ins("\{tmpVar.type} \{tmpVar.identifier};\n")
+		do @tmpVars.del()
+	end while
 end func
 
 func buildClass(ast: \ast@AstClass)
@@ -1335,7 +1365,7 @@ func buildExprRef(ast: \ast@AstExpr)
 	do @codes.add(info.id)
 end func
 
-func write(resFiles: list<[]char>)
+func write(resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
 	if(\option@extra.get("merge", &))
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
 		if(writer =& null)
@@ -1354,7 +1384,7 @@ func write(resFiles: list<[]char>)
 			do writer.writeStr(s ~ "\n")
 		end while
 		do reader.fin()
-		do writeCpp(writer, resFiles)
+		do writeCpp(writer, resFiles, funcAttrs)
 		do writer.fin()
 	else
 		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
@@ -1366,7 +1396,7 @@ func write(resFiles: list<[]char>)
 		end if
 		do writeCommonCode(writer)
 		do writer.writeStr("#include \"common.h\"\n")
-		do writeCpp(writer, resFiles)
+		do writeCpp(writer, resFiles, funcAttrs)
 		do writer.fin()
 	end if
 	
@@ -1435,9 +1465,14 @@ func write(resFiles: list<[]char>)
 		end if
 	end func
 	
-	func writeCpp(writer: file@Writer, resFiles: list<[]char>)
+	func writeCpp(writer: file@Writer, resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
 		do writer.writeStr("namespace {\n")
 		
+		if(^funcAttrs <> 0)
+			do writer.writeStr("#if defined(_WIN32)\n")
+			do funcAttrs.forEach(writeDllDef, writer)
+			do writer.writeStr("#endif;\n")
+		end if
 		do @classPrototypes.head()
 		while(!@classPrototypes.term())
 			do writer.writeStr(@classPrototypes.get())
@@ -1494,8 +1529,18 @@ func write(resFiles: list<[]char>)
 				do @classTable.next()
 			end while
 		end block
+		if(^funcAttrs <> 0)
+			do writer.writeStr("#if defined(_WIN32)\n")
+			do funcAttrs.forEach(writeDllInit, writer)
+			do writer.writeStr("#endif;\n")
+		end if
 		do writer.writeStr("init_();\n")
 		do writer.writeStr("k_a();\n")
+		if(^funcAttrs <> 0)
+			do writer.writeStr("#if defined(_WIN32)\n")
+			do funcAttrs.forEach(writeDllFin, writer)
+			do writer.writeStr("#endif;\n")
+		end if
 		if(!@gc)
 			do writer.writeStr("{\n")
 			do writer.writeStr("MemList_* p_ = TopMem_;\n")
@@ -1509,6 +1554,50 @@ func write(resFiles: list<[]char>)
 		end if
 		do writer.writeStr("return static_cast<int>(exitCode_);\n")
 		do writer.writeStr("}\n")
+		
+		func writeDllDef(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+			class Data()
+				+var writer: file@Writer
+				+var dllName: []char
+			end class
+			var data2: Data :: #Data
+			do data2.writer :: data $ file@Writer
+			do data2.dllName :: file@delExt(key)
+			do data2.writer.writeStr("static HMODULE k_dll_\{data2.dllName};\n")
+			do value.forEach(writeDllFuncDef, data2)
+			ret true
+			
+			func writeDllFuncDef(key: []char, value: bool, data: kuin@Class): bool
+				var data2: Data :: data $ Data
+				do data2.writer.writeStr("static const void*k_dll_\{data2.dllName}_\{key};\n")
+				ret true
+			end func
+		end func
+		
+		func writeDllInit(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+			class Data()
+				+var writer: file@Writer
+				+var dllName: []char
+			end class
+			var data2: Data :: #Data
+			do data2.writer :: data $ file@Writer
+			do data2.dllName :: file@delExt(key)
+			do data2.writer.writeStr("k_dll_\{data2.dllName}=::LoadLibraryW(L\"data\\\\\{key}\");\n")
+			do value.forEach(writeDllFuncInit, data2)
+			ret true
+			
+			func writeDllFuncInit(key: []char, value: bool, data: kuin@Class): bool
+				var data2: Data :: data $ Data
+				do data2.writer.writeStr("k_dll_\{data2.dllName}_\{key}=GetProcAddress(k_dll_\{data2.dllName},\"\{key}\");\n")
+				ret true
+			end func
+		end func
+		
+		func writeDllFin(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
+			var writer: file@Writer :: data $ file@Writer
+			do writer.writeStr("::FreeLibrary(k_dll_\{file@delExt(key)});\n")
+			ret true
+		end func
 	end func
 end func
 

@@ -107,7 +107,7 @@ func[__any, __rme]_endian(me_: int, type: []int): int
 	excode "return endian_(`0`);\n"
 end func
 
-func[__any, __tch, __raw, exist]_exist(me_: int, type: []int, key: int): bool
+func[__any, __tch]_exist(me_: int, type: []int, key: int): bool
 	excode "auto n_=`0`->B;\n"
 	excode "while(n_!=nullptr){\n"
 	excode "int64_t c_=cmp_(`2`, n_->K);\n"
@@ -325,7 +325,7 @@ func _lower(me_: []char): []char
 	ret s
 end func
 
-func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
+func[__any, __rch]_max(me_: int, type: []int): int
 	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
 	excode "TI_ r_;\n"
@@ -336,7 +336,7 @@ func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
 	excode "return r_;\n"
 end func
 
-func[__any, __rch, __raw, min]_min(me_: int, type: []int): int
+func[__any, __rch]_min(me_: int, type: []int): int
 	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
 	excode "TI_ r_;\n"
@@ -403,7 +403,7 @@ func[__any]_prev(me_: int, type: []int)
 	excode "--`0`->I;\n"
 end func
 
-func[__any, __rme, __raw, repeat]_repeat(me_: int, type: []int, len: int): int
+func[__any, __rme]_repeat(me_: int, type: []int, len: int): int
 	if(dbg)
 		if(len < 0)
 			throw 0xE9170006

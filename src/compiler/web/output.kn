@@ -82,52 +82,32 @@ func buildFunc(ast: \ast@AstFunc)
 	end if
 	do @codes.add("function \{info.id}(\{arg}){\n")
 	
-	if(ast.funcOption.and(%raw) = %raw)
-		if(^ast.funcAttr = 1)
-			do ast.funcAttr.head()
-			var hasMembers: bool :: false
-			if(^ast.args > 0)
-				do ast.args.head()
-				var arg2: \ast@AstArg :: ast.args.get()
-				if(arg2.type.refItem <>& null & arg2.type.refItem.typeId = %class_)
-					var members: list<\ast@AstClassItem> :: (arg2.type.refItem $ \ast@AstClass).items
-					do \web\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, members)
-					do hasMembers :: true
-				end if
-			end if
-			if(!hasMembers)
-				do \web\raw_funcs@write(@codes, ast.funcAttr.get(), ast.args, null)
-			end if
-			do @codes.add("}\n")
+	do @codes.tail()
+	var listPtr: kuin@ListPtr :: @codes.getPtr()
+	
+	do @buildStats(ast.stats)
+	
+	do @codes.add("}\n")
+	
+	do @codes.setPtr(listPtr)
+	do @codes.next()
+	do @localVars.head()
+	while(!@localVars.term())
+		var localVar: \ast@AstArg :: @localVars.get()
+		var info2: @WebInfo :: @getInfo(localVar)
+		if(localVar.name =& null)
+			do @codes.ins("let \{info2.id};\n")
+		else
+			do @codes.ins("let \{info2.id}; // \{localVar.name}\n")
 		end if
-	else
-		do @codes.tail()
-		var listPtr: kuin@ListPtr :: @codes.getPtr()
-		
-		do @buildStats(ast.stats)
-		
-		do @codes.add("}\n")
-		
-		do @codes.setPtr(listPtr)
-		do @codes.next()
-		do @localVars.head()
-		while(!@localVars.term())
-			var localVar: \ast@AstArg :: @localVars.get()
-			var info2: @WebInfo :: @getInfo(localVar)
-			if(localVar.name =& null)
-				do @codes.ins("let \{info2.id};\n")
-			else
-				do @codes.ins("let \{info2.id}; // \{localVar.name}\n")
-			end if
-			do @localVars.del()
-		end while
-		do @tmpVars.head()
-		while(!@tmpVars.term())
-			var tmpVar: @TmpVar :: @tmpVars.get()
-			do @codes.ins("let \{tmpVar.identifier};\n")
-			do @tmpVars.del()
-		end while
-	end if
+		do @localVars.del()
+	end while
+	do @tmpVars.head()
+	while(!@tmpVars.term())
+		var tmpVar: @TmpVar :: @tmpVars.get()
+		do @codes.ins("let \{tmpVar.identifier};\n")
+		do @tmpVars.del()
+	end while
 end func
 
 func buildClass(ast: \ast@AstClass)

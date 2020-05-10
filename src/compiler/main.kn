@@ -72,7 +72,7 @@ func build(): bool
 			ret false
 		end if
 	case %cpp
-		if(!\cpp\output@output(entry, resFiles.files))
+		if(!\cpp\output@output(entry, resFiles.files, funcAttrs))
 			ret false
 		end if
 	case %web

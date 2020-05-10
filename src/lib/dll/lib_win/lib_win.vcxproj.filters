@@ -6,6 +6,8 @@
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="wnd_wnd.cpp" />
     <ClCompile Include="wnd_common.cpp" />
+    <ClCompile Include="wnd_ctrl.cpp" />
+    <ClCompile Include="wnd_api.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common.h" />
@@ -13,6 +15,8 @@
     <ClInclude Include="draw.h" />
     <ClInclude Include="wnd_wnd.h" />
     <ClInclude Include="wnd_common.h" />
+    <ClInclude Include="wnd_ctrl.h" />
+    <ClInclude Include="wnd_api.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\low_level.asm" />

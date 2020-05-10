@@ -267,9 +267,7 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 							do ast.funcOption :: ast.funcOption.or(%mki)
 						end if
 					case 'r'
-						if(s[3] = 'a' & s[4] = 'w')
-							do ast.funcOption :: ast.funcOption.or(%raw)
-						elif(s[3] = 'm' & s[4] = 'e')
+						if(s[3] = 'm' & s[4] = 'e')
 							do ast.funcOption :: ast.funcOption.or(%rme)
 						elif(s[3] = 'c' & s[4] = 'h')
 							do ast.funcOption :: ast.funcOption.or(%rch)

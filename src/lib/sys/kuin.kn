@@ -227,7 +227,7 @@ end func
 #exe
 func[d0000.knd, __any, __tch]_exist(me_: int, type: []int, key: int): bool
 #cpp,web
-func[__any, __tch, __raw, exist]_exist(me_: int, type: []int, key: int): bool
+func[__any, __tch]_exist(me_: int, type: []int, key: int): bool
 #cpp
 	excode "auto n_=`0`->B;\n"
 	excode "while(n_!=nullptr){\n"
@@ -677,7 +677,7 @@ end func
 #exe
 func[d0000.knd, __any, __rch]_max(me_: int, type: []int): int
 #cpp,web
-func[__any, __rch, __raw, max]_max(me_: int, type: []int): int
+func[__any, __rch]_max(me_: int, type: []int): int
 #cpp
 	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
@@ -710,7 +710,7 @@ end func
 #exe
 func[d0000.knd, __any, __rch]_min(me_: int, type: []int): int
 #cpp,web
-func[__any, __rch, __raw, min]_min(me_: int, type: []int): int
+func[__any, __rch]_min(me_: int, type: []int): int
 #cpp
 	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
@@ -882,7 +882,7 @@ end func
 #exe
 func[d0000.knd, __any, __rme]_repeat(me_: int, type: []int, len: int): int
 #cpp,web
-func[__any, __rme, __raw, repeat]_repeat(me_: int, type: []int, len: int): int
+func[__any, __rme]_repeat(me_: int, type: []int, len: int): int
 	if(dbg)
 		if(len < 0)
 			throw 0xE9170006

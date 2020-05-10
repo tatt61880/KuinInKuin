@@ -287,6 +287,89 @@ BOOL CALLBACK ResizeCallback(HWND wnd, LPARAM l_param)
 	return TRUE;
 }
 
+const U8* NToRN(const Char* str)
+{
+	size_t len = 0;
+	{
+		const Char* ptr = str;
+		Char back = L'\0';
+		while (*ptr != L'\0')
+		{
+			len++;
+			if (back != L'\r' && *ptr == L'\n')
+				len++;
+			back = *ptr;
+			ptr++;
+		}
+	}
+	U8* buf = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * (len + 1)));
+	*reinterpret_cast<S64*>(buf + 0x00) = DefaultRefCntFunc;
+	*reinterpret_cast<S64*>(buf + 0x08) = static_cast<S64>(len);
+	{
+		Char* dst = reinterpret_cast<Char*>(buf + 0x10);
+		const Char* src = str;
+		Char back = L'\0';
+		while (*src != L'\0')
+		{
+			if (back != L'\r' && *src == L'\n')
+			{
+				*dst = L'\r';
+				dst++;
+				*dst = L'\n';
+			}
+			else
+				*dst = *src;
+			dst++;
+			back = *src;
+			src++;
+		}
+		ASSERT(reinterpret_cast<U8*>(dst) == buf + 0x10 + sizeof(Char) * len);
+		*dst = L'\0';
+	}
+	return buf;
+}
+
+const U8* RNToN(const Char* str)
+{
+	size_t len = 0;
+	{
+		const Char* ptr = str;
+		Char back = L'\0';
+		while (*ptr != L'\0')
+		{
+			len++;
+			if (back == L'\r' && *ptr == L'\n')
+				len--;
+			back = *ptr;
+			ptr++;
+		}
+	}
+	U8* buf = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * (len + 1)));
+	*reinterpret_cast<S64*>(buf + 0x00) = DefaultRefCntFunc;
+	*reinterpret_cast<S64*>(buf + 0x08) = static_cast<S64>(len);
+	{
+		Char* dst = reinterpret_cast<Char*>(buf + 0x10);
+		const Char* src = str;
+		Char back = L'\0';
+		while (*src != L'\0')
+		{
+			if (back == L'\r' && *src == L'\n')
+			{
+				dst--;
+				*dst = L'\n';
+			}
+			else
+				*dst = *src;
+			dst++;
+			back = *src;
+			src++;
+		}
+		ASSERT(reinterpret_cast<U8*>(dst) == buf + 0x10 + sizeof(Char) * len);
+		*dst = L'\0';
+	}
+	return buf;
+}
+
 // TODO:
 /*
 
@@ -322,8 +405,6 @@ struct SDraw
 	void* OnSetMouseImg;
 };
 
-static const U8* NToRN(const Char* str);
-static const U8* RNToN(const Char* str);
 static void ParseAnchor(SWndBase* wnd, S64 anchor_x, S64 anchor_y, S64 x, S64 y, S64 width, S64 height);
 static void SetCtrlParam(SWndBase* wnd, SWndBase* parent, EWndKind kind, const Char* ctrl, DWORD style_ex, DWORD style, S64 x, S64 y, S64 width, S64 height, const Char* text, WNDPROC wnd_proc, S64 anchor_x, S64 anchor_y);
 static Char* ParseFilter(const U8* filter, int* num);
@@ -622,108 +703,6 @@ EXPORT_CPP void _target(SClass* draw_ctrl)
 EXPORT_CPP Bool _key(S64 key)
 {
 	return (GetKeyState(static_cast<int>(key)) & 0x8000) != 0;
-}
-
-EXPORT_CPP void _wndMinMax(SClass* me_, S64 minWidth, S64 minHeight, S64 maxWidth, S64 maxHeight)
-{
-	THROWDBG(minWidth != -1 && minWidth <= 0 || minHeight != -1 && minHeight <= 0 || maxWidth != -1 && maxWidth < minWidth || maxHeight != -1 && maxHeight < minHeight, 0xe9170006);
-	SWnd* me2 = reinterpret_cast<SWnd*>(me_);
-	me2->MinWidth = static_cast<U16>(minWidth);
-	me2->MinHeight = static_cast<U16>(minHeight);
-	me2->MaxWidth = static_cast<U16>(maxWidth);
-	me2->MaxHeight = static_cast<U16>(maxHeight);
-}
-
-EXPORT_CPP void _wndClose(SClass* me_)
-{
-	SendMessage(reinterpret_cast<SWndBase*>(me_)->WndHandle, WM_CLOSE, 0, 0);
-}
-
-EXPORT_CPP void _wndExit(SClass* me_)
-{
-	DestroyWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle);
-}
-
-EXPORT_CPP void _wndSetText(SClass* me_, const U8* text)
-{
-	const U8* text2 = NToRN(text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10));
-	SetWindowText(reinterpret_cast<SWndBase*>(me_)->WndHandle, reinterpret_cast<const Char*>(text2 + 0x10));
-	FreeMem(const_cast<U8*>(text2));
-}
-
-EXPORT_CPP const U8* _wndGetText(SClass* me_)
-{
-	HWND wnd = reinterpret_cast<SWndBase*>(me_)->WndHandle;
-	int len = GetWindowTextLength(wnd);
-	Char* buf = static_cast<Char*>(AllocMem(sizeof(Char) * static_cast<size_t>(len + 1)));
-	GetWindowText(wnd, buf, len + 1);
-	const U8* result = RNToN(buf);
-	FreeMem(buf);
-	return result;
-}
-
-EXPORT_CPP void _wndSetMenu(SClass* me_, SClass* menu)
-{
-	SetMenu(reinterpret_cast<SWndBase*>(me_)->WndHandle, menu == NULL ? NULL : reinterpret_cast<SMenu*>(menu)->MenuHandle);
-}
-
-EXPORT_CPP void _wndActivate(SClass* me_)
-{
-	SetActiveWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle);
-}
-
-EXPORT_CPP Bool _wndActivated(SClass* me_)
-{
-	return GetActiveWindow() == reinterpret_cast<SWndBase*>(me_)->WndHandle;
-}
-
-EXPORT_CPP Bool _wndFocusedWnd(SClass* me_)
-{
-	HWND wnd = GetFocus();
-	if (wnd == NULL)
-		return False;
-	SWndBase* wnd2 = ToWnd(wnd);
-	while (wnd2 != NULL && static_cast<int>(wnd2->Kind) >= 0x80)
-	{
-		wnd = GetParent(wnd);
-		if (wnd == NULL)
-			return False;
-		wnd2 = ToWnd(wnd);
-	}
-	if (wnd2 == NULL)
-		return False;
-	return wnd == reinterpret_cast<SWndBase*>(me_)->WndHandle;
-}
-
-EXPORT_CPP void _wndSetAlpha(SClass* me_, S64 alpha)
-{
-	THROWDBG(alpha < 0 || 255 < alpha, 0xe9170006);
-	SetLayeredWindowAttributes(reinterpret_cast<SWndBase*>(me_)->WndHandle, NULL, static_cast<BYTE>(alpha), LWA_ALPHA);
-}
-
-EXPORT_CPP S64 _wndGetAlpha(SClass* me_)
-{
-	BYTE alpha;
-	GetLayeredWindowAttributes(reinterpret_cast<SWndBase*>(me_)->WndHandle, NULL, &alpha, NULL);
-	return static_cast<S64>(alpha);
-}
-
-EXPORT_CPP void _wndAcceptDraggedFiles(SClass* me_, Bool is_accepted)
-{
-	DragAcceptFiles(reinterpret_cast<SWndBase*>(me_)->WndHandle, is_accepted ? TRUE : FALSE);
-}
-
-EXPORT_CPP void _wndUpdateMenu(SClass* me_)
-{
-	DrawMenuBar(reinterpret_cast<SWndBase*>(me_)->WndHandle);
-}
-
-EXPORT_CPP void _wndSetModalLock(SClass* me_)
-{
-	HWND parent = GetWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle, GW_OWNER);
-	if (parent != NULL)
-		EnableWindow(parent, FALSE);
-	reinterpret_cast<SWnd*>(me_)->ModalLock = True;
 }
 
 EXPORT_CPP SClass* _makeDraw(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchorX, S64 anchorY, Bool equalMagnification)
@@ -1837,89 +1816,6 @@ EXPORT_CPP Bool _tabOrderChk(SClass* me_, S64 key, S64 shiftCtrl)
 		}
 	}
 	return False;
-}
-
-static const U8* NToRN(const Char* str)
-{
-	size_t len = 0;
-	{
-		const Char* ptr = str;
-		Char back = L'\0';
-		while (*ptr != L'\0')
-		{
-			len++;
-			if (back != L'\r' && *ptr == L'\n')
-				len++;
-			back = *ptr;
-			ptr++;
-		}
-	}
-	U8* buf = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * (len + 1)));
-	*reinterpret_cast<S64*>(buf + 0x00) = DefaultRefCntFunc;
-	*reinterpret_cast<S64*>(buf + 0x08) = static_cast<S64>(len);
-	{
-		Char* dst = reinterpret_cast<Char*>(buf + 0x10);
-		const Char* src = str;
-		Char back = L'\0';
-		while (*src != L'\0')
-		{
-			if (back != L'\r' && *src == L'\n')
-			{
-				*dst = L'\r';
-				dst++;
-				*dst = L'\n';
-			}
-			else
-				*dst = *src;
-			dst++;
-			back = *src;
-			src++;
-		}
-		ASSERT(reinterpret_cast<U8*>(dst) == buf + 0x10 + sizeof(Char) * len);
-		*dst = L'\0';
-	}
-	return buf;
-}
-
-static const U8* RNToN(const Char* str)
-{
-	size_t len = 0;
-	{
-		const Char* ptr = str;
-		Char back = L'\0';
-		while (*ptr != L'\0')
-		{
-			len++;
-			if (back == L'\r' && *ptr == L'\n')
-				len--;
-			back = *ptr;
-			ptr++;
-		}
-	}
-	U8* buf = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * (len + 1)));
-	*reinterpret_cast<S64*>(buf + 0x00) = DefaultRefCntFunc;
-	*reinterpret_cast<S64*>(buf + 0x08) = static_cast<S64>(len);
-	{
-		Char* dst = reinterpret_cast<Char*>(buf + 0x10);
-		const Char* src = str;
-		Char back = L'\0';
-		while (*src != L'\0')
-		{
-			if (back == L'\r' && *src == L'\n')
-			{
-				dst--;
-				*dst = L'\n';
-			}
-			else
-				*dst = *src;
-			dst++;
-			back = *src;
-			src++;
-		}
-		ASSERT(reinterpret_cast<U8*>(dst) == buf + 0x10 + sizeof(Char) * len);
-		*dst = L'\0';
-	}
-	return buf;
 }
 
 static void ParseAnchor(SWndBase* wnd, S64 anchor_x, S64 anchor_y, S64 x, S64 y, S64 width, S64 height)
