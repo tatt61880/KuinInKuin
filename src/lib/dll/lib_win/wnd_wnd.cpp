@@ -2,8 +2,6 @@
 
 static int WndCnt;
 static Bool ExitAct;
-static HINSTANCE Instance;
-static HFONT FontCtrl;
 static void* OnKeyPress;
 static Char FileDialogDir[KUIN_MAX_PATH + 1];
 
@@ -11,6 +9,7 @@ static LRESULT CALLBACK CommonWndProc(HWND wnd, SWndBase* wnd2, SWnd* wnd3, UINT
 static LRESULT CALLBACK WndProcWndNormal(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 static LRESULT CALLBACK WndProcWndFix(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 static LRESULT CALLBACK WndProcWndAspect(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
+static Char* ParseFilter(const U8* filter, int* num);
 
 EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
@@ -155,6 +154,97 @@ EXPORT_CPP Bool _act()
 	Sleep(1);
 
 	return True;
+}
+
+EXPORT_CPP void _menuDtor(SClass* me_)
+{
+	DestroyMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle);
+}
+
+EXPORT_CPP void _menuAdd(SClass* me_, S64 id, const U8* text)
+{
+	THROWDBG(id < 0x0001 || 0xffff < id, 0xe9170006);
+	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
+	AppendMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, MF_ENABLED | MF_STRING, static_cast<UINT_PTR>(id), reinterpret_cast<const Char*>(text + 0x10));
+}
+
+EXPORT_CPP void _menuAddLine(SClass* me_)
+{
+	AppendMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, MF_ENABLED | MF_SEPARATOR, 0, NULL);
+}
+
+EXPORT_CPP void _menuAddPopup(SClass* me_, const U8* text, const U8* popup)
+{
+	THROWDBG(popup == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
+	AppendMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, MF_ENABLED | MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(reinterpret_cast<const SMenu*>(popup)->MenuHandle), reinterpret_cast<const Char*>(text + 0x10));
+}
+
+EXPORT_CPP void _menuIns(SClass* me_, S64 targetId, S64 id, const U8* text)
+{
+	THROWDBG(targetId < 0x0001 || 0xffff < targetId, 0xe9170006);
+	THROWDBG(id < 0x0001 || 0xffff < id, 0xe9170006);
+	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
+	InsertMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, static_cast<UINT>(targetId), MF_ENABLED | MF_STRING, static_cast<UINT_PTR>(id), reinterpret_cast<const Char*>(text + 0x10));
+}
+
+EXPORT_CPP void _menuInsPopup(SClass* me_, const U8* target, const U8* text, const U8* popup)
+{
+	THROWDBG(target == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(popup == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
+	// This cast is due to bad specifications of Windows API.
+	InsertMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, static_cast<UINT>(reinterpret_cast<UINT_PTR>(reinterpret_cast<const SMenu*>(target)->MenuHandle)), MF_ENABLED | MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(reinterpret_cast<const SMenu*>(popup)->MenuHandle), reinterpret_cast<const Char*>(text + 0x10));
+}
+
+EXPORT_CPP void _menuDel(SClass* me_, S64 id)
+{
+	THROWDBG(id < 0x0001 || 0xffff < id, 0xe9170006);
+	RemoveMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, static_cast<UINT>(id), MF_BYCOMMAND);
+}
+
+EXPORT_CPP void _menuDelPopup(SClass* me_, const U8* popup)
+{
+	THROWDBG(popup == NULL, EXCPT_ACCESS_VIOLATION);
+	// This cast is due to bad specifications of Windows API.
+	RemoveMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle, static_cast<UINT>(reinterpret_cast<UINT_PTR>(reinterpret_cast<const SMenu*>(popup)->MenuHandle)), MF_BYCOMMAND);
+}
+
+EXPORT_CPP Bool _tabOrderChk(SClass* me_, S64 key, S64 shiftCtrl)
+{
+	if (key != VK_TAB || (shiftCtrl & 0x02) != 0)
+		return False;
+	STabOrder* me2 = reinterpret_cast<STabOrder*>(me_);
+	U8* ctrls = static_cast<U8*>(me2->Ctrls);
+	S64 len = *reinterpret_cast<S64*>(ctrls + 0x08);
+	if (len == 0)
+		return False;
+	HWND wnd = GetFocus();
+	void** ptr = reinterpret_cast<void**>(ctrls + 0x10);
+	for (S64 i = 0; i < len; i++)
+	{
+		SWndBase* wnd2 = static_cast<SWndBase*>(ptr[i]);
+		if (wnd2->WndHandle == wnd)
+		{
+			S64 step = shiftCtrl == 0 ? 1 : len - 1;
+			S64 idx = (i + step) % len;
+			while (idx != i)
+			{
+				if (ptr[idx] != NULL)
+				{
+					SWndBase* wnd3 = static_cast<SWndBase*>(ptr[idx]);
+					if (IsWindowEnabled(wnd3->WndHandle))
+					{
+						SetFocus(wnd3->WndHandle);
+						return True;
+					}
+				}
+				idx = (idx + step) % len;
+			}
+			break;
+		}
+	}
+	return False;
 }
 
 EXPORT_CPP void _wndAcceptDraggedFiles(SClass* me_, Bool is_accepted)
@@ -359,6 +449,175 @@ EXPORT_CPP void _wndBaseSetVisible(SClass* me_, Bool is_visible)
 	ShowWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle, is_visible ? SW_SHOW : SW_HIDE);
 }
 
+EXPORT_CPP S64 _colorDialog(SClass* parent, S64 default_color)
+{
+	CHOOSECOLOR choose_color = { 0 };
+	choose_color.lStructSize = sizeof(CHOOSECOLOR);
+	choose_color.hwndOwner = parent == NULL ? NULL : reinterpret_cast<SWndBase*>(parent)->WndHandle;
+	choose_color.rgbResult = static_cast<COLORREF>(((default_color & 0xff) << 16) | (default_color & 0xff00) | ((default_color & 0xff0000) >> 16));
+	choose_color.Flags = CC_FULLOPEN | CC_RGBINIT;
+
+	DWORD colors[16];
+	for (int i = 0; i < 16; i++)
+		colors[i] = 0xffffff;
+	choose_color.lpCustColors = colors;
+
+	if (ChooseColor(&choose_color))
+	{
+		S64 result = static_cast<S64>(choose_color.rgbResult);
+		return ((result & 0xff) << 16) | (result & 0xff00) | ((result & 0xff0000) >> 16);
+	}
+	return -1;
+}
+
+EXPORT_CPP void _fileDialogDir(const U8* defaultDir)
+{
+	if (defaultDir == NULL)
+	{
+		FileDialogDir[0] = L'\0';
+		return;
+	}
+	const Char* path = reinterpret_cast<const Char*>(defaultDir + 0x10);
+	size_t len = wcslen(path);
+	if (len > KUIN_MAX_PATH)
+	{
+		FileDialogDir[0] = L'\0';
+		return;
+	}
+	for (size_t i = 0; i < len; i++)
+		FileDialogDir[i] = path[i] == L'/' ? L'\\' : path[i];
+	FileDialogDir[len] = L'\0';
+}
+
+EXPORT_CPP void _getCaretPos(S64* x, S64* y)
+{
+	POINT point;
+	if (!GetCaretPos(&point))
+	{
+		*x = -1;
+		*y = -1;
+	}
+	else
+	{
+		*x = static_cast<S64>(point.x);
+		*y = static_cast<S64>(point.y);
+	}
+}
+
+EXPORT_CPP void* _getClipboardStr()
+{
+	if (IsClipboardFormatAvailable(CF_UNICODETEXT) == 0)
+		return NULL;
+	if (OpenClipboard(NULL) == 0)
+		return NULL;
+	HGLOBAL handle = GetClipboardData(CF_UNICODETEXT);
+	if (handle == NULL)
+	{
+		CloseClipboard();
+		return NULL;
+	}
+	U8* result = NULL;
+	{
+		const Char* buf = static_cast<Char*>(GlobalLock(handle));
+		if (buf == NULL)
+		{
+			CloseClipboard();
+			return NULL;
+		}
+		size_t len = 0;
+		{
+			const Char* ptr = buf;
+			while (*ptr != L'\0')
+			{
+				if (*ptr != L'\r')
+					len++;
+				ptr++;
+			}
+		}
+		result = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * (len + 1)));
+		*reinterpret_cast<S64*>(result + 0x00) = DefaultRefCntFunc;
+		*reinterpret_cast<S64*>(result + 0x08) = len;
+		{
+			const Char* src = buf;
+			Char* dst = reinterpret_cast<Char*>(result + 0x10);
+			const Char* top = dst;
+			UNUSED(top);
+			while (*src != L'\0')
+			{
+				if (*src != L'\r')
+				{
+					*dst = *src;
+					dst++;
+				}
+				src++;
+			}
+			*dst = L'\0';
+			ASSERT(top + len == dst);
+		}
+	}
+	GlobalUnlock(handle);
+	CloseClipboard();
+	return result;
+}
+
+EXPORT_CPP void* _getOnKeyPress()
+{
+	return OnKeyPress;
+}
+
+EXPORT_CPP Bool _key(S64 key)
+{
+	return (GetKeyState(static_cast<int>(key)) & 0x8000) != 0;
+}
+
+EXPORT_CPP SClass* _makeMenu(SClass* me_)
+{
+	SMenu* me2 = reinterpret_cast<SMenu*>(me_);
+	me2->MenuHandle = CreateMenu();
+	if (me2->MenuHandle == NULL)
+		THROW(0xe9170009);
+	me2->Children = AllocMem(0x28);
+	*(S64*)me2->Children = 1;
+	memset((U8*)me2->Children + 0x08, 0x00, 0x20);
+	return me_;
+}
+
+EXPORT_CPP SClass* _makePopup(SClass* me_)
+{
+	SMenu* me2 = reinterpret_cast<SMenu*>(me_);
+	me2->MenuHandle = CreatePopupMenu();
+	if (me2->MenuHandle == NULL)
+		THROW(0xe9170009);
+	me2->Children = AllocMem(0x28);
+	*(S64*)me2->Children = 1;
+	memset((U8*)me2->Children + 0x08, 0x00, 0x20);
+	return me_;
+}
+
+EXPORT_CPP SClass* _makeTabOrder(SClass* me_, U8* ctrls)
+{
+	STabOrder* me2 = reinterpret_cast<STabOrder*>(me_);
+	THROWDBG(ctrls == NULL, EXCPT_ACCESS_VIOLATION);
+	S64 len = *reinterpret_cast<S64*>(ctrls + 0x08);
+	void** ptr = reinterpret_cast<void**>(ctrls + 0x10);
+	void* result = AllocMem(0x10 + sizeof(void*) * static_cast<size_t>(len));
+	static_cast<S64*>(result)[0] = 1;
+	static_cast<S64*>(result)[1] = len;
+	void** result2 = reinterpret_cast<void**>(static_cast<U8*>(result) + 0x10);
+	for (S64 i = 0; i < len; i++)
+	{
+		if (ptr[i] == NULL)
+			result2[i] = NULL;
+		else
+		{
+			(*static_cast<S64*>(ptr[i]))++;
+			result2[i] = ptr[i];
+		}
+	}
+	me2->Ctrls = result;
+	return me_;
+}
+
 EXPORT_CPP SClass* _makeWnd(SClass* me_, SClass* parent, S64 style, S64 width, S64 height, const U8* text)
 {
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
@@ -449,6 +708,139 @@ EXPORT_CPP SClass* _makeWnd(SClass* me_, SClass* parent, S64 style, S64 width, S
 	ShowWindow(me2->WndHandle, SW_SHOWNORMAL);
 	WndCnt++;
 	return me_;
+}
+
+EXPORT_CPP S64 _msgBox(SClass* parent, const U8* text, const U8* title, S64 icon, S64 btn)
+{
+	return MessageBox(parent == NULL ? NULL : reinterpret_cast<SWndBase*>(parent)->WndHandle, text == NULL ? L"" : reinterpret_cast<const Char*>(text + 0x10), title == NULL ? L"" : reinterpret_cast<const Char*>(title + 0x10), static_cast<UINT>(icon | btn));
+}
+
+EXPORT_CPP void* _openFileDialog(SClass* parent, const U8* filter, S64 defaultFilter)
+{
+	Char path[KUIN_MAX_PATH + 1];
+	path[0] = L'\0';
+	int filter_num;
+	Char* filter_mem = ParseFilter(filter, &filter_num);
+	THROWDBG(!(filter_num == 0 && defaultFilter == 0 || filter_num != 0 && 0 <= defaultFilter && defaultFilter < filter_num), 0xe9170006);
+	OPENFILENAME open_file_name;
+	memset(&open_file_name, 0, sizeof(OPENFILENAME));
+	open_file_name.lStructSize = sizeof(OPENFILENAME);
+	open_file_name.hwndOwner = parent == NULL ? NULL : reinterpret_cast<SWndBase*>(parent)->WndHandle;
+	open_file_name.lpstrFilter = filter_mem;
+	open_file_name.nFilterIndex = filter_num == 0 ? 0 : static_cast<DWORD>(defaultFilter + 1);
+	open_file_name.lpstrFile = path;
+	open_file_name.nMaxFile = KUIN_MAX_PATH + 1;
+	open_file_name.lpstrInitialDir = FileDialogDir[0] == L'\0' ? NULL : FileDialogDir;
+	open_file_name.lpstrTitle = NULL;
+	open_file_name.Flags = OFN_FILEMUSTEXIST;
+	BOOL success = GetOpenFileName(&open_file_name);
+	if (filter_mem != NULL)
+		FreeMem(filter_mem);
+	if (success == FALSE)
+		return NULL;
+	size_t len = wcslen(path);
+	U8* result = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * static_cast<size_t>(len + 1)));
+	*reinterpret_cast<S64*>(result + 0x00) = DefaultRefCntFunc;
+	*reinterpret_cast<S64*>(result + 0x08) = static_cast<S64>(len);
+	Char* dst = reinterpret_cast<Char*>(result + 0x10);
+	for (size_t i = 0; i <= len; i++)
+		dst[i] = path[i] == L'\\' ? L'/' : path[i];
+	return result;
+}
+
+EXPORT_CPP void* _saveFileDialog(SClass* parent, const U8* filter, S64 defaultFilter, const U8* defaultExt)
+{
+	Char path[KUIN_MAX_PATH + 1];
+	path[0] = L'\0';
+	int filter_num;
+	Char* filter_mem = ParseFilter(filter, &filter_num);
+	THROWDBG(!(filter_num == 0 && defaultFilter == 0 || filter_num != 0 && 0 <= defaultFilter && defaultFilter < filter_num), 0xe9170006);
+	OPENFILENAME open_file_name;
+	memset(&open_file_name, 0, sizeof(OPENFILENAME));
+	open_file_name.lStructSize = sizeof(OPENFILENAME);
+	open_file_name.hwndOwner = parent == NULL ? NULL : reinterpret_cast<SWndBase*>(parent)->WndHandle;
+	open_file_name.lpstrFilter = filter_mem;
+	open_file_name.nFilterIndex = filter_num == 0 ? 0 : static_cast<DWORD>(defaultFilter + 1);
+	open_file_name.lpstrFile = path;
+	open_file_name.nMaxFile = KUIN_MAX_PATH + 1;
+	open_file_name.lpstrInitialDir = FileDialogDir[0] == L'\0' ? NULL : FileDialogDir;
+	open_file_name.lpstrTitle = NULL;
+	open_file_name.lpstrDefExt = defaultExt == NULL ? NULL : reinterpret_cast<const Char*>(defaultExt + 0x10);
+	open_file_name.Flags = OFN_OVERWRITEPROMPT;
+	BOOL success = GetSaveFileName(&open_file_name);
+	if (filter_mem != NULL)
+		FreeMem(filter_mem);
+	if (success == FALSE)
+		return NULL;
+	size_t len = wcslen(path);
+	U8* result = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * static_cast<size_t>(len + 1)));
+	*reinterpret_cast<S64*>(result + 0x00) = DefaultRefCntFunc;
+	*reinterpret_cast<S64*>(result + 0x08) = static_cast<S64>(len);
+	Char* dst = reinterpret_cast<Char*>(result + 0x10);
+	for (size_t i = 0; i <= len; i++)
+		dst[i] = path[i] == L'\\' ? L'/' : path[i];
+	return result;
+}
+
+EXPORT_CPP void _screenSize(S64* width, S64* height)
+{
+	*width = static_cast<S64>(GetSystemMetrics(SM_CXSCREEN));
+	*height = static_cast<S64>(GetSystemMetrics(SM_CYSCREEN));
+}
+
+EXPORT_CPP void _setClipboardStr(const U8* str)
+{
+	size_t len = static_cast<size_t>(*reinterpret_cast<const S64*>(str + 0x08));
+	{
+		const Char* ptr = reinterpret_cast<const Char*>(str + 0x10);
+		while (*ptr != L'\0')
+		{
+			if (*ptr == L'\n')
+				len++;
+			ptr++;
+		}
+	}
+	HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE | GHND, sizeof(Char) * (len + 1));
+	if (handle == NULL)
+		return;
+	{
+		const Char* ptr = reinterpret_cast<const Char*>(str + 0x10);
+		Char* buf = static_cast<Char*>(GlobalLock(handle));
+		if (buf == NULL)
+		{
+			GlobalFree(handle);
+			return;
+		}
+		const Char* top = buf;
+		UNUSED(top);
+		while (*ptr != L'\0')
+		{
+			if (*ptr == L'\n')
+			{
+				*buf = L'\r';
+				buf++;
+			}
+			*buf = *ptr;
+			buf++;
+			ptr++;
+		}
+		*buf = L'\0';
+		ASSERT(top + len == buf);
+		GlobalUnlock(handle);
+	}
+	if (OpenClipboard(NULL) == 0)
+	{
+		GlobalFree(handle);
+		return;
+	}
+	EmptyClipboard();
+	SetClipboardData(CF_UNICODETEXT, static_cast<HANDLE>(handle));
+	CloseClipboard();
+}
+
+EXPORT_CPP void _setOnKeyPress(void* onKeyPressFunc)
+{
+	OnKeyPress = onKeyPressFunc;
 }
 
 static LRESULT CALLBACK CommonWndProc(HWND wnd, SWndBase* wnd2, SWnd* wnd3, UINT msg, WPARAM w_param, LPARAM l_param)
@@ -631,4 +1023,40 @@ static LRESULT CALLBACK WndProcWndAspect(HWND wnd, UINT msg, WPARAM w_param, LPA
 			break;
 	}
 	return CommonWndProc(wnd, wnd2, wnd3, msg, w_param, l_param);
+}
+
+static Char* ParseFilter(const U8* filter, int* num)
+{
+	if (filter == NULL)
+	{
+		*num = 0;
+		return NULL;
+	}
+	S64 len_parent = *reinterpret_cast<const S64*>(filter + 0x08);
+	THROWDBG(len_parent % 2 != 0, 0xe9170006);
+	S64 total = 0;
+	{
+		const void* const* ptr = reinterpret_cast<const void* const*>(filter + 0x10);
+		for (S64 i = 0; i < len_parent; i++)
+		{
+			S64 len = *reinterpret_cast<const S64*>(static_cast<const U8*>(*ptr) + 0x08);
+			total += len + 1;
+			ptr++;
+		}
+	}
+	Char* result = static_cast<Char*>(AllocMem(sizeof(Char) * static_cast<size_t>(total + 1)));
+	{
+		const void* const* ptr = reinterpret_cast<const void* const*>(filter + 0x10);
+		Char* ptr2 = result;
+		for (S64 i = 0; i < len_parent; i++)
+		{
+			S64 len = *reinterpret_cast<const S64*>(static_cast<const U8*>(*ptr) + 0x08);
+			memcpy(ptr2, static_cast<const U8*>(*ptr) + 0x10, sizeof(Char) * static_cast<size_t>(len + 1));
+			ptr++;
+			ptr2 += len + 1;
+		}
+		*ptr2 = L'\0';
+	}
+	*num = (int)(len_parent / 2);
+	return result;
 }

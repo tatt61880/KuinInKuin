@@ -32,7 +32,7 @@ end class
 const nonGcBufSize: []char :: "0x2000000"
 
 +func output(entry: \ast@AstFunc, resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>): bool
-	do @gc :: \option@extra.get("gc", &)
+	do @gc :: !\option@extra.get("nogc", &)
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
@@ -203,7 +203,11 @@ func buildFunc(ast: \ast@AstFunc)
 				else
 					do s :~ ","
 				end if
-				do s :~ @getType(arg2.type)
+				if(\ast@isRef(arg2.type))
+					do s :~ "void*"
+				else
+					do s :~ @getType(arg2.type)
+				end if
 				if(arg2.refVar)
 					do s :~ "*"
 				end if
@@ -223,7 +227,18 @@ func buildFunc(ast: \ast@AstFunc)
 				else
 					do s :~ ","
 				end if
-				do s :~ info2.id
+				switch(arg2.type.typeId)
+				case %typeArray
+					do s :~ info2.id ~ "->B"
+				case %typeUser
+					if(\ast@isClass(arg2.type) & @gc & !dtor)
+						do s :~ info2.id ~ ".get()"
+					else
+						do s :~ info2.id
+					end if
+				default
+					do s :~ info2.id
+				end switch
 				do items.next()
 			end while
 		end block
@@ -1086,14 +1101,22 @@ end func
 
 func buildExprToBin(ast: \ast@AstExprToBin)
 	assert ast.varKind <> %unknown
-	do @codes.add("toBin_<\{@getType(ast.child.type)}>()((")
+	if(ast.child.type.typeId = %typeFunc)
+		do @codes.add("toBinFunc_<\{@getType(ast.child.type)}>((")
+	else
+		do @codes.add("toBin_<\{@getType(ast.child.type)}>()((")
+	end if
 	do @buildExpr(ast.child)
 	do @codes.add("))")
 end func
 
 func buildExprFromBin(ast: \ast@AstExprFromBin)
 	assert ast.varKind <> %unknown
-	do @codes.add("fromBin_<\{@getType(ast.childType)}>()((")
+	if(ast.childType.typeId = %typeFunc)
+		do @codes.add("fromBinFunc_<\{@getType(ast.childType)}>((")
+	else
+		do @codes.add("fromBin_<\{@getType(ast.childType)}>()((")
+	end if
 	do @buildExpr(ast.child)
 	do @codes.add("), (")
 	if(ast.offset.typeId.and(%exprValue) = %exprValue)
@@ -1750,6 +1773,7 @@ func refClass(ast: \ast@AstClass): []char
 	if(ast.refItem <>& null)
 		do @refClass(ast.refItem $ \ast@AstClass)
 	end if
+	do @classes.add(ast)
 	block
 		var parentOffset: int
 		if(ast.refItem =& null)
@@ -1784,7 +1808,6 @@ func refClass(ast: \ast@AstClass): []char
 					do @getType(arg.type)
 					do items2.next()
 				end while
-				do @funcs.add(func_)
 			elif(item.def.typeId = %var_)
 				var var_: \ast@AstVar :: item.def $ \ast@AstVar
 				do @getType(var_.arg.type)
@@ -1792,7 +1815,6 @@ func refClass(ast: \ast@AstClass): []char
 			do items.next()
 		end while
 	end block
-	do @classes.add(ast)
 	ret info.id
 	
 	func setFuncOffsetRecursion(idx: &int, funcs: dict<int, \ast@AstFunc>, ast: \ast@AstClass, parent: bool)
@@ -1821,6 +1843,7 @@ func refClass(ast: \ast@AstClass): []char
 					end if
 				end if
 				do funcs.add(info.classTableOffset, func_)
+				do @funcs.add(func_)
 			end if
 			do items.next()
 		end while
@@ -1847,6 +1870,9 @@ func findFunc(ast: \ast@AstClass, name: []char): \ast@AstFunc
 end func
 
 func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
+	if(^funcAttrs = 0)
+		ret true
+	end if
 	block
 		var dataPath: []char :: \option@outputDir ~ "data/"
 		if(!file@makeDir(dataPath))

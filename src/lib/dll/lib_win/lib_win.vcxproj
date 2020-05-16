@@ -151,18 +151,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common.c" />
-    <ClCompile Include="draw.cpp" />
+    <ClCompile Include="draw_common.cpp" />
+    <ClCompile Include="draw_ctrl.cpp" />
+    <ClCompile Include="draw_device.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="wnd_api.cpp" />
     <ClCompile Include="wnd_common.cpp" />
     <ClCompile Include="wnd_ctrl.cpp" />
     <ClCompile Include="wnd_wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common.h" />
-    <ClInclude Include="draw.h" />
+    <ClInclude Include="draw_common.h" />
+    <ClInclude Include="draw_ctrl.h" />
+    <ClInclude Include="draw_device.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="wnd_api.h" />
     <ClInclude Include="wnd_common.h" />
     <ClInclude Include="wnd_ctrl.h" />
     <ClInclude Include="wnd_wnd.h" />

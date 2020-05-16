@@ -3,22 +3,29 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="..\common.c" />
-    <ClCompile Include="draw.cpp" />
     <ClCompile Include="wnd_wnd.cpp" />
     <ClCompile Include="wnd_common.cpp" />
     <ClCompile Include="wnd_ctrl.cpp" />
-    <ClCompile Include="wnd_api.cpp" />
+    <ClCompile Include="draw_common.cpp" />
+    <ClCompile Include="draw_ctrl.cpp" />
+    <ClCompile Include="draw_device.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="draw.h" />
     <ClInclude Include="wnd_wnd.h" />
     <ClInclude Include="wnd_common.h" />
     <ClInclude Include="wnd_ctrl.h" />
-    <ClInclude Include="wnd_api.h" />
+    <ClInclude Include="draw_common.h" />
+    <ClInclude Include="draw_ctrl.h" />
+    <ClInclude Include="draw_device.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\low_level.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="bins">
+      <UniqueIdentifier>{71c7e2fe-ee80-4194-9058-4acb6b0bb1d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
