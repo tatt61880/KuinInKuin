@@ -101,3 +101,10 @@ void ThrowImpl(U32 code)
 {
 	RaiseException((DWORD)code, 0, 0, NULL);
 }
+
+Bool IsResUsed(EUseResFlagsKind kind)
+{
+	S64 idx = (S64)kind;
+	ASSERT(1 <= idx && (idx - 1) / 8 < USE_RES_FLAGS_LEN);
+	return (EnvVars.UseResFlags[(idx - 1) / 8] & (1 << ((idx - 1) % 8))) != 0;
+}

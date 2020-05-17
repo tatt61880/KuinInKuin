@@ -1,10 +1,71 @@
 #include "draw_device.h"
 
+#include "png_decoder.h"
+
 #pragma comment(lib, "d3d10_1.lib")
 #pragma comment(lib, "dxgi.lib")
 
+static const FLOAT BlendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 static S64 Cnt;
 static U32 PrevTime;
+static int CurZBuf = -1;
+static int CurBlend = -1;
+static int CurSampler = -1;
+static double ViewMat[4][4];
+static double ProjMat[4][4];
+
+const U8* GetTriVsBin(size_t* size);
+const U8* GetTriPsBin(size_t* size);
+const U8* GetFontPsBin(size_t* size);
+const U8* GetRectVsBin(size_t* size);
+const U8* GetCircleVsBin(size_t* size);
+const U8* GetCirclePsBin(size_t* size);
+const U8* GetCircleLinePsBin(size_t* size);
+const U8* GetTexVsBin(size_t* size);
+const U8* GetTexRotVsBin(size_t* size);
+const U8* GetTexPsBin(size_t* size);
+const U8* GetObjVsBin(size_t* size);
+const U8* GetObjSmVsBin(size_t* size);
+const U8* GetObjJointVsBin(size_t* size);
+const U8* GetObjJointSmVsBin(size_t* size);
+const U8* GetObjPsBin(size_t* size);
+const U8* GetObjSmPsBin(size_t* size);
+const U8* GetObjToonPsBin(size_t* size);
+const U8* GetObjToonSmPsBin(size_t* size);
+const U8* GetObjFastVsBin(size_t* size);
+const U8* GetObjFastSmVsBin(size_t* size);
+const U8* GetObjFastJointVsBin(size_t* size);
+const U8* GetObjFastJointSmVsBin(size_t* size);
+const U8* GetObjFastPsBin(size_t* size);
+const U8* GetObjFastSmPsBin(size_t* size);
+const U8* GetObjToonFastPsBin(size_t* size);
+const U8* GetObjToonFastSmPsBin(size_t* size);
+const U8* GetObjFlatVsBin(size_t* size);
+const U8* GetObjFlatJointVsBin(size_t* size);
+const U8* GetObjFlatFastVsBin(size_t* size);
+const U8* GetObjFlatFastJointVsBin(size_t* size);
+const U8* GetObjFlatPsBin(size_t* size);
+const U8* GetObjOutlineVsBin(size_t* size);
+const U8* GetObjOutlineJointVsBin(size_t* size);
+const U8* GetObjOutlinePsBin(size_t* size);
+const U8* GetObjShadowVsBin(size_t* size);
+const U8* GetObjShadowJointVsBin(size_t* size);
+const U8* GetFilterVsBin(size_t* size);
+const U8* GetFilterNonePsBin(size_t* size);
+const U8* GetFilterMonotonePsBin(size_t* size);
+const U8* GetParticle2dVsBin(size_t* size);
+const U8* GetParticle2dPsBin(size_t* size);
+const U8* GetParticleUpdatingVsBin(size_t* size);
+const U8* GetParticleUpdatingPsBin(size_t* size);
+const U8* GetPolyVsBin(size_t* size);
+const U8* GetPolyPsBin(size_t* size);
+const U8* GetToonRampPngBin(size_t* size);
+const U8* GetBoxKnobjBin(size_t* size);
+const U8* GetSphereKnobjBin(size_t* size);
+const U8* GetPlaneKnobjBin(size_t* size);
+
+static void SetProjViewMat(float out[4][4], const double proj[4][4], const double view[4][4]);
 
 EXPORT_CPP void _drawInit()
 {
@@ -976,7 +1037,7 @@ EXPORT_CPP void _drawInit()
 			const U8* bin = GetToonRampPngBin(&size);
 			img = DecodePng(size, bin, &width, &height);
 			if (!IsPowerOf2(static_cast<U64>(width)) || !IsPowerOf2(static_cast<U64>(height)))
-				img = Draw::AdjustTexSize(static_cast<U8*>(img), &width, &height);
+				img = AdjustTexSize(static_cast<U8*>(img), &width, &height);
 			if (!MakeTexWithImg(&TexToonRamp, &ViewToonRamp, NULL, width, height, img, 4, DXGI_FORMAT_R8G8B8A8_UNORM, D3D10_USAGE_IMMUTABLE, 0, False))
 				break;
 			success = True;
@@ -1076,4 +1137,151 @@ EXPORT_CPP void _drawFin()
 	}
 	if (Device != NULL)
 		Device->Release();
+}
+
+EXPORT_CPP void _ambLight(double topR, double topG, double topB, double bottomR, double bottomG, double bottomB)
+{
+	ObjPsConstBuf.CommonParam.AmbTopColor[0] = static_cast<float>(topR);
+	ObjPsConstBuf.CommonParam.AmbTopColor[1] = static_cast<float>(topG);
+	ObjPsConstBuf.CommonParam.AmbTopColor[2] = static_cast<float>(topB);
+	ObjPsConstBuf.CommonParam.AmbBottomColor[0] = static_cast<float>(bottomR);
+	ObjPsConstBuf.CommonParam.AmbBottomColor[1] = static_cast<float>(bottomG);
+	ObjPsConstBuf.CommonParam.AmbBottomColor[2] = static_cast<float>(bottomB);
+}
+
+EXPORT_CPP void _blend(S64 kind)
+{
+	THROWDBG(kind < 0 || BlendNum <= kind, 0xe9170006);
+	int kind2 = static_cast<int>(kind);
+	if (CurBlend == kind2)
+		return;
+	Device->OMSetBlendState(BlendState[kind2], BlendFactor, 0xffffffff);
+	CurBlend = kind2;
+}
+
+EXPORT_CPP void _camera(double eyeX, double eyeY, double eyeZ, double atX, double atY, double atZ, double upX, double upY, double upZ)
+{
+	double look[3], up[3], right[3], eye[3], pxyz[3], eye_len;
+
+	look[0] = atX - eyeX;
+	look[1] = atY - eyeY;
+	look[2] = atZ - eyeZ;
+	eye_len = Normalize(look);
+	if (eye_len == 0.0)
+		return;
+
+	up[0] = upX;
+	up[1] = upY;
+	up[2] = upZ;
+	Cross(right, up, look);
+	if (Normalize(right) == 0.0)
+		return;
+
+	Cross(up, look, right);
+
+	eye[0] = eyeX;
+	eye[1] = eyeY;
+	eye[2] = eyeZ;
+	pxyz[0] = Dot(eye, right);
+	pxyz[1] = Dot(eye, up);
+	pxyz[2] = Dot(eye, look);
+
+	ViewMat[0][0] = right[0];
+	ViewMat[0][1] = up[0];
+	ViewMat[0][2] = look[0];
+	ViewMat[0][3] = 0.0;
+	ViewMat[1][0] = right[1];
+	ViewMat[1][1] = up[1];
+	ViewMat[1][2] = look[1];
+	ViewMat[1][3] = 0.0;
+	ViewMat[2][0] = right[2];
+	ViewMat[2][1] = up[2];
+	ViewMat[2][2] = look[2];
+	ViewMat[2][3] = 0.0;
+	ViewMat[3][0] = -pxyz[0];
+	ViewMat[3][1] = -pxyz[1];
+	ViewMat[3][2] = -pxyz[2];
+	ViewMat[3][3] = 1.0;
+
+	ObjVsConstBuf.CommonParam.Eye[0] = static_cast<float>(-look[0]);
+	ObjVsConstBuf.CommonParam.Eye[1] = static_cast<float>(-look[1]);
+	ObjVsConstBuf.CommonParam.Eye[2] = static_cast<float>(-look[2]);
+	ObjVsConstBuf.CommonParam.Eye[3] = static_cast<float>(eye_len);
+
+	SetProjViewMat(ObjVsConstBuf.CommonParam.ProjView, ProjMat, ViewMat);
+}
+
+EXPORT_CPP void _depth(Bool test, Bool write)
+{
+	int kind = (static_cast<int>(test) << 1) | static_cast<int>(write);
+	if (CurZBuf == kind)
+		return;
+	Device->OMSetDepthStencilState(DepthState[kind], 0);
+	CurZBuf = kind;
+}
+
+EXPORT_CPP void _dirLight(double atX, double atY, double atZ, double r, double g, double b)
+{
+	double dir[3] = { atX, atY, atZ };
+	Normalize(dir);
+	ObjVsConstBuf.CommonParam.Dir[0] = -static_cast<float>(dir[0]);
+	ObjVsConstBuf.CommonParam.Dir[1] = -static_cast<float>(dir[1]);
+	ObjVsConstBuf.CommonParam.Dir[2] = -static_cast<float>(dir[2]);
+	ObjPsConstBuf.CommonParam.DirColor[0] = static_cast<float>(r);
+	ObjPsConstBuf.CommonParam.DirColor[1] = static_cast<float>(g);
+	ObjPsConstBuf.CommonParam.DirColor[2] = static_cast<float>(b);
+}
+
+EXPORT_CPP void _proj(double fovy, double aspectX, double aspectY, double nearZ, double farZ)
+{
+	THROWDBG(fovy <= 0.0 || M_PI / 2.0 <= fovy || aspectX <= 0.0 || aspectY <= 0.0 || nearZ <= 0.0 || farZ <= nearZ, 0xe9170006);
+	double tan_theta = tan(fovy / 2.0);
+	ProjMat[0][0] = -1.0 / ((aspectX / aspectY) * tan_theta);
+	ProjMat[0][1] = 0.0;
+	ProjMat[0][2] = 0.0;
+	ProjMat[0][3] = 0.0;
+	ProjMat[1][0] = 0.0;
+	ProjMat[1][1] = 1.0 / tan_theta;
+	ProjMat[1][2] = 0.0;
+	ProjMat[1][3] = 0.0;
+	ProjMat[2][0] = 0.0;
+	ProjMat[2][1] = 0.0;
+	ProjMat[2][2] = farZ / (farZ - nearZ);
+	ProjMat[2][3] = 1.0;
+	ProjMat[3][0] = 0.0;
+	ProjMat[3][1] = 0.0;
+	ProjMat[3][2] = -farZ * nearZ / (farZ - nearZ);
+	ProjMat[3][3] = 0.0;
+
+	SetProjViewMat(ObjVsConstBuf.CommonParam.ProjView, ProjMat, ViewMat);
+}
+
+EXPORT_CPP void _sampler(S64 kind)
+{
+	THROWDBG(kind < 0 || SamplerNum <= kind, 0xe9170006);
+	int kind2 = static_cast<int>(kind);
+	if (CurSampler == kind2)
+		return;
+	Device->PSSetSamplers(0, 1, &Sampler[kind2]);
+	CurSampler = kind2;
+}
+
+static void SetProjViewMat(float out[4][4], const double proj[4][4], const double view[4][4])
+{
+	out[0][0] = static_cast<float>(proj[0][0] * view[0][0] + proj[1][0] * view[0][1] + proj[2][0] * view[0][2] + proj[3][0] * view[0][3]);
+	out[0][1] = static_cast<float>(proj[0][1] * view[0][0] + proj[1][1] * view[0][1] + proj[2][1] * view[0][2] + proj[3][1] * view[0][3]);
+	out[0][2] = static_cast<float>(proj[0][2] * view[0][0] + proj[1][2] * view[0][1] + proj[2][2] * view[0][2] + proj[3][2] * view[0][3]);
+	out[0][3] = static_cast<float>(proj[0][3] * view[0][0] + proj[1][3] * view[0][1] + proj[2][3] * view[0][2] + proj[3][3] * view[0][3]);
+	out[1][0] = static_cast<float>(proj[0][0] * view[1][0] + proj[1][0] * view[1][1] + proj[2][0] * view[1][2] + proj[3][0] * view[1][3]);
+	out[1][1] = static_cast<float>(proj[0][1] * view[1][0] + proj[1][1] * view[1][1] + proj[2][1] * view[1][2] + proj[3][1] * view[1][3]);
+	out[1][2] = static_cast<float>(proj[0][2] * view[1][0] + proj[1][2] * view[1][1] + proj[2][2] * view[1][2] + proj[3][2] * view[1][3]);
+	out[1][3] = static_cast<float>(proj[0][3] * view[1][0] + proj[1][3] * view[1][1] + proj[2][3] * view[1][2] + proj[3][3] * view[1][3]);
+	out[2][0] = static_cast<float>(proj[0][0] * view[2][0] + proj[1][0] * view[2][1] + proj[2][0] * view[2][2] + proj[3][0] * view[2][3]);
+	out[2][1] = static_cast<float>(proj[0][1] * view[2][0] + proj[1][1] * view[2][1] + proj[2][1] * view[2][2] + proj[3][1] * view[2][3]);
+	out[2][2] = static_cast<float>(proj[0][2] * view[2][0] + proj[1][2] * view[2][1] + proj[2][2] * view[2][2] + proj[3][2] * view[2][3]);
+	out[2][3] = static_cast<float>(proj[0][3] * view[2][0] + proj[1][3] * view[2][1] + proj[2][3] * view[2][2] + proj[3][3] * view[2][3]);
+	out[3][0] = static_cast<float>(proj[0][0] * view[3][0] + proj[1][0] * view[3][1] + proj[2][0] * view[3][2] + proj[3][0] * view[3][3]);
+	out[3][1] = static_cast<float>(proj[0][1] * view[3][0] + proj[1][1] * view[3][1] + proj[2][1] * view[3][2] + proj[3][1] * view[3][3]);
+	out[3][2] = static_cast<float>(proj[0][2] * view[3][0] + proj[1][2] * view[3][1] + proj[2][2] * view[3][2] + proj[3][2] * view[3][3]);
+	out[3][3] = static_cast<float>(proj[0][3] * view[3][0] + proj[1][3] * view[3][1] + proj[2][3] * view[3][2] + proj[3][3] * view[3][3]);
 }

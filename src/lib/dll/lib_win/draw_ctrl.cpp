@@ -8,7 +8,7 @@ EXPORT_CPP void _drawDtor(SClass* me_)
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
 	SDraw* me3 = reinterpret_cast<SDraw*>(me_);
 	if (me3->DrawBuf != NULL)
-		Draw::FinDrawBuf(me3->DrawBuf);
+		FinDrawBuf(me3->DrawBuf);
 	DestroyWindow(me2->WndHandle);
 }
 
@@ -65,7 +65,7 @@ EXPORT_CPP void _drawShowCaret(SClass* me_, S64 height, SClass* font)
 	{
 		LOGFONT log_font;
 		HIMC imc = ImmGetContext(wnd_handle);
-		GetObject(Draw::ToFontHandle(font), sizeof(LOGFONT), &log_font);
+		GetObject(ToFontHandle(font), sizeof(LOGFONT), &log_font);
 		if (imc)
 			ImmSetCompositionFont(imc, &log_font);
 		ImmReleaseContext(wnd_handle, imc);
@@ -104,10 +104,10 @@ static SClass* MakeDrawImpl(SClass* me_, SClass* parent, S64 x, S64 y, S64 width
 		GetWindowRect(me2->WndHandle, &rect);
 		int width2 = static_cast<int>(rect.right - rect.left);
 		int height2 = static_cast<int>(rect.bottom - rect.top);
-		me3->DrawBuf = Draw::MakeDrawBuf(width2, height2, 1, me2->WndHandle, NULL, editable);
+		me3->DrawBuf = MakeDrawBuf(width2, height2, 1, me2->WndHandle, NULL, editable);
 	}
 	else
-		me3->DrawBuf = Draw::MakeDrawBuf(static_cast<int>(width), static_cast<int>(height), split, me2->WndHandle, NULL, editable);
+		me3->DrawBuf = MakeDrawBuf(static_cast<int>(width), static_cast<int>(height), split, me2->WndHandle, NULL, editable);
 	me3->OnPaint = NULL;
 	me3->OnMouseDownL = NULL;
 	me3->OnMouseDownR = NULL;
@@ -145,7 +145,7 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 				GetClientRect(wnd, &rect);
 				PAINTSTRUCT ps;
 				BeginPaint(wnd, &ps);
-				Draw::ActiveDrawBuf(wnd3->DrawBuf);
+				ActiveDrawBuf(wnd3->DrawBuf);
 				if (wnd3->DrawTwice)
 				{
 					Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(rect.right - rect.left)), reinterpret_cast<void*>(static_cast<S64>(rect.bottom - rect.top)), wnd3->OnPaint);
@@ -289,7 +289,7 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 				int height = static_cast<int>(static_cast<S16>(HIWORD(l_param)));
 				if (width > 0 && height > 0)
 				{
-					wnd3->DrawBuf = Draw::MakeDrawBuf(width, height, 1, wnd2->WndHandle, wnd3->DrawBuf, wnd3->Editable);
+					wnd3->DrawBuf = MakeDrawBuf(width, height, 1, wnd2->WndHandle, wnd3->DrawBuf, wnd3->Editable);
 					wnd3->DrawTwice = True;
 				}
 			}

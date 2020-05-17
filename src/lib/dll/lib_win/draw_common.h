@@ -7,6 +7,15 @@
 static const int DepthNum = 4;
 static const int BlendNum = 6;
 static const int SamplerNum = 3;
+static const int JointMax = 256;
+static const int FontBitmapSize = 512;
+static const int TexEvenNum = 3;
+static const double DiscardAlpha = 0.02;
+static const int ParticleNum = 256;
+static const int ParticleTexNum = 3;
+static const int PolyVerticesNum = 64;
+static const int JointInfluenceMax = 2;
+static const int JointInfluenceMaxAligned = 4;
 
 enum RasterizerState
 {
@@ -117,15 +126,156 @@ struct SShaderBuf
 	ID3D10InputLayout* Layout;
 };
 
+struct SObjCommonVsConstBuf
+{
+	float World[4][4];
+	float NormWorld[4][4];
+	float ProjView[4][4];
+	float ShadowProjView[4][4];
+	float Eye[4];
+	float Dir[4];
+};
+STATIC_ASSERT(sizeof(SObjCommonVsConstBuf) == 4 * 72);
+
+struct SObjCommonPsConstBuf
+{
+	float AmbTopColor[4];
+	float AmbBottomColor[4];
+	float DirColor[4];
+};
+STATIC_ASSERT(sizeof(SObjCommonPsConstBuf) == 4 * 12);
+
+struct SObjVsConstBuf
+{
+	SObjCommonVsConstBuf CommonParam;
+	float Joint[JointMax][4][4];
+};
+
+struct SObjPsConstBuf
+{
+	SObjCommonPsConstBuf CommonParam;
+};
+
+struct SObjFastPsConstBuf
+{
+	SObjCommonPsConstBuf CommonParam;
+	float Eye[4];
+	float Dir[4];
+	float Half[4];
+};
+
+struct SObjOutlineVsConstBuf
+{
+	SObjCommonVsConstBuf CommonParam;
+	float OutlineParam[4];
+	float Joint[JointMax][4][4];
+};
+
+struct SObjOutlinePsConstBuf
+{
+	float OutlineColor[4];
+};
+
+struct SObjShadowVsConstBuf
+{
+	float World[4][4];
+	float ProjView[4][4];
+	float Joint[JointMax][4][4];
+};
+
+struct SParticlePsConstBuf
+{
+	float Color1[4];
+	float Color2[4];
+};
+
+struct SParticleUpdatingPsConstBuf
+{
+	float AccelAndFriction[4];
+	float SizeAccelAndRotAccel[4];
+};
+
+struct SWndBuf
+{
+	void* Extra;
+	IDXGISwapChain* SwapChain;
+	ID3D10RenderTargetView* RenderTargetView;
+	ID3D10DepthStencilView* DepthView;
+	FLOAT ClearColor[4];
+	int TexWidth;
+	int TexHeight;
+	ID3D10Texture2D* TmpTex;
+	ID3D10Texture2D* EditableTex;
+	ID3D10ShaderResourceView* TmpShaderResView;
+	ID3D10RenderTargetView* TmpRenderTargetView;
+	Bool AutoClear;
+	Bool Editable;
+	int Split;
+};
+
+struct STex
+{
+	SClass Class;
+	int Width;
+	int Height;
+	int ImgWidth;
+	int ImgHeight;
+	ID3D10Texture2D* Tex;
+	ID3D10ShaderResourceView* View;
+};
+
+struct SFont
+{
+	SClass Class;
+	ID3D10Texture2D* Tex;
+	ID3D10ShaderResourceView* View;
+	int CellWidth;
+	int CellHeight;
+	int CellSizeAligned;
+	U32 Cnt;
+	double Advance;
+	double Height;
+	bool Proportional;
+	U8 AlignHorizontal;
+	U8 AlignVertical;
+	HFONT Font;
+	Char* CharMap;
+	U32* CntMap;
+	U8* Pixel;
+	HBITMAP Bitmap;
+	HDC Dc;
+	int* GlyphWidth;
+};
+
 extern ID3D10Device1* Device;
 extern ID3D10RasterizerState* RasterizerStates[RasterizerState_Num];
 extern ID3D10DepthStencilState* DepthState[DepthNum];
 extern ID3D10BlendState* BlendState[BlendNum];
 extern ID3D10SamplerState* Sampler[SamplerNum];
-extern void* VertexBufs[VertexBuf_Num];
-extern void* ShaderBufs[ShaderBuf_Num];
+extern SVertexBuf* VertexBufs[VertexBuf_Num];
+extern SShaderBuf* ShaderBufs[ShaderBuf_Num];
+extern SObjVsConstBuf ObjVsConstBuf;
+extern SObjPsConstBuf ObjPsConstBuf;
+extern ID3D10Texture2D* TexToonRamp;
+extern ID3D10ShaderResourceView* ViewToonRamp;
+extern ID3D10Texture2D* TexEven[TexEvenNum];
+extern ID3D10ShaderResourceView* ViewEven[TexEvenNum];
+extern SWndBuf* CurWndBuf;
+extern void* (*Callback2d)(int kind, void* arg1, void* arg2);
 
 SVertexBuf* MakeVertexBuf(size_t vertex_size, const void* vertices, size_t vertex_line_size, size_t idx_size, const U32* idces);
 void FinVertexBuf(SVertexBuf* vertex_buf);
 SShaderBuf* MakeShaderBuf(EShaderKind kind, size_t size, const void* bin, size_t const_buf_size, int layout_num, const ELayoutType* layout_types, const Char** layout_semantics);
 void FinShaderBuf(SShaderBuf* shader_buf);
+U8* AdjustTexSize(U8* argb, int* width, int* height);
+Bool IsPowerOf2(U64 n);
+void IdentityFloat(float mat[4][4]);
+double Normalize(double vec[3]);
+double Dot(const double a[3], const double b[3]);
+void Cross(double out[3], const double a[3], const double b[3]);
+HFONT ToFontHandle(SClass* font);
+void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old, Bool editable);
+void FinDrawBuf(void* wnd_buf);
+void ActiveDrawBuf(void* wnd_buf);
+void ResetViewport();
+Bool MakeTexWithImg(ID3D10Texture2D** tex, ID3D10ShaderResourceView** view, ID3D10RenderTargetView** render_target_view, int width, int height, const void* img, size_t pitch, DXGI_FORMAT fmt, D3D10_USAGE usage, UINT cpu_access_flag, Bool render_target);

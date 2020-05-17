@@ -1,5 +1,7 @@
 #include "wnd_ctrl.h"
 
+#include "png_decoder.h"
+
 static void ListViewAdjustWidth(HWND wnd);
 static void TreeExpandAllRecursion(HWND wnd_handle, HTREEITEM node, int flag);
 static void CopyTreeNodeRecursion(HWND tree_wnd, HTREEITEM dst, HTREEITEM src, Char* buf);

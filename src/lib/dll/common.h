@@ -86,10 +86,22 @@ typedef struct SEnvVars
 } SEnvVars;
 extern SEnvVars EnvVars;
 
+typedef enum EUseResFlagsKind
+{
+	UseResFlagsKind_Draw_Circle = 1,
+	UseResFlagsKind_Draw_FilterMonotone = 2,
+	UseResFlagsKind_Draw_Particle = 3,
+	UseResFlagsKind_Draw_Poly = 4,
+	UseResFlagsKind_Draw_ObjDraw = 5,
+	UseResFlagsKind_Draw_ObjDrawOutline = 6,
+} EUseResFlagsKind;
+#define USE_RES_FLAGS_LEN (1)
+
 Bool InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
 void* AllocMem(size_t size);
 void FreeMem(void* ptr);
 void ThrowImpl(U32 code);
+Bool IsResUsed(EUseResFlagsKind kind);
 
 // Assembly functions.
 #ifdef __cplusplus
