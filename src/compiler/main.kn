@@ -68,8 +68,12 @@ func build(): bool
 	; 'Output'
 	switch(\option@env_)
 	case %exe
-		if(!\exe\output@output(entry, resFiles.files, funcAttrs))
+		if(env = "web")
 			ret false
+		else
+			if(!\exe\output@output(entry, resFiles.files, funcAttrs))
+				ret false
+			end if
 		end if
 	case %cpp
 		if(!\cpp\output@output(entry, resFiles.files, funcAttrs))

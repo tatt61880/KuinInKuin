@@ -217,8 +217,8 @@ EXPORT void _writerWriteImpl(void* handle, void* data, S64 start, S64 size)
 
 EXPORT S64 _writerWriteNewLineImpl(void* handle)
 {
-	fwrite(NewLine, 1, sizeof(NewLine), (FILE*)handle);
-	return (S64)sizeof(NewLine);
+	fwrite(NewLine, 1, 2, (FILE*)handle);
+	return 2;
 }
 
 static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback, void* data)

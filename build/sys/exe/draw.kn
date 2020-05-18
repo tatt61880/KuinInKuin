@@ -1,0 +1,5 @@
+func[d0001.knd, _drawInit]_init()
+end func
+
+func[d0001.knd, _drawFin]_fin()
+end func
