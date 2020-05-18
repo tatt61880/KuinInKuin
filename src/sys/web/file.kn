@@ -24,10 +24,6 @@ end enum
 	*func[__ndc]ctor()
 	end func
 	
-	*func[__frc]_dtor()
-		do me.fin()
-	end func
-	
 	+func _init(handle: int)
 		do me.handle :: handle
 		do me.delimiters :: " ,\n"
@@ -243,10 +239,6 @@ end class
 	*func[__ndc]ctor()
 	end func
 
-	*func[__frc]_dtor()
-		do me.fin()
-	end func
-	
 	+func _init(handle: int, append: bool)
 		do me.handle :: handle
 		if(append)
