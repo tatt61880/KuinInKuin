@@ -43,11 +43,9 @@ set fxc_path="C:\Program Files (x86)\Windows Kits\8.1\bin\x64\fxc.exe"
 %fxc_path% particle_2d_ps.fx /T ps_4_0 /Fo particle_2d.ps
 %fxc_path% particle_updating_vs.fx /T vs_4_0 /Fo particle_updating.vs
 %fxc_path% particle_updating_ps.fx /T ps_4_0 /Fo particle_updating.ps
-%fxc_path% poly_vs.fx /T vs_4_0 /Fo poly.vs
-%fxc_path% poly_ps.fx /T ps_4_0 /Fo poly.ps
 pause
 "bin_to_text.exe" tri.vs tri.ps font.ps rect.vs circle.vs circle.ps circle_line.ps tex.vs tex_rot.vs tex.ps
 "bin_to_text.exe" obj.vs obj_sm.vs obj_joint.vs obj_joint_sm.vs obj.ps obj_sm.ps obj_toon.ps obj_toon_sm.ps obj_fast.vs obj_fast_sm.vs obj_fast_joint.vs obj_fast_joint_sm.vs obj_fast.ps obj_fast_sm.ps
 "bin_to_text.exe" obj_toon_fast.ps obj_toon_fast_sm.ps obj_flat.vs obj_flat_joint.vs obj_flat_fast.vs obj_flat_fast_joint.vs obj_flat.ps obj_outline.vs obj_outline_joint.vs obj_outline.ps obj_shadow.vs obj_shadow_joint.vs
-"bin_to_text.exe" filter.vs filter_none.ps filter_monotone.ps particle_2d.vs particle_2d.ps particle_updating.vs particle_updating.ps poly.vs poly.ps
+"bin_to_text.exe" filter.vs filter_none.ps filter_monotone.ps particle_2d.vs particle_2d.ps particle_updating.vs particle_updating.ps
 pause

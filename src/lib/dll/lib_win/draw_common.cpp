@@ -15,6 +15,9 @@ ID3D10Texture2D* TexEven[TexEvenNum];
 ID3D10ShaderResourceView* ViewEven[TexEvenNum];
 SWndBuf* CurWndBuf;
 void* (*Callback2d)(int kind, void* arg1, void* arg2);
+int CurZBuf;
+int CurBlend;
+int CurSampler;
 
 SVertexBuf* MakeVertexBuf(size_t vertex_size, const void* vertices, size_t vertex_line_size, size_t idx_size, const U32* idces)
 {
@@ -34,7 +37,7 @@ SVertexBuf* MakeVertexBuf(size_t vertex_size, const void* vertices, size_t verte
 		sub.SysMemSlicePitch = 0;
 
 		if (FAILED(Device->CreateBuffer(&desc, &sub, &vertex_buf->Vertex)))
-			return NULL;
+			return nullptr;
 	}
 
 	vertex_buf->VertexLineSize = vertex_line_size;
@@ -53,7 +56,7 @@ SVertexBuf* MakeVertexBuf(size_t vertex_size, const void* vertices, size_t verte
 		sub.SysMemSlicePitch = 0;
 
 		if (FAILED(Device->CreateBuffer(&desc, &sub, &vertex_buf->Idx)))
-			return NULL;
+			return nullptr;
 	}
 
 	return vertex_buf;
@@ -61,9 +64,9 @@ SVertexBuf* MakeVertexBuf(size_t vertex_size, const void* vertices, size_t verte
 
 void FinVertexBuf(SVertexBuf* vertex_buf)
 {
-	if (vertex_buf->Idx != NULL)
+	if (vertex_buf->Idx != nullptr)
 		vertex_buf->Idx->Release();
-	if (vertex_buf->Vertex != NULL)
+	if (vertex_buf->Vertex != nullptr)
 		vertex_buf->Vertex->Release();
 	FreeMem(vertex_buf);
 }
@@ -76,15 +79,15 @@ SShaderBuf* MakeShaderBuf(EShaderKind kind, size_t size, const void* bin, size_t
 	{
 		case ShaderKind_Vs:
 			if (FAILED(Device->CreateVertexShader(bin, size, reinterpret_cast<ID3D10VertexShader**>(&shader_buf->Shader))))
-				return NULL;
+				return nullptr;
 			break;
 		case ShaderKind_Gs:
 			if (FAILED(Device->CreateGeometryShader(bin, size, reinterpret_cast<ID3D10GeometryShader**>(&shader_buf->Shader))))
-				return NULL;
+				return nullptr;
 			break;
 		case ShaderKind_Ps:
 			if (FAILED(Device->CreatePixelShader(bin, size, reinterpret_cast<ID3D10PixelShader**>(&shader_buf->Shader))))
-				return NULL;
+				return nullptr;
 			break;
 		default:
 			ASSERT(False);
@@ -94,7 +97,7 @@ SShaderBuf* MakeShaderBuf(EShaderKind kind, size_t size, const void* bin, size_t
 	shader_buf->ConstBufSize = const_buf_size;
 
 	if (const_buf_size == 0)
-		shader_buf->ConstBuf = NULL;
+		shader_buf->ConstBuf = nullptr;
 	else
 	{
 		D3D10_BUFFER_DESC desc;
@@ -103,12 +106,12 @@ SShaderBuf* MakeShaderBuf(EShaderKind kind, size_t size, const void* bin, size_t
 		desc.BindFlags = D3D10_BIND_CONSTANT_BUFFER;
 		desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 		desc.MiscFlags = 0;
-		if (FAILED(Device->CreateBuffer(&desc, NULL, &shader_buf->ConstBuf)))
-			return NULL;
+		if (FAILED(Device->CreateBuffer(&desc, nullptr, &shader_buf->ConstBuf)))
+			return nullptr;
 	}
 
 	if (layout_num == 0)
-		shader_buf->Layout = NULL;
+		shader_buf->Layout = nullptr;
 	else
 	{
 		D3D10_INPUT_ELEMENT_DESC* descs = static_cast<D3D10_INPUT_ELEMENT_DESC*>(AllocMem(sizeof(D3D10_INPUT_ELEMENT_DESC) * static_cast<size_t>(layout_num)));
@@ -172,7 +175,7 @@ SShaderBuf* MakeShaderBuf(EShaderKind kind, size_t size, const void* bin, size_t
 			}
 		}
 		if (FAILED(Device->CreateInputLayout(descs, static_cast<UINT>(layout_num), bin, size, &shader_buf->Layout)))
-			return NULL;
+			return nullptr;
 		FreeMem(semantics);
 		FreeMem(descs);
 	}
@@ -182,11 +185,11 @@ SShaderBuf* MakeShaderBuf(EShaderKind kind, size_t size, const void* bin, size_t
 
 void FinShaderBuf(SShaderBuf* shader_buf)
 {
-	if (shader_buf->Layout != NULL)
+	if (shader_buf->Layout != nullptr)
 		shader_buf->Layout->Release();
-	if (shader_buf->ConstBuf != NULL)
+	if (shader_buf->ConstBuf != nullptr)
 		shader_buf->ConstBuf->Release();
-	if (shader_buf->Shader != NULL)
+	if (shader_buf->Shader != nullptr)
 	{
 		switch (shader_buf->Kind)
 		{
@@ -285,7 +288,7 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 {
 	SWndBuf* old2 = static_cast<SWndBuf*>(old);
 	FLOAT clear_color[4];
-	if (old == NULL)
+	if (old == nullptr)
 	{
 		clear_color[0] = 0.0f;
 		clear_color[1] = 0.0f;
@@ -308,7 +311,7 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 
 	// Create a swap chain.
 	{
-		IDXGIFactory* factory = NULL;
+		IDXGIFactory* factory = nullptr;
 		DXGI_SWAP_CHAIN_DESC desc;
 		Bool success = False;
 		for (; ; )
@@ -335,7 +338,7 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 			success = True;
 			break;
 		}
-		if (factory != NULL)
+		if (factory != nullptr)
 			factory->Release();
 		if (!success)
 			THROW(0xe9170009);
@@ -343,14 +346,14 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 
 	// Create a back buffer and a depth buffer.
 	{
-		ID3D10Texture2D* back = NULL;
-		ID3D10Texture2D* depth_stencil = NULL;
+		ID3D10Texture2D* back = nullptr;
+		ID3D10Texture2D* depth_stencil = nullptr;
 		Bool success = False;
 		for (; ; )
 		{
 			if (FAILED(wnd_buf->SwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D), reinterpret_cast<void**>(&back))))
 				break;
-			if (FAILED(Device->CreateRenderTargetView(back, NULL, &wnd_buf->RenderTargetView)))
+			if (FAILED(Device->CreateRenderTargetView(back, nullptr, &wnd_buf->RenderTargetView)))
 				break;
 			{
 				D3D10_TEXTURE2D_DESC desc;
@@ -366,7 +369,7 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 				desc.BindFlags = D3D10_BIND_DEPTH_STENCIL;
 				desc.CPUAccessFlags = 0;
 				desc.MiscFlags = 0;
-				if (FAILED(Device->CreateTexture2D(&desc, NULL, &depth_stencil)))
+				if (FAILED(Device->CreateTexture2D(&desc, nullptr, &depth_stencil)))
 					break;
 			}
 			{
@@ -381,9 +384,9 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 			success = True;
 			break;
 		}
-		if (depth_stencil != NULL)
+		if (depth_stencil != nullptr)
 			depth_stencil->Release();
-		if (back != NULL)
+		if (back != nullptr)
 			back->Release();
 		if (!success)
 			THROW(0xe9170009);
@@ -404,7 +407,7 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 			desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
 			desc.CPUAccessFlags = 0;
 			desc.MiscFlags = 0;
-			if (FAILED(Device->CreateTexture2D(&desc, NULL, &wnd_buf->TmpTex)))
+			if (FAILED(Device->CreateTexture2D(&desc, nullptr, &wnd_buf->TmpTex)))
 				THROW(0xe9170009);
 		}
 		{
@@ -417,7 +420,7 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 			if (FAILED(Device->CreateShaderResourceView(wnd_buf->TmpTex, &desc, &wnd_buf->TmpShaderResView)))
 				THROW(0xe9170009);
 		}
-		if (FAILED(Device->CreateRenderTargetView(wnd_buf->TmpTex, NULL, &wnd_buf->TmpRenderTargetView)))
+		if (FAILED(Device->CreateRenderTargetView(wnd_buf->TmpTex, nullptr, &wnd_buf->TmpRenderTargetView)))
 			THROW(0xe9170009);
 	}
 	if (editable)
@@ -434,15 +437,15 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 		desc.BindFlags = 0;
 		desc.CPUAccessFlags = D3D10_CPU_ACCESS_READ | D3D10_CPU_ACCESS_WRITE;
 		desc.MiscFlags = 0;
-		if (FAILED(Device->CreateTexture2D(&desc, NULL, &wnd_buf->EditableTex)))
+		if (FAILED(Device->CreateTexture2D(&desc, nullptr, &wnd_buf->EditableTex)))
 			THROW(0xe9170009);
 	}
 	else
-		wnd_buf->EditableTex = NULL;
+		wnd_buf->EditableTex = nullptr;
 
-	if (Callback2d != NULL)
+	if (Callback2d != nullptr)
 	{
-		IDXGISurface* surface = NULL;
+		IDXGISurface* surface = nullptr;
 		if (FAILED(wnd_buf->TmpTex->QueryInterface(&surface)))
 			THROW(0xe9170009);
 		Callback2d(0, wnd_buf, surface);
@@ -456,21 +459,21 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 void FinDrawBuf(void* wnd_buf)
 {
 	if (CurWndBuf == wnd_buf)
-		CurWndBuf = NULL;
+		CurWndBuf = nullptr;
 	SWndBuf* wnd_buf2 = static_cast<SWndBuf*>(wnd_buf);
-	if (Callback2d != NULL)
-		Callback2d(1, wnd_buf, NULL);
-	if (wnd_buf2->TmpRenderTargetView != NULL)
+	if (Callback2d != nullptr)
+		Callback2d(1, wnd_buf, nullptr);
+	if (wnd_buf2->TmpRenderTargetView != nullptr)
 		wnd_buf2->TmpRenderTargetView->Release();
-	if (wnd_buf2->TmpShaderResView != NULL)
+	if (wnd_buf2->TmpShaderResView != nullptr)
 		wnd_buf2->TmpShaderResView->Release();
-	if (wnd_buf2->TmpTex != NULL)
+	if (wnd_buf2->TmpTex != nullptr)
 		wnd_buf2->TmpTex->Release();
-	if (wnd_buf2->DepthView != NULL)
+	if (wnd_buf2->DepthView != nullptr)
 		wnd_buf2->DepthView->Release();
-	if (wnd_buf2->RenderTargetView != NULL)
+	if (wnd_buf2->RenderTargetView != nullptr)
 		wnd_buf2->RenderTargetView->Release();
-	if (wnd_buf2->SwapChain != NULL)
+	if (wnd_buf2->SwapChain != nullptr)
 		wnd_buf2->SwapChain->Release();
 	FreeMem(wnd_buf);
 }
@@ -484,8 +487,8 @@ void ActiveDrawBuf(void* wnd_buf)
 		Device->OMSetRenderTargets(1, &CurWndBuf->TmpRenderTargetView, CurWndBuf->DepthView);
 		ResetViewport();
 
-		if (Callback2d != NULL)
-			Callback2d(2, wnd_buf, NULL);
+		if (Callback2d != nullptr)
+			Callback2d(2, wnd_buf, nullptr);
 	}
 }
 
@@ -535,10 +538,158 @@ Bool MakeTexWithImg(ID3D10Texture2D** tex, ID3D10ShaderResourceView** view, ID3D
 		if (FAILED(Device->CreateShaderResourceView(*tex, &desc, view)))
 			return False;
 	}
-	if (render_target_view != NULL)
+	if (render_target_view != nullptr)
 	{
-		if (FAILED(Device->CreateRenderTargetView(*tex, NULL, render_target_view)))
+		if (FAILED(Device->CreateRenderTargetView(*tex, nullptr, render_target_view)))
 			return False;
 	}
 	return True;
+}
+
+void ConstBuf(void* shader_buf, const void* data)
+{
+	SShaderBuf* shader_buf2 = static_cast<SShaderBuf*>(shader_buf);
+	if (data != nullptr)
+	{
+		void* buf;
+		if (shader_buf2->ConstBuf->Map(D3D10_MAP_WRITE_DISCARD, 0, &buf))
+			return;
+		memcpy(buf, data, shader_buf2->ConstBufSize);
+		shader_buf2->ConstBuf->Unmap();
+	}
+
+	switch (shader_buf2->Kind)
+	{
+		case ShaderKind_Vs:
+			Device->VSSetConstantBuffers(0, 1, &shader_buf2->ConstBuf);
+			Device->VSSetShader(static_cast<ID3D10VertexShader*>(shader_buf2->Shader));
+			break;
+		case ShaderKind_Gs:
+			Device->GSSetConstantBuffers(0, 1, &shader_buf2->ConstBuf);
+			Device->GSSetShader(static_cast<ID3D10GeometryShader*>(shader_buf2->Shader));
+			break;
+		case ShaderKind_Ps:
+			Device->PSSetConstantBuffers(0, 1, &shader_buf2->ConstBuf);
+			Device->PSSetShader(static_cast<ID3D10PixelShader*>(shader_buf2->Shader));
+			break;
+		default:
+			ASSERT(False);
+			break;
+	}
+
+	if (shader_buf2->Layout != nullptr)
+		Device->IASetInputLayout(shader_buf2->Layout);
+}
+
+void VertexBuf(void* vertex_buf)
+{
+	SVertexBuf* vertex_buf2 = static_cast<SVertexBuf*>(vertex_buf);
+	const UINT stride = static_cast<UINT>(vertex_buf2->VertexLineSize);
+	const UINT offset = 0;
+	Device->IASetVertexBuffers(0, 1, &vertex_buf2->Vertex, &stride, &offset);
+	Device->IASetIndexBuffer(vertex_buf2->Idx, DXGI_FORMAT_R32_UINT, 0);
+}
+
+void ColorToArgb(double* a, double* r, double* g, double* b, S64 color)
+{
+	THROWDBG(color < 0 || 0xffffffff < color, 0xe9170006);
+	*a = static_cast<double>((color >> 24) & 0xff) / 255.0;
+	*r = Gamma(static_cast<double>((color >> 16) & 0xff) / 255.0);
+	*g = Gamma(static_cast<double>((color >> 8) & 0xff) / 255.0);
+	*b = Gamma(static_cast<double>(color & 0xff) / 255.0);
+}
+
+S64 ArgbToColor(double a, double r, double g, double b)
+{
+	if (a < 0.0)
+		a = 0.0;
+	else if (a > 1.0)
+		a = 1.0;
+	if (r < 0.0)
+		r = 0.0;
+	else if (r > 1.0)
+		r = 1.0;
+	if (g < 0.0)
+		g = 0.0;
+	else if (g > 1.0)
+		g = 1.0;
+	if (b < 0.0)
+		b = 0.0;
+	else if (b > 1.0)
+		b = 1.0;
+	return (static_cast<S64>(a * 255.0 + 0.5) << 24) |
+		(static_cast<S64>(Degamma(r) * 255.0 + 0.5) << 16) |
+		(static_cast<S64>(Degamma(g) * 255.0 + 0.5) << 8) |
+		static_cast<S64>(Degamma(b) * 255.0 + 0.5);
+}
+
+double Gamma(double value)
+{
+	return value * (value * (value * 0.305306011 + 0.682171111) + 0.012522878);
+}
+
+double Degamma(double value)
+{
+	value = 1.055 * pow(value, 0.416666667) - 0.055;
+	if (value < 0.0)
+		value = 0.0;
+	return value;
+}
+
+void SetJointMat(const void* element, double frame, float(*joint)[4][4])
+{
+	const SObj::SPolygon* element2 = static_cast<const SObj::SPolygon*>(element);
+	for (int i = 0; i < element2->JointNum; i++)
+	{
+		int offset = i * (element2->End - element2->Begin + 1);
+		int mat_a = static_cast<int>(frame);
+		int mat_b = mat_a == element2->End ? mat_a : mat_a + 1;
+		float rate_b = static_cast<float>(frame - static_cast<double>(static_cast<int>(frame)));
+		float rate_a = 1.0f - rate_b;
+		for (int j = 0; j < 4; j++)
+		{
+			for (int k = 0; k < 4; k++)
+				joint[i][j][k] = rate_a * element2->Joints[offset + mat_a][j][k] + rate_b * element2->Joints[offset + mat_b][j][k];
+		}
+	}
+}
+
+void MulMat(double out[4][4], const double a[4][4], const double b[4][4])
+{
+	out[0][0] = a[0][0] * b[0][0] + a[1][0] * b[0][1] + a[2][0] * b[0][2] + a[3][0] * b[0][3];
+	out[0][1] = a[0][1] * b[0][0] + a[1][1] * b[0][1] + a[2][1] * b[0][2] + a[3][1] * b[0][3];
+	out[0][2] = a[0][2] * b[0][0] + a[1][2] * b[0][1] + a[2][2] * b[0][2] + a[3][2] * b[0][3];
+	out[0][3] = a[0][3] * b[0][0] + a[1][3] * b[0][1] + a[2][3] * b[0][2] + a[3][3] * b[0][3];
+	out[1][0] = a[0][0] * b[1][0] + a[1][0] * b[1][1] + a[2][0] * b[1][2] + a[3][0] * b[1][3];
+	out[1][1] = a[0][1] * b[1][0] + a[1][1] * b[1][1] + a[2][1] * b[1][2] + a[3][1] * b[1][3];
+	out[1][2] = a[0][2] * b[1][0] + a[1][2] * b[1][1] + a[2][2] * b[1][2] + a[3][2] * b[1][3];
+	out[1][3] = a[0][3] * b[1][0] + a[1][3] * b[1][1] + a[2][3] * b[1][2] + a[3][3] * b[1][3];
+	out[2][0] = a[0][0] * b[2][0] + a[1][0] * b[2][1] + a[2][0] * b[2][2] + a[3][0] * b[2][3];
+	out[2][1] = a[0][1] * b[2][0] + a[1][1] * b[2][1] + a[2][1] * b[2][2] + a[3][1] * b[2][3];
+	out[2][2] = a[0][2] * b[2][0] + a[1][2] * b[2][1] + a[2][2] * b[2][2] + a[3][2] * b[2][3];
+	out[2][3] = a[0][3] * b[2][0] + a[1][3] * b[2][1] + a[2][3] * b[2][2] + a[3][3] * b[2][3];
+	out[3][0] = a[0][0] * b[3][0] + a[1][0] * b[3][1] + a[2][0] * b[3][2] + a[3][0] * b[3][3];
+	out[3][1] = a[0][1] * b[3][0] + a[1][1] * b[3][1] + a[2][1] * b[3][2] + a[3][1] * b[3][3];
+	out[3][2] = a[0][2] * b[3][0] + a[1][2] * b[3][1] + a[2][2] * b[3][2] + a[3][2] * b[3][3];
+	out[3][3] = a[0][3] * b[3][0] + a[1][3] * b[3][1] + a[2][3] * b[3][2] + a[3][3] * b[3][3];
+}
+
+void SetProjViewMat(float out[4][4], const double proj[4][4], const double view[4][4])
+{
+	out[0][0] = static_cast<float>(proj[0][0] * view[0][0] + proj[1][0] * view[0][1] + proj[2][0] * view[0][2] + proj[3][0] * view[0][3]);
+	out[0][1] = static_cast<float>(proj[0][1] * view[0][0] + proj[1][1] * view[0][1] + proj[2][1] * view[0][2] + proj[3][1] * view[0][3]);
+	out[0][2] = static_cast<float>(proj[0][2] * view[0][0] + proj[1][2] * view[0][1] + proj[2][2] * view[0][2] + proj[3][2] * view[0][3]);
+	out[0][3] = static_cast<float>(proj[0][3] * view[0][0] + proj[1][3] * view[0][1] + proj[2][3] * view[0][2] + proj[3][3] * view[0][3]);
+	out[1][0] = static_cast<float>(proj[0][0] * view[1][0] + proj[1][0] * view[1][1] + proj[2][0] * view[1][2] + proj[3][0] * view[1][3]);
+	out[1][1] = static_cast<float>(proj[0][1] * view[1][0] + proj[1][1] * view[1][1] + proj[2][1] * view[1][2] + proj[3][1] * view[1][3]);
+	out[1][2] = static_cast<float>(proj[0][2] * view[1][0] + proj[1][2] * view[1][1] + proj[2][2] * view[1][2] + proj[3][2] * view[1][3]);
+	out[1][3] = static_cast<float>(proj[0][3] * view[1][0] + proj[1][3] * view[1][1] + proj[2][3] * view[1][2] + proj[3][3] * view[1][3]);
+	out[2][0] = static_cast<float>(proj[0][0] * view[2][0] + proj[1][0] * view[2][1] + proj[2][0] * view[2][2] + proj[3][0] * view[2][3]);
+	out[2][1] = static_cast<float>(proj[0][1] * view[2][0] + proj[1][1] * view[2][1] + proj[2][1] * view[2][2] + proj[3][1] * view[2][3]);
+	out[2][2] = static_cast<float>(proj[0][2] * view[2][0] + proj[1][2] * view[2][1] + proj[2][2] * view[2][2] + proj[3][2] * view[2][3]);
+	out[2][3] = static_cast<float>(proj[0][3] * view[2][0] + proj[1][3] * view[2][1] + proj[2][3] * view[2][2] + proj[3][3] * view[2][3]);
+	out[3][0] = static_cast<float>(proj[0][0] * view[3][0] + proj[1][0] * view[3][1] + proj[2][0] * view[3][2] + proj[3][0] * view[3][3]);
+	out[3][1] = static_cast<float>(proj[0][1] * view[3][0] + proj[1][1] * view[3][1] + proj[2][1] * view[3][2] + proj[3][1] * view[3][3]);
+	out[3][2] = static_cast<float>(proj[0][2] * view[3][0] + proj[1][2] * view[3][1] + proj[2][2] * view[3][2] + proj[3][2] * view[3][3]);
+	out[3][3] = static_cast<float>(proj[0][3] * view[3][0] + proj[1][3] * view[3][1] + proj[2][3] * view[3][2] + proj[3][3] * view[3][3]);
 }

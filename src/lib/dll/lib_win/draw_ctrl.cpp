@@ -7,14 +7,14 @@ EXPORT_CPP void _drawDtor(SClass* me_)
 {
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
 	SDraw* me3 = reinterpret_cast<SDraw*>(me_);
-	if (me3->DrawBuf != NULL)
+	if (me3->DrawBuf != nullptr)
 		FinDrawBuf(me3->DrawBuf);
 	DestroyWindow(me2->WndHandle);
 }
 
 EXPORT_CPP void _drawPaint(SClass* me_)
 {
-	InvalidateRect(reinterpret_cast<SWndBase*>(me_)->WndHandle, NULL, FALSE);
+	InvalidateRect(reinterpret_cast<SWndBase*>(me_)->WndHandle, nullptr, FALSE);
 }
 
 EXPORT_CPP void _drawHideCaret(SClass* me_)
@@ -59,9 +59,9 @@ EXPORT_CPP void _drawMoveCaret(SClass* me_, S64 x, S64 y)
 EXPORT_CPP void _drawShowCaret(SClass* me_, S64 height, SClass* font)
 {
 	HWND wnd_handle = reinterpret_cast<SWndBase*>(me_)->WndHandle;
-	CreateCaret(wnd_handle, NULL, 2, static_cast<int>(height));
+	CreateCaret(wnd_handle, nullptr, 2, static_cast<int>(height));
 	ShowCaret(wnd_handle);
-	if (font != NULL)
+	if (font != nullptr)
 	{
 		LOGFONT log_font;
 		HIMC imc = ImmGetContext(wnd_handle);
@@ -87,6 +87,12 @@ EXPORT_CPP SClass* _makeDrawReduced(SClass* me_, SClass* parent, S64 x, S64 y, S
 	return MakeDrawImpl(me_, parent, x, y, width, height, anchorX, anchorY, equalMagnification, False, static_cast<int>(split));
 }
 
+EXPORT_CPP void _target(SClass* draw_ctrl)
+{
+	SDraw* draw_ctrl2 = reinterpret_cast<SDraw*>(draw_ctrl);
+	ActiveDrawBuf(draw_ctrl2->DrawBuf);
+}
+
 static SClass* MakeDrawImpl(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchor_x, S64 anchor_y, Bool equal_magnification, Bool editable, int split)
 {
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
@@ -104,30 +110,30 @@ static SClass* MakeDrawImpl(SClass* me_, SClass* parent, S64 x, S64 y, S64 width
 		GetWindowRect(me2->WndHandle, &rect);
 		int width2 = static_cast<int>(rect.right - rect.left);
 		int height2 = static_cast<int>(rect.bottom - rect.top);
-		me3->DrawBuf = MakeDrawBuf(width2, height2, 1, me2->WndHandle, NULL, editable);
+		me3->DrawBuf = MakeDrawBuf(width2, height2, 1, me2->WndHandle, nullptr, editable);
 	}
 	else
-		me3->DrawBuf = MakeDrawBuf(static_cast<int>(width), static_cast<int>(height), split, me2->WndHandle, NULL, editable);
-	me3->OnPaint = NULL;
-	me3->OnMouseDownL = NULL;
-	me3->OnMouseDownR = NULL;
-	me3->OnMouseDownM = NULL;
-	me3->OnMouseDoubleClick = NULL;
-	me3->OnMouseUpL = NULL;
-	me3->OnMouseUpR = NULL;
-	me3->OnMouseUpM = NULL;
-	me3->OnMouseMove = NULL;
-	me3->OnMouseEnter = NULL;
-	me3->OnMouseLeave = NULL;
-	me3->OnMouseWheelX = NULL;
-	me3->OnMouseWheelY = NULL;
-	me3->OnFocus = NULL;
-	me3->OnKeyDown = NULL;
-	me3->OnKeyUp = NULL;
-	me3->OnKeyChar = NULL;
-	me3->OnScrollX = NULL;
-	me3->OnScrollY = NULL;
-	me3->OnSetMouseImg = NULL;
+		me3->DrawBuf = MakeDrawBuf(static_cast<int>(width), static_cast<int>(height), split, me2->WndHandle, nullptr, editable);
+	me3->OnPaint = nullptr;
+	me3->OnMouseDownL = nullptr;
+	me3->OnMouseDownR = nullptr;
+	me3->OnMouseDownM = nullptr;
+	me3->OnMouseDoubleClick = nullptr;
+	me3->OnMouseUpL = nullptr;
+	me3->OnMouseUpR = nullptr;
+	me3->OnMouseUpM = nullptr;
+	me3->OnMouseMove = nullptr;
+	me3->OnMouseEnter = nullptr;
+	me3->OnMouseLeave = nullptr;
+	me3->OnMouseWheelX = nullptr;
+	me3->OnMouseWheelY = nullptr;
+	me3->OnFocus = nullptr;
+	me3->OnKeyDown = nullptr;
+	me3->OnKeyUp = nullptr;
+	me3->OnKeyChar = nullptr;
+	me3->OnScrollX = nullptr;
+	me3->OnScrollY = nullptr;
+	me3->OnSetMouseImg = nullptr;
 	return me_;
 }
 
@@ -139,7 +145,7 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 	switch (msg)
 	{
 		case WM_PAINT:
-			if (wnd3->OnPaint != NULL)
+			if (wnd3->OnPaint != nullptr)
 			{
 				RECT rect;
 				GetClientRect(wnd, &rect);
@@ -155,50 +161,50 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 				EndPaint(wnd, &ps);
 			}
 			else
-				ValidateRect(wnd, NULL);
+				ValidateRect(wnd, nullptr);
 			return 0;
 		case WM_LBUTTONDOWN:
 			SetFocus(wnd);
-			if (wnd3->OnMouseDownL != NULL)
+			if (wnd3->OnMouseDownL != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseDownL);
 			return 0;
 		case WM_LBUTTONDBLCLK:
 			SetFocus(wnd);
-			if (wnd3->OnMouseDownL != NULL)
+			if (wnd3->OnMouseDownL != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseDownL);
-			if (wnd3->OnMouseDoubleClick != NULL)
+			if (wnd3->OnMouseDoubleClick != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseDoubleClick);
 			return 0;
 		case WM_LBUTTONUP:
-			if (wnd3->OnMouseUpL != NULL)
+			if (wnd3->OnMouseUpL != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseUpL);
 			return 0;
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONDBLCLK:
-			if (wnd3->OnMouseDownR != NULL)
+			if (wnd3->OnMouseDownR != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseDownR);
 			return 0;
 		case WM_RBUTTONUP:
-			if (wnd3->OnMouseUpR != NULL)
+			if (wnd3->OnMouseUpR != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseUpR);
 			return 0;
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONDBLCLK:
-			if (wnd3->OnMouseDownM != NULL)
+			if (wnd3->OnMouseDownM != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseDownM);
 			return 0;
 		case WM_MBUTTONUP:
-			if (wnd3->OnMouseUpM != NULL)
+			if (wnd3->OnMouseUpM != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseUpM);
 			return 0;
 		case WM_MOUSEMOVE:
 			if (!wnd3->Enter)
 			{
 				wnd3->Enter = True;
-				if (wnd3->OnMouseEnter != NULL)
+				if (wnd3->OnMouseEnter != nullptr)
 					Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseEnter);
 			}
-			if (wnd3->OnMouseMove != NULL)
+			if (wnd3->OnMouseMove != nullptr)
 				Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(LOWORD(l_param)))), reinterpret_cast<void*>(static_cast<S64>(static_cast<S16>(HIWORD(l_param)))), wnd3->OnMouseMove);
 			{
 				TRACKMOUSEEVENT track_mouse_event;
@@ -211,11 +217,11 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 			return 0;
 		case WM_MOUSELEAVE:
 			wnd3->Enter = False;
-			if (wnd3->OnMouseLeave != NULL)
+			if (wnd3->OnMouseLeave != nullptr)
 				Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), wnd3->OnMouseLeave);
 			return 0;
 		case WM_MOUSEWHEEL:
-			if (wnd3->OnMouseWheelY != NULL)
+			if (wnd3->OnMouseWheelY != nullptr)
 			{
 				S64 wheel = 0;
 				wnd3->WheelY += static_cast<S16>(HIWORD(w_param));
@@ -234,7 +240,7 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 			}
 			return 0;
 		case WM_MOUSEHWHEEL:
-			if (wnd3->OnMouseWheelX != NULL)
+			if (wnd3->OnMouseWheelX != nullptr)
 			{
 				S64 wheel = 0;
 				wnd3->WheelX += static_cast<S16>(HIWORD(w_param));
@@ -253,11 +259,11 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 			}
 			return 0;
 		case WM_SETFOCUS:
-			if (wnd3->OnFocus != NULL)
+			if (wnd3->OnFocus != nullptr)
 				Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<U64>(True)), wnd3->OnFocus);
 			return 0;
 		case WM_KILLFOCUS:
-			if (wnd3->OnFocus != NULL)
+			if (wnd3->OnFocus != nullptr)
 				Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<U64>(False)), wnd3->OnFocus);
 			return 0;
 		case WM_KEYDOWN:
@@ -265,7 +271,7 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 				U64 shiftCtrl = 0;
 				shiftCtrl |= (GetKeyState(VK_SHIFT) & 0x8000) != 0 ? 1 : 0;
 				shiftCtrl |= (GetKeyState(VK_CONTROL) & 0x8000) != 0 ? 2 : 0;
-				if (wnd3->OnKeyDown != NULL)
+				if (wnd3->OnKeyDown != nullptr)
 					Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<U64>(w_param)), reinterpret_cast<void*>(shiftCtrl), wnd3->OnKeyDown);
 			}
 			return 0;
@@ -274,12 +280,12 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 				U64 shiftCtrl = 0;
 				shiftCtrl |= (GetKeyState(VK_SHIFT) & 0x8000) != 0 ? 1 : 0;
 				shiftCtrl |= (GetKeyState(VK_CONTROL) & 0x8000) != 0 ? 2 : 0;
-				if (wnd3->OnKeyUp != NULL)
+				if (wnd3->OnKeyUp != nullptr)
 					Call3Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<U64>(w_param)), reinterpret_cast<void*>(shiftCtrl), wnd3->OnKeyUp);
 			}
 			return 0;
 		case WM_CHAR:
-			if (wnd3->OnKeyChar != NULL)
+			if (wnd3->OnKeyChar != nullptr)
 				Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<U64>(w_param)), wnd3->OnKeyChar);
 			return 0;
 		case WM_SIZE:
@@ -335,12 +341,12 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 				SetScrollInfo(scroll, SB_CTL, &info, TRUE);
 				if (msg == WM_HSCROLL)
 				{
-					if (wnd3->OnScrollX != NULL)
+					if (wnd3->OnScrollX != nullptr)
 						Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(info.nPos)), wnd3->OnScrollX);
 				}
 				else
 				{
-					if (wnd3->OnScrollY != NULL)
+					if (wnd3->OnScrollY != nullptr)
 						Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<S64>(info.nPos)), wnd3->OnScrollY);
 				}
 			}
@@ -349,7 +355,7 @@ static LRESULT CALLBACK WndProcDraw(HWND wnd, UINT msg, WPARAM w_param, LPARAM l
 			if (wnd3->OnSetMouseImg)
 			{
 				S64 img = (S64)Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), wnd3->OnSetMouseImg);
-				SetCursor(LoadCursor(NULL, MAKEINTRESOURCE(img)));
+				SetCursor(LoadCursor(nullptr, MAKEINTRESOURCE(img)));
 				return 1;
 			}
 			break;

@@ -511,7 +511,7 @@ static void DecodeSos(SJpgData* jpg_data)
 					{
 						U8* out = &c->Pixels[((mby * c->Ssy + sby) * c->Stride + mbx * c->Ssx + sbx) << 3];
 						memset(jpg_data->Block, 0, sizeof(jpg_data->Block));
-						c->Dcpred += GetVlc(jpg_data, &jpg_data->VlcTab[c->Dctabsel][0], NULL);
+						c->Dcpred += GetVlc(jpg_data, &jpg_data->VlcTab[c->Dctabsel][0], nullptr);
 						jpg_data->Block[0] = c->Dcpred * jpg_data->QTab[c->Qtsel][0];
 						int coef = 0;
 						do

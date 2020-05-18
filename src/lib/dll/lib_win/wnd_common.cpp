@@ -9,7 +9,7 @@ static void ParseAnchor(SWndBase* wnd, S64 anchor_x, S64 anchor_y, S64 x, S64 y,
 
 SClass* IncWndRef(SClass* wnd)
 {
-	if (wnd != NULL)
+	if (wnd != nullptr)
 		wnd->RefCnt++;
 	return wnd;
 }
@@ -22,7 +22,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		{
 			// A menu item is clicked.
 			SWnd* wnd2 = reinterpret_cast<SWnd*>(ToWnd(wnd));
-			if (wnd2->OnPushMenu != NULL)
+			if (wnd2->OnPushMenu != nullptr)
 				Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd2)), reinterpret_cast<void*>(static_cast<U64>(LOWORD(w_param))), wnd2->OnPushMenu);
 			return;
 		}
@@ -39,7 +39,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 							// TODO:
 							break;
 						case BN_CLICKED:
-							if (btn->OnPush != NULL)
+							if (btn->OnPush != nullptr)
 								Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), btn->OnPush);
 							break;
 						case BN_DBLCLK:
@@ -63,7 +63,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 					switch (HIWORD(w_param))
 					{
 						case BN_CLICKED:
-							if (chk->OnPush != NULL)
+							if (chk->OnPush != nullptr)
 								Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), chk->OnPush);
 							break;
 					}
@@ -75,7 +75,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 					switch (HIWORD(w_param))
 					{
 						case BN_CLICKED:
-							if (radio->OnPush != NULL)
+							if (radio->OnPush != nullptr)
 								Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), radio->OnPush);
 							break;
 					}
@@ -88,18 +88,18 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 					switch (HIWORD(w_param))
 					{
 						case EN_CHANGE:
-							if (reinterpret_cast<SEditBase*>(edit)->OnChange != NULL)
+							if (reinterpret_cast<SEditBase*>(edit)->OnChange != nullptr)
 								Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), reinterpret_cast<SEditBase*>(edit)->OnChange);
 							break;
 						case EN_HSCROLL:
 							// TODO:
 							break;
 						case EN_KILLFOCUS:
-							if (reinterpret_cast<SEditBase*>(edit)->OnFocus != NULL)
+							if (reinterpret_cast<SEditBase*>(edit)->OnFocus != nullptr)
 								Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), reinterpret_cast<void*>(static_cast<U64>(False)), reinterpret_cast<SEditBase*>(edit)->OnFocus);
 							break;
 						case EN_SETFOCUS:
-							if (reinterpret_cast<SEditBase*>(edit)->OnFocus != NULL)
+							if (reinterpret_cast<SEditBase*>(edit)->OnFocus != nullptr)
 								Call2Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), reinterpret_cast<void*>(static_cast<U64>(True)), reinterpret_cast<SEditBase*>(edit)->OnFocus);
 							break;
 						case EN_UPDATE:
@@ -120,7 +120,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 							// TODO:
 							break;
 						case LBN_SELCHANGE:
-							if (list->OnSel != NULL)
+							if (list->OnSel != nullptr)
 								Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), list->OnSel);
 							break;
 						case LBN_SETFOCUS:
@@ -136,7 +136,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		ASSERT(msg == WM_NOTIFY);
 		HWND wnd_ctrl = reinterpret_cast<LPNMHDR>(l_param)->hwndFrom;
 		SWndBase* wnd_ctrl2 = ToWnd(wnd_ctrl);
-		if (wnd_ctrl2 != NULL)
+		if (wnd_ctrl2 != nullptr)
 		{
 			switch (wnd_ctrl2->Kind)
 			{
@@ -167,7 +167,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 								// TODO:
 								break;
 							case TCN_SELCHANGE:
-								if (tab->OnSel != NULL)
+								if (tab->OnSel != nullptr)
 									Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), tab->OnSel);
 								break;
 							case TCN_SELCHANGING:
@@ -188,12 +188,12 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 									HIMAGELIST img_drag = TreeView_CreateDragImage(wnd_ctrl, param->itemNew.hItem);
 									ImageList_BeginDrag(img_drag, 0, 0, 0);
 									ClientToScreen(wnd_ctrl, &param->ptDrag);
-									ImageList_DragEnter(NULL, param->ptDrag.x, param->ptDrag.y);
+									ImageList_DragEnter(nullptr, param->ptDrag.x, param->ptDrag.y);
 									tree->DraggingItem = param->itemNew.hItem;
 								}
 								break;
 							case TVN_SELCHANGED:
-								if (tree->OnSel != NULL)
+								if (tree->OnSel != nullptr)
 									Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), tree->OnSel);
 								break;
 						}
@@ -205,7 +205,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 						switch (reinterpret_cast<LPNMHDR>(l_param)->code)
 						{
 							case LVN_ITEMCHANGED:
-								if (list_view->OnSel != NULL)
+								if (list_view->OnSel != nullptr)
 								{
 									NMLISTVIEW* param = reinterpret_cast<NMLISTVIEW*>(l_param);
 									if ((param->uOldState & LVIS_SELECTED) != (param->uNewState & LVIS_SELECTED))
@@ -213,7 +213,7 @@ void CommandAndNotify(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param)
 								}
 								break;
 							case NM_CLICK:
-								if (list_view->OnMouseClick != NULL)
+								if (list_view->OnMouseClick != nullptr)
 									Call1Asm(IncWndRef(reinterpret_cast<SClass*>(wnd_ctrl2)), list_view->OnMouseClick);
 								break;
 							case LVN_BEGINDRAG:
@@ -288,7 +288,7 @@ BOOL CALLBACK ResizeCallback(HWND wnd, LPARAM l_param)
 		else
 			new_height = static_cast<int>(wnd2->DefaultHeight) + parent_height_diff; // scale
 	}
-	SetWindowPos(wnd, NULL, new_x, new_y, new_width, new_height, SWP_NOZORDER);
+	SetWindowPos(wnd, nullptr, new_x, new_y, new_width, new_height, SWP_NOZORDER);
 	return TRUE;
 }
 
@@ -377,14 +377,14 @@ const U8* RNToN(const Char* str)
 
 void SetCtrlParam(SWndBase* wnd, SWndBase* parent, EWndKind kind, const Char* ctrl, DWORD style_ex, DWORD style, S64 x, S64 y, S64 width, S64 height, const Char* text, WNDPROC wnd_proc, S64 anchor_x, S64 anchor_y)
 {
-	THROWDBG(parent == NULL, 0xe9170006);
+	THROWDBG(parent == nullptr, 0xe9170006);
 	THROWDBG(x < 0 || y < 0 || width < 0 || height < 0, 0xe9170006);
 	wnd->Kind = kind;
-	wnd->WndHandle = CreateWindowEx(style_ex, ctrl, text, style, static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height), parent->WndHandle, NULL, Instance, NULL);
-	if (wnd->WndHandle == NULL)
+	wnd->WndHandle = CreateWindowEx(style_ex, ctrl, text, style, static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height), parent->WndHandle, nullptr, Instance, nullptr);
+	if (wnd->WndHandle == nullptr)
 		THROW(0xe9170009);
 	SetWindowLongPtr(wnd->WndHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(wnd));
-	wnd->Name = NULL;
+	wnd->Name = nullptr;
 	wnd->DefaultWndProc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(wnd->WndHandle, GWLP_WNDPROC));
 	wnd->RedrawEnabled = True;
 	wnd->Children = AllocMem(0x28);
@@ -435,7 +435,7 @@ static void ParseAnchor(SWndBase* wnd, S64 anchor_x, S64 anchor_y, S64 x, S64 y,
 	wnd->DefaultY = static_cast<U16>(y);
 	wnd->DefaultWidth = static_cast<U16>(width);
 	wnd->DefaultHeight = static_cast<U16>(height);
-	ResizeCallback(wnd->WndHandle, NULL);
+	ResizeCallback(wnd->WndHandle, 0);
 }
 
 // TODO:
@@ -455,13 +455,7 @@ static LRESULT CALLBACK WndProcSplitY(HWND wnd, UINT msg, WPARAM w_param, LPARAM
 EXPORT_CPP void* _openFileDialogMulti(SClass* parent, const U8* filter, S64 defaultFilter)
 {
 	// TODO:
-	return NULL;
-}
-
-EXPORT_CPP void _target(SClass* draw_ctrl)
-{
-	SDraw* draw_ctrl2 = reinterpret_cast<SDraw*>(draw_ctrl);
-	Draw::ActiveDrawBuf(draw_ctrl2->DrawBuf);
+	return nullptr;
 }
 
 EXPORT_CPP SClass* _makeCalendar(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchorX, S64 anchorY)

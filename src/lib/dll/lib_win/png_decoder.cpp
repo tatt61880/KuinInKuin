@@ -179,10 +179,10 @@ static void Decode(SPngData* png_data, U8* argb)
 		png_data->WindowBuf = static_cast<U8*>(AllocMem(window_size));
 		U32 window_used = 0;
 
-		SHuffmanTree* code_tree = NULL;
-		SHuffmanTree* code_tree_ptr = NULL;
-		SHuffmanTree* dist_tree = NULL;
-		SHuffmanTree* dist_tree_ptr = NULL;
+		SHuffmanTree* code_tree = nullptr;
+		SHuffmanTree* code_tree_ptr = nullptr;
+		SHuffmanTree* dist_tree = nullptr;
+		SHuffmanTree* dist_tree_ptr = nullptr;
 		for (; ; )
 		{
 			U32 bfinal = GetNextBit(png_data, &cur_data, &byte_ptr, &bit_ptr);
@@ -207,7 +207,7 @@ static void Decode(SPngData* png_data, U8* argb)
 			}
 			else if (btype == 1 || btype == 2)
 			{
-				code_tree = NULL;
+				code_tree = nullptr;
 				if (btype == 1)
 				{
 					U32 h_length[288], h_code[288];
@@ -234,7 +234,7 @@ static void Decode(SPngData* png_data, U8* argb)
 						}
 					}
 					code_tree = MakeHuffmanTree(288, h_length, h_code);
-					dist_tree = NULL;
+					dist_tree = nullptr;
 				}
 				else
 				{
@@ -266,7 +266,7 @@ static void Decode(SPngData* png_data, U8* argb)
 							length_tree_ptr = length_tree_ptr->One;
 						else
 							length_tree_ptr = length_tree_ptr->Zero;
-						if (length_tree_ptr->Zero == NULL && length_tree_ptr->One == NULL)
+						if (length_tree_ptr->Zero == nullptr && length_tree_ptr->One == nullptr)
 						{
 							U32 v = length_tree_ptr->Data, copylength;
 							if (v <= 15)
@@ -314,7 +314,7 @@ static void Decode(SPngData* png_data, U8* argb)
 					dist_tree = MakeHuffmanTree(static_cast<int>(h_dist + 1), h_length_dist, h_code_dist);
 				}
 				code_tree_ptr = code_tree;
-				if (code_tree != NULL)
+				if (code_tree != nullptr)
 				{
 					for (; ; )
 					{
@@ -322,9 +322,9 @@ static void Decode(SPngData* png_data, U8* argb)
 							code_tree_ptr = code_tree_ptr->One;
 						else
 							code_tree_ptr = code_tree_ptr->Zero;
-						if (code_tree_ptr == NULL)
+						if (code_tree_ptr == nullptr)
 							THROW(0xe9170008);
-						if (code_tree_ptr->Zero == NULL && code_tree_ptr->One == NULL)
+						if (code_tree_ptr->Zero == nullptr && code_tree_ptr->One == nullptr)
 						{
 							U32 value = code_tree_ptr->Data;
 							if (value < 256)
@@ -364,7 +364,7 @@ static void Decode(SPngData* png_data, U8* argb)
 								else
 								{
 									dist_tree_ptr = dist_tree;
-									while (dist_tree_ptr->Zero != NULL || dist_tree_ptr->One != NULL)
+									while (dist_tree_ptr->Zero != nullptr || dist_tree_ptr->One != nullptr)
 									{
 										if (GetNextBit(png_data, &cur_data, &byte_ptr, &bit_ptr))
 											dist_tree_ptr = dist_tree_ptr->One;
@@ -400,8 +400,8 @@ static void Decode(SPngData* png_data, U8* argb)
 				}
 				DeleteHuffmanTree(code_tree);
 				DeleteHuffmanTree(dist_tree);
-				code_tree = NULL;
-				dist_tree = NULL;
+				code_tree = nullptr;
+				dist_tree = nullptr;
 			}
 			else
 				THROW(0xe9170008);
@@ -410,9 +410,9 @@ static void Decode(SPngData* png_data, U8* argb)
 		}
 	}
 	FreeMem(png_data->WindowBuf);
-	png_data->WindowBuf = NULL;
+	png_data->WindowBuf = nullptr;
 	FreeMem(png_data->TwoLine);
-	png_data->TwoLine = NULL;
+	png_data->TwoLine = nullptr;
 }
 
 static void Output(SPngData* png_data, U8* argb, U8 data)
@@ -499,7 +499,7 @@ static void Output(SPngData* png_data, U8* argb, U8 data)
 		{
 			png_data->Y++;
 			png_data->X = -1;
-			if (png_data->TwoLine != NULL)
+			if (png_data->TwoLine != nullptr)
 			{
 				U8* swap = png_data->CurLine;
 				png_data->CurLine = png_data->PrvLine;
@@ -627,7 +627,7 @@ static void Output(SPngData* png_data, U8* argb, U8 data)
 		{
 			png_data->Y++;
 			png_data->X = -1;
-			if (png_data->TwoLine != NULL)
+			if (png_data->TwoLine != nullptr)
 			{
 				U8* swap = png_data->CurLine;
 				png_data->CurLine = png_data->PrvLine;
@@ -680,13 +680,13 @@ static SHuffmanTree* MakeHuffmanTree(int n, U32* h_length, U32* h_code)
 			{
 				if ((h_code[i] & mask) != 0)
 				{
-					if (ptr->One == NULL)
+					if (ptr->One == nullptr)
 						ptr->One = NewHuffmanTree();
 					ptr = ptr->One;
 				}
 				else
 				{
-					if (ptr->Zero == NULL)
+					if (ptr->Zero == nullptr)
 						ptr->Zero = NewHuffmanTree();
 					ptr = ptr->Zero;
 				}
@@ -701,8 +701,8 @@ static SHuffmanTree* MakeHuffmanTree(int n, U32* h_length, U32* h_code)
 static SHuffmanTree* NewHuffmanTree()
 {
 	SHuffmanTree* result = static_cast<SHuffmanTree*>(AllocMem(sizeof(SHuffmanTree)));
-	result->Zero = NULL;
-	result->One = NULL;
+	result->Zero = nullptr;
+	result->One = nullptr;
 	result->Data = 0x7fffffff;
 	result->Weight = 0;
 	result->Depth = 1;
@@ -711,7 +711,7 @@ static SHuffmanTree* NewHuffmanTree()
 
 static void DeleteHuffmanTree(SHuffmanTree* node)
 {
-	if (node != NULL)
+	if (node != nullptr)
 	{
 		DeleteHuffmanTree(node->Zero);
 		DeleteHuffmanTree(node->One);

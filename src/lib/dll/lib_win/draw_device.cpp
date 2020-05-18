@@ -9,11 +9,10 @@ static const FLOAT BlendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 static S64 Cnt;
 static U32 PrevTime;
-static int CurZBuf = -1;
-static int CurBlend = -1;
-static int CurSampler = -1;
 static double ViewMat[4][4];
 static double ProjMat[4][4];
+static int FilterIdx = 0;
+static float FilterParam[4][4];
 
 const U8* GetTriVsBin(size_t* size);
 const U8* GetTriPsBin(size_t* size);
@@ -58,14 +57,10 @@ const U8* GetParticle2dVsBin(size_t* size);
 const U8* GetParticle2dPsBin(size_t* size);
 const U8* GetParticleUpdatingVsBin(size_t* size);
 const U8* GetParticleUpdatingPsBin(size_t* size);
-const U8* GetPolyVsBin(size_t* size);
-const U8* GetPolyPsBin(size_t* size);
 const U8* GetToonRampPngBin(size_t* size);
-const U8* GetBoxKnobjBin(size_t* size);
-const U8* GetSphereKnobjBin(size_t* size);
-const U8* GetPlaneKnobjBin(size_t* size);
 
-static void SetProjViewMat(float out[4][4], const double proj[4][4], const double view[4][4]);
+static void WriteBack();
+static void Clear();
 
 EXPORT_CPP void _drawInit()
 {
@@ -88,7 +83,7 @@ EXPORT_CPP void _drawInit()
 		{
 			for (int j = 0; j < sizeof(level) / sizeof(level[0]); j++)
 			{
-				if (SUCCEEDED(D3D10CreateDevice1(NULL, type[i], NULL, D3D10_CREATE_DEVICE_BGRA_SUPPORT, level[j], D3D10_1_SDK_VERSION, &Device)))
+				if (SUCCEEDED(D3D10CreateDevice1(nullptr, type[i], nullptr, D3D10_CREATE_DEVICE_BGRA_SUPPORT, level[j], D3D10_1_SDK_VERSION, &Device)))
 				{
 					success = True;
 					break;
@@ -102,6 +97,9 @@ EXPORT_CPP void _drawInit()
 	}
 
 	Cnt = 0;
+	CurZBuf = -1;
+	CurBlend = -1;
+	CurSampler = -1;
 	PrevTime = static_cast<U32>(timeGetTime());
 
 	// Create a rasterizer state.
@@ -302,7 +300,7 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetTriPsBin(&size);
-				ShaderBufs[ShaderBuf_TriPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_TriPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, nullptr, nullptr);
 			}
 		}
 	}
@@ -418,7 +416,7 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetCirclePsBin(&size);
-				ShaderBufs[ShaderBuf_CirclePs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 8, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_CirclePs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 8, 0, nullptr, nullptr);
 			}
 		}
 
@@ -426,7 +424,7 @@ EXPORT_CPP void _drawInit()
 		{
 			size_t size;
 			const U8* bin = GetCircleLinePsBin(&size);
-			ShaderBufs[ShaderBuf_CircleLinePs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 8, 0, NULL, NULL);
+			ShaderBufs[ShaderBuf_CircleLinePs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 8, 0, nullptr, nullptr);
 		}
 	}
 
@@ -456,12 +454,12 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetTexPsBin(&size);
-				ShaderBufs[ShaderBuf_TexPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_TexPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetFontPsBin(&size);
-				ShaderBufs[ShaderBuf_FontPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_FontPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, nullptr, nullptr);
 			}
 		}
 	}
@@ -499,22 +497,22 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetObjPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetObjSmPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetObjToonPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjToonPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjToonPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetObjToonSmPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjToonSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjToonSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjPsConstBuf), 0, nullptr, nullptr);
 			}
 		}
 		{
@@ -582,22 +580,22 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetObjFastPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjFastPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjFastPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetObjFastSmPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjFastSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjFastSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetObjToonFastPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjToonFastPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjToonFastPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, nullptr, nullptr);
 			}
 			{
 				size_t size;
 				const U8* bin = GetObjToonFastSmPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjToonFastSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjToonFastSmPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, nullptr, nullptr);
 			}
 		}
 		{
@@ -660,7 +658,7 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetObjFlatPsBin(&size);
-				ShaderBufs[ShaderBuf_ObjFlatPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjFlatPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjFastPsConstBuf), 0, nullptr, nullptr);
 			}
 		}
 		{
@@ -766,7 +764,7 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetObjOutlinePsBin(&size);
-				ShaderBufs[ShaderBuf_ObjOutlinePs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjOutlinePsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ObjOutlinePs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SObjOutlinePsConstBuf), 0, nullptr, nullptr);
 			}
 		}
 		{
@@ -880,13 +878,13 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetFilterNonePsBin(&size);
-				ShaderBufs[ShaderBuf_Filter0Ps] = MakeShaderBuf(ShaderKind_Ps, size, bin, 0, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_Filter0Ps] = MakeShaderBuf(ShaderKind_Ps, size, bin, 0, 0, nullptr, nullptr);
 			}
 			if (IsResUsed(UseResFlagsKind_Draw_FilterMonotone))
 			{
 				size_t size;
 				const U8* bin = GetFilterMonotonePsBin(&size);
-				ShaderBufs[ShaderBuf_Filter1Ps] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_Filter1Ps] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(float) * 4, 0, nullptr, nullptr);
 			}
 		}
 	}
@@ -943,7 +941,7 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetParticle2dPsBin(&size);
-				ShaderBufs[ShaderBuf_Particle2dPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SParticlePsConstBuf), 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_Particle2dPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SParticlePsConstBuf), 0, nullptr, nullptr);
 			}
 		}
 		{
@@ -982,52 +980,14 @@ EXPORT_CPP void _drawInit()
 			{
 				size_t size;
 				const U8* bin = GetParticleUpdatingPsBin(&size);
-				ShaderBufs[ShaderBuf_ParticleUpdatingPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SParticleUpdatingPsConstBuf), 0, NULL, NULL);
-			}
-		}
-	}
-
-	// Initialize 'Particle'.
-	if (IsResUsed(UseResFlagsKind_Draw_Poly))
-	{
-		{
-			int vertex_idx[PolyVerticesNum];
-			U32 idces[PolyVerticesNum];
-			for (int i = 0; i < PolyVerticesNum; i++)
-			{
-				vertex_idx[i] = i;
-				idces[i] = i;
-			}
-
-			VertexBufs[VertexBuf_PolyVertex] = MakeVertexBuf(sizeof(vertex_idx), vertex_idx, sizeof(int), sizeof(idces), idces);
-		}
-		{
-			ELayoutType layout_types[2] =
-			{
-				LayoutType_Int1,
-			};
-
-			const Char* layout_semantics[2] =
-			{
-				L"K_IDX",
-			};
-
-			{
-				size_t size;
-				const U8* bin = GetPolyVsBin(&size);
-				ShaderBufs[ShaderBuf_PolyVs] = MakeShaderBuf(ShaderKind_Vs, size, bin, sizeof(float) * 4 * 64 + sizeof(float) * 4 * 64, 1, layout_types, layout_semantics);
-			}
-			{
-				size_t size;
-				const U8* bin = GetPolyPsBin(&size);
-				ShaderBufs[ShaderBuf_PolyPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, 0, 0, NULL, NULL);
+				ShaderBufs[ShaderBuf_ParticleUpdatingPs] = MakeShaderBuf(ShaderKind_Ps, size, bin, sizeof(SParticleUpdatingPsConstBuf), 0, nullptr, nullptr);
 			}
 		}
 	}
 
 	// Initialize the toon ramp texture.
 	{
-		void* img = NULL;
+		void* img = nullptr;
 		Bool success = False;
 		for (; ; )
 		{
@@ -1038,12 +998,12 @@ EXPORT_CPP void _drawInit()
 			img = DecodePng(size, bin, &width, &height);
 			if (!IsPowerOf2(static_cast<U64>(width)) || !IsPowerOf2(static_cast<U64>(height)))
 				img = AdjustTexSize(static_cast<U8*>(img), &width, &height);
-			if (!MakeTexWithImg(&TexToonRamp, &ViewToonRamp, NULL, width, height, img, 4, DXGI_FORMAT_R8G8B8A8_UNORM, D3D10_USAGE_IMMUTABLE, 0, False))
+			if (!MakeTexWithImg(&TexToonRamp, &ViewToonRamp, nullptr, width, height, img, 4, DXGI_FORMAT_R8G8B8A8_UNORM, D3D10_USAGE_IMMUTABLE, 0, False))
 				break;
 			success = True;
 			break;
 		}
-		if (img != NULL)
+		if (img != nullptr)
 			FreeMem(img);
 		if (!success)
 			THROW(0xe9170009);
@@ -1076,7 +1036,7 @@ EXPORT_CPP void _drawInit()
 				ASSERT(False);
 				break;
 		}
-		if (!MakeTexWithImg(&TexEven[i], &ViewEven[i], NULL, 1, 1, img, sizeof(img), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D10_USAGE_IMMUTABLE, 0, False))
+		if (!MakeTexWithImg(&TexEven[i], &ViewEven[i], nullptr, 1, 1, img, sizeof(img), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D10_USAGE_IMMUTABLE, 0, False))
 			THROW(0xe9170009);
 	}
 
@@ -1102,14 +1062,14 @@ EXPORT_CPP void _drawFin()
 {
 	for (int i = 0; i < TexEvenNum; i++)
 	{
-		if (ViewEven[i] != NULL)
+		if (ViewEven[i] != nullptr)
 			ViewEven[i]->Release();
-		if (TexEven[i] != NULL)
+		if (TexEven[i] != nullptr)
 			TexEven[i]->Release();
 	}
-	if (ViewToonRamp != NULL)
+	if (ViewToonRamp != nullptr)
 		ViewToonRamp->Release();
-	if (TexToonRamp != NULL)
+	if (TexToonRamp != nullptr)
 		TexToonRamp->Release();
 	for (int i = 0; i < VertexBuf_Num; i++)
 		FinVertexBuf(VertexBufs[i]);
@@ -1117,25 +1077,25 @@ EXPORT_CPP void _drawFin()
 		FinShaderBuf(ShaderBufs[i]);
 	for (int i = 0; i < SamplerNum; i++)
 	{
-		if (Sampler[i] != NULL)
+		if (Sampler[i] != nullptr)
 			Sampler[i]->Release();
 	}
 	for (int i = 0; i < BlendNum; i++)
 	{
-		if (BlendState[i] != NULL)
+		if (BlendState[i] != nullptr)
 			BlendState[i]->Release();
 	}
 	for (int i = 0; i < DepthNum; i++)
 	{
-		if (DepthState[i] != NULL)
+		if (DepthState[i] != nullptr)
 			DepthState[i]->Release();
 	}
 	for (int i = 0; i < RasterizerState_Num; i++)
 	{
-		if (RasterizerStates[i] != NULL)
+		if (RasterizerStates[i] != nullptr)
 			RasterizerStates[i]->Release();
 	}
-	if (Device != NULL)
+	if (Device != nullptr)
 		Device->Release();
 }
 
@@ -1147,6 +1107,16 @@ EXPORT_CPP void _ambLight(double topR, double topG, double topB, double bottomR,
 	ObjPsConstBuf.CommonParam.AmbBottomColor[0] = static_cast<float>(bottomR);
 	ObjPsConstBuf.CommonParam.AmbBottomColor[1] = static_cast<float>(bottomG);
 	ObjPsConstBuf.CommonParam.AmbBottomColor[2] = static_cast<float>(bottomB);
+}
+
+EXPORT_CPP S64 _argbToColor(double a, double r, double g, double b)
+{
+	return ArgbToColor(a, r, g, b);
+}
+
+EXPORT_CPP void _autoClear(Bool enabled)
+{
+	CurWndBuf->AutoClear = enabled;
 }
 
 EXPORT_CPP void _blend(S64 kind)
@@ -1211,6 +1181,107 @@ EXPORT_CPP void _camera(double eyeX, double eyeY, double eyeZ, double atX, doubl
 	SetProjViewMat(ObjVsConstBuf.CommonParam.ProjView, ProjMat, ViewMat);
 }
 
+EXPORT_CPP Bool _capture(const U8* path)
+{
+	THROWDBG(path == nullptr, EXCPT_ACCESS_VIOLATION);
+	ID3D10Texture2D* tex;
+	WriteBack();
+	if (CurWndBuf->Editable)
+		tex = CurWndBuf->EditableTex;
+	else
+	{
+		D3D10_TEXTURE2D_DESC desc;
+		desc.Width = static_cast<UINT>(CurWndBuf->TexWidth);
+		desc.Height = static_cast<UINT>(CurWndBuf->TexHeight);
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D10_USAGE_STAGING;
+		desc.BindFlags = 0;
+		desc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;
+		desc.MiscFlags = 0;
+		if (FAILED(Device->CreateTexture2D(&desc, nullptr, &tex)))
+			return False;
+	}
+	Bool result = False;
+	Device->CopyResource(tex, CurWndBuf->TmpTex);
+	{
+		FILE* file_ptr = _wfopen(reinterpret_cast<const Char*>(path + 0x10), L"wb");
+		if (file_ptr != nullptr)
+		{
+			D3D10_MAPPED_TEXTURE2D map;
+			tex->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_READ, 0, &map);
+			const U8* dst = static_cast<U8*>(map.pData);
+			{
+				BITMAPFILEHEADER header;
+				BITMAPINFOHEADER info;
+				U8 buf[3];
+				header.bfType = 0x4d42;
+				header.bfSize = static_cast<DWORD>(sizeof(header) + sizeof(info) + CurWndBuf->TexWidth * CurWndBuf->TexHeight * 3);
+				header.bfReserved1 = 0;
+				header.bfReserved2 = 0;
+				header.bfOffBits = sizeof(header) + sizeof(info);
+				info.biSize = sizeof(info);
+				info.biWidth = static_cast<LONG>(CurWndBuf->TexWidth);
+				info.biHeight = static_cast<LONG>(CurWndBuf->TexHeight);
+				info.biPlanes = 1;
+				info.biBitCount = 24;
+				info.biCompression = BI_RGB;
+				info.biSizeImage = static_cast<DWORD>(CurWndBuf->TexWidth * CurWndBuf->TexHeight * 3);
+				info.biXPelsPerMeter = 0;
+				info.biYPelsPerMeter = 0;
+				info.biClrUsed = 0;
+				info.biClrImportant = 0;
+				fwrite(&header, sizeof(header), 1, file_ptr);
+				fwrite(&info, sizeof(info), 1, file_ptr);
+				for (S64 j = CurWndBuf->TexHeight - 1; j >= 0; j--)
+				{
+					for (S64 i = 0; i < CurWndBuf->TexWidth; i++)
+					{
+						buf[0] = static_cast<U8>(max(min(static_cast<int>(Degamma(static_cast<double>(dst[(j * CurWndBuf->TexWidth + i) * 4 + 0]) / 255.0) * 255.0), 255), 0));
+						buf[1] = static_cast<U8>(max(min(static_cast<int>(Degamma(static_cast<double>(dst[(j * CurWndBuf->TexWidth + i) * 4 + 1]) / 255.0) * 255.0), 255), 0));
+						buf[2] = static_cast<U8>(max(min(static_cast<int>(Degamma(static_cast<double>(dst[(j * CurWndBuf->TexWidth + i) * 4 + 2]) / 255.0) * 255.0), 255), 0));
+						fwrite(buf, sizeof(buf), 1, file_ptr);
+					}
+				}
+			}
+			tex->Unmap(D3D10CalcSubresource(0, 0, 1));
+			fclose(file_ptr);
+			result = True;
+		}
+	}
+	if (!CurWndBuf->Editable)
+		tex->Release();
+	return result;
+}
+
+EXPORT_CPP void _clear()
+{
+	WriteBack();
+	Clear();
+}
+
+EXPORT_CPP void _clearColor(S64 color)
+{
+	double r, g, b, a;
+	ColorToArgb(&a, &r, &g, &b, color);
+	CurWndBuf->ClearColor[0] = static_cast<FLOAT>(r);
+	CurWndBuf->ClearColor[1] = static_cast<FLOAT>(g);
+	CurWndBuf->ClearColor[2] = static_cast<FLOAT>(b);
+}
+
+EXPORT_CPP S64 _cnt()
+{
+	return Cnt;
+}
+
+EXPORT_CPP void _colorToArgb(double* a, double* r, double* g, double* b, S64 color)
+{
+	ColorToArgb(a, r, g, b, color);
+}
+
 EXPORT_CPP void _depth(Bool test, Bool write)
 {
 	int kind = (static_cast<int>(test) << 1) | static_cast<int>(write);
@@ -1230,6 +1301,51 @@ EXPORT_CPP void _dirLight(double atX, double atY, double atZ, double r, double g
 	ObjPsConstBuf.CommonParam.DirColor[0] = static_cast<float>(r);
 	ObjPsConstBuf.CommonParam.DirColor[1] = static_cast<float>(g);
 	ObjPsConstBuf.CommonParam.DirColor[2] = static_cast<float>(b);
+}
+
+EXPORT_CPP void _editPixels(const void* callback)
+{
+	THROWDBG(callback == nullptr, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(!CurWndBuf->Editable, 0xe917000a);
+	WriteBack();
+	const size_t buf_size = static_cast<size_t>(CurWndBuf->TexWidth * CurWndBuf->TexHeight);
+	U8* buf = static_cast<U8*>(AllocMem(0x10 + sizeof(U32) * buf_size));
+	((S64*)buf)[0] = 2;
+	((S64*)buf)[1] = buf_size;
+	Device->CopyResource(CurWndBuf->EditableTex, CurWndBuf->TmpTex);
+	{
+		D3D10_MAPPED_TEXTURE2D map;
+		CurWndBuf->EditableTex->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_READ_WRITE, 0, &map);
+		U8* dst = static_cast<U8*>(map.pData);
+		memcpy(buf + 0x10, dst, sizeof(U32) * buf_size);
+		Call3Asm(reinterpret_cast<void*>(static_cast<U64>(CurWndBuf->TexWidth)), reinterpret_cast<void*>(static_cast<U64>(CurWndBuf->TexHeight)), buf, (void*)callback);
+		memcpy(dst, buf + 0x10, sizeof(U32) * buf_size);
+		CurWndBuf->EditableTex->Unmap(D3D10CalcSubresource(0, 0, 1));
+	}
+	Device->CopyResource(CurWndBuf->TmpTex, CurWndBuf->EditableTex);
+	THROWDBG(((S64*)buf)[0] != 1, EXCPT_ACCESS_VIOLATION);
+	FreeMem(buf);
+}
+
+EXPORT_CPP void _filterMonotone(S64 color, double rate)
+{
+	double r, g, b, a;
+	ColorToArgb(&a, &r, &g, &b, color);
+	if (rate < 0.0)
+		rate = 0.0;
+	else if (rate > 1.0)
+		rate = 1.0;
+
+	FilterIdx = 1;
+	FilterParam[0][0] = static_cast<float>(r);
+	FilterParam[0][1] = static_cast<float>(g);
+	FilterParam[0][2] = static_cast<float>(b);
+	FilterParam[0][3] = static_cast<float>(rate);
+}
+
+EXPORT_CPP void _filterNone()
+{
+	FilterIdx = 0;
 }
 
 EXPORT_CPP void _proj(double fovy, double aspectX, double aspectY, double nearZ, double farZ)
@@ -1256,6 +1372,93 @@ EXPORT_CPP void _proj(double fovy, double aspectX, double aspectY, double nearZ,
 	SetProjViewMat(ObjVsConstBuf.CommonParam.ProjView, ProjMat, ViewMat);
 }
 
+EXPORT_CPP void _render(S64 fps)
+{
+	WriteBack();
+
+	// Draw with a filter.
+	{
+		int old_z_buf = CurZBuf;
+		int old_blend = CurBlend;
+		int old_sampler = CurSampler;
+
+		D3D10_VIEWPORT viewport =
+		{
+			0,
+			0,
+			static_cast<UINT>(CurWndBuf->TexWidth),
+			static_cast<UINT>(CurWndBuf->TexHeight),
+			0.0f,
+			1.0f,
+		};
+		Device->RSSetViewports(1, &viewport);
+
+		_depth(False, False);
+		_blend(0);
+		_sampler(0);
+
+		Device->OMSetRenderTargets(1, &CurWndBuf->RenderTargetView, nullptr);
+		{
+			ConstBuf(ShaderBufs[ShaderBuf_FilterVs], nullptr);
+			Device->GSSetShader(nullptr);
+			ConstBuf(ShaderBufs[ShaderBuf_Filter0Ps + FilterIdx], FilterIdx == 0 ? nullptr : FilterParam);
+			VertexBuf(VertexBufs[VertexBuf_FilterVertex]);
+			Device->PSSetShaderResources(0, 1, &CurWndBuf->TmpShaderResView);
+		}
+		Device->DrawIndexed(6, 0, 0);
+
+		_depth((old_z_buf & 2) != 0, (old_z_buf & 1) != 0);
+		_blend(old_blend);
+		_sampler(old_sampler);
+
+		ResetViewport();
+	}
+
+	CurWndBuf->SwapChain->Present(fps == 0 ? 0 : 1, 0);
+	Device->OMSetRenderTargets(1, &CurWndBuf->TmpRenderTargetView, CurWndBuf->DepthView);
+	if (CurWndBuf->AutoClear)
+		Clear();
+	Device->RSSetState(RasterizerStates[RasterizerState_Normal]);
+
+	if (fps == 0)
+		return;
+	Cnt++;
+	U32 now = static_cast<U32>(timeGetTime());
+	U32 diff = now - PrevTime;
+	int next_wait = 0;
+	int sleep_time = 0;
+	switch (fps)
+	{
+		case 30:
+			sleep_time = (Cnt % 3 == 0 ? 34 : 33);
+			break;
+		case 60:
+			sleep_time = (Cnt % 3 == 0 ? 16 : 17);
+			break;
+		default:
+			THROWDBG(True, 0xe9170006);
+			return;
+	}
+	sleep_time -= static_cast<int>(diff);
+	if (sleep_time > 2)
+	{
+		U32 to_time = now + static_cast<U32>(sleep_time);
+		Sleep(static_cast<DWORD>(sleep_time - 1));
+		while (static_cast<U32>(timeGetTime()) < to_time)
+		{
+			// Do nothing.
+		}
+	}
+	else
+	{
+		Sleep(1);
+		next_wait = sleep_time;
+		if (next_wait <= -100)
+			next_wait = 0;
+	}
+	PrevTime = static_cast<U32>(static_cast<int>(timeGetTime()) - next_wait);
+}
+
 EXPORT_CPP void _sampler(S64 kind)
 {
 	THROWDBG(kind < 0 || SamplerNum <= kind, 0xe9170006);
@@ -1266,22 +1469,29 @@ EXPORT_CPP void _sampler(S64 kind)
 	CurSampler = kind2;
 }
 
-static void SetProjViewMat(float out[4][4], const double proj[4][4], const double view[4][4])
+EXPORT_CPP S64 _screenHeight()
 {
-	out[0][0] = static_cast<float>(proj[0][0] * view[0][0] + proj[1][0] * view[0][1] + proj[2][0] * view[0][2] + proj[3][0] * view[0][3]);
-	out[0][1] = static_cast<float>(proj[0][1] * view[0][0] + proj[1][1] * view[0][1] + proj[2][1] * view[0][2] + proj[3][1] * view[0][3]);
-	out[0][2] = static_cast<float>(proj[0][2] * view[0][0] + proj[1][2] * view[0][1] + proj[2][2] * view[0][2] + proj[3][2] * view[0][3]);
-	out[0][3] = static_cast<float>(proj[0][3] * view[0][0] + proj[1][3] * view[0][1] + proj[2][3] * view[0][2] + proj[3][3] * view[0][3]);
-	out[1][0] = static_cast<float>(proj[0][0] * view[1][0] + proj[1][0] * view[1][1] + proj[2][0] * view[1][2] + proj[3][0] * view[1][3]);
-	out[1][1] = static_cast<float>(proj[0][1] * view[1][0] + proj[1][1] * view[1][1] + proj[2][1] * view[1][2] + proj[3][1] * view[1][3]);
-	out[1][2] = static_cast<float>(proj[0][2] * view[1][0] + proj[1][2] * view[1][1] + proj[2][2] * view[1][2] + proj[3][2] * view[1][3]);
-	out[1][3] = static_cast<float>(proj[0][3] * view[1][0] + proj[1][3] * view[1][1] + proj[2][3] * view[1][2] + proj[3][3] * view[1][3]);
-	out[2][0] = static_cast<float>(proj[0][0] * view[2][0] + proj[1][0] * view[2][1] + proj[2][0] * view[2][2] + proj[3][0] * view[2][3]);
-	out[2][1] = static_cast<float>(proj[0][1] * view[2][0] + proj[1][1] * view[2][1] + proj[2][1] * view[2][2] + proj[3][1] * view[2][3]);
-	out[2][2] = static_cast<float>(proj[0][2] * view[2][0] + proj[1][2] * view[2][1] + proj[2][2] * view[2][2] + proj[3][2] * view[2][3]);
-	out[2][3] = static_cast<float>(proj[0][3] * view[2][0] + proj[1][3] * view[2][1] + proj[2][3] * view[2][2] + proj[3][3] * view[2][3]);
-	out[3][0] = static_cast<float>(proj[0][0] * view[3][0] + proj[1][0] * view[3][1] + proj[2][0] * view[3][2] + proj[3][0] * view[3][3]);
-	out[3][1] = static_cast<float>(proj[0][1] * view[3][0] + proj[1][1] * view[3][1] + proj[2][1] * view[3][2] + proj[3][1] * view[3][3]);
-	out[3][2] = static_cast<float>(proj[0][2] * view[3][0] + proj[1][2] * view[3][1] + proj[2][2] * view[3][2] + proj[3][2] * view[3][3]);
-	out[3][3] = static_cast<float>(proj[0][3] * view[3][0] + proj[1][3] * view[3][1] + proj[2][3] * view[3][2] + proj[3][3] * view[3][3]);
+	return CurWndBuf->TexHeight;
+}
+
+EXPORT_CPP S64 _screenWidth()
+{
+	return CurWndBuf->TexWidth;
+}
+
+EXPORT_CPP void _set2dCallback(void* (*callback)(int, void*, void*))
+{
+	Callback2d = callback;
+}
+
+static void WriteBack()
+{
+	if (Callback2d != NULL)
+		Callback2d(3, NULL, NULL);
+}
+
+static void Clear()
+{
+	Device->ClearRenderTargetView(CurWndBuf->TmpRenderTargetView, CurWndBuf->ClearColor);
+	Device->ClearDepthStencilView(CurWndBuf->DepthView, D3D10_CLEAR_DEPTH, 1.0f, 0);
 }

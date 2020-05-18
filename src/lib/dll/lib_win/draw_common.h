@@ -13,7 +13,6 @@ static const int TexEvenNum = 3;
 static const double DiscardAlpha = 0.02;
 static const int ParticleNum = 256;
 static const int ParticleTexNum = 3;
-static const int PolyVerticesNum = 64;
 static const int JointInfluenceMax = 2;
 static const int JointInfluenceMaxAligned = 4;
 
@@ -36,7 +35,6 @@ enum EVertexBuf
 	VertexBuf_FilterVertex,
 	VertexBuf_ParticleVertex,
 	VertexBuf_ParticleUpdatingVertex,
-	VertexBuf_PolyVertex,
 
 	VertexBuf_Num,
 };
@@ -86,8 +84,6 @@ enum EShaderBuf
 	ShaderBuf_Particle2dPs,
 	ShaderBuf_ParticleUpdatingVs,
 	ShaderBuf_ParticleUpdatingPs,
-	ShaderBuf_PolyVs,
-	ShaderBuf_PolyPs,
 
 	ShaderBuf_Num,
 };
@@ -213,17 +209,6 @@ struct SWndBuf
 	int Split;
 };
 
-struct STex
-{
-	SClass Class;
-	int Width;
-	int Height;
-	int ImgWidth;
-	int ImgHeight;
-	ID3D10Texture2D* Tex;
-	ID3D10ShaderResourceView* View;
-};
-
 struct SFont
 {
 	SClass Class;
@@ -247,6 +232,75 @@ struct SFont
 	int* GlyphWidth;
 };
 
+enum EFormat
+{
+	Format_HasTangent = 0x01,
+	Format_HasJoint = 0x02,
+};
+
+struct SObj
+{
+	SClass Class;
+
+	struct SPolygon
+	{
+		SVertexBuf* VertexBuf;
+		int VertexNum;
+		int JointNum;
+		int Begin;
+		int End;
+		float(*Joints)[4][4];
+	};
+
+	EFormat Format;
+	int ElementNum;
+	int* ElementKinds;
+	void** Elements;
+	float Mat[4][4];
+	float NormMat[4][4];
+};
+
+struct SParticleTexSet
+{
+	ID3D10Texture2D* TexParam;
+	ID3D10ShaderResourceView* ViewParam;
+	ID3D10RenderTargetView* RenderTargetViewParam;
+};
+
+struct SParticle
+{
+	SClass Class;
+	S64 Lifespan;
+	SParticlePsConstBuf PsConstBuf;
+	SParticleUpdatingPsConstBuf UpdatingPsConstBuf;
+	S64 ParticlePtr;
+	SParticleTexSet* TexSet;
+	ID3D10Texture2D* TexTmp;
+	Bool Draw1To2;
+};
+
+struct SShadow
+{
+	SClass Class;
+	ID3D10Texture2D* DepthTex;
+	ID3D10DepthStencilView* DepthView;
+	ID3D10ShaderResourceView* DepthResView;
+	int DepthWidth;
+	int DepthHeight;
+	float(*ShadowProjView)[4];
+};
+
+struct STex
+{
+	SClass Class;
+	int Width;
+	int Height;
+	int ImgWidth;
+	int ImgHeight;
+	ID3D10Texture2D* Tex;
+	ID3D10ShaderResourceView* View;
+};
+
 extern ID3D10Device1* Device;
 extern ID3D10RasterizerState* RasterizerStates[RasterizerState_Num];
 extern ID3D10DepthStencilState* DepthState[DepthNum];
@@ -262,6 +316,9 @@ extern ID3D10Texture2D* TexEven[TexEvenNum];
 extern ID3D10ShaderResourceView* ViewEven[TexEvenNum];
 extern SWndBuf* CurWndBuf;
 extern void* (*Callback2d)(int kind, void* arg1, void* arg2);
+extern int CurZBuf;
+extern int CurBlend;
+extern int CurSampler;
 
 SVertexBuf* MakeVertexBuf(size_t vertex_size, const void* vertices, size_t vertex_line_size, size_t idx_size, const U32* idces);
 void FinVertexBuf(SVertexBuf* vertex_buf);
@@ -279,3 +336,12 @@ void FinDrawBuf(void* wnd_buf);
 void ActiveDrawBuf(void* wnd_buf);
 void ResetViewport();
 Bool MakeTexWithImg(ID3D10Texture2D** tex, ID3D10ShaderResourceView** view, ID3D10RenderTargetView** render_target_view, int width, int height, const void* img, size_t pitch, DXGI_FORMAT fmt, D3D10_USAGE usage, UINT cpu_access_flag, Bool render_target);
+void ConstBuf(void* shader_buf, const void* data);
+void VertexBuf(void* vertex_buf);
+void ColorToArgb(double* a, double* r, double* g, double* b, S64 color);
+S64 ArgbToColor(double a, double r, double g, double b);
+double Gamma(double value);
+double Degamma(double value);
+void SetJointMat(const void* element, double frame, float(*joint)[4][4]);
+void MulMat(double out[4][4], const double a[4][4], const double b[4][4]);
+void SetProjViewMat(float out[4][4], const double proj[4][4], const double view[4][4]);
