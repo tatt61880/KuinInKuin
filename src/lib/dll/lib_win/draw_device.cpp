@@ -4,6 +4,8 @@
 
 #pragma comment(lib, "d3d10_1.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "imm32.lib")
+#pragma comment(lib, "winmm.lib")
 
 static const FLOAT BlendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 

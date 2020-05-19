@@ -904,9 +904,8 @@ static HIMAGELIST CreateImageList(const void* imgs)
 	const void* const* ptr = reinterpret_cast<void* const*>(static_cast<const U8*>(imgs) + 0x10);
 	for (S64 i = 0; i < len; i++)
 	{
-		const Char* path = reinterpret_cast<const Char*>(static_cast<const U8*>(ptr[i]) + 0x10);
-		size_t size;
-		void* bin = LoadFileAll(path, &size);
+		size_t size = static_cast<size_t>(*reinterpret_cast<const S64*>(static_cast<const U8*>(ptr[i]) + 0x08));
+		const void* bin = static_cast<const U8*>(ptr[i]) + 0x10;
 		int width;
 		int height;
 		void* img = DecodePng(size, bin, &width, &height);
@@ -933,7 +932,6 @@ static HIMAGELIST CreateImageList(const void* imgs)
 		ImageList_Add(result, bitmap, nullptr);
 		DeleteObject(bitmap);
 		FreeMem(img);
-		FreeMem(bin);
 	}
 	return result;
 }

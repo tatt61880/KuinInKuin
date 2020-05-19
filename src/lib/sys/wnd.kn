@@ -867,10 +867,32 @@ end func
 	end if
 end func
 
-+func[d0001.knd, _makeListView, _make_instance]makeListView(me2: @ListView, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, multiSel: bool, smallImgs: [][]char, largeImgs: [][]char): @ListView
-	if(parent <>& null)
-		do parent.addChild(me2)
-	end if
++func makeListView(parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, multiSel: bool, smallImgs: [][]char, largeImgs: [][]char): @ListView
+	var s: [][]bit8 :: #[^smallImgs][]bit8
+	var l: [][]bit8 :: #[^largeImgs][]bit8
+	for i(0, ^s - 1)
+		var f: file@Reader :: file@makeReader(smallImgs[i])
+		if(f =& null)
+			ret null
+		end if
+		do s[i] :: f.read(f.fileSize())
+		do f.fin()
+	end for
+	for i(0, ^l - 1)
+		var f: file@Reader :: file@makeReader(largeImgs[i])
+		if(f =& null)
+			ret null
+		end if
+		do l[i] :: f.read(f.fileSize())
+		do f.fin()
+	end for
+	ret makeListViewImpl(parent, x, y, width, height, anchorX, anchorY, multiSel, s, l)
+	
+	func[d0001.knd, _makeListView, _make_instance]makeListViewImpl(me2: @ListView, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, multiSel: bool, smallImgs: [][]bit8, largeImgs: [][]bit8): @ListView
+		if(parent <>& null)
+			do parent.addChild(me2)
+		end if
+	end func
 end func
 
 +func[d0001.knd, _makeMenu, __mki]makeMenu(me2: @Menu): @Menu

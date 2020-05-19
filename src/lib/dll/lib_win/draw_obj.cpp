@@ -259,15 +259,11 @@ EXPORT_CPP SClass* _makeBox(SClass* me_)
 	return MakeObjImpl(me_, size, binary);
 }
 
-EXPORT_CPP SClass* _makeObj(SClass* me_, const U8* path)
+EXPORT_CPP SClass* _makeObj(SClass* me_, const U8* data)
 {
-	U8* buf = nullptr;
-	size_t size;
-	buf = static_cast<U8*>(LoadFileAll(reinterpret_cast<const Char*>(path + 0x10), &size));
-	if (buf == nullptr)
-		return nullptr;
+	const U8* buf = data + 0x10;
+	size_t size = static_cast<size_t>(*reinterpret_cast<const S64*>(data + 0x08));
 	SClass* obj = MakeObjImpl(me_, size, buf);
-	FreeMem(buf);
 	return obj;
 }
 

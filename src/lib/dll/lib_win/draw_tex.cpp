@@ -4,7 +4,7 @@
 #include "jpg_decoder.h"
 #include "png_decoder.h"
 
-static SClass* MakeTexImpl(SClass* me_, const U8* path, Bool as_argb);
+static SClass* MakeTexImpl(SClass* me_, const U8* data, const U8* path, Bool as_argb);
 static Bool StrCmpIgnoreCase(const Char* a, const Char* b);
 
 EXPORT_CPP void _texDtor(SClass* me_)
@@ -149,14 +149,14 @@ EXPORT_CPP S64 _texWidth(SClass* me_)
 	return static_cast<S64>(reinterpret_cast<STex*>(me_)->Width);
 }
 
-EXPORT_CPP SClass* _makeTex(SClass* me_, const U8* path)
+EXPORT_CPP SClass* _makeTex(SClass* me_, const U8* data, const U8* path)
 {
-	return MakeTexImpl(me_, path, False);
+	return MakeTexImpl(me_, data, path, False);
 }
 
-EXPORT_CPP SClass* _makeTexArgb(SClass* me_, const U8* path)
+EXPORT_CPP SClass* _makeTexArgb(SClass* me_, const U8* data, const U8* path)
 {
-	return MakeTexImpl(me_, path, True);
+	return MakeTexImpl(me_, data, path, True);
 }
 
 EXPORT_CPP SClass* _makeTexEvenArgb(SClass* me_, double a, double r, double g, double b)
@@ -179,23 +179,20 @@ EXPORT_CPP SClass* _makeTexEvenColor(SClass* me_, S64 color)
 	return _makeTexEvenArgb(me_, a, r, g, b);
 }
 
-static SClass* MakeTexImpl(SClass* me_, const U8* path, Bool as_argb)
+static SClass* MakeTexImpl(SClass* me_, const U8* data, const U8* path, Bool as_argb)
 {
-	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(path == nullptr, EXCPT_ACCESS_VIOLATION);
 	S64 path_len = *reinterpret_cast<const S64*>(path + 0x08);
 	const Char* path2 = reinterpret_cast<const Char*>(path + 0x10);
 	STex* me2 = reinterpret_cast<STex*>(me_);
-	void* bin = NULL;
-	void* img = NULL;
+	void* img = nullptr;
 	Bool img_ref = False; // Set to true when 'img' should not be released.
 	DXGI_FORMAT fmt;
 	int width;
 	int height;
 	{
-		size_t size;
-		bin = LoadFileAll(path2, &size);
-		if (bin == NULL)
-			return NULL;
+		size_t size = static_cast<size_t>(*reinterpret_cast<const S64*>(data + 0x08));
+		const void* bin = data + 0x10;
 		THROWDBG(path_len < 4, 0xe9170006);
 		if (StrCmpIgnoreCase(path2 + path_len - 4, L".png"))
 		{
@@ -241,15 +238,13 @@ static SClass* MakeTexImpl(SClass* me_, const U8* path, Bool as_argb)
 		Bool success = False;
 		for (; ; )
 		{
-			if (!MakeTexWithImg(&me2->Tex, &me2->View, NULL, me2->Width, me2->Height, img, me2->Width * 4, fmt, D3D10_USAGE_IMMUTABLE, 0, False))
+			if (!MakeTexWithImg(&me2->Tex, &me2->View, nullptr, me2->Width, me2->Height, img, me2->Width * 4, fmt, D3D10_USAGE_IMMUTABLE, 0, False))
 				break;
 			success = True;
 			break;
 		}
-		if (img != NULL && !img_ref)
+		if (img != nullptr && !img_ref)
 			FreeMem(img);
-		if (bin != NULL)
-			FreeMem(bin);
 		if (!success)
 			THROW(0x0e9170009);
 	}
