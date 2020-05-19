@@ -56,16 +56,16 @@ EXPORT_CPP void _drawMoveCaret(SClass* me_, S64 x, S64 y)
 	ImmReleaseContext(wnd_handle, imc);
 }
 
-EXPORT_CPP void _drawShowCaret(SClass* me_, S64 height, SClass* font)
+EXPORT_CPP void _drawShowCaret(SClass* me_, S64 height, S64 font_handle)
 {
 	HWND wnd_handle = reinterpret_cast<SWndBase*>(me_)->WndHandle;
 	CreateCaret(wnd_handle, nullptr, 2, static_cast<int>(height));
 	ShowCaret(wnd_handle);
-	if (font != nullptr)
+	if (font_handle != 0)
 	{
 		LOGFONT log_font;
 		HIMC imc = ImmGetContext(wnd_handle);
-		GetObject(ToFontHandle(font), sizeof(LOGFONT), &log_font);
+		GetObject(reinterpret_cast<HFONT>(font_handle), sizeof(LOGFONT), &log_font);
 		if (imc)
 			ImmSetCompositionFont(imc, &log_font);
 		ImmReleaseContext(wnd_handle, imc);

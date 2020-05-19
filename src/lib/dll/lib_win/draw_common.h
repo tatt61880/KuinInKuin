@@ -330,7 +330,6 @@ void IdentityFloat(float mat[4][4]);
 double Normalize(double vec[3]);
 double Dot(const double a[3], const double b[3]);
 void Cross(double out[3], const double a[3], const double b[3]);
-HFONT ToFontHandle(SClass* font);
 void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old, Bool editable);
 void FinDrawBuf(void* wnd_buf);
 void ActiveDrawBuf(void* wnd_buf);

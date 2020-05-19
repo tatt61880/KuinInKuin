@@ -213,6 +213,11 @@ EXPORT_CPP double _fontGetHeight(SClass* me_)
 	return reinterpret_cast<SFont*>(me_)->Height;
 }
 
+EXPORT_CPP S64 _fontHandle(SClass* me_)
+{
+	return reinterpret_cast<S64>(reinterpret_cast<SFont*>(me_)->Font);
+}
+
 EXPORT_CPP double _fontMaxHeight(SClass* me_)
 {
 	return reinterpret_cast<SFont*>(me_)->CellHeight;

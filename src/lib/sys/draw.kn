@@ -51,6 +51,9 @@ end enum
 	+func[d0001.knd, _fontGetHeight]getHeight(): float
 	end func
 	
+	+func[d0001.knd, _fontHandle]handle(): int
+	end func
+	
 	+func[d0001.knd, _fontMaxHeight]maxHeight(): float
 	end func
 	

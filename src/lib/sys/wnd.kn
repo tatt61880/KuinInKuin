@@ -91,7 +91,7 @@ end class
 	+func[d0001.knd, _drawPaint]paint()
 	end func
 	
-	+func[d0001.knd, _drawShowCaret]showCaret(height: int, font: draw@Font) {TODO: remove draw@}
+	+func[d0001.knd, _drawShowCaret]showCaret(height: int, fontHandle: int)
 	end func
 	
 	var equalMagnification: int

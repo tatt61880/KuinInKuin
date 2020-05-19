@@ -41,7 +41,7 @@ EXPORT_CPP void _drawPaint(SClass* me_);
 EXPORT_CPP void _drawHideCaret(SClass* me_);
 EXPORT_CPP void _drawMouseCapture(SClass* me_, Bool enabled);
 EXPORT_CPP void _drawMoveCaret(SClass* me_, S64 x, S64 y);
-EXPORT_CPP void _drawShowCaret(SClass* me_, S64 height, SClass* font);
+EXPORT_CPP void _drawShowCaret(SClass* me_, S64 height, S64 font_handle);
 EXPORT_CPP SClass* _makeDraw(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchorX, S64 anchorY, Bool equalMagnification);
 EXPORT_CPP SClass* _makeDrawEditable(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height);
 EXPORT_CPP SClass* _makeDrawReduced(SClass* me_, SClass* parent, S64 x, S64 y, S64 width, S64 height, S64 anchorX, S64 anchorY, Bool equalMagnification, S64 split);

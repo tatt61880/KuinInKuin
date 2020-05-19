@@ -279,11 +279,6 @@ void Cross(double out[3], const double a[3], const double b[3])
 	out[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-HFONT ToFontHandle(SClass* font)
-{
-	return reinterpret_cast<SFont*>(font)->Font;
-}
-
 void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old, Bool editable)
 {
 	SWndBuf* old2 = static_cast<SWndBuf*>(old);
