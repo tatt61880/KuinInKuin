@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\common.h"
+#include "..\..\common.h"
 
 EXPORT_CPP SClass* _makeRegex(SClass* me_, const U8* pattern);
 EXPORT_CPP void _regexDtor(SClass* me_);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\common.h"
+#include "..\..\common.h"
 
 #pragma comment(lib, "libogg_static.lib")
 #pragma comment(lib, "libvorbis_static.lib")

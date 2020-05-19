@@ -117,7 +117,7 @@ EXPORT_CPP void _xmlNodeSetName(SClass* me_, const U8* name)
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
 	{
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	}
 	static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetName(buf);
 	FreeMem(buf);
@@ -143,7 +143,7 @@ EXPORT_CPP void _xmlNodeSetValue(SClass* me_, const U8* value)
 		char* buf = Utf16ToUtf8(value);
 		if (buf == NULL)
 		{
-			THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+			THROWDBG(True, 0xe9170006);
 		}
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetText(buf);
 		FreeMem(buf);
@@ -238,7 +238,7 @@ EXPORT_CPP SClass* _xmlNodeFindNext(SClass* me_, SClass* me2, const U8* name)
 		return NULL;
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	me4->Node = static_cast<tinyxml2::XMLNode*>(me3->Node)->NextSiblingElement(buf);
 	FreeMem(buf);
 	if (me4->Node == NULL)
@@ -256,7 +256,7 @@ EXPORT_CPP SClass* _xmlNodeFindPrev(SClass* me_, SClass* me2, const U8* name)
 		return NULL;
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	me4->Node = static_cast<tinyxml2::XMLNode*>(me3->Node)->PreviousSiblingElement(buf);
 	FreeMem(buf);
 	if (me4->Node == NULL)
@@ -272,7 +272,7 @@ EXPORT_CPP SClass* _xmlNodeFindChild(SClass* me_, SClass* me2, const U8* name)
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	if (me3->Root)
 		me4->Node = static_cast<tinyxml2::XMLDocument*>(me3->Node)->FirstChildElement(buf);
 	else
@@ -291,7 +291,7 @@ EXPORT_CPP SClass* _xmlNodeFindChildLast(SClass* me_, SClass* me2, const U8* nam
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	if (me3->Root)
 		me4->Node = static_cast<tinyxml2::XMLDocument*>(me3->Node)->LastChildElement(buf);
 	else
@@ -310,7 +310,7 @@ EXPORT_CPP SClass* _xmlNodeAddChild(SClass* me_, SClass* me2, const U8* name)
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	if (me3->Root)
 	{
 		tinyxml2::XMLDocument* node = static_cast<tinyxml2::XMLDocument*>(me3->Node);
@@ -337,7 +337,7 @@ EXPORT_CPP SClass* _xmlNodeInsChild(SClass* me_, SClass* me2, SClass* node, cons
 		return NULL;
 	char* buf = Utf16ToUtf8(name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	if (me3->Root)
 	{
 		tinyxml2::XMLDocument* node3 = static_cast<tinyxml2::XMLDocument*>(me3->Node);
@@ -402,7 +402,7 @@ EXPORT_CPP void _xmlNodeSetAttr(SClass* me_, const U8* attr_name, const U8* attr
 		return;
 	char* buf_name = Utf16ToUtf8(attr_name);
 	if (buf_name == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	if (attr_value == NULL)
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->DeleteAttribute(buf_name);
 	else
@@ -411,7 +411,7 @@ EXPORT_CPP void _xmlNodeSetAttr(SClass* me_, const U8* attr_name, const U8* attr
 		if (buf_value == NULL)
 		{
 			FreeMem(buf_name);
-			THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+			THROWDBG(True, 0xe9170006);
 		}
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetAttribute(buf_name, buf_value);
 		FreeMem(buf_value);
@@ -427,7 +427,7 @@ EXPORT_CPP void* _xmlNodeGetAttr(SClass* me_, const U8* attr_name)
 		return NULL;
 	char* buf = Utf16ToUtf8(attr_name);
 	if (buf == NULL)
-		THROWDBG(True, EXCPT_DBG_ARG_OUT_DOMAIN);
+		THROWDBG(True, 0xe9170006);
 	const char* str = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->Attribute(buf);
 	FreeMem(buf);
 	return Utf8ToUtf16(str);

@@ -49,7 +49,7 @@ EXPORT_CPP S64 _bigIntCmp(SClass* me_, SClass* t)
 {
 	SBigInt* me2 = reinterpret_cast<SBigInt*>(me_);
 	SBigInt* t2 = reinterpret_cast<SBigInt*>(t);
-	return *me2->Value > *t2->Value ? 1 : (*me2->Value < *t2->Value ? -1 : 0);
+	return *me2->Value > * t2->Value ? 1 : (*me2->Value < *t2->Value ? -1 : 0);
 }
 
 EXPORT_CPP Bool _bigIntFromStr(SClass* me_, const void* value)
@@ -154,7 +154,7 @@ EXPORT_CPP SClass* _bigIntModInt(SClass* me_, S64 value)
 EXPORT_CPP SClass* _bigIntPowInt(SClass* me_, S64 value)
 {
 	U32 value2 = static_cast<U32>(value);
-	THROWDBG(value != static_cast<S64>(value2), EXCPT_DBG_ARG_OUT_DOMAIN);
+	THROWDBG(value != static_cast<S64>(value2), 0xe9170006);
 	*reinterpret_cast<SBigInt*>(me_)->Value = pow(*reinterpret_cast<SBigInt*>(me_)->Value, value2);
 	return me_;
 }
@@ -187,7 +187,7 @@ EXPORT_CPP S64 _bigFloatCmp(SClass* me_, SClass* t)
 {
 	SBigFloat* me2 = reinterpret_cast<SBigFloat*>(me_);
 	SBigFloat* t2 = reinterpret_cast<SBigFloat*>(t);
-	return *me2->Value > *t2->Value ? 1 : (*me2->Value < *t2->Value ? -1 : 0);
+	return *me2->Value > * t2->Value ? 1 : (*me2->Value < *t2->Value ? -1 : 0);
 }
 
 EXPORT_CPP Bool _bigFloatFromStr(SClass* me_, const void* value)

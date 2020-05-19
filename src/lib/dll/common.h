@@ -2,9 +2,17 @@
 
 /*
 	Uncommitted libraries:
-		d0000.knd	common
+		d0000.knd lib_common
+		d0001.knd lib_win
 
 	Committed additional libraries:
+		d1000.knd lib_ogg
+		d1001.knd lib_zip
+		d1002.knd lib_regex
+		d1003.knd lib_xml
+		d1004.knd lib_game
+		d1005.knd lib_sql
+		d1006.knd lib_math_boost
 */
 
 #pragma comment(linker, "/nodefaultlib:msvcrt.lib")

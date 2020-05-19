@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\common.h"
+#include "..\..\common.h"
 
 EXPORT_CPP SClass* _makeBigInt(SClass* me_);
 EXPORT_CPP void _bigIntDtor(SClass* me_);
