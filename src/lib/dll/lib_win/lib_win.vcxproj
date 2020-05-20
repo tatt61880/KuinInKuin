@@ -208,9 +208,12 @@
     <ClCompile Include="draw_primitive.cpp" />
     <ClCompile Include="draw_shadow.cpp" />
     <ClCompile Include="draw_tex.cpp" />
+    <ClCompile Include="input.cpp" />
     <ClCompile Include="jpg_decoder.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="png_decoder.cpp" />
+    <ClCompile Include="snd.cpp" />
+    <ClCompile Include="wav_decoder.cpp" />
     <ClCompile Include="wnd_common.cpp" />
     <ClCompile Include="wnd_ctrl.cpp" />
     <ClCompile Include="wnd_wnd.cpp" />
@@ -227,9 +230,12 @@
     <ClInclude Include="draw_primitive.h" />
     <ClInclude Include="draw_shadow.h" />
     <ClInclude Include="draw_tex.h" />
+    <ClInclude Include="input.h" />
     <ClInclude Include="jpg_decoder.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="png_decoder.h" />
+    <ClInclude Include="snd.h" />
+    <ClInclude Include="wav_decoder.h" />
     <ClInclude Include="wnd_common.h" />
     <ClInclude Include="wnd_ctrl.h" />
     <ClInclude Include="wnd_wnd.h" />

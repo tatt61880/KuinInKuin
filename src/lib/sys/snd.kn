@@ -47,8 +47,6 @@ end func
 	var endPos: float
 	var freq2: bit32
 	var streaming: bit32
-	var thread: int
-	var atomic: int
 	var volume2: float
 	var handle: int
 	var funcClose: int
