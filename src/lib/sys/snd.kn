@@ -6,7 +6,11 @@ func[d0001.knd, _sndFin]_fin()
 end func
 
 +class Snd()
-	*func[d0001.knd, _sndDtor, _force]_dtor()
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
+	+func[d0001.knd, _sndFin2]fin()
 	end func
 	
 	+func[d0001.knd, _sndFreq]freq(value: float)
@@ -27,7 +31,7 @@ end func
 	+func[d0001.knd, _sndPlaying]playing(): bool
 	end func
 	
-	+func[d0001.knd, _sndPlayLoop]playLoop(loopPos: float)
+	+func[d0001.knd, _sndPlayLoop]playLoop()
 	end func
 	
 	+func[d0001.knd, _sndSetPos]setPos(value: float)
@@ -40,25 +44,26 @@ end func
 	end func
 	
 	var sndBuf: int
-	var event1: int
-	var event2: int
 	var sizePerSec: int
-	var loopPos: int
 	var endPos: float
-	var freq2: bit32
-	var streaming: bit32
+	var freq2: float
 	var volume2: float
-	var handle: int
-	var funcClose: int
-	var funcRead: int
-	var funcSetPos: int
-	var funcGetPos: int
 end class
 
 +func[d0001.knd, _getMainVolume]getMainVolume(): float
 end func
 
-+func[d0001.knd, _makeSnd, _make_instance]makeSnd(me2: @Snd, path: []char, streaming: bool): @Snd
++func makeSnd(path: []char, streaming: bool): @Snd
+	var f: file@Reader(path)
+	if(f =& null)
+		ret null
+	end if
+	var d: []bit8 :: f.read(f.fileSize())
+	do f.fin()
+	ret makeSndImpl(d, path, streaming)
+	
+	func[d0001.knd, _makeSnd, __mki]makeSndImpl(me2: @Snd, data: []char, path: []char): @Snd
+	end func
 end func
 
 +func[d0001.knd, _setMainVolume]setMainVolume(value: float)

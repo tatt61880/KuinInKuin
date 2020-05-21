@@ -11,20 +11,10 @@ struct SSnd
 {
 	SClass Class;
 	LPDIRECTSOUNDBUFFER8 SndBuf;
-	HANDLE Event[2];
 	S64 SizePerSec;
-	S64 LoopPos;
 	double EndPos;
-	DWORD Freq;
-	Bool Streaming;
-	Bool StreamingPlayingFirstBuffer;
-	U8 StreamingFinishCnt;
+	double Freq;
 	double Volume;
-	void* Handle;
-	void(*FuncClose)(void*);
-	Bool(*FuncRead)(void*, void*, S64, S64);
-	void(*FuncSetPos)(void*, S64);
-	S64(*FuncGetPos)(void*);
 };
 
 // The main volume controls these.
@@ -44,7 +34,6 @@ static double MainVolume = 1.0;
 
 static LRESULT CALLBACK WndProc(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 static Bool StrCmpIgnoreCase(const Char* a, const Char* b);
-static Bool StreamCopy(SSnd* me_, S64 id);
 
 EXPORT_CPP void _sndInit()
 {
@@ -104,41 +93,7 @@ EXPORT_CPP void _sndFin()
 		SendMessage(Wnd, WM_DESTROY, 0, 0);
 }
 
-EXPORT_CPP void _sndUpdate()
-{
-	SListSnd* ptr = ListSndTop;
-	while (ptr != nullptr)
-	{
-		SSnd* snd = ptr->Snd;
-		if (snd->Streaming && snd->StreamingFinishCnt < 2 && _sndPlaying(reinterpret_cast<SClass*>(snd))) // Repeat until the buffer is completely cleared.
-		{
-			S64 dsize = snd->SizePerSec * BufSize / 2;
-			DWORD pos = 0;
-			snd->SndBuf->GetCurrentPosition(&pos, nullptr);
-			if (snd->StreamingPlayingFirstBuffer)
-			{
-				if (pos < dsize)
-				{
-					if (StreamCopy(snd, 1))
-						snd->StreamingFinishCnt++;
-					snd->StreamingPlayingFirstBuffer = False;
-				}
-			}
-			else
-			{
-				if (pos >= dsize)
-				{
-					if (StreamCopy(snd, 0))
-						snd->StreamingFinishCnt++;
-					snd->StreamingPlayingFirstBuffer = True;
-				}
-			}
-		}
-		ptr = ptr->Next;
-	}
-}
-
-EXPORT_CPP void _sndDtor(SClass* me_)
+EXPORT_CPP void _sndFin2(SClass* me_)
 {
 	SSnd* me2 = reinterpret_cast<SSnd*>(me_);
 	if (me2->SndBuf != nullptr)
@@ -146,8 +101,6 @@ EXPORT_CPP void _sndDtor(SClass* me_)
 		me2->SndBuf->Stop();
 		me2->SndBuf->Release();
 	}
-	if (me2->Handle != nullptr)
-		me2->FuncClose(me2->Handle);
 	{
 		SListSnd* ptr = ListSndTop;
 		SListSnd* ptr2 = nullptr;
@@ -174,30 +127,15 @@ EXPORT_CPP void _sndFreq(SClass* me_, double value)
 {
 	SSnd* me2 = reinterpret_cast<SSnd*>(me_);
 	THROWDBG(value < 0.1 || 2.0 < value, 0xe9170006);
-	me2->SndBuf->SetFrequency(static_cast<DWORD>(static_cast<double>(me2->Freq) * value));
+	me2->SndBuf->SetFrequency(static_cast<DWORD>(me2->Freq * value));
 }
 
 EXPORT_CPP double _sndGetPos(SClass* me_)
 {
 	SSnd* me2 = reinterpret_cast<SSnd*>(me_);
-	if (me2->Streaming)
-	{
-		double result;
-		DWORD stream_pos = 0;
-		S64 dsize = me2->SizePerSec * BufSize / 2;
-		me2->SndBuf->GetCurrentPosition(&stream_pos, nullptr);
-		S64 offset = (me2->StreamingPlayingFirstBuffer && stream_pos < dsize || !me2->StreamingPlayingFirstBuffer && stream_pos >= dsize) ? dsize : 0;
-		result = static_cast<double>(me2->FuncGetPos(me2->Handle) - dsize * 2 + offset + stream_pos % dsize) / static_cast<double>(me2->SizePerSec);
-		if (result > me2->EndPos || me2->StreamingFinishCnt > 0)
-			result = me2->EndPos;
-		return result;
-	}
-	else
-	{
-		DWORD pos = 0;
-		me2->SndBuf->GetCurrentPosition(&pos, nullptr);
-		return static_cast<double>(pos) / static_cast<double>(me2->SizePerSec);
-	}
+	DWORD pos = 0;
+	me2->SndBuf->GetCurrentPosition(&pos, nullptr);
+	return static_cast<double>(pos) / static_cast<double>(me2->SizePerSec);
 }
 
 EXPORT_CPP double _sndLen(SClass* me_)
@@ -216,8 +154,7 @@ EXPORT_CPP void _sndPan(SClass* me_, double value)
 EXPORT_CPP void _sndPlay(SClass* me_)
 {
 	SSnd* me2 = reinterpret_cast<SSnd*>(me_);
-	me2->LoopPos = -1;
-	me2->SndBuf->Play(0, 0, me2->Streaming ? DSBPLAY_LOOPING : 0);
+	me2->SndBuf->Play(0, 0, 0);
 }
 
 EXPORT_CPP Bool _sndPlaying(SClass* me_)
@@ -228,11 +165,9 @@ EXPORT_CPP Bool _sndPlaying(SClass* me_)
 	return (status & DSBSTATUS_PLAYING) != 0;
 }
 
-EXPORT_CPP void _sndPlayLoop(SClass* me_, double loopPos)
+EXPORT_CPP void _sndPlayLoop(SClass* me_)
 {
 	SSnd* me2 = reinterpret_cast<SSnd*>(me_);
-	THROWDBG(!me2->Streaming && loopPos != 0.0 || loopPos < 0.0 || me2->EndPos <= loopPos, 0xe9170006);
-	me2->LoopPos = static_cast<S64>(loopPos * (double)me2->SizePerSec);
 	me2->SndBuf->Play(0, 0, DSBPLAY_LOOPING);
 }
 
@@ -240,16 +175,7 @@ EXPORT_CPP void _sndSetPos(SClass* me_, double value)
 {
 	SSnd* me2 = reinterpret_cast<SSnd*>(me_);
 	THROWDBG(value < 0.0 || me2->EndPos <= value, 0xe9170006);
-	if (me2->Streaming)
-	{
-		me2->FuncSetPos(me2->Handle, static_cast<S64>(value * static_cast<double>(me2->SizePerSec)));
-		me2->SndBuf->SetCurrentPosition(0);
-		me2->StreamingPlayingFirstBuffer = True;
-		me2->StreamingFinishCnt = 0;
-		StreamCopy(me2, 0);
-	}
-	else
-		me2->SndBuf->SetCurrentPosition(static_cast<DWORD>(value * static_cast<double>(me2->SizePerSec)));
+	me2->SndBuf->SetCurrentPosition(static_cast<DWORD>(value * static_cast<double>(me2->SizePerSec)));
 }
 
 EXPORT_CPP void _sndStop(SClass* me_)
@@ -273,7 +199,7 @@ EXPORT_CPP double _getMainVolume()
 	return MainVolume;
 }
 
-EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
+EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* data, const U8* path)
 {
 	THROWDBG(path == nullptr, EXCPT_ACCESS_VIOLATION);
 	if (Device == nullptr)
@@ -294,7 +220,7 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
 			int len = static_cast<int>(wcslen(path2));
 			if (StrCmpIgnoreCase(path2 + len - 4, L".wav"))
 			{
-				me2->Handle = LoadWav(path2, &channel, &samples_per_sec, &bits_per_sample, &total, &me2->FuncClose, &me2->FuncRead, &me2->FuncSetPos, &me2->FuncGetPos);
+				me2->Handle = LoadWav(data, &channel, &samples_per_sec, &bits_per_sample, &total);
 				if (me2->Handle == nullptr)
 					break;
 			}
@@ -302,7 +228,7 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
 			{
 				if (LoadOgg == nullptr)
 					break;
-				me2->Handle = LoadOgg(path2, &channel, &samples_per_sec, &bits_per_sample, &total, &me2->FuncClose, &me2->FuncRead, &me2->FuncSetPos, &me2->FuncGetPos);
+				me2->Handle = LoadOgg(data, &channel, &samples_per_sec, &bits_per_sample, &total);
 				if (me2->Handle == nullptr)
 					break;
 			}
@@ -329,12 +255,6 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
 			me2->SizePerSec = desc.lpwfxFormat->nAvgBytesPerSec;
 			me2->EndPos = static_cast<double>(total) / static_cast<double>(samples_per_sec * channel * bits_per_sample / 8);
 		}
-		me2->Streaming = streaming;
-		if (me2->Streaming)
-		{
-			THROWDBG(me2->EndPos < 1.0, 0xe9170006);
-			desc.dwBufferBytes = static_cast<DWORD>(BufSize * me2->SizePerSec);
-		}
 		{
 			LPDIRECTSOUNDBUFFER pdsb;
 			if (FAILED(Device->CreateSoundBuffer(&desc, &pdsb, nullptr)))
@@ -346,17 +266,9 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
 		{
 			DWORD freq;
 			me2->SndBuf->GetFrequency(&freq);
-			me2->Freq = freq;
+			me2->Freq = static_cast<double>(freq);
 		}
-		me2->LoopPos = 0;
 		me2->Volume = 0.0;
-		if (me2->Streaming)
-		{
-			StreamCopy(me2, 0);
-			me2->StreamingPlayingFirstBuffer = True;
-			me2->StreamingFinishCnt = 0;
-		}
-		else
 		{
 			LPVOID lpvptr;
 			DWORD dwbytes;
@@ -365,7 +277,6 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
 			me2->FuncRead(me2->Handle, lpvptr, static_cast<S64>(dwbytes), -1);
 			me2->SndBuf->Unlock(lpvptr, dwbytes, nullptr, 0);
 			me2->FuncClose(me2->Handle);
-			me2->Handle = nullptr;
 		}
 		_sndVolume(me_, 1.0);
 		{
@@ -384,6 +295,8 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* path, Bool streaming)
 	if (!success)
 	{
 		THROW(0xe9170009);
+		if (me2->SndBuf != nullptr)
+			me2->SndBuf->Release();
 		return nullptr;
 	}
 	return me_;
@@ -427,33 +340,4 @@ static Bool StrCmpIgnoreCase(const Char* a, const Char* b)
 		b++;
 	}
 	return *b == L'\0';
-}
-
-static Bool StreamCopy(SSnd* me_, S64 id)
-{
-	S64 dsize = me_->SizePerSec * BufSize / 2;
-	LPVOID lpvptr0, lpvptr1;
-	DWORD dwbytes0, dwbytes1;
-	Bool finish = False;
-	for (; ; )
-	{
-		if (FAILED(me_->SndBuf->Lock(static_cast<DWORD>(dsize * id), static_cast<DWORD>(dsize), &lpvptr0, &dwbytes0, &lpvptr1, &dwbytes1, 0)))
-		{
-			Sleep(1);
-			continue;
-		}
-		break;
-	}
-	if (dwbytes0 > 0)
-	{
-		if (me_->FuncRead(me_->Handle, lpvptr0, static_cast<S64>(dwbytes0), me_->LoopPos))
-			finish = True;
-	}
-	if (dwbytes1 > 0)
-	{
-		if (me_->FuncRead(me_->Handle, lpvptr1, static_cast<S64>(dwbytes1), me_->LoopPos))
-			finish = True;
-	}
-	me_->SndBuf->Unlock(lpvptr0, dwbytes0, lpvptr1, dwbytes1);
-	return finish;
 }
