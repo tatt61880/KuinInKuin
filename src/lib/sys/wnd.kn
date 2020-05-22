@@ -12,7 +12,10 @@ end func
 end enum
 
 +class Btn(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _wndGetText]getText(): []char
@@ -25,7 +28,10 @@ end enum
 end class
 
 +class Chk(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _btnGetChk]getChk(): bool
@@ -44,7 +50,10 @@ end class
 end class
 
 +class Combo(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _comboAdd]add(text: []char)
@@ -76,7 +85,10 @@ end class
 end class
 
 +class Draw(@WndBase)
-	*func[d0001.knd, _drawDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _drawDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _drawHideCaret]hideCaret()
@@ -119,7 +131,10 @@ end class
 end class
 
 +class Edit(@EditBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _editRightAligned]rightAligned(enabled: bool)
@@ -127,7 +142,10 @@ end class
 end class
 
 +class EditBase(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _wndGetText]getText(): []char
@@ -147,7 +165,10 @@ end class
 end class
 
 +class EditMulti(@EditBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _editMultiAddText]addText(text: []char)
@@ -155,7 +176,10 @@ end class
 end class
 
 +class Group(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _wndSetText]setText(text: []char)
@@ -243,7 +267,10 @@ end class
 end enum
 
 +class Label(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _wndGetText]getText(): []char
@@ -254,7 +281,10 @@ end enum
 end class
 
 +class List(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _listAdd]add(text: []char)
@@ -289,7 +319,10 @@ end class
 end class
 
 +class ListView(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _listViewAdd]add(text: []char, img: int)
@@ -478,7 +511,10 @@ end enum
 end class
 
 +class Radio(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _btnGetChk]getChk(): bool
@@ -497,7 +533,10 @@ end class
 end class
 
 +class ScrollBase(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _scrollSetScrollPos]setScrollPos(pos: int)
@@ -508,12 +547,18 @@ end class
 end class
 
 +class ScrollX(@ScrollBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 end class
 
 +class ScrollY(@ScrollBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 end class
 
@@ -524,7 +569,10 @@ end class
 end enum
 
 +class Tab(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _tabAdd]add(text: []char)
@@ -556,7 +604,10 @@ end class
 end class
 
 +class Tree(@WndBase)
-	*func[d0001.knd, _wndBaseDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[d0001.knd, _wndBaseDtor, __frc]_dtor()
 	end func
 	
 	+func[d0001.knd, _treeAllowDraggingToRoot]allowDraggingToRoot(enabled: bool)
@@ -571,10 +622,10 @@ end class
 	+func[d0001.knd, _treeExpand]expand(expand_: bool)
 	end func
 	
-	+func[d0001.knd, _treeGetSel, _make_instance]getSel(me2: @TreeNode): @TreeNode
+	+func[d0001.knd, _treeGetSel, __mki]getSel(me2: @TreeNode): @TreeNode
 	end func
 	
-	+func[d0001.knd, _treeRoot, _make_instance]root(me2: @TreeNode): @TreeNode
+	+func[d0001.knd, _treeRoot, __mki]root(me2: @TreeNode): @TreeNode
 	end func
 	
 	+func[d0001.knd, _treeSetSel]setSel(node: @TreeNode)
@@ -587,32 +638,35 @@ end class
 end class
 
 +class TreeNode()
+	*func[__ndc]ctor()
+	end func
+	
 	+*func cmp(t: @TreeNode): int
 		ret me._item - t._item
 	end func
 	
-	+func[d0001.knd, _treeNodeAddChild, _make_instance]addChild(me2: @TreeNode, name: []char): @TreeNode
+	+func[d0001.knd, _treeNodeAddChild, __mki]addChild(me2: @TreeNode, name: []char): @TreeNode
 	end func
 	
 	+func[d0001.knd, _treeNodeDelChild]delChild(node: @TreeNode)
 	end func
 	
-	+func[d0001.knd, _treeNodeFirstChild, _make_instance]firstChild(me2: @TreeNode): @TreeNode
+	+func[d0001.knd, _treeNodeFirstChild, __mki]firstChild(me2: @TreeNode): @TreeNode
 	end func
 	
 	+func[d0001.knd, _treeNodeGetName]getName(): []char
 	end func
 	
-	+func[d0001.knd, _treeNodeInsChild, _make_instance]insChild(me2: @TreeNode, node: @TreeNode, name: []char): @TreeNode
+	+func[d0001.knd, _treeNodeInsChild, __mki]insChild(me2: @TreeNode, node: @TreeNode, name: []char): @TreeNode
 	end func
 	
-	+func[d0001.knd, _treeNodeNext, _make_instance]next(me2: @TreeNode): @TreeNode
+	+func[d0001.knd, _treeNodeNext, __mki]next(me2: @TreeNode): @TreeNode
 	end func
 	
-	+func[d0001.knd, _treeNodeParent, _make_instance]parent(me2: @TreeNode): @TreeNode
+	+func[d0001.knd, _treeNodeParent, __mki]parent(me2: @TreeNode): @TreeNode
 	end func
 	
-	+func[d0001.knd, _treeNodePrev, _make_instance]prev(me2: @TreeNode): @TreeNode
+	+func[d0001.knd, _treeNodePrev, __mki]prev(me2: @TreeNode): @TreeNode
 	end func
 	
 	var wndHandle: int
@@ -801,67 +855,67 @@ end func
 +func[d0001.knd, _key]key(key_: @Key): bool
 end func
 
-+func[d0001.knd, _makeBtn, _make_instance]makeBtn(me2: @Btn, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Btn
++func[d0001.knd, _makeBtn, __mki]makeBtn(me2: @Btn, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Btn
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeChk, _make_instance]makeChk(me2: @Chk, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Chk
++func[d0001.knd, _makeChk, __mki]makeChk(me2: @Chk, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Chk
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeCombo, _make_instance]makeCombo(me2: @Combo, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Combo
++func[d0001.knd, _makeCombo, __mki]makeCombo(me2: @Combo, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Combo
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeDraw, _make_instance]makeDraw(me2: @Draw, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, equalMagnification: bool): @Draw
++func[d0001.knd, _makeDraw, __mki]makeDraw(me2: @Draw, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, equalMagnification: bool): @Draw
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeDrawEditable, _make_instance]makeDrawEditable(me2: @DrawEditable, parent: @WndBase, x: int, y: int, width: int, height: int): @DrawEditable
++func[d0001.knd, _makeDrawEditable, __mki]makeDrawEditable(me2: @DrawEditable, parent: @WndBase, x: int, y: int, width: int, height: int): @DrawEditable
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeDrawReduced, _make_instance]makeDrawReduced(me2: @Draw, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, equalMagnification: bool, split: int): @Draw
++func[d0001.knd, _makeDrawReduced, __mki]makeDrawReduced(me2: @Draw, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, equalMagnification: bool, split: int): @Draw
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeEdit, _make_instance]makeEdit(me2: @Edit, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Edit
++func[d0001.knd, _makeEdit, __mki]makeEdit(me2: @Edit, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Edit
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeEditMulti, _make_instance]makeEditMulti(me2: @EditMulti, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @EditMulti
++func[d0001.knd, _makeEditMulti, __mki]makeEditMulti(me2: @EditMulti, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @EditMulti
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeGroup, _make_instance]makeGroup(me2: @Group, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Group
++func[d0001.knd, _makeGroup, __mki]makeGroup(me2: @Group, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Group
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeLabel, _make_instance]makeLabel(me2: @Label, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Label
++func[d0001.knd, _makeLabel, __mki]makeLabel(me2: @Label, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Label
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeList, _make_instance]makeList(me2: @List, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @List
++func[d0001.knd, _makeList, __mki]makeList(me2: @List, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @List
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
@@ -888,7 +942,7 @@ end func
 	end for
 	ret makeListViewImpl(parent, x, y, width, height, anchorX, anchorY, multiSel, s, l)
 	
-	func[d0001.knd, _makeListView, _make_instance]makeListViewImpl(me2: @ListView, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, multiSel: bool, smallImgs: [][]bit8, largeImgs: [][]bit8): @ListView
+	func[d0001.knd, _makeListView, __mki]makeListViewImpl(me2: @ListView, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, multiSel: bool, smallImgs: [][]bit8, largeImgs: [][]bit8): @ListView
 		if(parent <>& null)
 			do parent.addChild(me2)
 		end if
@@ -901,34 +955,34 @@ end func
 +func[d0001.knd, _makePopup, __mki]makePopup(me2: @Popup): @Popup
 end func
 
-+func[d0001.knd, _makeRadio, _make_instance]makeRadio(me2: @Radio, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Radio
++func[d0001.knd, _makeRadio, __mki]makeRadio(me2: @Radio, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor, text: []char): @Radio
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeScrollX, _make_instance]makeScrollX(me2: @ScrollX, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @ScrollX
++func[d0001.knd, _makeScrollX, __mki]makeScrollX(me2: @ScrollX, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @ScrollX
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeScrollY, _make_instance]makeScrollY(me2: @ScrollY, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @ScrollY
++func[d0001.knd, _makeScrollY, __mki]makeScrollY(me2: @ScrollY, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @ScrollY
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeTab, _make_instance]makeTab(me2: @Tab, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Tab
++func[d0001.knd, _makeTab, __mki]makeTab(me2: @Tab, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Tab
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
 end func
 
-+func[d0001.knd, _makeTabOrder, _make_instance]makeTabOrder(me2: @TabOrder, ctrls: []@WndBase): @TabOrder
++func[d0001.knd, _makeTabOrder, __mki]makeTabOrder(me2: @TabOrder, ctrls: []@WndBase): @TabOrder
 end func
 
-+func[d0001.knd, _makeTree, _make_instance]makeTree(me2: @Tree, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Tree
++func[d0001.knd, _makeTree, __mki]makeTree(me2: @Tree, parent: @WndBase, x: int, y: int, width: int, height: int, anchorX: @Anchor, anchorY: @Anchor): @Tree
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if

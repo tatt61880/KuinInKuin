@@ -7,15 +7,6 @@
 static SClass* MakeTexImpl(SClass* me_, const U8* data, const U8* path, Bool as_argb);
 static Bool StrCmpIgnoreCase(const Char* a, const Char* b);
 
-EXPORT_CPP void _texDtor(SClass* me_)
-{
-	STex* me2 = reinterpret_cast<STex*>(me_);
-	if (me2->View != nullptr)
-		me2->View->Release();
-	if (me2->Tex != nullptr)
-		me2->Tex->Release();
-}
-
 EXPORT_CPP void _texDraw(SClass* me_, double dstX, double dstY, double srcX, double srcY, double srcW, double srcH, S64 color)
 {
 	_texDrawScale(me_, dstX, dstY, srcW, srcH, srcX, srcY, srcW, srcH, color);
@@ -127,6 +118,21 @@ EXPORT_CPP void _texDrawScale(SClass* me_, double dstX, double dstY, double dstW
 		Device->PSSetShaderResources(0, 1, &me2->View);
 	}
 	Device->DrawIndexed(6, 0, 0);
+}
+
+EXPORT_CPP void _texFin(SClass* me_)
+{
+	STex* me2 = reinterpret_cast<STex*>(me_);
+	if (me2->View != nullptr)
+	{
+		me2->View->Release();
+		me2->View = nullptr;
+	}
+	if (me2->Tex != nullptr)
+	{
+		me2->Tex->Release();
+		me2->Tex = nullptr;
+	}
 }
 
 EXPORT_CPP S64 _texHeight(SClass* me_)

@@ -6,26 +6,6 @@ static const D3D10_VIEWPORT ParticleViewport = { 0, 0, static_cast<UINT>(Particl
 
 static void UpdateParticles(SParticle* particle);
 
-EXPORT_CPP void _particleDtor(SClass* me_)
-{
-	SParticle* me2 = reinterpret_cast<SParticle*>(me_);
-	if (me2->TexSet != nullptr)
-	{
-		for (int i = 0; i < ParticleTexNum * 2; i++)
-		{
-			if (me2->TexSet[i].RenderTargetViewParam != nullptr)
-				me2->TexSet[i].RenderTargetViewParam->Release();
-			if (me2->TexSet[i].ViewParam != nullptr)
-				me2->TexSet[i].ViewParam->Release();
-			if (me2->TexSet[i].TexParam != nullptr)
-				me2->TexSet[i].TexParam->Release();
-		}
-		FreeMem(me2->TexSet);
-	}
-	if (me2->TexTmp != nullptr)
-		me2->TexTmp->Release();
-}
-
 EXPORT_CPP void _particleDraw(SClass* me_, SClass* tex)
 {
 	SParticle* me2 = reinterpret_cast<SParticle*>(me_);
@@ -96,6 +76,30 @@ EXPORT_CPP void _particleEmit(SClass* me_, double x, double y, double z, double 
 	particle->ParticlePtr++;
 	if (particle->ParticlePtr >= ParticleNum)
 		particle->ParticlePtr = 0;
+}
+
+EXPORT_CPP void _particleFin(SClass* me_)
+{
+	SParticle* me2 = reinterpret_cast<SParticle*>(me_);
+	if (me2->TexSet != nullptr)
+	{
+		for (int i = 0; i < ParticleTexNum * 2; i++)
+		{
+			if (me2->TexSet[i].RenderTargetViewParam != nullptr)
+				me2->TexSet[i].RenderTargetViewParam->Release();
+			if (me2->TexSet[i].ViewParam != nullptr)
+				me2->TexSet[i].ViewParam->Release();
+			if (me2->TexSet[i].TexParam != nullptr)
+				me2->TexSet[i].TexParam->Release();
+		}
+		FreeMem(me2->TexSet);
+		me2->TexSet = nullptr;
+	}
+	if (me2->TexTmp != nullptr)
+	{
+		me2->TexTmp->Release();
+		me2->TexTmp = nullptr;
+	}
 }
 
 EXPORT_CPP SClass* _makeParticle(SClass* me_, S64 life_span, S64 color1, S64 color2, double friction, double accel_x, double accel_y, double accel_z, double size_accel, double rot_accel)

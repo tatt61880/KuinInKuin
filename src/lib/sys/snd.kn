@@ -6,6 +6,9 @@ func[d0001.knd, _sndFin]_fin()
 end func
 
 +class Snd()
+	*func[__ndc]ctor()
+	end func
+	
 	*func[__frc]_dtor()
 		do me.fin()
 	end func
@@ -53,16 +56,16 @@ end class
 +func[d0001.knd, _getMainVolume]getMainVolume(): float
 end func
 
-+func makeSnd(path: []char, streaming: bool): @Snd
++func makeSnd(path: []char): @Snd
 	var f: file@Reader(path)
 	if(f =& null)
 		ret null
 	end if
 	var d: []bit8 :: f.read(f.fileSize())
 	do f.fin()
-	ret makeSndImpl(d, path, streaming)
+	ret makeSndImpl(d, path)
 	
-	func[d0001.knd, _makeSnd, __mki]makeSndImpl(me2: @Snd, data: []char, path: []char): @Snd
+	func[d0001.knd, _makeSnd, __mki]makeSndImpl(me2: @Snd, data: []bit8, path: []char): @Snd
 	end func
 end func
 

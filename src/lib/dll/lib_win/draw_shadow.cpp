@@ -1,18 +1,5 @@
 #include "draw_shadow.h"
 
-EXPORT_CPP void _shadowDtor(SClass* me_)
-{
-	SShadow* me2 = reinterpret_cast<SShadow*>(me_);
-	if (me2->ShadowProjView != nullptr)
-		FreeMem(me2->ShadowProjView);
-	if (me2->DepthResView != nullptr)
-		me2->DepthResView->Release();
-	if (me2->DepthView != nullptr)
-		me2->DepthView->Release();
-	if (me2->DepthTex != nullptr)
-		me2->DepthTex->Release();
-}
-
 EXPORT_CPP void _shadowAdd(SClass* me_, SClass* obj, S64 element, double frame)
 {
 	SShadow* me2 = reinterpret_cast<SShadow*>(me_);
@@ -182,6 +169,31 @@ EXPORT_CPP void _shadowEndRecord(SClass* me_)
 	UNUSED(me_);
 	Device->OMSetRenderTargets(1, &CurWndBuf->TmpRenderTargetView, CurWndBuf->DepthView);
 	ResetViewport();
+}
+
+EXPORT_CPP void _shadowFin(SClass* me_)
+{
+	SShadow* me2 = reinterpret_cast<SShadow*>(me_);
+	if (me2->ShadowProjView != nullptr)
+	{
+		FreeMem(me2->ShadowProjView);
+		me2->ShadowProjView = nullptr;
+	}
+	if (me2->DepthResView != nullptr)
+	{
+		me2->DepthResView->Release();
+		me2->DepthResView = nullptr;
+	}
+	if (me2->DepthView != nullptr)
+	{
+		me2->DepthView->Release();
+		me2->DepthView = nullptr;
+	}
+	if (me2->DepthTex != nullptr)
+	{
+		me2->DepthTex->Release();
+		me2->DepthTex = nullptr;
+	}
 }
 
 EXPORT_CPP SClass* _makeShadow(SClass* me_, S64 width, S64 height)

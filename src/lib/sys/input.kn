@@ -1,0 +1,6 @@
+#exe
+func[d0001.knd, _inputInit]_init()
+end func
+
+func[d0001.knd, _inputFin]_fin()
+end func

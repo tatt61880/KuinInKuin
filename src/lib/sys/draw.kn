@@ -30,7 +30,11 @@ end enum
 end enum
 
 +class Font()
-	*func[d0001.knd, _fontDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
 	end func
 	
 	+func[d0001.knd, _fontAlign]align(horizontal: @AlignHorizontal, vertical: @AlignVertical)
@@ -46,6 +50,9 @@ end enum
 	end func
 	
 	+func[d0001.knd, _fontDrawScale]drawScale(dstX: float, dstY: float, dstScaleX: float, dstScaleY: float, text: []char, color: int)
+	end func
+	
+	+func[d0001.knd, _fontFin]fin()
 	end func
 	
 	+func[d0001.knd, _fontGetHeight]getHeight(): float
@@ -80,7 +87,11 @@ end enum
 end class
 
 +class Obj()
-	*func[d0001.knd, _objDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
 	end func
 	
 	+func[d0001.knd, _objDraw, _5]draw(element: int, frame: float, diffuse: @Tex, specular: @Tex, normal: @Tex)
@@ -99,6 +110,9 @@ end class
 	end func
 	
 	+func[d0001.knd, _objDrawWithShadow, _5]drawWithShadow(element: int, frame: float, diffuse: @Tex, specular: @Tex, normal: @Tex, shadow: @Shadow)
+	end func
+	
+	+func[d0001.knd, _objFin]fin()
 	end func
 	
 	+func[d0001.knd, _objLook]look(x: float, y: float, z: float, atX: float, atY: float, atZ: float, upX: float, upY: float, upZ: float, fixUp: bool)
@@ -135,7 +149,11 @@ end class
 end class
 
 +class Particle()
-	*func[d0001.knd, _particleDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
 	end func
 	
 	+func[d0001.knd, _particleDraw]draw(tex: @Tex)
@@ -145,6 +163,9 @@ end class
 	end func
 	
 	+func[d0001.knd, _particleEmit]emit(x: float, y: float, z: float, veloX: float, veloY: float, veloZ: float, size: float, sizeVelo: float, rot: float, rotVelo: float)
+	end func
+	
+	+func[d0001.knd, _particleFin]fin()
 	end func
 	
 	var lifespan: int
@@ -168,7 +189,11 @@ end class
 end enum
 
 +class Shadow()
-	*func[d0001.knd, _shadowDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
 	end func
 	
 	+func[d0001.knd, _shadowAdd]add(obj: @Obj, element: int, frame: float)
@@ -180,6 +205,9 @@ end enum
 	+func[d0001.knd, _shadowEndRecord]endRecord()
 	end func
 	
+	+func[d0001.knd, _shadowFin]fin()
+	end func
+	
 	var depthTex: int
 	var depthView: int
 	var depthResView: int
@@ -188,7 +216,11 @@ end enum
 end class
 
 +class Tex()
-	*func[d0001.knd, _texDtor, _force]_dtor()
+	*func[__ndc]ctor()
+	end func
+	
+	*func[__frc]_dtor()
+		do me.fin()
 	end func
 	
 	+func[d0001.knd, _texDraw]draw(dstX: float, dstY: float, srcX: float, srcY: float, srcW: float, srcH: float, color: int)
@@ -198,6 +230,9 @@ end class
 	end func
 	
 	+func[d0001.knd, _texDrawScale]drawScale(dstX: float, dstY: float, dstW: float, dstH: float, srcX: float, srcY: float, srcW: float, srcH: float, color: int)
+	end func
+	
+	+func[d0001.knd, _texFin]fin()
 	end func
 	
 	+func[d0001.knd, _texHeight]height(): int
@@ -272,10 +307,10 @@ end func
 +func[d0001.knd, _line]line(x1: float, y1: float, x2: float, y2: float, color: int)
 end func
 
-+func[d0001.knd, _makeBox, _make_instance]makeBox(me2: @Obj): @Obj
++func[d0001.knd, _makeBox, __mki]makeBox(me2: @Obj): @Obj
 end func
 
-+func[d0001.knd, _makeFont, _make_instance]makeFont(me2: @Font, fontName: []char, size: int, bold: bool, italic: bool, proportional: bool, advance: float): @Font
++func[d0001.knd, _makeFont, __mki]makeFont(me2: @Font, fontName: []char, size: int, bold: bool, italic: bool, proportional: bool, advance: float): @Font
 end func
 
 +func makeObj(path: []char): @Obj
@@ -287,20 +322,20 @@ end func
 	do f.fin()
 	ret makeObjImpl(d)
 	
-	func[d0001.knd, _makeObj, _make_instance]makeObjImpl(me2: @Obj, data: []bit8): @Obj
+	func[d0001.knd, _makeObj, __mki]makeObjImpl(me2: @Obj, data: []bit8): @Obj
 	end func
 end func
 
-+func[d0001.knd, _makeParticle, _make_instance, _3]makeParticle(me2: @Particle, lifeSpan: int, color1: int, color2: int, friction: float, accelX: float, accelY: float, accelZ: float, sizeAccel: float, rotAccel: float): @Particle
++func[d0001.knd, _makeParticle, __mki, _3]makeParticle(me2: @Particle, lifeSpan: int, color1: int, color2: int, friction: float, accelX: float, accelY: float, accelZ: float, sizeAccel: float, rotAccel: float): @Particle
 end func
 
-+func[d0001.knd, _makePlane, _make_instance]makePlane(me2: @Obj): @Obj
++func[d0001.knd, _makePlane, __mki]makePlane(me2: @Obj): @Obj
 end func
 
-+func[d0001.knd, _makeShadow, _make_instance, _5]makeShadow(me2: @Shadow, width: int, height: int): @Shadow
++func[d0001.knd, _makeShadow, __mki, _5]makeShadow(me2: @Shadow, width: int, height: int): @Shadow
 end func
 
-+func[d0001.knd, _makeSphere, _make_instance]makeSphere(me2: @Obj): @Obj
++func[d0001.knd, _makeSphere, __mki]makeSphere(me2: @Obj): @Obj
 end func
 
 +func makeTex(path: []char): @Tex
@@ -312,7 +347,7 @@ end func
 	do f.fin()
 	ret makeTexImpl(d, path)
 	
-	func[d0001.knd, _makeTex, _make_instance]makeTexImpl(me2: @Tex, data: []bit8, path: []char): @Tex
+	func[d0001.knd, _makeTex, __mki]makeTexImpl(me2: @Tex, data: []bit8, path: []char): @Tex
 	end func
 end func
 
@@ -325,14 +360,14 @@ end func
 	do f.fin()
 	ret makeTexArgbImpl(d, path)
 	
-	func[d0001.knd, _makeTexArgb, _make_instance]makeTexArgbImpl(me2: @Tex, data: []bit8, path: []char): @Tex
+	func[d0001.knd, _makeTexArgb, __mki]makeTexArgbImpl(me2: @Tex, data: []bit8, path: []char): @Tex
 	end func
 end func
 
-+func[d0001.knd, _makeTexEvenArgb, _make_instance]makeTexEvenArgb(me2: @Tex, a: float, r: float, g: float, b: float): @Tex
++func[d0001.knd, _makeTexEvenArgb, __mki]makeTexEvenArgb(me2: @Tex, a: float, r: float, g: float, b: float): @Tex
 end func
 
-+func[d0001.knd, _makeTexEvenColor, _make_instance]makeTexEvenColor(me2: @Tex, color: int): @Tex
++func[d0001.knd, _makeTexEvenColor, __mki]makeTexEvenColor(me2: @Tex, color: int): @Tex
 end func
 
 +func[d0001.knd, _proj]proj(fovy: float, aspectX: float, aspectY: float, nearZ: float, farZ: float)

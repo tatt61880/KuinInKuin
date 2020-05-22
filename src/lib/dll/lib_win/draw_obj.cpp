@@ -10,34 +10,6 @@ static void ObjDrawFlatImpl(SClass* me_, S64 element, double frame, SClass* diff
 static void WriteFastPsConstBuf(SObjFastPsConstBuf* ps_const_buf);
 static SClass* MakeObjImpl(SClass* me_, size_t size, const void* binary);
 
-EXPORT_CPP void _objDtor(SClass* me_)
-{
-	SObj* me2 = reinterpret_cast<SObj*>(me_);
-	for (int i = 0; i < me2->ElementNum; i++)
-	{
-		switch (me2->ElementKinds[i])
-		{
-			case 0: // Polygon.
-				{
-					SObj::SPolygon* element = static_cast<SObj::SPolygon*>(me2->Elements[i]);
-					if (element->Joints != nullptr)
-						FreeMem(element->Joints);
-					if (element->VertexBuf != nullptr)
-						FinVertexBuf(element->VertexBuf);
-					FreeMem(element);
-				}
-				break;
-			default:
-				ASSERT(False);
-				break;
-		}
-	}
-	if (me2->Elements != nullptr)
-		FreeMem(me2->Elements);
-	if (me2->ElementKinds != nullptr)
-		FreeMem(me2->ElementKinds);
-}
-
 EXPORT_CPP void _objDraw(SClass* me_, S64 element, double frame, SClass* diffuse, SClass* specular, SClass* normal)
 {
 	ObjDrawImpl(me_, element, frame, diffuse, specular, normal, nullptr);
@@ -106,6 +78,41 @@ EXPORT_CPP void _objDrawToonWithShadow(SClass* me_, S64 element, double frame, S
 EXPORT_CPP void _objDrawWithShadow(SClass* me_, S64 element, double frame, SClass* diffuse, SClass* specular, SClass* normal, SClass* shadow)
 {
 	ObjDrawImpl(me_, element, frame, diffuse, specular, normal, shadow);
+}
+
+EXPORT_CPP void _objFin(SClass* me_)
+{
+	SObj* me2 = reinterpret_cast<SObj*>(me_);
+	for (int i = 0; i < me2->ElementNum; i++)
+	{
+		switch (me2->ElementKinds[i])
+		{
+			case 0: // Polygon.
+				{
+					SObj::SPolygon* element = static_cast<SObj::SPolygon*>(me2->Elements[i]);
+					if (element->Joints != nullptr)
+						FreeMem(element->Joints);
+					if (element->VertexBuf != nullptr)
+						FinVertexBuf(element->VertexBuf);
+					FreeMem(element);
+				}
+				break;
+			default:
+				ASSERT(False);
+				break;
+		}
+	}
+	me2->ElementNum = 0;
+	if (me2->Elements != nullptr)
+	{
+		FreeMem(me2->Elements);
+		me2->Elements = nullptr;
+	}
+	if (me2->ElementKinds != nullptr)
+	{
+		FreeMem(me2->ElementKinds);
+		me2->ElementKinds = nullptr;
+	}
 }
 
 EXPORT_CPP void _objLook(SClass* me_, double x, double y, double z, double atX, double atY, double atZ, double upX, double upY, double upZ, Bool fixUp)

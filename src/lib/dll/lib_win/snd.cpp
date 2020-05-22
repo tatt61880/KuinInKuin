@@ -29,7 +29,7 @@ static LPDIRECTSOUND8 Device = nullptr;
 static SListSnd* ListSndTop = nullptr;
 static SListSnd* ListSndBottom = nullptr;
 static HMODULE DllOgg = nullptr;
-static void* (*LoadOgg)(const Char* path, S64* channel, S64* samples_per_sec, S64* bits_per_sample, S64* total, void(**func_close)(void*), Bool(**func_read)(void*, void*, S64, S64), void(**func_set_pos)(void*, S64), S64(**func_get_pos)(void*)) = nullptr;
+static void* (*LoadOgg)(size_t size, const U8* data, S64* channel, S64* samples_per_sec, S64* bits_per_sample, S64* total, void(**func_close)(void*), Bool(**func_read)(void*, void*, S64, S64)) = nullptr;
 static double MainVolume = 1.0;
 
 static LRESULT CALLBACK WndProc(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
@@ -73,7 +73,7 @@ EXPORT_CPP void _sndInit()
 	DllOgg = LoadLibrary(L"data/d1000.knd");
 	if (DllOgg != nullptr)
 	{
-		LoadOgg = reinterpret_cast<void* (*)(const Char * path, S64 * channel, S64 * samples_per_sec, S64 * bits_per_sample, S64 * total, void(**func_close)(void*), Bool(**func_read)(void*, void*, S64, S64), void(**func_set_pos)(void*, S64), S64(**func_get_pos)(void*))>(GetProcAddress(DllOgg, "LoadOgg"));
+		LoadOgg = reinterpret_cast<void* (*)(size_t size, const U8 * data, S64 * channel, S64 * samples_per_sec, S64 * bits_per_sample, S64 * total, void(**func_close)(void*), Bool(**func_read)(void*, void*, S64, S64))>(GetProcAddress(DllOgg, "LoadOgg"));
 		if (LoadOgg == nullptr)
 		{
 			FreeLibrary(DllOgg);
@@ -100,6 +100,7 @@ EXPORT_CPP void _sndFin2(SClass* me_)
 	{
 		me2->SndBuf->Stop();
 		me2->SndBuf->Release();
+		me2->SndBuf = nullptr;
 	}
 	{
 		SListSnd* ptr = ListSndTop;
@@ -209,6 +210,9 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* data, const U8* path)
 	WAVEFORMATEX pcmwf;
 	DSBUFFERDESC desc;
 	Bool success = False;
+	void(*func_close)(void*) = nullptr;
+	Bool(*func_read)(void*, void*, S64, S64) = nullptr;
+	void* handle = nullptr;
 	for (; ; )
 	{
 		{
@@ -218,18 +222,19 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* data, const U8* path)
 			S64 total = 0;
 			const Char* path2 = reinterpret_cast<const Char*>(path + 0x10);
 			int len = static_cast<int>(wcslen(path2));
+			size_t size = static_cast<size_t>(*reinterpret_cast<const S64*>(data + 0x08));
 			if (StrCmpIgnoreCase(path2 + len - 4, L".wav"))
 			{
-				me2->Handle = LoadWav(data, &channel, &samples_per_sec, &bits_per_sample, &total);
-				if (me2->Handle == nullptr)
+				handle = LoadWav(size, data + 0x10, &channel, &samples_per_sec, &bits_per_sample, &total, &func_close, &func_read);
+				if (handle == nullptr)
 					break;
 			}
 			else if (StrCmpIgnoreCase(path2 + len - 4, L".ogg"))
 			{
 				if (LoadOgg == nullptr)
 					break;
-				me2->Handle = LoadOgg(data, &channel, &samples_per_sec, &bits_per_sample, &total);
-				if (me2->Handle == nullptr)
+				handle = LoadOgg(size, data + 0x10, &channel, &samples_per_sec, &bits_per_sample, &total, &func_close, &func_read);
+				if (handle == nullptr)
 					break;
 			}
 			else
@@ -274,9 +279,9 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* data, const U8* path)
 			DWORD dwbytes;
 			if (FAILED(me2->SndBuf->Lock(0, desc.dwBufferBytes, &lpvptr, &dwbytes, nullptr, nullptr, 0)))
 				break;
-			me2->FuncRead(me2->Handle, lpvptr, static_cast<S64>(dwbytes), -1);
+			func_read(handle, lpvptr, static_cast<S64>(dwbytes), -1);
 			me2->SndBuf->Unlock(lpvptr, dwbytes, nullptr, 0);
-			me2->FuncClose(me2->Handle);
+			func_close(handle);
 		}
 		_sndVolume(me_, 1.0);
 		{
@@ -295,6 +300,8 @@ EXPORT_CPP SClass* _makeSnd(SClass* me_, const U8* data, const U8* path)
 	if (!success)
 	{
 		THROW(0xe9170009);
+		if (handle != nullptr)
+			func_close(handle);
 		if (me2->SndBuf != nullptr)
 			me2->SndBuf->Release();
 		return nullptr;

@@ -4,21 +4,6 @@ static double CalcFontLineWidth(SFont* font, const Char* text);
 static double CalcFontLineHeight(SFont* font, const Char* text);
 static int SearchFromCache(SFont* me, int cell_num_width, int cell_num, Char c);
 
-EXPORT_CPP void _fontDtor(SClass* me_)
-{
-	SFont* me2 = reinterpret_cast<SFont*>(me_);
-	DeleteDC(me2->Dc);
-	DeleteObject(static_cast<HGDIOBJ>(me2->Bitmap));
-	if (me2->GlyphWidth != nullptr)
-		FreeMem(me2->GlyphWidth);
-	FreeMem(me2->CntMap);
-	FreeMem(me2->CharMap);
-	if (me2->View != nullptr)
-		me2->View->Release();
-	if (me2->Tex != nullptr)
-		me2->Tex->Release();
-}
-
 EXPORT_CPP void _fontAlign(SClass* me_, S64 horizontal, S64 vertical)
 {
 	SFont* me2 = reinterpret_cast<SFont*>(me_);
@@ -205,6 +190,46 @@ EXPORT_CPP void _fontDrawScale(SClass* me_, double dstX, double dstY, double dst
 		if (me2->Proportional)
 			x += static_cast<double>(me2->GlyphWidth[pos]) * dstScaleX;
 		ptr++;
+	}
+}
+
+EXPORT_CPP void _fontFin(SClass* me_)
+{
+	SFont* me2 = reinterpret_cast<SFont*>(me_);
+	if (me2->Dc != nullptr)
+	{
+		DeleteDC(me2->Dc);
+		me2->Dc = nullptr;
+	}
+	if (me2->Bitmap != nullptr)
+	{
+		DeleteObject(static_cast<HGDIOBJ>(me2->Bitmap));
+		me2->Bitmap = nullptr;
+	}
+	if (me2->GlyphWidth != nullptr)
+	{
+		FreeMem(me2->GlyphWidth);
+		me2->GlyphWidth = nullptr;
+	}
+	if (me2->CntMap != nullptr)
+	{
+		FreeMem(me2->CntMap);
+		me2->CntMap = nullptr;
+	}
+	if (me2->CharMap != nullptr)
+	{
+		FreeMem(me2->CharMap);
+		me2->CharMap = nullptr;
+	}
+	if (me2->View != nullptr)
+	{
+		me2->View->Release();
+		me2->View = nullptr;
+	}
+	if (me2->Tex != nullptr)
+	{
+		me2->Tex->Release();
+		me2->Tex = nullptr;
 	}
 }
 
