@@ -31,40 +31,37 @@ EXPORT void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_fla
 		return;
 }
 
-EXPORT SClass* _makeSql(SClass* me_, const U8* path)
+EXPORT Bool _sqlApply(SClass* me_)
 {
-	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
 	SSql* me2 = (SSql*)me_;
-	me2->Db = NULL;
-	me2->Statement = NULL;
-	me2->Result = SQLITE_DONE;
-	if (sqlite3_open16((const Char*)(path + 0x10), &me2->Db) != SQLITE_OK)
-		return NULL;
-	return me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+
+	if (sqlite3_step(me2->Statement) != SQLITE_DONE)
+	{
+		Reset(me2);
+		return False;
+	}
+	return True;
 }
 
-EXPORT void _sqlDtor(SClass* me_)
+EXPORT Bool _sqlCurrent(SClass* me_)
 {
 	SSql* me2 = (SSql*)me_;
-	if (me2->Statement != NULL)
-		sqlite3_finalize(me2->Statement);
-	if (me2->Db != NULL)
-		sqlite3_close(me2->Db);
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	return me2->Result == SQLITE_ROW;
 }
 
-EXPORT void _sqlFin(SClass* me_)
+EXPORT void* _sqlErrMsg(SClass* me_)
 {
 	SSql* me2 = (SSql*)me_;
-	if (me2->Statement != NULL)
-	{
-		sqlite3_finalize(me2->Statement);
-		me2->Statement = NULL;
-	}
-	if (me2->Db != NULL)
-	{
-		sqlite3_close(me2->Db);
-		me2->Db = NULL;
-	}
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	const Char* str = sqlite3_errmsg16(me2->Db);
+	size_t len = wcslen(str);
+	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
+	((S64*)result)[0] = DefaultRefCntFunc;
+	((S64*)result)[1] = (S64)len;
+	memcpy(result + 0x10, str, sizeof(Char) * (len + 1));
+	return result;
 }
 
 EXPORT Bool _sqlExec(SClass* me_, const void* cmd)
@@ -93,79 +90,19 @@ EXPORT Bool _sqlExec(SClass* me_, const void* cmd)
 	return True;
 }
 
-EXPORT Bool _sqlPrepare(SClass* me_, const void* cmd)
+EXPORT void _sqlFin(SClass* me_)
 {
 	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	Reset(me2);
-	int result = sqlite3_prepare16_v2(me2->Db, (const U8*)cmd + 0x10, (int)(*(const S64*)((const U8*)cmd + 0x08) * sizeof(Char)), &me2->Statement, NULL);
-	if (result == SQLITE_OK)
+	if (me2->Statement != NULL)
 	{
-		me2->Result = result;
-		return True;
+		sqlite3_finalize(me2->Statement);
+		me2->Statement = NULL;
 	}
-
-	Reset(me2);
-	return False;
-}
-
-EXPORT Bool _sqlSetInt(SClass* me_, S64 col, S64 value)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_int64(me2->Statement, (int)col, value);
-	return result == SQLITE_OK;
-}
-
-EXPORT Bool _sqlSetFloat(SClass* me_, S64 col, double value)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_double(me2->Statement, (int)col, value);
-	return result == SQLITE_OK;
-}
-
-EXPORT Bool _sqlSetStr(SClass* me_, S64 col, const void* value)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_text16(me2->Statement, (int)col, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(Char)), SQLITE_TRANSIENT);
-	return result == SQLITE_OK;
-}
-
-EXPORT Bool _sqlSetBlob(SClass* me_, S64 col, const void* value)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_blob(me2->Statement, (int)col, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(S8)), SQLITE_TRANSIENT);
-	return result == SQLITE_OK;
-}
-
-EXPORT S64 _sqlGetInt(SClass* me_, S64 col)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	return sqlite3_column_int64(me2->Statement, (int)col);
-}
-
-EXPORT double _sqlGetFloat(SClass* me_, S64 col)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	return sqlite3_column_double(me2->Statement, (int)col);
-}
-
-EXPORT void* _sqlGetStr(SClass* me_, S64 col)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	const Char* str = sqlite3_column_text16(me2->Statement, (int)col);
-	size_t len = wcslen(str);
-	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
-	((S64*)result)[0] = DefaultRefCntFunc;
-	((S64*)result)[1] = (S64)len;
-	memcpy(result + 0x10, str, sizeof(Char) * (len + 1));
-	return result;
+	if (me2->Db != NULL)
+	{
+		sqlite3_close(me2->Db);
+		me2->Db = NULL;
+	}
 }
 
 EXPORT void* _sqlGetBlob(SClass* me_, S64 col)
@@ -181,11 +118,25 @@ EXPORT void* _sqlGetBlob(SClass* me_, S64 col)
 	return result;
 }
 
-EXPORT void* _sqlErrMsg(SClass* me_)
+EXPORT double _sqlGetFloat(SClass* me_, S64 col)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	const Char* str = sqlite3_errmsg16(me2->Db);
+	return sqlite3_column_double(me2->Statement, (int)col);
+}
+
+EXPORT S64 _sqlGetInt(SClass* me_, S64 col)
+{
+	SSql* me2 = (SSql*)me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	return sqlite3_column_int64(me2->Statement, (int)col);
+}
+
+EXPORT void* _sqlGetStr(SClass* me_, S64 col)
+{
+	SSql* me2 = (SSql*)me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	const Char* str = sqlite3_column_text16(me2->Statement, (int)col);
 	size_t len = wcslen(str);
 	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
 	((S64*)result)[0] = DefaultRefCntFunc;
@@ -208,24 +159,64 @@ EXPORT Bool _sqlNext(SClass* me_)
 	return True;
 }
 
-EXPORT Bool _sqlApply(SClass* me_)
+EXPORT Bool _sqlPrepare(SClass* me_, const void* cmd)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-
-	if (sqlite3_step(me2->Statement) != SQLITE_DONE)
+	Reset(me2);
+	int result = sqlite3_prepare16_v2(me2->Db, (const U8*)cmd + 0x10, (int)(*(const S64*)((const U8*)cmd + 0x08) * sizeof(Char)), &me2->Statement, NULL);
+	if (result == SQLITE_OK)
 	{
-		Reset(me2);
-		return False;
+		me2->Result = result;
+		return True;
 	}
-	return True;
+
+	Reset(me2);
+	return False;
 }
 
-EXPORT Bool _sqlCurrent(SClass* me_)
+EXPORT Bool _sqlSetBlob(SClass* me_, S64 col, const void* value)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	return me2->Result == SQLITE_ROW;
+	int result = sqlite3_bind_blob(me2->Statement, (int)col, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(S8)), SQLITE_TRANSIENT);
+	return result == SQLITE_OK;
+}
+
+EXPORT Bool _sqlSetFloat(SClass* me_, S64 col, double value)
+{
+	SSql* me2 = (SSql*)me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	int result = sqlite3_bind_double(me2->Statement, (int)col, value);
+	return result == SQLITE_OK;
+}
+
+EXPORT Bool _sqlSetInt(SClass* me_, S64 col, S64 value)
+{
+	SSql* me2 = (SSql*)me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	int result = sqlite3_bind_int64(me2->Statement, (int)col, value);
+	return result == SQLITE_OK;
+}
+
+EXPORT Bool _sqlSetStr(SClass* me_, S64 col, const void* value)
+{
+	SSql* me2 = (SSql*)me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	int result = sqlite3_bind_text16(me2->Statement, (int)col, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(Char)), SQLITE_TRANSIENT);
+	return result == SQLITE_OK;
+}
+
+EXPORT SClass* _makeSql(SClass* me_, const U8* path)
+{
+	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	SSql* me2 = (SSql*)me_;
+	me2->Db = NULL;
+	me2->Statement = NULL;
+	me2->Result = SQLITE_DONE;
+	if (sqlite3_open16((const Char*)(path + 0x10), &me2->Db) != SQLITE_OK)
+		return NULL;
+	return me_;
 }
 
 static void Reset(SSql* me)

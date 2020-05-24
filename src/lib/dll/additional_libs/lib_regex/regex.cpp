@@ -12,26 +12,6 @@ typedef struct SRegexPattern
 
 static void* ResultsToArray(const wsmatch& results);
 
-EXPORT_CPP SClass* _makeRegex(SClass* me_, const U8* pattern)
-{
-	THROWDBG(pattern == NULL, EXCPT_ACCESS_VIOLATION);
-	SRegexPattern* me2 = reinterpret_cast<SRegexPattern*>(me_);
-	me2->Pattern = static_cast<wsregex*>(AllocMem(sizeof(wsregex)));
-	new(me2->Pattern)wsregex();
-	try
-	{
-		*me2->Pattern = wsregex::compile(reinterpret_cast<const Char*>(pattern + 0x10));
-	}
-	catch (...)
-	{
-		me2->Pattern->~wsregex();
-		FreeMem(me2->Pattern);
-		me2->Pattern = NULL;
-		return NULL;
-	}
-	return me_;
-}
-
 EXPORT_CPP void _regexDtor(SClass* me_)
 {
 	SRegexPattern* me2 = reinterpret_cast<SRegexPattern*>(me_);
@@ -73,6 +53,49 @@ EXPORT_CPP void* _regexFind(SClass* me_, S64* pos, const U8* text, S64 start)
 	catch (...)
 	{
 		*pos = -1;
+		return NULL;
+	}
+}
+
+EXPORT_CPP void* _regexFindAll(SClass* me_, U8** pos, const U8* text)
+{
+	THROWDBG(pos == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
+	SRegexPattern* me2 = reinterpret_cast<SRegexPattern*>(me_);
+	std::wstring text2 = reinterpret_cast<const Char*>(text + 0x10);
+	try
+	{
+		wsregex_iterator iter1(text2.begin(), text2.end(), *me2->Pattern);
+		wsregex_iterator iter2;
+		if (iter1 == iter2)
+		{
+			*pos = NULL;
+			return NULL;
+		}
+		size_t len = static_cast<size_t>(std::distance(iter1, iter2));
+		*pos = static_cast<U8*>(AllocMem(0x10 + sizeof(S64) * len));
+		(reinterpret_cast<S64*>(*pos))[0] = 1;
+		(reinterpret_cast<S64*>(*pos))[1] = static_cast<S64>(len);
+		U8* result = static_cast<U8*>(AllocMem(0x10 + sizeof(void*) * len));
+		(reinterpret_cast<S64*>(result))[0] = DefaultRefCntFunc;
+		(reinterpret_cast<S64*>(result))[1] = static_cast<S64>(len);
+		int cnt = 0;
+		S64* pos2 = reinterpret_cast<S64*>((*pos) + 0x10);
+		void** result2 = reinterpret_cast<void**>(result + 0x10);
+		while (iter1 != iter2)
+		{
+			pos2[cnt] = static_cast<S64>(iter1->position(0));
+			void* array_ = ResultsToArray(*iter1);
+			(*(static_cast<S64*>(array_)))++;
+			result2[cnt] = array_;
+			++iter1;
+			cnt++;
+		}
+		return result;
+	}
+	catch (...)
+	{
+		*pos = NULL;
 		return NULL;
 	}
 }
@@ -138,49 +161,6 @@ EXPORT_CPP void* _regexMatch(SClass* me_, const U8* text)
 	}
 }
 
-EXPORT_CPP void* _regexFindAll(SClass* me_, U8** pos, const U8* text)
-{
-	THROWDBG(pos == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
-	SRegexPattern* me2 = reinterpret_cast<SRegexPattern*>(me_);
-	std::wstring text2 = reinterpret_cast<const Char*>(text + 0x10);
-	try
-	{
-		wsregex_iterator iter1(text2.begin(), text2.end(), *me2->Pattern);
-		wsregex_iterator iter2;
-		if (iter1 == iter2)
-		{
-			*pos = NULL;
-			return NULL;
-		}
-		size_t len = static_cast<size_t>(std::distance(iter1, iter2));
-		*pos = static_cast<U8*>(AllocMem(0x10 + sizeof(S64) * len));
-		(reinterpret_cast<S64*>(*pos))[0] = 1;
-		(reinterpret_cast<S64*>(*pos))[1] = static_cast<S64>(len);
-		U8* result = static_cast<U8*>(AllocMem(0x10 + sizeof(void*) * len));
-		(reinterpret_cast<S64*>(result))[0] = DefaultRefCntFunc;
-		(reinterpret_cast<S64*>(result))[1] = static_cast<S64>(len);
-		int cnt = 0;
-		S64* pos2 = reinterpret_cast<S64*>((*pos) + 0x10);
-		void** result2 = reinterpret_cast<void**>(result + 0x10);
-		while (iter1 != iter2)
-		{
-			pos2[cnt] = static_cast<S64>(iter1->position(0));
-			void* array_ = ResultsToArray(*iter1);
-			(*(static_cast<S64*>(array_)))++;
-			result2[cnt] = array_;
-			++iter1;
-			cnt++;
-		}
-		return result;
-	}
-	catch (...)
-	{
-		*pos = NULL;
-		return NULL;
-	}
-}
-
 EXPORT_CPP void* _regexReplace(SClass* me_, const U8* text, const U8* newText, Bool all)
 {
 	THROWDBG(text == NULL, EXCPT_ACCESS_VIOLATION);
@@ -203,6 +183,26 @@ EXPORT_CPP void* _regexReplace(SClass* me_, const U8* text, const U8* newText, B
 	(reinterpret_cast<S64*>(result2))[1] = static_cast<S64>(len);
 	memcpy(result2 + 0x10, result.c_str(), sizeof(Char) * (len + 1));
 	return result2;
+}
+
+EXPORT_CPP SClass* _makeRegex(SClass* me_, const U8* pattern)
+{
+	THROWDBG(pattern == NULL, EXCPT_ACCESS_VIOLATION);
+	SRegexPattern* me2 = reinterpret_cast<SRegexPattern*>(me_);
+	me2->Pattern = static_cast<wsregex*>(AllocMem(sizeof(wsregex)));
+	new(me2->Pattern)wsregex();
+	try
+	{
+		*me2->Pattern = wsregex::compile(reinterpret_cast<const Char*>(pattern + 0x10));
+	}
+	catch (...)
+	{
+		me2->Pattern->~wsregex();
+		FreeMem(me2->Pattern);
+		me2->Pattern = NULL;
+		return NULL;
+	}
+	return me_;
 }
 
 static void* ResultsToArray(const wsmatch& results)
