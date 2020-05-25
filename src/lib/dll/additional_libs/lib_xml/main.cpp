@@ -11,6 +11,9 @@
 
 #include "tinyxml2/tinyxml2.h"
 
+#include <codecvt>
+#include <sstream>
+
 struct SXml
 {
 	SClass Class;
@@ -23,6 +26,9 @@ struct SXmlNode
 	Bool Root;
 	void* Node;
 };
+
+static std::string utf16ToUtf8_(const std::u16string& s);
+static void* utf8ToUtf16_(const std::string& s);
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -43,9 +49,9 @@ EXPORT_CPP SClass* _xmlNodeAddChild(SClass* me_, SClass* me2, const U8* name)
 	THROWDBG(name == nullptr, EXCPT_ACCESS_VIOLATION);
 	SXmlNode* me3 = reinterpret_cast<SXmlNode*>(me_);
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	if (me3->Root)
 	{
 		tinyxml2::XMLDocument* node = static_cast<tinyxml2::XMLDocument*>(me3->Node);
@@ -56,7 +62,6 @@ EXPORT_CPP SClass* _xmlNodeAddChild(SClass* me_, SClass* me2, const U8* name)
 		tinyxml2::XMLNode* node = static_cast<tinyxml2::XMLNode*>(me3->Node);
 		me4->Node = node->InsertEndChild(node->GetDocument()->NewElement(buf));
 	}
-	FreeMem(buf);
 	me4->Root = False;
 	return me2;
 }
@@ -93,14 +98,13 @@ EXPORT_CPP SClass* _xmlNodeFindChild(SClass* me_, SClass* me2, const U8* name)
 	THROWDBG(name == nullptr, EXCPT_ACCESS_VIOLATION);
 	SXmlNode* me3 = reinterpret_cast<SXmlNode*>(me_);
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	if (me3->Root)
 		me4->Node = static_cast<tinyxml2::XMLDocument*>(me3->Node)->FirstChildElement(buf);
 	else
 		me4->Node = static_cast<tinyxml2::XMLNode*>(me3->Node)->FirstChildElement(buf);
-	FreeMem(buf);
 	if (me4->Node == nullptr)
 		return nullptr;
 	me4->Root = False;
@@ -112,14 +116,13 @@ EXPORT_CPP SClass* _xmlNodeFindChildLast(SClass* me_, SClass* me2, const U8* nam
 	THROWDBG(name == nullptr, EXCPT_ACCESS_VIOLATION);
 	SXmlNode* me3 = reinterpret_cast<SXmlNode*>(me_);
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	if (me3->Root)
 		me4->Node = static_cast<tinyxml2::XMLDocument*>(me3->Node)->LastChildElement(buf);
 	else
 		me4->Node = static_cast<tinyxml2::XMLNode*>(me3->Node)->LastChildElement(buf);
-	FreeMem(buf);
 	if (me4->Node == nullptr)
 		return nullptr;
 	me4->Root = False;
@@ -133,11 +136,10 @@ EXPORT_CPP SClass* _xmlNodeFindNext(SClass* me_, SClass* me2, const U8* name)
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
 	if (me3->Root)
 		return nullptr;
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	me4->Node = static_cast<tinyxml2::XMLNode*>(me3->Node)->NextSiblingElement(buf);
-	FreeMem(buf);
 	if (me4->Node == nullptr)
 		return nullptr;
 	me4->Root = False;
@@ -151,11 +153,10 @@ EXPORT_CPP SClass* _xmlNodeFindPrev(SClass* me_, SClass* me2, const U8* name)
 	SXmlNode* me4 = reinterpret_cast<SXmlNode*>(me2);
 	if (me3->Root)
 		return nullptr;
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	me4->Node = static_cast<tinyxml2::XMLNode*>(me3->Node)->PreviousSiblingElement(buf);
-	FreeMem(buf);
 	if (me4->Node == nullptr)
 		return nullptr;
 	me4->Root = False;
@@ -182,12 +183,12 @@ EXPORT_CPP void* _xmlNodeGetAttr(SClass* me_, const U8* attr_name)
 	SXmlNode* me2 = reinterpret_cast<SXmlNode*>(me_);
 	if (me2->Root)
 		return nullptr;
-	char* buf = Utf16ToUtf8(attr_name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(attr_name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	const char* str = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->Attribute(buf);
-	FreeMem(buf);
-	return Utf8ToUtf16(str);
+	std::string s2 = str;
+	return utf8ToUtf16_(s2);
 }
 
 EXPORT_CPP void* _xmlNodeGetName(SClass* me_)
@@ -195,7 +196,8 @@ EXPORT_CPP void* _xmlNodeGetName(SClass* me_)
 	SXmlNode* me2 = reinterpret_cast<SXmlNode*>(me_);
 	if (me2->Root)
 		return nullptr;
-	return Utf8ToUtf16(static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->Name());
+	std::string s = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->Name();
+	return utf8ToUtf16_(s);
 }
 
 EXPORT_CPP void* _xmlNodeGetValue(SClass* me_)
@@ -203,7 +205,8 @@ EXPORT_CPP void* _xmlNodeGetValue(SClass* me_)
 	SXmlNode* me2 = reinterpret_cast<SXmlNode*>(me_);
 	if (me2->Root)
 		return nullptr;
-	return Utf8ToUtf16(static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->GetText());
+	std::string s = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->GetText();
+	return utf8ToUtf16_(s);
 }
 
 EXPORT_CPP SClass* _xmlNodeInsChild(SClass* me_, SClass* me2, SClass* node, const U8* name)
@@ -215,9 +218,9 @@ EXPORT_CPP SClass* _xmlNodeInsChild(SClass* me_, SClass* me2, SClass* node, cons
 	SXmlNode* node2 = reinterpret_cast<SXmlNode*>(node);
 	if (node2->Root)
 		return nullptr;
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	if (me3->Root)
 	{
 		tinyxml2::XMLDocument* node3 = static_cast<tinyxml2::XMLDocument*>(me3->Node);
@@ -242,7 +245,6 @@ EXPORT_CPP SClass* _xmlNodeInsChild(SClass* me_, SClass* me2, SClass* node, cons
 				me4->Node = node3->InsertAfterChild(node4, node3->GetDocument()->NewElement(buf));
 		}
 	}
-	FreeMem(buf);
 	me4->Root = False;
 	return me2;
 }
@@ -310,23 +312,18 @@ EXPORT_CPP void _xmlNodeSetAttr(SClass* me_, const U8* attr_name, const U8* attr
 	SXmlNode* me2 = reinterpret_cast<SXmlNode*>(me_);
 	if (me2->Root)
 		return;
-	char* buf_name = Utf16ToUtf8(attr_name);
-	if (buf_name == nullptr)
-		THROWDBG(True, 0xe9170006);
+	std::u16string s = reinterpret_cast<const char16_t*>(attr_name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf_name = t.c_str();
 	if (attr_value == nullptr)
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->DeleteAttribute(buf_name);
 	else
 	{
-		char* buf_value = Utf16ToUtf8(attr_value);
-		if (buf_value == nullptr)
-		{
-			FreeMem(buf_name);
-			THROWDBG(True, 0xe9170006);
-		}
+		std::u16string s = reinterpret_cast<const char16_t*>(attr_value + 0x10);
+		const std::string& t = utf16ToUtf8_(s);
+		const char* buf_value = t.c_str();
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetAttribute(buf_name, buf_value);
-		FreeMem(buf_value);
 	}
-	FreeMem(buf_name);
 }
 
 EXPORT_CPP void _xmlNodeSetName(SClass* me_, const U8* name)
@@ -335,13 +332,10 @@ EXPORT_CPP void _xmlNodeSetName(SClass* me_, const U8* name)
 	SXmlNode* me2 = reinterpret_cast<SXmlNode*>(me_);
 	if (me2->Root)
 		return;
-	char* buf = Utf16ToUtf8(name);
-	if (buf == nullptr)
-	{
-		THROWDBG(True, 0xe9170006);
-	}
+	std::u16string s = reinterpret_cast<const char16_t*>(name + 0x10);
+	const std::string& t = utf16ToUtf8_(s);
+	const char* buf = t.c_str();
 	static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetName(buf);
-	FreeMem(buf);
 }
 
 EXPORT_CPP void _xmlNodeSetValue(SClass* me_, const U8* value)
@@ -353,13 +347,10 @@ EXPORT_CPP void _xmlNodeSetValue(SClass* me_, const U8* value)
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetText("");
 	else
 	{
-		char* buf = Utf16ToUtf8(value);
-		if (buf == nullptr)
-		{
-			THROWDBG(True, 0xe9170006);
-		}
+		std::u16string s = reinterpret_cast<const char16_t*>(value + 0x10);
+		const std::string& t = utf16ToUtf8_(s);
+		const char* buf = t.c_str();
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetText(buf);
-		FreeMem(buf);
 	}
 }
 
@@ -422,4 +413,19 @@ EXPORT_CPP SClass* _makeXmlEmpty(SClass* me_)
 	new(me2->Tree)tinyxml2::XMLDocument(true, tinyxml2::PRESERVE_WHITESPACE);
 	me2->Tree->InsertEndChild(me2->Tree->NewDeclaration());
 	return me_;
+}
+
+static std::string utf16ToUtf8_(const std::u16string& s)
+{
+	return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(s);
+}
+
+static void* utf8ToUtf16_(const std::string& s)
+{
+	const std::u16string& t = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(s);
+	U8* r = static_cast<U8*>(AllocMem(0x10 + sizeof(Char) * static_cast<size_t>(t.size() + 1)));
+	reinterpret_cast<S64*>(r)[0] = DefaultRefCntFunc;
+	reinterpret_cast<S64*>(r)[1] = static_cast<S64>(t.size());
+	memcpy(r + 0x10, t.c_str(), sizeof(Char) * static_cast<size_t>(t.size() + 1));
+	return r;
 }

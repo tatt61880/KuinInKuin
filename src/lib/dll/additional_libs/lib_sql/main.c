@@ -44,13 +44,6 @@ EXPORT Bool _sqlApply(SClass* me_)
 	return True;
 }
 
-EXPORT Bool _sqlCurrent(SClass* me_)
-{
-	SSql* me2 = (SSql*)me_;
-	THROWDBG(me2->Db == NULL, 0xe917000a);
-	return me2->Result == SQLITE_ROW;
-}
-
 EXPORT void* _sqlErrMsg(SClass* me_)
 {
 	SSql* me2 = (SSql*)me_;
@@ -145,18 +138,11 @@ EXPORT void* _sqlGetStr(SClass* me_, S64 col)
 	return result;
 }
 
-EXPORT Bool _sqlNext(SClass* me_)
+EXPORT void _sqlNext(SClass* me_)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	if (me2->Result != SQLITE_ROW && me2->Result != SQLITE_OK)
-		return False;
-	if (sqlite3_step(me2->Statement) != SQLITE_ROW)
-	{
-		Reset(me2);
-		return False;
-	}
-	return True;
+	sqlite3_step(me2->Statement);
 }
 
 EXPORT Bool _sqlPrepare(SClass* me_, const void* cmd)
@@ -175,36 +161,43 @@ EXPORT Bool _sqlPrepare(SClass* me_, const void* cmd)
 	return False;
 }
 
-EXPORT Bool _sqlSetBlob(SClass* me_, S64 col, const void* value)
+EXPORT Bool _sqlSetBlob(SClass* me_, S64 idx, const void* value)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_blob(me2->Statement, (int)col, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(S8)), SQLITE_TRANSIENT);
+	int result = sqlite3_bind_blob(me2->Statement, (int)idx + 1, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(S8)), SQLITE_TRANSIENT);
 	return result == SQLITE_OK;
 }
 
-EXPORT Bool _sqlSetFloat(SClass* me_, S64 col, double value)
+EXPORT Bool _sqlSetFloat(SClass* me_, S64 idx, double value)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_double(me2->Statement, (int)col, value);
+	int result = sqlite3_bind_double(me2->Statement, (int)idx + 1, value);
 	return result == SQLITE_OK;
 }
 
-EXPORT Bool _sqlSetInt(SClass* me_, S64 col, S64 value)
+EXPORT Bool _sqlSetInt(SClass* me_, S64 idx, S64 value)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_int64(me2->Statement, (int)col, value);
+	int result = sqlite3_bind_int64(me2->Statement, (int)idx + 1, value);
 	return result == SQLITE_OK;
 }
 
-EXPORT Bool _sqlSetStr(SClass* me_, S64 col, const void* value)
+EXPORT Bool _sqlSetStr(SClass* me_, S64 idx, const void* value)
 {
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
-	int result = sqlite3_bind_text16(me2->Statement, (int)col, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(Char)), SQLITE_TRANSIENT);
+	int result = sqlite3_bind_text16(me2->Statement, (int)idx + 1, (const U8*)value + 0x10, (int)(*(const S64*)((const U8*)value + 0x08) * sizeof(Char)), SQLITE_TRANSIENT);
 	return result == SQLITE_OK;
+}
+
+EXPORT Bool _sqlTerm(SClass* me_)
+{
+	SSql* me2 = (SSql*)me_;
+	THROWDBG(me2->Db == NULL, 0xe917000a);
+	return me2->Result != SQLITE_ROW;
 }
 
 EXPORT SClass* _makeSql(SClass* me_, const U8* path)

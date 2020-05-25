@@ -80,14 +80,13 @@ EXPORT void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_fla
 		return;
 }
 
-EXPORT void* _unzip(const U8* data)
+EXPORT Bool _unzip(const U8* out_path, const U8* data)
 {
 	THROWDBG(out_path == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
 	THROWDBG(((const Char*)(out_path + 0x10))[*(S64*)(out_path + 0x08) - 1] != '/', 0xe9170006);
-	void* file_ptr = OpenFileStream((const Char*)(path + 0x10));
-	if (file_ptr == NULL)
-		return False;
+
+	size_t data_size = (size_t) * (S64*)(data + 0x08);
+	const U8* data2 = data + 0x10;
 
 	Bool success = False;
 	void* dir_image = NULL;
@@ -100,10 +99,9 @@ EXPORT void* _unzip(const U8* data)
 
 		{
 			U8 locator[EOR_LOCATOR_SIZE];
-			if (!SeekFileStream(file_ptr, -EOR_LOCATOR_SIZE, SEEK_END))
+			if (data_size < EOR_LOCATOR_SIZE)
 				break;
-			if (ReadFileStream(file_ptr, EOR_LOCATOR_SIZE, locator) != EOR_LOCATOR_SIZE)
-				break;
+			memcpy(locator, data2 + data_size - EOR_LOCATOR_SIZE, EOR_LOCATOR_SIZE);
 			const U8* ptr = locator;
 			const U8* end_ptr = ptr + EOR_LOCATOR_SIZE - sizeof(EndCentralDirHeader) + sizeof(U32);
 			while (ptr < end_ptr)
@@ -119,9 +117,9 @@ EXPORT void* _unzip(const U8* data)
 			dir_size = (size_t)eor->CentralDirSize;
 			directory_entries = eor->CentralDirRecordsTotalNum;
 			dir_image = AllocMem(dir_size);
-			SeekFileStream(file_ptr, eor->CentralDirOffset, SEEK_SET);
-			if (ReadFileStream(file_ptr, dir_size, dir_image) != dir_size)
+			if (data_size < eor->CentralDirOffset + dir_size)
 				break;
+			memcpy(dir_image, data2 + eor->CentralDirOffset, dir_size);
 		}
 
 		{
@@ -198,20 +196,18 @@ EXPORT void* _unzip(const U8* data)
 					}
 					{
 						ZipHeader header;
-						if (!SeekFileStream(file_ptr, dir_ptr->HeaderOffset, SEEK_SET))
+						if (data_size < dir_ptr->HeaderOffset + sizeof(ZipHeader))
 							break;
-						if (ReadFileStream(file_ptr, sizeof(ZipHeader), &header) != sizeof(ZipHeader))
-							break;
+						memcpy(&header, data2 + dir_ptr->HeaderOffset, sizeof(ZipHeader));
 						if (header.Signature != 0x04034b50)
 							break;
 						size_t local_offset = sizeof(ZipHeader) + header.FileNameLen + header.ExtraFieldLen;
 
 						size_t src_buf_size = (size_t)dir_ptr->CompressedSize;
 						src_buf = AllocMem(src_buf_size);
-						if (!SeekFileStream(file_ptr, (S64)dir_ptr->HeaderOffset + (S64)local_offset, SEEK_SET))
+						if (data_size < (S64)dir_ptr->HeaderOffset + (S64)local_offset + src_buf_size)
 							break;
-						if (ReadFileStream(file_ptr, src_buf_size, src_buf) != src_buf_size)
-							break;
+						memcpy(src_buf, data2 + (S64)dir_ptr->HeaderOffset + (S64)local_offset, src_buf_size);
 
 						size_t dst_buf_size = (size_t)dir_ptr->UncompressedSize;
 						dst_buf = AllocMem(dst_buf_size);
@@ -276,17 +272,16 @@ EXPORT void* _unzip(const U8* data)
 		FreeMem(src_buf);
 	if (dir_image != NULL)
 		FreeMem(dir_image);
-	CloseFileStream(file_ptr);
 	return success;
 }
 
-EXPORT void* _zip(const U8* data, S64 compression_level)
+EXPORT Bool _zip(const U8* dst, const U8* src, S64 compression_level)
 {
-	THROWDBG(out_path == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(path == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(src == NULL, EXCPT_ACCESS_VIOLATION);
 	THROWDBG(!(compression_level == -1 || 1 <= compression_level && compression_level <= 9), 0xe9170006);
 	Char path2[KUIN_MAX_PATH + 1];
-	if (GetFullPathName((const Char*)(path + 0x10), KUIN_MAX_PATH, path2, NULL) == 0)
+	if (GetFullPathName((const Char*)(src + 0x10), KUIN_MAX_PATH, path2, NULL) == 0)
 		return False;
 	size_t len = wcslen(path2);
 	const Char* slash_pos;
@@ -338,7 +333,7 @@ EXPORT void* _zip(const U8* data, S64 compression_level)
 		central_dir_header[i].FileNameLen = zip_header[i].FileNameLen;
 	}
 
-	FILE* file_ptr = _wfopen((const Char*)(out_path + 0x10), L"wb");
+	FILE* file_ptr = _wfopen((const Char*)(dst + 0x10), L"wb");
 	if (file_ptr != NULL)
 	{
 		z_stream stream = { 0 };
