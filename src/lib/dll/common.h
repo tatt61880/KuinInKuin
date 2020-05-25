@@ -28,6 +28,7 @@
 #define _WIN32_DCOM
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCKAPI_
 
 #include <crtdbg.h> // '_ASSERTE'
 #include <math.h>
