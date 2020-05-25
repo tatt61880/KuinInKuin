@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_common", "lib_common\li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_win", "lib_win\lib_win.vcxproj", "{36364803-1FE7-40BD-A8BA-8582EE13CF1C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_net", "lib_net\lib_net.vcxproj", "{78D19916-B903-48C6-B7B0-A31325BBCAFC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_draw2d", "lib_draw2d\lib_draw2d.vcxproj", "{1E866381-B30A-41FD-A643-1E38C5F7D4D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -26,6 +30,18 @@ Global
 		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_dbg|x64.Build.0 = Release_dbg|x64
 		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_rls|x64.ActiveCfg = Release_rls|x64
 		{36364803-1FE7-40BD-A8BA-8582EE13CF1C}.R_rls|x64.Build.0 = Release_rls|x64
+		{78D19916-B903-48C6-B7B0-A31325BBCAFC}.Debug|x64.ActiveCfg = Debug|x64
+		{78D19916-B903-48C6-B7B0-A31325BBCAFC}.Debug|x64.Build.0 = Debug|x64
+		{78D19916-B903-48C6-B7B0-A31325BBCAFC}.R_dbg|x64.ActiveCfg = Release_dbg|x64
+		{78D19916-B903-48C6-B7B0-A31325BBCAFC}.R_dbg|x64.Build.0 = Release_dbg|x64
+		{78D19916-B903-48C6-B7B0-A31325BBCAFC}.R_rls|x64.ActiveCfg = Release_rls|x64
+		{78D19916-B903-48C6-B7B0-A31325BBCAFC}.R_rls|x64.Build.0 = Release_rls|x64
+		{1E866381-B30A-41FD-A643-1E38C5F7D4D9}.Debug|x64.ActiveCfg = Debug|x64
+		{1E866381-B30A-41FD-A643-1E38C5F7D4D9}.Debug|x64.Build.0 = Debug|x64
+		{1E866381-B30A-41FD-A643-1E38C5F7D4D9}.R_dbg|x64.ActiveCfg = Release_dbg|x64
+		{1E866381-B30A-41FD-A643-1E38C5F7D4D9}.R_dbg|x64.Build.0 = Release_dbg|x64
+		{1E866381-B30A-41FD-A643-1E38C5F7D4D9}.R_rls|x64.ActiveCfg = Release_rls|x64
+		{1E866381-B30A-41FD-A643-1E38C5F7D4D9}.R_rls|x64.Build.0 = Release_rls|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

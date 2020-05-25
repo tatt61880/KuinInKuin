@@ -698,7 +698,7 @@ static SClass* MakeObjImpl(SClass* me_, size_t size, const void* binary)
 			FreeMem(idces);
 		if (!correct)
 		{
-			_objDtor(me_);
+			_objFin(me_);
 			THROW(0xe9170008);
 			return NULL;
 		}
