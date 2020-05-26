@@ -23,7 +23,10 @@ end enum
 	end func
 	
 	*func[__frc]_dtor()
-		excode "`.fin`(this);\n"
+		excode "if(`0`->`.size`>=0){\n"
+		excode "`0`->`.closer`(`0`->`.handle`);\n"
+		excode "`0`->`.size`=-1;\n"
+		excode "}\n"
 	end func
 
 	+func _init(handle: int)
@@ -34,6 +37,7 @@ end enum
 		do @readerSeekImpl(me.handle, %head, 0)
 		do me.cur :: 0
 		do me.parser :: @readUtf8
+		do me.closer :: @readerClose
 	end func
 	
 	+func delimiter(delimiters: []char)
@@ -235,6 +239,7 @@ end enum
 	var cur: int
 	var delimiters: []char
 	var parser: func<(int, &int): char>
+	var closer: func<(int)>
 end class
 
 +class Writer()
@@ -242,7 +247,10 @@ end class
 	end func
 	
 	*func[__frc]_dtor()
-		excode "`.fin`(this);\n"
+		excode "if(`0`->`.size`>=0){\n"
+		excode "`0`->`.closer`(`0`->`.handle`);\n"
+		excode "`0`->`.size`=-1;\n"
+		excode "}\n"
 	end func
 	
 	+func _init(handle: int, append: bool)
@@ -256,6 +264,7 @@ end class
 		end if
 		do me.cur :: 0
 		do me.parser :: @writeUtf8
+		do me.closer :: @writerCloseImpl
 	end func
 	
 	+func fileSize(): int
@@ -349,6 +358,7 @@ end class
 	var size: int
 	var cur: int
 	var parser: func<(int, char, &int)>
+	var closer: func<(int)>
 end class
 
 +func copyDir(dst: []char, src: []char): bool

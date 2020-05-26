@@ -32,7 +32,10 @@ end enum
 #exe,web
 		do me.fin()
 #cpp
-		excode "`.fin`(this);\n"
+		excode "if(`0`->`.size`>=0){\n"
+		excode "`0`->`.closer`(`0`->`.handle`);\n"
+		excode "`0`->`.size`=-1;\n"
+		excode "}\n"
 #any
 	end func
 
@@ -44,6 +47,9 @@ end enum
 		do @readerSeekImpl(me.handle, %head, 0)
 		do me.cur :: 0
 		do me.parser :: @readUtf8
+#cpp
+		do me.closer :: @readerClose
+#any
 	end func
 	
 	+func delimiter(delimiters: []char)
@@ -245,6 +251,9 @@ end enum
 	var cur: int
 	var delimiters: []char
 	var parser: func<(int, &int): char>
+#cpp
+	var closer: func<(int)>
+#any
 end class
 
 +class Writer()
@@ -255,7 +264,10 @@ end class
 #exe,web
 		do me.fin()
 #cpp
-		excode "`.fin`(this);\n"
+		excode "if(`0`->`.size`>=0){\n"
+		excode "`0`->`.closer`(`0`->`.handle`);\n"
+		excode "`0`->`.size`=-1;\n"
+		excode "}\n"
 #any
 	end func
 	
@@ -270,6 +282,9 @@ end class
 		end if
 		do me.cur :: 0
 		do me.parser :: @writeUtf8
+#cpp
+		do me.closer :: @writerCloseImpl
+#any
 	end func
 	
 	+func fileSize(): int
@@ -363,6 +378,9 @@ end class
 	var size: int
 	var cur: int
 	var parser: func<(int, char, &int)>
+#cpp
+	var closer: func<(int)>
+#any
 end class
 
 #exe
