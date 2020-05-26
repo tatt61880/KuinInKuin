@@ -24,6 +24,10 @@ end enum
 	*func[__ndc]ctor()
 	end func
 	
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+
 	+func _init(handle: int)
 		do me.handle :: handle
 		do me.delimiters :: " ,\n"
@@ -238,7 +242,11 @@ end class
 +class Writer()
 	*func[__ndc]ctor()
 	end func
-
+	
+	*func[__frc]_dtor()
+		do me.fin()
+	end func
+	
 	+func _init(handle: int, append: bool)
 		do me.handle :: handle
 		if(append)
@@ -534,19 +542,28 @@ end func
 end func
 
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
-	excode "let f_=null,p_=`0`.S;\n"
-	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
-	excode "if(f_==null)\n"
-	excode "f_=F_(p_,true);\n"
-	excode "if(f_==null){`2`.$=false;return null;}\n"
-	excode "`2`.$=true;return{F:f_,I:0};\n"
+	if(pack)
+		excode "let f_=null,p_=`0`.S;\n"
+		excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+		excode "if(f_==null)\n"
+		excode "f_=F_(p_,true);\n"
+		excode "if(f_==null){`2`.$=false;return null;}\n"
+		excode "`2`.$=true;return{F:f_,I:0,P:true};\n"
+	else
+		; TODO:
+	end if
 end func
 
 func readerClose(handle: int)
+	excode "if(`0`.P)\n"
 	excode "`0`.F=null;\n"
+	excode "else{\n"
+	; TODO:
+	excode "}\n"
 end func
 
 func readerSeekImpl(handle: int, origin: @Origin, pos: int)
+	excode "if(`0`.P){\n"
 	excode "let i_;\n"
 	excode "switch(`1`[1]){\n"
 	excode "case 0:i_=~~`2`[1];break;\n"
@@ -558,19 +575,30 @@ func readerSeekImpl(handle: int, origin: @Origin, pos: int)
 	else
 		excode "if(i_>=0)`0`.I=i_;\n"
 	end if
+	excode "}else{\n"
+	; TODO:
+	excode "}\n"
 end func
 
 func readerTellImpl(handle: int): int
+	excode "if(`0`.P){\n"
 	excode "let n_=`0`.I;\n"
 	excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+	excode "}else{\n"
+	; TODO:
+	excode "}\n"
 end func
 
 func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
+	excode "if(`0`.P){\n"
 	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
 	excode "if(c_+s_>`0`.F.length)return false;\n"
 	excode "for(let i_=0;i_<s_;i_++)`1`[b_+i_]=`0`.F[c_+i_];\n"
 	excode "`0`.I+=s_;\n"
 	excode "return true;\n"
+	excode "}else{\n"
+	; TODO:
+	excode "}\n"
 end func
 
 func openAsWritingImpl(path: []char, append: bool, success: &bool): int
