@@ -319,9 +319,9 @@ EXPORT_CPP void _xmlNodeSetAttr(SClass* me_, const U8* attr_name, const U8* attr
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->DeleteAttribute(buf_name);
 	else
 	{
-		std::u16string s = reinterpret_cast<const char16_t*>(attr_value + 0x10);
-		const std::string& t = utf16ToUtf8_(s);
-		const char* buf_value = t.c_str();
+		std::u16string s2 = reinterpret_cast<const char16_t*>(attr_value + 0x10);
+		const std::string& t2 = utf16ToUtf8_(s2);
+		const char* buf_value = t2.c_str();
 		static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->SetAttribute(buf_name, buf_value);
 	}
 }

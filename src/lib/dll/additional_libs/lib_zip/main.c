@@ -6,6 +6,7 @@
 #include "main.h"
 
 #include <time.h>
+#include <ShlObj.h>
 
 #define TMP_BUF_SIZE 0x4000
 #define EOR_LOCATOR_SIZE 512
