@@ -12,7 +12,7 @@ EXPORT_CPP void _shadowAdd(SClass* me_, SClass* obj, S64 element, double frame)
 			{
 				SObj::SPolygon* element2 = static_cast<SObj::SPolygon*>(obj2->Elements[element]);
 				THROWDBG(frame < static_cast<double>(element2->Begin) || element2->End < static_cast<int>(frame), 0xe9170006);
-				THROWDBG(element2->JointNum < 0 || JointMax < element2->JointNum, 0xe9170006);
+				THROW(element2->JointNum < 0 || JointMax < element2->JointNum, 0xe9170008);
 				Bool joint = element2->JointNum != 0;
 
 				memcpy(const_buf.World, obj2->Mat, sizeof(float[4][4]));
@@ -38,6 +38,7 @@ EXPORT_CPP void _shadowAdd(SClass* me_, SClass* obj, S64 element, double frame)
 
 EXPORT_CPP void _shadowBeginRecord(SClass* me_, double x, double y, double z, double radius)
 {
+	THROWDBG(radius <= 0.0, 0xe9170006);
 	SShadow* me2 = reinterpret_cast<SShadow*>(me_);
 
 	double proj_mat[4][4];

@@ -115,47 +115,6 @@ EXPORT_CPP void _fin()
 	DeleteObject(static_cast<HGDIOBJ>(FontCtrl));
 }
 
-EXPORT_CPP Bool _act()
-{
-	if (ExitAct || WndCnt == 0)
-		return False;
-
-	{
-		MSG msg;
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{
-			switch (msg.message)
-			{
-				case WM_QUIT:
-					ExitAct = True;
-					return False;
-				case WM_KEYDOWN:
-				case WM_SYSKEYDOWN:
-					if (OnKeyPress != nullptr)
-					{
-						U64 shiftCtrl = 0;
-						shiftCtrl |= (GetKeyState(VK_SHIFT) & 0x8000) != 0 ? 1 : 0;
-						shiftCtrl |= (GetKeyState(VK_CONTROL) & 0x8000) != 0 ? 2 : 0;
-						if (static_cast<Bool>(reinterpret_cast<U64>(Call2Asm(reinterpret_cast<void*>(static_cast<U64>(msg.wParam)), reinterpret_cast<void*>(shiftCtrl), OnKeyPress))))
-							continue;
-					}
-					break;
-			}
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-
-	// TODO:
-	/*
-	Input::Update();
-	*/
-
-	Sleep(1);
-
-	return True;
-}
-
 EXPORT_CPP void _menuDtor(SClass* me_)
 {
 	DestroyMenu(reinterpret_cast<SMenu*>(me_)->MenuHandle);
@@ -424,6 +383,7 @@ EXPORT_CPP void _wndBaseSetEnabled(SClass* me_, Bool is_enabled)
 
 EXPORT_CPP void _wndBaseSetPos(SClass* me_, S64 x, S64 y, S64 width, S64 height)
 {
+	THROWDBG(width < 0 || height < 0, 0xe9170006);
 	SetWindowPos(reinterpret_cast<SWndBase*>(me_)->WndHandle, nullptr, (int)x, (int)y, (int)width, (int)height, SWP_NOZORDER);
 }
 
@@ -449,8 +409,42 @@ EXPORT_CPP void _wndBaseSetVisible(SClass* me_, Bool is_visible)
 	ShowWindow(reinterpret_cast<SWndBase*>(me_)->WndHandle, is_visible ? SW_SHOW : SW_HIDE);
 }
 
+EXPORT_CPP Bool _act()
+{
+	if (ExitAct || WndCnt == 0)
+		return False;
+	{
+		MSG msg;
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			switch (msg.message)
+			{
+				case WM_QUIT:
+					ExitAct = True;
+					return False;
+				case WM_KEYDOWN:
+				case WM_SYSKEYDOWN:
+					if (OnKeyPress != nullptr)
+					{
+						U64 shiftCtrl = 0;
+						shiftCtrl |= (GetKeyState(VK_SHIFT) & 0x8000) != 0 ? 1 : 0;
+						shiftCtrl |= (GetKeyState(VK_CONTROL) & 0x8000) != 0 ? 2 : 0;
+						if (static_cast<Bool>(reinterpret_cast<U64>(Call2Asm(reinterpret_cast<void*>(static_cast<U64>(msg.wParam)), reinterpret_cast<void*>(shiftCtrl), OnKeyPress))))
+							continue;
+					}
+					break;
+			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+	Sleep(1);
+	return True;
+}
+
 EXPORT_CPP S64 _colorDialog(SClass* parent, S64 default_color)
 {
+	THROWDBG(default_color < 0 || 0xffffff < default_color, 0xe9170006);
 	CHOOSECOLOR choose_color = { 0 };
 	choose_color.lStructSize = sizeof(CHOOSECOLOR);
 	choose_color.hwndOwner = parent == nullptr ? nullptr : reinterpret_cast<SWndBase*>(parent)->WndHandle;
@@ -622,7 +616,7 @@ EXPORT_CPP SClass* _makeWnd(SClass* me_, SClass* parent, S64 style, S64 width, S
 {
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
 	me2->Kind = static_cast<EWndKind>(static_cast<S64>(WndKind_WndNormal) + (style & 0xffff));
-	THROWDBG(width <= 0 || height <= 0, 0xe9170006);
+	THROWDBG(width < 0 || height < 0, 0xe9170006);
 	int width2 = static_cast<int>(width);
 	int height2 = static_cast<int>(height);
 	HWND parent2 = parent == nullptr ? nullptr : reinterpret_cast<SWndBase*>(parent)->WndHandle;

@@ -161,7 +161,9 @@ EXPORT_CPP void _editSetSel(SClass* me_, S64 start, S64 len)
 
 EXPORT_CPP void _editMultiAddText(SClass* me_, const U8* text)
 {
-	const U8* text2 = NToRN(text == nullptr ? L"" : reinterpret_cast<const Char*>(text + 0x10));
+	if (text == nullptr)
+		return;
+	const U8* text2 = NToRN(reinterpret_cast<const Char*>(text + 0x10));
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
 	HWND wnd = me2->WndHandle;
 	Bool redraw_enabled = me2->RedrawEnabled;
@@ -328,6 +330,10 @@ EXPORT_CPP void _listViewDraggable(SClass* me_, bool enabled)
 
 EXPORT_CPP Bool _listViewGetChk(SClass* me_, S64 idx)
 {
+#if defined(DBG)
+	S64 len = _listViewLen(me_);
+	THROWDBG(idx < 0 || len <= idx, 0xe9170006);
+#endif
 	return ListView_GetCheckState(reinterpret_cast<SWndBase*>(me_)->WndHandle, idx) != 0;
 }
 
@@ -419,6 +425,10 @@ EXPORT_CPP S64 _listViewLenColumn(SClass* me_)
 
 EXPORT_CPP void _listViewSetChk(SClass* me_, S64 idx, bool value)
 {
+#if defined(DBG)
+	S64 len = _listViewLen(me_);
+	THROWDBG(idx < 0 || len <= idx, 0xe9170006);
+#endif
 	ListView_SetCheckState(reinterpret_cast<SWndBase*>(me_)->WndHandle, idx, value ? TRUE : FALSE);
 }
 
@@ -599,7 +609,7 @@ EXPORT_CPP void _treeSetSel(SClass* me_, SClass* node)
 	SWndBase* me2 = reinterpret_cast<SWndBase*>(me_);
 	STreeNode* node2 = reinterpret_cast<STreeNode*>(node);
 	THROWDBG(me2->WndHandle != node2->WndHandle, 0xe9170006);
-	TreeView_Select(me2->WndHandle, node2->Item, TVGN_CARET);
+	TreeView_Select(me2->WndHandle, node2 == nullptr ? nullptr : node2->Item, TVGN_CARET);
 }
 
 EXPORT_CPP SClass* _treeNodeAddChild(SClass* me_, SClass* me2, const U8* name)

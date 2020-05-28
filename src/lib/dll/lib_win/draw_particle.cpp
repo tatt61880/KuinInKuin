@@ -104,8 +104,8 @@ EXPORT_CPP void _particleFin(SClass* me_)
 
 EXPORT_CPP SClass* _makeParticle(SClass* me_, S64 life_span, S64 color1, S64 color2, double friction, double accel_x, double accel_y, double accel_z, double size_accel, double rot_accel)
 {
-	THROWDBG(life_span <= 0, 0xe917000a);
-	THROWDBG(friction < 0.0, 0xe917000a);
+	THROWDBG(life_span <= 0, 0xe9170006);
+	THROWDBG(friction < 0.0, 0xe9170006);
 
 	SParticle* me2 = reinterpret_cast<SParticle*>(me_);
 	me2->Lifespan = life_span;

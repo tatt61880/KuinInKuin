@@ -5,7 +5,6 @@
 
 EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
 EXPORT_CPP void _fin();
-EXPORT_CPP Bool _act();
 EXPORT_CPP void _menuDtor(SClass* me_);
 EXPORT_CPP void _menuAdd(SClass* me_, S64 id, const U8* text);
 EXPORT_CPP void _menuAddLine(SClass* me_);
@@ -42,6 +41,7 @@ EXPORT_CPP void _wndBaseSetEnabled(SClass* me_, Bool is_enabled);
 EXPORT_CPP void _wndBaseSetPos(SClass* me_, S64 x, S64 y, S64 width, S64 height);
 EXPORT_CPP void _wndBaseSetRedraw(SClass* me_, Bool is_enabled);
 EXPORT_CPP void _wndBaseSetVisible(SClass* me_, Bool is_visible);
+EXPORT_CPP Bool _act();
 EXPORT_CPP S64 _colorDialog(SClass* parent, S64 default_color);
 EXPORT_CPP void _fileDialogDir(const U8* defaultDir);
 EXPORT_CPP void _getCaretPos(S64* x, S64* y);
