@@ -81,13 +81,13 @@ EXPORT void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_fla
 		return;
 }
 
-EXPORT Bool _unzip(const U8* out_path, const U8* data)
+EXPORT Bool _unzip(const U8* dst, const U8* src)
 {
-	THROWDBG(out_path == NULL, EXCPT_ACCESS_VIOLATION);
-	THROWDBG(((const Char*)(out_path + 0x10))[*(S64*)(out_path + 0x08) - 1] != '/', 0xe9170006);
+	THROWDBG(dst == NULL, EXCPT_ACCESS_VIOLATION);
+	THROWDBG(((const Char*)(dst + 0x10))[*(S64*)(dst + 0x08) - 1] != '/', 0xe9170006);
 
-	size_t data_size = (size_t) * (S64*)(data + 0x08);
-	const U8* data2 = data + 0x10;
+	size_t src_size = (size_t) * (S64*)(src + 0x08);
+	const U8* src2 = src + 0x10;
 
 	Bool success = False;
 	void* dir_image = NULL;
@@ -100,9 +100,9 @@ EXPORT Bool _unzip(const U8* out_path, const U8* data)
 
 		{
 			U8 locator[EOR_LOCATOR_SIZE];
-			if (data_size < EOR_LOCATOR_SIZE)
+			if (src_size < EOR_LOCATOR_SIZE)
 				break;
-			memcpy(locator, data2 + data_size - EOR_LOCATOR_SIZE, EOR_LOCATOR_SIZE);
+			memcpy(locator, src2 + src_size - EOR_LOCATOR_SIZE, EOR_LOCATOR_SIZE);
 			const U8* ptr = locator;
 			const U8* end_ptr = ptr + EOR_LOCATOR_SIZE - sizeof(EndCentralDirHeader) + sizeof(U32);
 			while (ptr < end_ptr)
@@ -118,9 +118,9 @@ EXPORT Bool _unzip(const U8* out_path, const U8* data)
 			dir_size = (size_t)eor->CentralDirSize;
 			directory_entries = eor->CentralDirRecordsTotalNum;
 			dir_image = AllocMem(dir_size);
-			if (data_size < eor->CentralDirOffset + dir_size)
+			if (src_size < eor->CentralDirOffset + dir_size)
 				break;
-			memcpy(dir_image, data2 + eor->CentralDirOffset, dir_size);
+			memcpy(dir_image, src2 + eor->CentralDirOffset, dir_size);
 		}
 
 		{
@@ -170,7 +170,7 @@ EXPORT Bool _unzip(const U8* out_path, const U8* data)
 									}
 									{
 										Char dir_path3[KUIN_MAX_PATH * 2 + 1];
-										wcscpy(dir_path3, (const Char*)(out_path + 0x10));
+										wcscpy(dir_path3, (const Char*)(dst + 0x10));
 										wcscat(dir_path3, dir_path2);
 										if (GetFullPathName(dir_path3, KUIN_MAX_PATH, dir_path2, NULL) == 0)
 										{
@@ -197,18 +197,18 @@ EXPORT Bool _unzip(const U8* out_path, const U8* data)
 					}
 					{
 						ZipHeader header;
-						if (data_size < dir_ptr->HeaderOffset + sizeof(ZipHeader))
+						if (src_size < dir_ptr->HeaderOffset + sizeof(ZipHeader))
 							break;
-						memcpy(&header, data2 + dir_ptr->HeaderOffset, sizeof(ZipHeader));
+						memcpy(&header, src2 + dir_ptr->HeaderOffset, sizeof(ZipHeader));
 						if (header.Signature != 0x04034b50)
 							break;
 						size_t local_offset = sizeof(ZipHeader) + header.FileNameLen + header.ExtraFieldLen;
 
 						size_t src_buf_size = (size_t)dir_ptr->CompressedSize;
 						src_buf = AllocMem(src_buf_size);
-						if (data_size < (S64)dir_ptr->HeaderOffset + (S64)local_offset + src_buf_size)
+						if (src_size < (S64)dir_ptr->HeaderOffset + (S64)local_offset + src_buf_size)
 							break;
-						memcpy(src_buf, data2 + (S64)dir_ptr->HeaderOffset + (S64)local_offset, src_buf_size);
+						memcpy(src_buf, src2 + (S64)dir_ptr->HeaderOffset + (S64)local_offset, src_buf_size);
 
 						size_t dst_buf_size = (size_t)dir_ptr->UncompressedSize;
 						dst_buf = AllocMem(dst_buf_size);
@@ -245,7 +245,7 @@ EXPORT Bool _unzip(const U8* out_path, const U8* data)
 							if (MultiByteToWideChar(CP_ACP, 0, name, -1, path2, KUIN_MAX_PATH) == 0)
 								break;
 							Char path3[KUIN_MAX_PATH * 2 + 1];
-							wcscpy(path3, (const Char*)(out_path + 0x10));
+							wcscpy(path3, (const Char*)(dst + 0x10));
 							wcscat(path3, path2);
 							FILE* file_ptr2 = _wfopen(path3, L"wb");
 							if (file_ptr2 == NULL)

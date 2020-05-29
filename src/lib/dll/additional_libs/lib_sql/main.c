@@ -104,6 +104,8 @@ EXPORT void* _sqlGetBlob(SClass* me_, S64 col)
 	THROWDBG(me2->Db == NULL, 0xe917000a);
 	size_t len = sqlite3_column_bytes(me2->Statement, (int)col);
 	const S8* blob = sqlite3_column_blob(me2->Statement, (int)col);
+	if (blob == NULL)
+		return NULL;
 	U8* result = (U8*)AllocMem(0x10 + sizeof(S8) * len);
 	((S64*)result)[0] = DefaultRefCntFunc;
 	((S64*)result)[1] = (S64)len;
@@ -130,6 +132,8 @@ EXPORT void* _sqlGetStr(SClass* me_, S64 col)
 	SSql* me2 = (SSql*)me_;
 	THROWDBG(me2->Db == NULL, 0xe917000a);
 	const Char* str = sqlite3_column_text16(me2->Statement, (int)col);
+	if (str == NULL)
+		return NULL;
 	size_t len = wcslen(str);
 	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
 	((S64*)result)[0] = DefaultRefCntFunc;
