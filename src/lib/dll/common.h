@@ -4,6 +4,8 @@
 	Uncommitted libraries:
 		d0000.knd lib_common
 		d0001.knd lib_win
+		d0004.knd lib_net
+		d0005.knd lib_draw2d
 
 	Committed additional libraries:
 		d1000.knd lib_ogg

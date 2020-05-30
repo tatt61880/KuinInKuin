@@ -30,7 +30,8 @@ EXPORT_CPP void _objDrawOutline(SClass* me_, S64 element, double frame, double w
 			{
 				SObj::SPolygon* element2 = static_cast<SObj::SPolygon*>(me2->Elements[element]);
 				THROWDBG(frame < static_cast<double>(element2->Begin) || element2->End < static_cast<int>(frame), 0xe9170006);
-				THROW(element2->JointNum < 0 || JointMax < element2->JointNum, 0xe9170008);
+				if (element2->JointNum < 0 || JointMax < element2->JointNum)
+					THROW(0xe9170008);
 				Bool joint = element2->JointNum != 0;
 
 				SObjOutlineVsConstBuf vs_const_buf;
@@ -299,7 +300,8 @@ static void ObjDrawImpl(SClass* me_, S64 element, double frame, SClass* diffuse,
 			{
 				SObj::SPolygon* element2 = static_cast<SObj::SPolygon*>(me2->Elements[element]);
 				THROWDBG(frame < static_cast<double>(element2->Begin) || element2->End < static_cast<int>(frame), 0xe9170006);
-				THROW(element2->JointNum < 0 || JointMax < element2->JointNum, 0xe9170008);
+				if (element2->JointNum < 0 || JointMax < element2->JointNum)
+					THROW(0xe9170008);
 				Bool joint = element2->JointNum != 0;
 
 				memcpy(ObjVsConstBuf.CommonParam.World, me2->Mat, sizeof(float[4][4]));
@@ -371,7 +373,8 @@ static void ObjDrawToonImpl(SClass* me_, S64 element, double frame, SClass* diff
 			{
 				SObj::SPolygon* element2 = static_cast<SObj::SPolygon*>(me2->Elements[element]);
 				THROWDBG(frame < static_cast<double>(element2->Begin) || element2->End < static_cast<int>(frame), 0xe9170006);
-				THROW(element2->JointNum < 0 || JointMax < element2->JointNum, 0xe9170008);
+				if (element2->JointNum < 0 || JointMax < element2->JointNum)
+					THROW(0xe9170008);
 				Bool joint = element2->JointNum != 0;
 
 				memcpy(ObjVsConstBuf.CommonParam.World, me2->Mat, sizeof(float[4][4]));
@@ -444,7 +447,8 @@ static void ObjDrawFlatImpl(SClass* me_, S64 element, double frame, SClass* diff
 			{
 				SObj::SPolygon* element2 = static_cast<SObj::SPolygon*>(me2->Elements[element]);
 				THROWDBG(frame < static_cast<double>(element2->Begin) || element2->End < static_cast<int>(frame), 0xe9170006);
-				THROW(element2->JointNum < 0 || JointMax < element2->JointNum, 0xe9170008);
+				if (element2->JointNum < 0 || JointMax < element2->JointNum)
+					THROW(0xe9170008);
 				Bool joint = element2->JointNum != 0;
 
 				memcpy(ObjVsConstBuf.CommonParam.World, me2->Mat, sizeof(float[4][4]));
