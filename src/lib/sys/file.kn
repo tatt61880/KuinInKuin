@@ -29,9 +29,16 @@ end enum
 	end func
 	
 	*func[__frc]_dtor()
+#exe,web
 		do me.fin()
+#cpp
+		excode "if(`0`->`.size`>=0){\n"
+		excode "`0`->`.closer`(`0`->`.handle`);\n"
+		excode "`0`->`.size`=-1;\n"
+		excode "}\n"
+#any
 	end func
-	
+
 	+func _init(handle: int)
 		do me.handle :: handle
 		do me.delimiters :: " ,\n"
@@ -40,6 +47,9 @@ end enum
 		do @readerSeekImpl(me.handle, %head, 0)
 		do me.cur :: 0
 		do me.parser :: @readUtf8
+#cpp
+		do me.closer :: @readerClose
+#any
 	end func
 	
 	+func delimiter(delimiters: []char)
@@ -241,14 +251,24 @@ end enum
 	var cur: int
 	var delimiters: []char
 	var parser: func<(int, &int): char>
+#cpp
+	var closer: func<(int)>
+#any
 end class
 
 +class Writer()
 	*func[__ndc]ctor()
 	end func
-
+	
 	*func[__frc]_dtor()
+#exe,web
 		do me.fin()
+#cpp
+		excode "if(`0`->`.size`>=0){\n"
+		excode "`0`->`.closer`(`0`->`.handle`);\n"
+		excode "`0`->`.size`=-1;\n"
+		excode "}\n"
+#any
 	end func
 	
 	+func _init(handle: int, append: bool)
@@ -262,6 +282,9 @@ end class
 		end if
 		do me.cur :: 0
 		do me.parser :: @writeUtf8
+#cpp
+		do me.closer :: @writerCloseImpl
+#any
 	end func
 	
 	+func fileSize(): int
@@ -355,6 +378,9 @@ end class
 	var size: int
 	var cur: int
 	var parser: func<(int, char, &int)>
+#cpp
+	var closer: func<(int)>
+#any
 end class
 
 #exe
@@ -659,22 +685,32 @@ func[d0000.knd, _openAsReadingImpl]openAsReadingImpl(path: []char, pack: bool, s
 #cpp,web
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
 #cpp
-	excode "std::u16string s_=`0`->B;\n"
-	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "std::FILE*f_=std::fopen(t_.c_str(),\"rb\");\n"
-	excode "if(f_==nullptr){\n"
-	excode "*`2`=false;\n"
-	excode "return 0;\n"
-	excode "}\n"
-	excode "*`2`=true;\n"
-	excode "return reinterpret_cast<int64_t>(f_);\n"
+	if(pack)
+		; TODO:
+		excode "*`2`=false;\n"
+		excode "return 0;\n"
+	else
+		excode "std::u16string s_=`0`->B;\n"
+		excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+		excode "std::FILE*f_=std::fopen(t_.c_str(),\"rb\");\n"
+		excode "if(f_==nullptr){\n"
+		excode "*`2`=false;\n"
+		excode "return 0;\n"
+		excode "}\n"
+		excode "*`2`=true;\n"
+		excode "return reinterpret_cast<int64_t>(f_);\n"
+	end if
 #web
-	excode "let f_=null,p_=`0`.S;\n"
-	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
-	excode "if(f_==null)\n"
-	excode "f_=F_(p_,true);\n"
-	excode "if(f_==null){`2`.$=false;return null;}\n"
-	excode "`2`.$=true;return{F:f_,I:0};\n"
+	if(pack)
+		excode "let f_=null,p_=`0`.S;\n"
+		excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+		excode "if(f_==null)\n"
+		excode "f_=F_(p_,true);\n"
+		excode "if(f_==null){`2`.$=false;return null;}\n"
+		excode "`2`.$=true;return{F:f_,I:0,P:true};\n"
+	else
+		; TODO:
+	end if
 #any
 end func
 
@@ -683,9 +719,18 @@ func[d0000.knd, _readerCloseImpl]readerClose(handle: int)
 #cpp,web
 func readerClose(handle: int)
 #cpp
-	excode "fclose(reinterpret_cast<std::FILE*>(`0`));\n"
+	excode "std::FILE*f_=reinterpret_cast<std::FILE*>(`0`&(~1LL));\n"
+	excode "bool p_=(`0`&1LL)!=0LL;\n"
+	excode "if(p_){\n"
+	; TODO:
+	excode "}else\n"
+	excode "fclose(f_);\n"
 #web
+	excode "if(`0`.P)\n"
 	excode "`0`.F=null;\n"
+	excode "else{\n"
+	; TODO:
+	excode "}\n"
 #any
 end func
 
@@ -694,20 +739,27 @@ func[d0000.knd, _readerSeekImpl]readerSeekImpl(handle: int, origin: @Origin, pos
 #cpp,web
 func readerSeekImpl(handle: int, origin: @Origin, pos: int)
 #cpp
+	excode "std::FILE*f_=reinterpret_cast<std::FILE*>(`0`&(~1LL));\n"
+	excode "bool p_=(`0`&1LL)!=0LL;\n"
+	excode "if(p_){\n"
+	; TODO:
+	excode "}else{\n"
 	excode "#if defined(_WIN32)\n"
 	if(dbg)
-		excode "if(_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`))!=0)throw 0xe9170006;\n"
+		excode "if(_fseeki64(f_,`2`,static_cast<int>(`1`))!=0)throw 0xe9170006;\n"
 	else
-		excode "_fseeki64(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+		excode "_fseeki64(f_,`2`,static_cast<int>(`1`));\n"
 	end if
 	excode "#else\n"
 	if(dbg)
-		excode "if(fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`))!=0)throw 0xe9170006;\n"
+		excode "if(fseeko(f_,`2`,static_cast<int>(`1`))!=0)throw 0xe9170006;\n"
 	else
-		excode "fseeko(reinterpret_cast<std::FILE*>(`0`),`2`,static_cast<int>(`1`));\n"
+		excode "fseeko(f_,`2`,static_cast<int>(`1`));\n"
 	end if
 	excode "#endif\n"
+	excode "}\n"
 #web
+	excode "if(`0`.P){\n"
 	excode "let i_;\n"
 	excode "switch(`1`[1]){\n"
 	excode "case 0:i_=~~`2`[1];break;\n"
@@ -719,6 +771,9 @@ func readerSeekImpl(handle: int, origin: @Origin, pos: int)
 	else
 		excode "if(i_>=0)`0`.I=i_;\n"
 	end if
+	excode "}else{\n"
+	; TODO:
+	excode "}\n"
 #any
 end func
 
@@ -727,14 +782,25 @@ func[d0000.knd, _readerTellImpl]readerTellImpl(handle: int): int
 #cpp,web
 func readerTellImpl(handle: int): int
 #cpp
+	excode "std::FILE*f_=reinterpret_cast<std::FILE*>(`0`&(~1LL));\n"
+	excode "bool p_=(`0`&1LL)!=0LL;\n"
+	excode "if(p_){\n"
+	; TODO:
+	excode "return 0;\n"
+	excode "}else{\n"
 	excode "#if defined(_WIN32)\n"
 	excode "return _ftelli64(reinterpret_cast<std::FILE*>(`0`));\n"
 	excode "#else\n"
 	excode "return ftello(reinterpret_cast<std::FILE*>(`0`));\n"
 	excode "#endif\n"
+	excode "}\n"
 #web
+	excode "if(`0`.P){\n"
 	excode "let n_=`0`.I;\n"
 	excode "return Uint32Array.from([n_<0?-1:0,n_]);\n"
+	excode "}else{\n"
+	; TODO:
+	excode "}\n"
 #any
 end func
 
@@ -743,13 +809,23 @@ func[d0000.knd, _readerReadImpl]readerReadImpl(handle: int, buf: []bit8, start: 
 #cpp,web
 func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
 #cpp
+	excode "std::FILE*f_=reinterpret_cast<std::FILE*>(`0`&(~1LL));\n"
+	excode "bool p_=(`0`&1LL)!=0LL;\n"
+	excode "if(p_){\n"
+	; TODO:
+	excode "return false;\n"
+	excode "}else\n"
 	excode "return fread(`1`->B+`2`,1,`3`,reinterpret_cast<std::FILE*>(`0`))==`3`;\n"
 #web
+	excode "if(`0`.P){\n"
 	excode "let s_=~~`3`[1],b_=~~`2`[1],c_=`0`.I;\n"
 	excode "if(c_+s_>`0`.F.length)return false;\n"
 	excode "for(let i_=0;i_<s_;i_++)`1`[b_+i_]=`0`.F[c_+i_];\n"
 	excode "`0`.I+=s_;\n"
 	excode "return true;\n"
+	excode "}else{\n"
+	; TODO:
+	excode "}\n"
 #any
 end func
 

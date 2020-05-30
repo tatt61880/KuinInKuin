@@ -1,0 +1,3 @@
+#exe
++func [d1000.knd, _init] init()
+end func

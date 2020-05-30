@@ -1021,19 +1021,11 @@ template<typename T1, typename T2> struct toBin_<type_(Dict_<T1, T2>)> {
 };
 template<typename T> struct toBin_<type_(T)> {
 	type_(Array_<uint8_t>) operator()(type_(T) v) {
-		if (std::is_class<T>::value)
-		{
-			if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
-			auto w = dcast_(Class_)(v);
-			type_(Array_<uint8_t>) r = makeBin_(&w->Y, sizeof(int64_t));
-			mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[w->Y + 5])(w));
-			return r;
-		}
-		else
-		{
-			int64_t p = -1;
-			return makeBin_(&p, sizeof(p));
-		}
+		if (v == nullptr) { int64_t p = -1; return makeBin_(&p, sizeof(p)); }
+		auto w = dcast_(Class_)(v);
+		type_(Array_<uint8_t>) r = makeBin_(&w->Y, sizeof(int64_t));
+		mergeBin_(r, reinterpret_cast<type_(Array_<uint8_t>)(*)(type_(Class_))>(classTable_[w->Y + 5])(w));
+		return r;
 	}
 };
 template<> struct toBin_<int64_t> { type_(Array_<uint8_t>) operator()(int64_t v) { return makeBin_(&v, sizeof(v)); } };
@@ -1044,6 +1036,10 @@ template<> struct toBin_<uint8_t> { type_(Array_<uint8_t>) operator()(uint8_t v)
 template<> struct toBin_<uint16_t> { type_(Array_<uint8_t>) operator()(uint16_t v) { return makeBin_(&v, sizeof(v)); } };
 template<> struct toBin_<uint32_t> { type_(Array_<uint8_t>) operator()(uint32_t v) { return makeBin_(&v, sizeof(v)); } };
 template<> struct toBin_<uint64_t> { type_(Array_<uint8_t>) operator()(uint64_t v) { return makeBin_(&v, sizeof(v)); } };
+template<typename T> type_(Array_<uint8_t>) toBinFunc_(T v) {
+	int64_t p = -1;
+	return makeBin_(&p, sizeof(p));
+}
 
 template<typename T> struct fromBin_ {};
 template<typename T> struct fromBin_<type_(Array_<T>)> {
@@ -1122,18 +1118,10 @@ template<typename T1, typename T2> struct fromBin_<type_(Dict_<T1, T2>)> {
 };
 template<typename T> struct fromBin_<type_(T)> {
 	type_(T) operator()(type_(Array_<uint8_t>) b, int64_t& o) {
-		if (std::is_class<T>::value)
-		{
-			int64_t y = *reinterpret_cast<int64_t*>(b->B + o);
-			o += sizeof(int64_t);
-			if (y == -1) return nullptr;
-			return dcast_(T)(reinterpret_cast<type_(Class_)(*)(type_(Class_), type_(Array_<uint8_t>), int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
-		}
-		else
-		{
-			o += sizeof(void*);
-			return nullptr;
-		}
+		int64_t y = *reinterpret_cast<int64_t*>(b->B + o);
+		o += sizeof(int64_t);
+		if (y == -1) return nullptr;
+		return dcast_(T)(reinterpret_cast<type_(Class_)(*)(type_(Class_), type_(Array_<uint8_t>), int64_t*)>(classTable_[y + 6])(nullptr, b, &o));
 	}
 };
 template<> struct fromBin_<int64_t> { int64_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { int64_t r = *reinterpret_cast<int64_t*>(b->B + o); o += sizeof(int64_t); return r; } };
@@ -1144,6 +1132,10 @@ template<> struct fromBin_<uint8_t> { uint8_t operator()(type_(Array_<uint8_t>) 
 template<> struct fromBin_<uint16_t> { uint16_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint16_t r = *reinterpret_cast<uint16_t*>(b->B + o); o += sizeof(uint16_t); return r; } };
 template<> struct fromBin_<uint32_t> { uint32_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint32_t r = *reinterpret_cast<uint32_t*>(b->B + o); o += sizeof(uint32_t); return r; } };
 template<> struct fromBin_<uint64_t> { uint64_t operator()(type_(Array_<uint8_t>) b, int64_t& o) { uint64_t r = *reinterpret_cast<uint64_t*>(b->B + o); o += sizeof(uint64_t); return r; } };
+template<typename T> T fromBinFunc_(type_(Array_<uint8_t>) b, int64_t& o) {
+	o += sizeof(void*);
+	return nullptr;
+}
 
 template<typename T> type_(Array_<T>) sub_(type_(Array_<T>) a, int64_t start, int64_t len) {
 	if (len == -1)

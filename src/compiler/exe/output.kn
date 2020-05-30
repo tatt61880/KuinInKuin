@@ -38,12 +38,18 @@ func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	ret true
 	
 	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
-		var path: []char :: \option@outputDir ~ "data/" ~ key
 		var cfg: []char :: \option@rls ?("rls/", "dbg/")
-		if(!file@copyFile(path, \option@sysDir ~ "data/" ~ cfg ~ key))
-			do \err@err(%fileSaveFailed, null, [path])
+		if(!file@copyFile(\option@outputDir ~ "data/" ~ key, \option@sysDir ~ "data/" ~ cfg ~ key))
+			do \err@err(%fileSaveFailed, null, [\option@sysDir ~ "data/" ~ cfg ~ key])
 			ret false
 		end if
+		switch(key)
+		case "d1000.knd"
+			if(!file@copyFile(\option@outputDir ~ "data/license_ogg_vorbis.txt", \option@sysDir ~ "license_ogg_vorbis.txt"))
+				do \err@err(%fileSaveFailed, null, [\option@sysDir ~ "license_ogg_vorbis.txt"])
+				ret false
+			end if
+		end switch
 		ret true
 	end func
 end func

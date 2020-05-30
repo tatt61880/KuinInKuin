@@ -138,39 +138,80 @@ EXPORT void _setCurDir(const U8* path)
 
 EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 {
-	FILE* file_ptr = _wfopen((Char*)(path + 0x10), L"rb");
-	if (file_ptr == NULL)
+	if (pack)
 	{
+		// TODO:
 		*success = False;
-		return 0;
+		return NULL;
 	}
-	*success = True;
-	return file_ptr;
+	else
+	{
+		FILE* file_ptr = _wfopen((Char*)(path + 0x10), L"rb");
+		if (file_ptr == NULL)
+		{
+			*success = False;
+			return 0;
+		}
+		*success = True;
+		return file_ptr;
+	}
 }
 
 EXPORT void _readerCloseImpl(void* handle)
 {
-	fclose((FILE*)handle);
+	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	Bool pack = ((S64)handle & 1LL) != 0LL;
+	if (pack)
+	{
+		// TODO:
+	}
+	else
+		fclose(handle2);
 }
 
 EXPORT void _readerSeekImpl(void* handle, S64 origin, S64 pos)
 {
+	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	Bool pack = ((S64)handle & 1LL) != 0LL;
+	if (pack)
+	{
+		// TODO:
+	}
+	else
+	{
 #if defined(DBG)
-	if (_fseeki64((FILE*)handle, pos, (int)origin) != 0)
-		THROW(0xe9170006);
+		if (_fseeki64((FILE*)handle, pos, (int)origin) != 0)
+			THROW(0xe9170006);
 #else
-	_fseeki64((FILE*)handle, pos, (int)origin);
+		_fseeki64((FILE*)handle, pos, (int)origin);
 #endif
+	}
 }
 
 EXPORT S64 _readerTellImpl(void* handle)
 {
-	return _ftelli64((FILE*)handle);
+	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	Bool pack = ((S64)handle & 1LL) != 0LL;
+	if (pack)
+	{
+		// TODO:
+		return 0;
+	}
+	else
+		return _ftelli64((FILE*)handle);
 }
 
 EXPORT Bool _readerReadImpl(void* handle, void* buf, S64 start, S64 size)
 {
-	return fread((U8*)buf + 0x10 + start, 1, (size_t)size, (FILE*)handle) == (size_t)size;
+	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	Bool pack = ((S64)handle & 1LL) != 0LL;
+	if (pack)
+	{
+		// TODO:
+		return 0;
+	}
+	else
+		return fread((U8*)buf + 0x10 + start, 1, (size_t)size, (FILE*)handle) == (size_t)size;
 }
 
 EXPORT void* _openAsWritingImpl(const U8* path, Bool append, Bool* success)
@@ -217,8 +258,8 @@ EXPORT void _writerWriteImpl(void* handle, void* data, S64 start, S64 size)
 
 EXPORT S64 _writerWriteNewLineImpl(void* handle)
 {
-	fwrite(NewLine, 1, sizeof(NewLine), (FILE*)handle);
-	return (S64)sizeof(NewLine);
+	fwrite(NewLine, 1, 2, (FILE*)handle);
+	return 2;
 }
 
 static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback, void* data)

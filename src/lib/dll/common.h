@@ -2,9 +2,17 @@
 
 /*
 	Uncommitted libraries:
-		d0000.knd	common
+		d0000.knd lib_common
+		d0001.knd lib_win
 
 	Committed additional libraries:
+		d1000.knd lib_ogg
+		d1001.knd lib_zip
+		d1002.knd lib_regex
+		d1003.knd lib_xml
+		d1004.knd lib_game
+		d1005.knd lib_sql
+		d1006.knd lib_math_boost
 */
 
 #pragma comment(linker, "/nodefaultlib:msvcrt.lib")
@@ -20,6 +28,7 @@
 #define _WIN32_DCOM
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCKAPI_
 
 #include <crtdbg.h> // '_ASSERTE'
 #include <math.h>
@@ -86,10 +95,21 @@ typedef struct SEnvVars
 } SEnvVars;
 extern SEnvVars EnvVars;
 
+typedef enum EUseResFlagsKind
+{
+	UseResFlagsKind_Draw_Circle = 1,
+	UseResFlagsKind_Draw_FilterMonotone = 2,
+	UseResFlagsKind_Draw_Particle = 3,
+	UseResFlagsKind_Draw_ObjDraw = 5,
+	UseResFlagsKind_Draw_ObjDrawOutline = 6,
+} EUseResFlagsKind;
+#define USE_RES_FLAGS_LEN (1)
+
 Bool InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
 void* AllocMem(size_t size);
 void FreeMem(void* ptr);
 void ThrowImpl(U32 code);
+Bool IsResUsed(EUseResFlagsKind kind);
 
 // Assembly functions.
 #ifdef __cplusplus

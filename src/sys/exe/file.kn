@@ -25,7 +25,7 @@ end enum
 	*func[__frc]_dtor()
 		do me.fin()
 	end func
-	
+
 	+func _init(handle: int)
 		do me.handle :: handle
 		do me.delimiters :: " ,\n"
@@ -240,7 +240,7 @@ end class
 +class Writer()
 	*func[__ndc]ctor()
 	end func
-
+	
 	*func[__frc]_dtor()
 		do me.fin()
 	end func
