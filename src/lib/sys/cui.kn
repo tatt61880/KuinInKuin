@@ -11,7 +11,7 @@ end func
 #cpp,web
 +func flush()
 #cpp
-	excode "std::cout<<std::flush;\n"
+	excode "fflush(stdout);\n"
 #web
 #any
 end func
@@ -144,12 +144,16 @@ end func
 +func print(str: []char)
 #cpp
 	excode "if(`0`==nullptr){\n"
-	excode "std::cout<<\"(null)\";\n"
+	excode "fputs(\"(null)\",stdout);\n"
 	excode "return;\n"
 	excode "}\n"
+	excode "#if defined(_WIN32)\n"
+	excode "fputws(reinterpret_cast<const wchar_t*>(`0`->B),stdout);\n"
+	excode "#else\n"
 	excode "std::u16string s_=`0`->B;\n"
 	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "std::cout<<t_;\n"
+	excode "fputs(t_.c_str(),stdout);\n"
+	excode "#endif\n"
 #web
 	excode "if(`0`==null)`0`={S:\"(null)\"};\n"
 	excode "if(O_&&O_.print){O_.print(`0`.S);return;}\n"

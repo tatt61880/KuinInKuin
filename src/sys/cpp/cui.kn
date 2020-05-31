@@ -7,7 +7,7 @@ var buf: char :: '\0'
 end func
 
 +func flush()
-	excode "std::cout<<std::flush;\n"
+	excode "fflush(stdout);\n"
 end func
 
 +func input(): []char
@@ -107,12 +107,16 @@ end func
 
 +func print(str: []char)
 	excode "if(`0`==nullptr){\n"
-	excode "std::cout<<\"(null)\";\n"
+	excode "fputs(\"(null)\",stdout);\n"
 	excode "return;\n"
 	excode "}\n"
+	excode "#if defined(_WIN32)\n"
+	excode "fputws(reinterpret_cast<const wchar_t*>(`0`->B),stdout);\n"
+	excode "#else\n"
 	excode "std::u16string s_=`0`->B;\n"
 	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
-	excode "std::cout<<t_;\n"
+	excode "fputs(t_.c_str(),stdout);\n"
+	excode "#endif\n"
 end func
 
 func inputCharWithDelimiter(): char
