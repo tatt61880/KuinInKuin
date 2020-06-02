@@ -543,6 +543,8 @@ func parseClass(): \ast@AstClass
 				do item.def :: @parseAlias()
 			case "class"
 				do item.def :: @parseClass()
+			case "enum"
+				do item.def :: @parseEnum()
 			default
 				do \err@err(%wrongMember, \pos@make(@srcName, row, col), [id])
 				do @readUntilRet(@read())

@@ -14,7 +14,7 @@
 		do relatedFiles.addChild("path").setValue(\form@relatedFiles.get())
 		do \form@relatedFiles.next()
 	end while
-
+	
 	class Data()
 		+var reses: xml@Node
 		+var curDoc: \doc@Doc
@@ -24,10 +24,11 @@
 	do data.curDoc :: \src@mainDoc()
 	do \src@docs.forEach(callback, data)
 	do prop.save(path, false)
-
-	func callback(src: []char, doc: \doc@Doc, data: Data): bool
-		if(doc <>& data.curDoc & src[0] = '\\')
-			do data.reses.addChild("resource").setValue(src.sub(1, -1) ~ \src@getExt(doc))
+	
+	func callback(src: []char, doc: \doc@Doc, data: kuin@Class): bool
+		var data2: Data :: data $ Data
+		if(doc <>& data2.curDoc & src[0] = '\\')
+			do data2.reses.addChild("resource").setValue(src.sub(1, -1) ~ \src@getExt(doc))
 		end if
 		ret true
 	end func
@@ -38,7 +39,7 @@ end func
 		ret
 	end if
 	try
-		var prop: xml@Xml :: xml@makeXml(file@delExt(\src@mainSrcPath) ~  ".knprop")
+		var prop: xml@Xml :: xml@makeXml(file@delExt(\src@mainSrcPath) ~ ".knprop")
 		if(prop =& null)
 			ret
 		end if
@@ -72,7 +73,7 @@ end func
 		try
 			do \form@relatedFiles :: #list<[]char>
 			var relatedFiles: xml@Node :: cfg.findChild("related_files").firstChild()
-			while (relatedFiles <>& null)
+			while(relatedFiles <>& null)
 				do \form@relatedFiles.add(relatedFiles.getValue())
 				do relatedFiles :: relatedFiles.next()
 			end while

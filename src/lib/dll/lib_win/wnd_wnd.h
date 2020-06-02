@@ -43,6 +43,7 @@ EXPORT_CPP void _wndBaseSetRedraw(SClass* me_, Bool is_enabled);
 EXPORT_CPP void _wndBaseSetVisible(SClass* me_, Bool is_visible);
 EXPORT_CPP Bool _act();
 EXPORT_CPP S64 _colorDialog(SClass* parent, S64 default_color);
+EXPORT_CPP void* _exeDir();
 EXPORT_CPP void _fileDialogDir(const U8* defaultDir);
 EXPORT_CPP void _getCaretPos(S64* x, S64* y);
 EXPORT_CPP void* _getClipboardStr();
@@ -58,3 +59,4 @@ EXPORT_CPP void* _saveFileDialog(SClass* parent, const U8* filter, S64 defaultFi
 EXPORT_CPP void _screenSize(S64* width, S64* height);
 EXPORT_CPP void _setClipboardStr(const U8* str);
 EXPORT_CPP void _setOnKeyPress(void* onKeyPressFunc);
+EXPORT_CPP void* _sysDir(S64 kind);

@@ -9,8 +9,8 @@ func _init()
 end func
 
 +class Bool()
-	+*func cmp(t: @Bool): int
-		ret(me.value $ int - t.value $ int).sign()
+	+*func cmp(t: kuin@Class): int
+		ret(me.value $ int - (t $ @Bool).value $ int).sign()
 	end func
 	
 	+*func toStr(): []char
@@ -21,8 +21,8 @@ end func
 end class
 
 +class Char()
-	+*func cmp(t: @Char): int
-		ret(me.value $ int - t.value $ int).sign()
+	+*func cmp(t: kuin@Class): int
+		ret(me.value $ int - (t $ @Char).value $ int).sign()
 	end func
 	
 	+*func toStr(): []char
@@ -33,8 +33,8 @@ end class
 end class
 
 +class Float()
-	+*func cmp(t: @Float): int
-		ret(me.value - t.value).sign() $ int
+	+*func cmp(t: kuin@Class): int
+		ret(me.value - (t $ @Float).value).sign() $ int
 	end func
 	
 	+*func toStr(): []char
@@ -45,8 +45,8 @@ end class
 end class
 
 +class Int()
-	+*func cmp(t: @Int): int
-		ret(me.value - t.value).sign()
+	+*func cmp(t: kuin@Class): int
+		ret(me.value - (t $ @Int).value).sign()
 	end func
 	
 	+*func toStr(): []char
@@ -116,8 +116,8 @@ end class
 end class
 
 +class Str()
-	+*func cmp(t: @Str): int
-		ret @cmp(me.value, t.value)
+	+*func cmp(t: kuin@Class): int
+		ret @cmp(me.value, (t $ @Str).value)
 	end func
 	
 	+*func toStr(): []char
@@ -191,7 +191,7 @@ end func
 	ret false
 end func
 
-func clampFloat(x: float, min: float, max: float): float
++func clampFloat(x: float, min: float, max: float): float
 	if(dbg)
 		if(min > max)
 			throw 0xE9170006
@@ -200,7 +200,7 @@ func clampFloat(x: float, min: float, max: float): float
 	ret x > max ?(max, x < min ?(min, x))
 end func
 
-func clamp(x: int, min: int, max: int): int
++func clamp(x: int, min: int, max: int): int
 	if(dbg)
 		if(min > max)
 			throw 0xE9170006

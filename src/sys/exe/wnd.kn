@@ -567,6 +567,15 @@ end class
 	ctrl :: 0x02
 end enum
 
++enum SysDir
+	desktop :: 0x00
+	fonts :: 0x14
+	appData :: 0x1A
+	windows :: 0x24
+	system32 :: 0x25
+	programFiles :: 0x26
+end enum
+
 +class Tab(@WndBase)
 	*func[__ndc]ctor()
 	end func
@@ -640,8 +649,8 @@ end class
 	*func[__ndc]ctor()
 	end func
 	
-	+*func cmp(t: @TreeNode): int
-		ret me._item - t._item
+	+*func cmp(t: kuin@Class): int
+		ret me._item - (t $ @TreeNode)._item
 	end func
 	
 	+func[d0001.knd, _treeNodeAddChild, __mki]addChild(me2: @TreeNode, name: []char): @TreeNode
@@ -731,11 +740,11 @@ end class
 	end func
 	
 	var minMaxRect: int
-	+var onClose: func<(@Wnd): bool>
-	+var onActivate: func<(@Wnd, bool, bool)>
-	+var onPushMenu: func<(@Wnd, int)>
-	+var onDropFiles: func<(@Wnd, [][]char)>
-	+var onResize: func<(@Wnd)>
+	+var onClose: func<(@WndBase): bool>
+	+var onActivate: func<(@WndBase, bool, bool)>
+	+var onPushMenu: func<(@WndBase, int)>
+	+var onDropFiles: func<(@WndBase, [][]char)>
+	+var onResize: func<(@WndBase)>
 	var modalLock: bool
 end class
 
@@ -839,6 +848,9 @@ end func
 +func[d0001.knd, _colorDialog]colorDialog(parent: @Wnd, defaultColor: int): int
 end func
 
++func[d0001.knd, _exeDir]exeDir(): []char
+end func
+
 +func[d0001.knd, _fileDialogDir]fileDialogDir(defaultDir: []char)
 end func
 
@@ -878,7 +890,7 @@ end func
 	end if
 end func
 
-+func[d0001.knd, _makeDrawEditable, __mki]makeDrawEditable(me2: @DrawEditable, parent: @WndBase, x: int, y: int, width: int, height: int): @DrawEditable
++func[d0001.knd, _makeDrawEditable, __mki]makeDrawEditable(me2: @Draw, parent: @WndBase, x: int, y: int, width: int, height: int): @Draw
 	if(parent <>& null)
 		do parent.addChild(me2)
 	end if
@@ -1010,3 +1022,7 @@ end func
 
 +func[d0001.knd, _setOnKeyPress]setOnKeyPress(onKeyPressFunc: func<(@Key, @ShiftCtrl): bool>)
 end func
+
++func[d0001.knd, _sysDir]sysDir(kind: @SysDir): []char
+end func
+

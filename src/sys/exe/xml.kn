@@ -5,9 +5,10 @@ end func
 	*func[__ndc]ctor()
 	end func
 	
-	+*func cmp(t: @Node): int
+	+*func cmp(t: kuin@Class): int
+		var t2: @Node :: t $ @Node
 		var a: int :: me._root $ bool ?(0, me._node)
-		var b: int :: t._root $ bool ?(0, t._node)
+		var b: int :: t2._root $ bool ?(0, t2._node)
 		ret a - b
 	end func
 	
@@ -74,7 +75,6 @@ end class
 	end func
 	
 	*func[d1003.knd, _xmlDtor, __frc]_dtor()
-		do me.fin()
 	end func
 	
 	+func[d1003.knd, _xmlRoot, __mki]root(me2: @Node): @Node
@@ -86,7 +86,7 @@ end class
 	var tree: int
 end class
 
-+func makeXml(me2: @Xml, path: []char): @Xml
++func makeXml(path: []char): @Xml
 	var f: file@Reader :: file@makeReader(path)
 	if(f =& null)
 		ret null

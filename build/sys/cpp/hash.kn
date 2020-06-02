@@ -1,3 +1,0 @@
-+func hash(data: []bit8): []bit8
-	; TODO:
-end func

@@ -75,9 +75,9 @@ end enum
 end class
 
 +class Ast(@HasType)
-	+*func cmp(t: @Ast): int
+	+*func cmp(t: kuin@Class): int
 		var meAddr: bit64 :: lib@addr(me)
-		var tAddr: bit64 :: lib@addr(t)
+		var tAddr: bit64 :: lib@addr(t $ @Ast)
 		ret meAddr > tAddr ?(1, meAddr < tAddr ?(-1, 0))
 	end func
 	

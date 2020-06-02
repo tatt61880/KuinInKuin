@@ -598,7 +598,7 @@ func rebuildClass(ast: \ast@AstClass)
 					var func2: \ast@AstFunc :: parentItem.def $ \ast@AstFunc
 					if(func1.ret_ =& null & func2.ret_ <>& null |
 						|func1.ret_ <>& null & func2.ret_ =& null |
-						|func1.ret_ <>& null & func2.ret_ <>& null & !@cmpType(func1.ret_, func2.ret_, false) |
+						|func1.ret_ <>& null & func2.ret_ <>& null & !@cmpType(func1.ret_, func2.ret_, %strict) |
 						|^func1.args <> ^func2.args)
 						do \err@err(%overriddenMemberNotMatchTypeOrArg, item.def.pos, [memberName])
 						ret
@@ -612,7 +612,7 @@ func rebuildClass(ast: \ast@AstClass)
 						var arg2: \ast@AstArg :: items2.get()
 						if(arg1.type.typeId = %typeUser & arg1.type.refItem =& null |
 							|arg2.type.typeId = %typeUser & arg2.type.refItem =& null |
-							|!@cmpType(arg1.type, arg2.type, false) |
+							|!@cmpType(arg1.type, arg2.type, i = 0 ?(%oneWay $ @CmpTypeStrict, %strict)) |
 							|arg1.name <>& null & arg2.name <>& null & arg1.name <> arg2.name |
 							|arg1.refVar <> arg2.refVar)
 							do \err@err(%overriddenMemberNotMatchTypeOrArg, item.def.pos, [memberName])
@@ -1171,7 +1171,7 @@ func rebuildArg(ast: \ast@AstArg)
 		if(ast.kind = %const_ & ast.expr.typeId.and(%exprValue) <> %exprValue)
 			do \err@err(%valueOfConstMustBeConst, ast.pos, [ast.name])
 		end if
-		if(!@cmpType(ast.expr.type, ast.type, false))
+		if(!@cmpType(ast.expr.type, ast.type, %oneWay))
 			do \err@err(%varAndValueTypeNotMatch, ast.pos, [ast.name])
 		elif(ast.expr.type.typeId = %typeEnumElement)
 			do ast.expr :: @rebuildEnumElement(ast.expr, ast.type)
@@ -1387,7 +1387,7 @@ func rebuildSwitch(ast: \ast@AstStatSwitch, retType: \ast@AstType, parentFunc: \
 				var exprs: \ast@AstExprPair :: items2.get()
 				do exprs.expr0 :: @rebuildExpr(exprs.expr0, false)
 				if(ast.cond <>& null & exprs.expr0 <>& null)
-					if(!@cmpType(ast.cond.type, exprs.expr0.type, false))
+					if(!@cmpType(ast.cond.type, exprs.expr0.type, %oneWay))
 						do \err@err(%caseCondNotMatchSwitch, exprs.expr0.pos, null)
 					elif(exprs.expr0.type.typeId = %typeEnumElement)
 						do exprs.expr0 :: @rebuildEnumElement(exprs.expr0, ast.cond.type)
@@ -1396,7 +1396,7 @@ func rebuildSwitch(ast: \ast@AstStatSwitch, retType: \ast@AstType, parentFunc: \
 				if(exprs.expr1 <>& null)
 					do exprs.expr1 :: @rebuildExpr(exprs.expr1, false)
 					if(ast.cond <>& null & exprs.expr1 <>& null)
-						if(!@cmpType(ast.cond.type, exprs.expr1.type, false))
+						if(!@cmpType(ast.cond.type, exprs.expr1.type, %oneWay))
 							do \err@err(%caseCondNotMatchSwitch, exprs.expr1.pos, null)
 						elif(exprs.expr1.type.typeId = %typeEnumElement)
 							do exprs.expr1 :: @rebuildEnumElement(exprs.expr1, ast.cond.type)
@@ -1539,7 +1539,7 @@ func rebuildRet(ast: \ast@AstStatRet, retType: \ast@AstType): \ast@AstStat
 	else
 		do ast.value :: @rebuildExpr(ast.value, false)
 		if(ast.value <>& null)
-			if(retType =& null | !@cmpType(ast.value.type, retType, false))
+			if(retType =& null | !@cmpType(ast.value.type, retType, %oneWay))
 				do \err@err(%retTypeNotMatchFunc, ast.pos, null)
 			elif(ast.value.type.typeId = %typeEnumElement)
 				do ast.value :: @rebuildEnumElement(ast.value, retType)
@@ -1881,7 +1881,16 @@ func rebuildExpr2(ast: \ast@AstExpr2): \ast@AstExpr
 	if(ast.children1 =& null)
 		ret null
 	end if
-	if(!@cmpType(ast.children1.type, ast.children0.type, false))
+	var strict: @CmpTypeStrict
+	switch(ast.kind)
+	case %lt, %gt, %le, %ge, %eq, %nEq
+		do strict :: %strict
+	case %eqRef, %nEqRef
+		do strict :: %twoWay
+	default
+		do strict :: %oneWay
+	end switch
+	if(!@cmpType(ast.children1.type, ast.children0.type, strict))
 		do \err@err(%wrongOperatorType, ast.pos, null)
 		ret null
 	end if
@@ -2260,7 +2269,7 @@ func rebuildExpr3(ast: \ast@AstExpr3): \ast@AstExpr
 		do \err@err(%condForCondOperatorMustBeBool, ast.pos, null)
 		ret null
 	end if
-	if(!@cmpType(ast.children1.type, ast.children2.type, false) & !@cmpType(ast.children2.type, ast.children1.type, false))
+	if(!@cmpType(ast.children1.type, ast.children2.type, %twoWay))
 		do \err@err(%twoValueForCondOperatorMustSameType, ast.pos, null)
 		ret null
 	end if
@@ -2278,7 +2287,7 @@ func rebuildExpr3(ast: \ast@AstExpr3): \ast@AstExpr
 	elif(ast.children2.type.typeId = %typeEnumElement)
 		do ast.children2 :: @rebuildEnumElement(ast.children2, ast.children1.type)
 	end if
-	if(@cmpType(ast.children1.type, ast.children2.type, false))
+	if(@cmpType(ast.children1.type, ast.children2.type, %oneWay))
 		do ast.type :: ast.children2.type.typeId = %typeNull ?(ast.children1.type, ast.children2.type)
 	else
 		do ast.type :: ast.children1.type.typeId = %typeNull ?(ast.children2.type, ast.children1.type)
@@ -2377,7 +2386,7 @@ func rebuildExprAs(ast: \ast@AstExprAs): \ast@AstExpr
 		var t2: \ast@AstType :: ast.childType
 		if(t1.typeId = %typeBit | \ast@isInt(t1))
 			if(t2.typeId = %typeBit | \ast@isInt(t2) | \ast@isFloat(t2) | \ast@isChar(t2) | \ast@isBool(t2) | \ast@isEnum(t2))
-				if(@cmpType(t1, t2, false))
+				if(@cmpType(t1, t2, %oneWay))
 					do ast.extra :: ast.child
 					ret ast.extra $ \ast@AstExpr
 				end if
@@ -2385,7 +2394,7 @@ func rebuildExprAs(ast: \ast@AstExprAs): \ast@AstExpr
 			end if
 		elif(\ast@isFloat(t1))
 			if(t2.typeId = %typeBit | \ast@isInt(t2) | \ast@isFloat(t2))
-				if(@cmpType(t1, t2, false))
+				if(@cmpType(t1, t2, %oneWay))
 					do ast.extra :: ast.child
 					ret ast.extra $ \ast@AstExpr
 				end if
@@ -2393,7 +2402,7 @@ func rebuildExprAs(ast: \ast@AstExprAs): \ast@AstExpr
 			end if
 		elif(\ast@isChar(t1))
 			if(t2.typeId = %typeBit | \ast@isInt(t2) | \ast@isChar(t2))
-				if(@cmpType(t1, t2, false))
+				if(@cmpType(t1, t2, %oneWay))
 					do ast.extra :: ast.child
 					ret ast.extra $ \ast@AstExpr
 				end if
@@ -2401,7 +2410,7 @@ func rebuildExprAs(ast: \ast@AstExprAs): \ast@AstExpr
 			end if
 		elif(\ast@isBool(t1))
 			if(t2.typeId = %typeBit | \ast@isInt(t2) | \ast@isBool(t2))
-				if(@cmpType(t1, t2, false))
+				if(@cmpType(t1, t2, %oneWay))
 					do ast.extra :: ast.child
 					ret ast.extra $ \ast@AstExpr
 				end if
@@ -2413,7 +2422,7 @@ func rebuildExprAs(ast: \ast@AstExprAs): \ast@AstExpr
 			end if
 		elif(\ast@isEnum(t1))
 			if(t2.typeId = %typeBit | \ast@isInt(t2) | \ast@isEnum(t2))
-				if(@cmpType(t1, t2, false))
+				if(@cmpType(t1, t2, %oneWay))
 					do ast.extra :: ast.child
 					ret ast.extra $ \ast@AstExpr
 				end if
@@ -2673,7 +2682,7 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 						do \err@err(%nonRefArgPassed, ast.pos, [(n + 1).toStr()])
 						ret null
 					end if
-					if(argExpr.refVar <> argType.refVar | !@cmpType(argExpr.arg.type, argType.arg, false))
+					if(argExpr.refVar <> argType.refVar | !@cmpType(argExpr.arg.type, argType.arg, %oneWay))
 						do \err@err(%wrongArgTypeInFunc, ast.pos, [(n + 1).toStr(), (argType.refVar ?("&", "")) ~ @getTypeName(argType.arg), (argExpr.refVar ?("&", "")) ~ @getTypeName(argExpr.arg.type)])
 						ret null
 					end if
@@ -3101,7 +3110,7 @@ func rebuildExprValueArray(ast: \ast@AstExprValueArray): \ast@AstExpr
 						do type.itemType :: dataType
 						do ast.type :: type
 					end if
-				elif(!@cmpType((ast.type $ \ast@AstTypeArray).itemType, dataType, false))
+				elif(!@cmpType((ast.type $ \ast@AstTypeArray).itemType, dataType, %strict))
 					; The types of the second and subsequent elements of the array initializer do not match the type of the first element.
 					do \err@err(%elementTypesOfArrayInitNotMatch, ast.pos, null)
 					ret null
@@ -3408,7 +3417,13 @@ func addSpecialFunc(class_: \ast@AstClass, name: []char): \ast@AstFunc
 	ret ast
 end func
 
-func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
+enum CmpTypeStrict
+	strict
+	oneWay
+	twoWay
+end enum
+
+func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: @CmpTypeStrict): bool
 	if(type1 =& null | type2 =& null)
 		ret false
 	end if
@@ -3426,7 +3441,7 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 		end if
 	end block
 	if(typeId1 = %typeArray & typeId2 = %typeArray)
-		ret @cmpType((type1 $ \ast@AstTypeArray).itemType, (type2 $ \ast@AstTypeArray).itemType, true)
+		ret @cmpType((type1 $ \ast@AstTypeArray).itemType, (type2 $ \ast@AstTypeArray).itemType, %strict)
 	end if
 	if(typeId1 = %typeBit & typeId2 = %typeBit)
 		ret(type1 $ \ast@AstTypeBit).size = (type2 $ \ast@AstTypeBit).size
@@ -3441,7 +3456,7 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 		while(!args1.term() & !args2.term())
 			var arg1: \ast@AstTypeFuncArg :: args1.get()
 			var arg2: \ast@AstTypeFuncArg :: args2.get()
-			if(arg1.refVar <> arg2.refVar | !@cmpType(arg1.arg, arg2.arg, true))
+			if(arg1.refVar <> arg2.refVar | !@cmpType(arg1.arg, arg2.arg, %strict))
 				ret false
 			end if
 			do args1.next()
@@ -3456,18 +3471,18 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 		if(func1.ret_ =& null | func2.ret_ =& null)
 			ret false
 		end if
-		ret @cmpType(func1.ret_, func2.ret_, true)
+		ret @cmpType(func1.ret_, func2.ret_, %strict)
 	end if
 	if(typeId1 = %typeGen & typeId2 = %typeGen)
 		if((type1 $ \ast@AstTypeGen).kind <> (type2 $ \ast@AstTypeGen).kind)
 			ret false
 		end if
-		ret @cmpType((type1 $ \ast@AstTypeGen).itemType, (type2 $ \ast@AstTypeGen).itemType, true)
+		ret @cmpType((type1 $ \ast@AstTypeGen).itemType, (type2 $ \ast@AstTypeGen).itemType, %strict)
 	end if
 	if(typeId1 = %typeDict & typeId2 = %typeDict)
 		var dict1: \ast@AstTypeDict :: type1 $ \ast@AstTypeDict
 		var dict2: \ast@AstTypeDict :: type2 $ \ast@AstTypeDict
-		ret @cmpType(dict1.itemTypeKey, dict2.itemTypeKey, true) & @cmpType(dict1.itemTypeValue, dict2.itemTypeValue, true)
+		ret @cmpType(dict1.itemTypeKey, dict2.itemTypeKey, %strict) & @cmpType(dict1.itemTypeValue, dict2.itemTypeValue, %strict)
 	end if
 	if(typeId1 = %typePrim & typeId2 = %typePrim)
 		ret(type1 $ \ast@AstTypePrim).kind = (type2 $ \ast@AstTypePrim).kind
@@ -3475,7 +3490,7 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 	if(typeId1 = %typeUser & typeId2 = %typeUser)
 		assert type1.refItem.typeId <> %alias_ & type2.refItem.typeId <> %alias_
 		if(type1.refItem.typeId = %class_ & type2.refItem.typeId = %class_)
-			if(strict)
+			if(strict = %strict)
 				ret type1.refItem $ \ast@AstClass =& type2.refItem $ \ast@AstClass
 			else
 				; Check whether they are parent-child relationship.
@@ -3488,6 +3503,15 @@ func cmpType(type1: \ast@AstType, type2: \ast@AstType, strict: bool): bool
 					end if
 					do ptr :: ptr.refItem $ \ast@AstClass
 				end while
+				if(strict = %twoWay)
+					do ptr :: class2
+					while(ptr <>& null)
+						if(ptr =& class1)
+							ret true
+						end if
+						do ptr :: ptr.refItem $ \ast@AstClass
+					end while
+				end if
 				ret false
 			end if
 		end if

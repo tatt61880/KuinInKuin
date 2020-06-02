@@ -3,7 +3,7 @@
 
 func main()
 	do \common@init()
-
+	
 	do \dll@initCompiler(\common@langEn ?(1, 0))
 	do \completion@init()
 	do \find@init()
@@ -12,19 +12,19 @@ func main()
 	do \recent@load()
 	do \doc_src@init()
 	do \src@init()
-
+	
 	if(^lib@cmdLine() > 0)
 		do \src@openMainSrc(lib@cmdLine()[0].replace("\\", "/"))
 	end if
 	if(\src@curDoc =& null)
 		do \src@newMainSrc()
 	end if
-
+	
 	do \form@init()
 	do mainLoop()
 	do \src@fin()
 	do \dll@finCompiler()
-
+	
 	func mainLoop()
 		while(wnd@act())
 		end while

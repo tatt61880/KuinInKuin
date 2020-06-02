@@ -3,7 +3,7 @@ setlocal
 pushd "%~dp0"
 
 rem Kuin2.kn ->[Kuin1.exe]-> Kuin2.exe
-.\kuincl.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin.exe" -s "%~dp0./sys/" -e cui
+.\kuincl.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin.exe" -s "%~dp0../src/sys/" -e exe
 
 rem ---------------------------------------------------------------------------
 

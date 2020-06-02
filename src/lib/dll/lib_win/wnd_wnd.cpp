@@ -1,5 +1,7 @@
 #include "wnd_wnd.h"
 
+#include <ShlObj.h>
+
 static int WndCnt;
 static Bool ExitAct;
 static void* OnKeyPress;
@@ -10,6 +12,7 @@ static LRESULT CALLBACK WndProcWndNormal(HWND wnd, UINT msg, WPARAM w_param, LPA
 static LRESULT CALLBACK WndProcWndFix(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 static LRESULT CALLBACK WndProcWndAspect(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 static Char* ParseFilter(const U8* filter, int* num);
+static void NormPath(Char* path, Bool dir);
 
 EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
@@ -464,6 +467,16 @@ EXPORT_CPP S64 _colorDialog(SClass* parent, S64 default_color)
 	return -1;
 }
 
+EXPORT_CPP void* _exeDir()
+{
+	size_t len = wcslen(EnvVars.ResRoot);
+	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
+	*(S64*)(result + 0x00) = DefaultRefCntFunc;
+	*(S64*)(result + 0x08) = len;
+	memcpy(result + 0x10, EnvVars.ResRoot, sizeof(Char) * (len + 1));
+	return result;
+}
+
 EXPORT_CPP void _fileDialogDir(const U8* defaultDir)
 {
 	if (defaultDir == nullptr)
@@ -837,6 +850,20 @@ EXPORT_CPP void _setOnKeyPress(void* onKeyPressFunc)
 	OnKeyPress = onKeyPressFunc;
 }
 
+EXPORT_CPP void* _sysDir(S64 kind)
+{
+	Char path[KUIN_MAX_PATH + 2];
+	if (!SHGetSpecialFolderPath(NULL, path, (int)kind, TRUE))
+		return NULL;
+	NormPath(path, True);
+	size_t len = wcslen(path);
+	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
+	*(S64*)(result + 0x00) = DefaultRefCntFunc;
+	*(S64*)(result + 0x08) = (S64)len;
+	wcscpy((Char*)(result + 0x10), path);
+	return result;
+}
+
 static LRESULT CALLBACK CommonWndProc(HWND wnd, SWndBase* wnd2, SWnd* wnd3, UINT msg, WPARAM w_param, LPARAM l_param)
 {
 	switch (msg)
@@ -1053,4 +1080,21 @@ static Char* ParseFilter(const U8* filter, int* num)
 	}
 	*num = (int)(len_parent / 2);
 	return result;
+}
+
+static void NormPath(Char* path, Bool dir)
+{
+	if (*path == L'\0')
+		return;
+	do
+	{
+		if (*path == L'\\')
+			*path = L'/';
+		path++;
+	} while (*path != L'\0');
+	if (dir && path[-1] != L'/')
+	{
+		path[0] = L'/';
+		path[1] = L'\0';
+	}
 }
