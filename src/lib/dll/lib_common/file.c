@@ -138,6 +138,8 @@ EXPORT void _setCurDir(const U8* path)
 
 EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 {
+	// TODO:
+	/*
 	if (pack)
 	{
 		// TODO:
@@ -145,6 +147,7 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 		return NULL;
 	}
 	else
+	*/
 	{
 		FILE* file_ptr = _wfopen((Char*)(path + 0x10), L"rb");
 		if (file_ptr == NULL)

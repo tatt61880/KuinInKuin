@@ -58,12 +58,16 @@ var listRelatedFile: wnd@List
 	
 	func btnOkOnPush(wnd: wnd@WndBase)
 		do \form@iconPath :: @editIcon.getText().trim()
-		do \form@relatedFiles :: #list<[]char>
 		var len: int :: @listRelatedFile.len()
+		var relatedFiles: [][]char :: #[len][]char
 		for i(0, len - 1)
-			do \form@relatedFiles.add(@listRelatedFile.getText(i))
+			do relatedFiles[i] :: @listRelatedFile.getText(i)
 		end for
-		do \form@relatedFiles.sort()
+		do relatedFiles.sort()
+		do \form@relatedFiles :: #list<[]char>
+		for i(0, len - 1)
+			do \form@relatedFiles.add(relatedFiles[i])
+		end for
 		do \prop@changeProp()
 		do @wndProjSettings.close()
 	end func

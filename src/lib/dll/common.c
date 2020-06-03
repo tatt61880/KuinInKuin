@@ -83,7 +83,8 @@ void* AllocMem(size_t size)
 	void* result = HeapAlloc(EnvVars.Heap, HEAP_GENERATE_EXCEPTIONS, (SIZE_T)size);
 #if defined(_DEBUG)
 	memset(result, 0xcd, size);
-	(*EnvVars.HeapCnt)++;
+	if (EnvVars.HeapCnt != NULL)
+		(*EnvVars.HeapCnt)++;
 #endif
 	return result;
 }
@@ -92,8 +93,11 @@ void FreeMem(void* ptr)
 {
 	HeapFree(EnvVars.Heap, 0, ptr);
 #if defined(_DEBUG)
-	(*EnvVars.HeapCnt)--;
-	ASSERT(*EnvVars.HeapCnt >= 0);
+	if (EnvVars.HeapCnt != NULL)
+	{
+		(*EnvVars.HeapCnt)--;
+		ASSERT(*EnvVars.HeapCnt >= 0);
+	}
 #endif
 }
 

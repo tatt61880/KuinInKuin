@@ -35,8 +35,10 @@ static double MainVolume = 1.0;
 static LRESULT CALLBACK WndProc(HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param);
 static Bool StrCmpIgnoreCase(const Char* a, const Char* b);
 
-EXPORT_CPP void _sndInit()
+EXPORT_CPP void _sndInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
+
 	const HINSTANCE instance = (HINSTANCE)GetModuleHandle(nullptr);
 	{
 		WNDCLASSEX wnd_class;

@@ -5,7 +5,7 @@ var oldX: int
 var oldY: int
 var shownX: int
 var shownY: int
-var keywords: list<[]char>
+var keywords: [][]char
 
 +func init()
 	do @oldX :: -1
@@ -22,7 +22,7 @@ end func
 		end if
 	end if
 	if(@wndCompletion =& null)
-		do @keywords :: #list<[]char>
+		do @keywords :: #[0][]char
 		var funcHint: []char
 		try
 			do funcHint :: \dll@getKeywords(src, srcName, posX, posY, getKeywordsCallback)
@@ -54,11 +54,9 @@ end func
 		
 		do @wndCompletionListKeywords.setRedraw(false)
 		do @wndCompletionListKeywords.clear()
-		do @keywords.head()
-		while(!@keywords.term())
-			do @wndCompletionListKeywords.add(@keywords.get())
-			do @keywords.next()
-		end while
+		for i(0, ^@keywords - 1)
+			do @wndCompletionListKeywords.add(@keywords[i])
+		end for
 		do @wndCompletionListKeywords.setRedraw(true)
 	else
 		if(word =& null | ^word = 0)
@@ -72,17 +70,13 @@ end func
 	
 	block
 		var best: int :: -1
-		var cnt: int :: 0
-		do @keywords.head()
-		while loop(!@keywords.term())
-			var keyword: []char :: @keywords.get()
+		for i(0, ^@keywords - 1)
+			var keyword: []char :: @keywords[i]
 			if(^keyword >= ^word & keyword[0] = word[0] & keyword.sub(0, ^word) = word)
-				do best :: cnt
-				break loop
+				do best :: i
+				break i
 			end if
-			do @keywords.next()
-			do cnt :+ 1
-		end while
+		end for
 		do @wndCompletionListKeywords.setRedraw(false)
 		do @wndCompletionListKeywords.setSel(best)
 		do @wndCompletionListKeywords.setRedraw(true)
@@ -100,7 +94,7 @@ end func
 	end func
 	
 	func getKeywordsCallback(keyword: []char)
-		do @keywords.add(##keyword)
+		do @keywords :~ [##keyword]
 	end func
 end func
 

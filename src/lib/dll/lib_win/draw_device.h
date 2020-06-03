@@ -3,7 +3,7 @@
 #include "..\common.h"
 #include "draw_common.h"
 
-EXPORT_CPP void _drawInit();
+EXPORT_CPP void _drawInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
 EXPORT_CPP void _drawFin();
 EXPORT_CPP void _ambLight(double topR, double topG, double topB, double bottomR, double bottomG, double bottomB);
 EXPORT_CPP S64 _argbToColor(double a, double r, double g, double b);

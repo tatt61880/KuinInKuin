@@ -64,8 +64,10 @@ const U8* GetToonRampPngBin(size_t* size);
 static void WriteBack();
 static void Clear();
 
-EXPORT_CPP void _drawInit()
+EXPORT_CPP void _drawInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
+
 	{
 		const D3D10_DRIVER_TYPE type[] =
 		{
@@ -1074,9 +1076,15 @@ EXPORT_CPP void _drawFin()
 	if (TexToonRamp != nullptr)
 		TexToonRamp->Release();
 	for (int i = 0; i < VertexBuf_Num; i++)
-		FinVertexBuf(VertexBufs[i]);
+	{
+		if (VertexBufs[i] != nullptr)
+			FinVertexBuf(VertexBufs[i]);
+	}
 	for (int i = 0; i < ShaderBuf_Num; i++)
-		FinShaderBuf(ShaderBufs[i]);
+	{
+		if (ShaderBufs[i] != nullptr)
+			FinShaderBuf(ShaderBufs[i]);
+	}
 	for (int i = 0; i < SamplerNum; i++)
 	{
 		if (Sampler[i] != nullptr)

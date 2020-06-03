@@ -899,16 +899,14 @@ func setClassRootAddr(reg: @Reg)
 end func
 
 func dbgBreak()
-	if(dbg)
-		; Set a breakpoint to be caught by the debugger.
-		var asms: list<@Asm> :: @pack.asms
-		do asms.add(@asmXor(@valReg(4, %cx), @valReg(4, %cx)))
-		do asms.add(@asmXor(@valReg(4, %dx), @valReg(4, %dx)))
-		do asms.add(@asmXor(@valReg(4, %r8), @valReg(4, %r8)))
-		do asms.add(@asmXor(@valReg(4, %r9), @valReg(4, %r9)))
-		do @callApi(asms, "USER32.dll", "MessageBoxW")
-		do asms.add(@asmInt(@valImmU(8, 0x03b64)))
-	end if
+	; Set a breakpoint to be caught by the debugger.
+	var asms: list<@Asm> :: @pack.asms
+	do asms.add(@asmXor(@valReg(4, %cx), @valReg(4, %cx)))
+	do asms.add(@asmXor(@valReg(4, %dx), @valReg(4, %dx)))
+	do asms.add(@asmXor(@valReg(4, %r8), @valReg(4, %r8)))
+	do asms.add(@asmXor(@valReg(4, %r9), @valReg(4, %r9)))
+	do @callApi(asms, "USER32.dll", "MessageBoxW")
+	do asms.add(@asmInt(@valImmU(8, 0x03b64)))
 end func
 
 func assembleFunc(ast: \ast@AstFunc, entry: bool)
@@ -993,7 +991,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		; Initialize the Dlls.
 		var l1: @AsmLabel :: @asmLabel()
 		do @funcAttrs.forEach(initDlls, scopeEntry.end_)
-		if(dbg)
+		if(\option@extra.get("dbgbreak", &))
 			do @dbgBreak()
 		end if
 		do asms.add(l1)

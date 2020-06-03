@@ -727,11 +727,9 @@ end func
 		do \form@listRb.addColumn(\common@langEn ?("Error", "エラー"))
 		do \form@listRb.adjustWidth()
 		do me.errList.sort()
-		do me.errList.head()
-		while(!me.errList.term())
-			do \form@listRb.add(me.errList.get().text, -1)
-			do me.errList.next()
-		end while
+		for i(0, ^me.errList - 1)
+			do \form@listRb.add(me.errList[i].text, -1)
+		end for
 		do \form@listRb.setRedraw(true)
 		
 		do \form@groupRbAr.setVisible(false)
@@ -760,8 +758,7 @@ end func
 		case %listRbOnMouseClick
 			var sel: int :: \form@listRb.getSel()
 			if(sel <> -1 & sel < ^me.errList)
-				do me.errList.head()
-				var item: @ErrListItem :: me.errList.getOffset(sel)
+				var item: @ErrListItem :: me.errList[sel]
 				do \src@jumpSrc(item.pos)
 			end if
 		end switch
@@ -1069,11 +1066,11 @@ end func
 	end func
 	
 	+func resetListInfoItem()
-		do me.errList :: #list<@ErrListItem>
+		do me.errList :: #[0]@ErrListItem
 	end func
 	
 	+func addListInfoItem(item: @ErrListItem)
-		do me.errList.add(item)
+		do me.errList :~ [item]
 	end func
 	
 	+func replaceForAuxiliary(line: int, str: []char)
@@ -1156,7 +1153,7 @@ end func
 	var areaX: int
 	var areaY: int
 	var lineNumWidth: int
-	+var errList: list<@ErrListItem>
+	+var errList: []@ErrListItem
 	var dirtyLine: int
 	var dirtyLineForce: bool
 	var caretX: int

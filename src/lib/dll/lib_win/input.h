@@ -2,7 +2,7 @@
 
 #include "..\common.h"
 
-EXPORT_CPP void _inputInit();
+EXPORT_CPP void _inputInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
 EXPORT_CPP void _inputFin();
 EXPORT_CPP void _inputUpdate();
 EXPORT_CPP void _enableCfgKey(Bool enabled);

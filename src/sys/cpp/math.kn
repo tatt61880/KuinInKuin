@@ -570,6 +570,11 @@ func modPowUnsigned(value: bit64, exponent: bit64, modulus: bit64): bit64
 end func
 
 func modMulUnsigned(a: bit64, b: bit64, modulus: bit64): bit64
+	if(a > b)
+		var t: bit64 :: a
+		do a :: b
+		do b :: t
+	end if
 	var w: bit64 :: 0b64
 	while(a > 0b64)
 		if(a.and(1b64) <> 0b64)

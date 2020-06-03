@@ -156,6 +156,7 @@
     <ClCompile Include="kuin.c" />
     <ClCompile Include="lib.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="task.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common.h" />
@@ -164,6 +165,7 @@
     <ClInclude Include="kuin.h" />
     <ClInclude Include="lib.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="task.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\low_level.asm">

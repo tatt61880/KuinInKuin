@@ -1,3 +1,4 @@
+#exe
 +class Process()
 	*func[__ndc]ctor()
 	end func

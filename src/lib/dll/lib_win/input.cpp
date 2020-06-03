@@ -23,8 +23,10 @@ static Bool EnableCfgKey = True;
 static BOOL CALLBACK CBEnumJoypad(const DIDEVICEINSTANCE* lpddi, VOID* pvref);
 static BOOL CALLBACK CBEnumAxis(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvref);
 
-EXPORT_CPP void _inputInit()
+EXPORT_CPP void _inputInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
+
 	for (int i = 0; i < PadNum; i++)
 	{
 		for (int j = 0; j < PadBtnNum - 4; j++)
