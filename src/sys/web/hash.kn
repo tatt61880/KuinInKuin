@@ -1,3 +1,2 @@
-+func hash(data: []bit8): []bit8
-	; TODO:
-end func
+include sha256
+include xxh64

@@ -20,7 +20,7 @@ class TmpVar()
 	+var identifier: []char
 end class
 
-+func output(entry: \ast@AstFunc, resFiles: list<[]char>): bool
++func output(entry: \ast@AstFunc): bool
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
 	do @classes :: #queue<\ast@AstClass>
@@ -44,7 +44,7 @@ end class
 		end while
 	end while
 	
-	do @write(resFiles)
+	do @write()
 	
 	ret true
 end func
@@ -1702,7 +1702,8 @@ func buildExprRef(ast: \ast@AstExpr)
 	end if
 end func
 
-func write(resFiles: list<[]char>)
+func write()
+	var resFiles: list<[]char> :: \convert@getResFiles()
 	var writer: file@Writer
 	if(\option@extra.get("merge", &))
 		var fileName: []char :: file@fileName(\option@outputFile)

@@ -55,32 +55,22 @@ func build(): bool
 		ret false
 	end if
 	
-	; 'Res' files.
-	class ResFiles()
-		+var files: list<[]char>
-	end class
-	var resFiles: ResFiles :: #ResFiles
-	do resFiles.files :: #list<[]char>
-	if(file@exist(\option@resDir))
-		do file@forEach(\option@resDir, true, searchResFiles, resFiles)
-	end if
-	
 	; 'Output'
 	switch(\option@env_)
 	case %exe
 		if(env = "web")
 			ret false
 		else
-			if(!\exe\output@output(entry, resFiles.files, funcAttrs))
+			if(!\exe\output@output(entry, funcAttrs))
 				ret false
 			end if
 		end if
 	case %cpp
-		if(!\cpp\output@output(entry, resFiles.files, funcAttrs))
+		if(!\cpp\output@output(entry, funcAttrs))
 			ret false
 		end if
 	case %web
-		if(!\web\output@output(entry, resFiles.files))
+		if(!\web\output@output(entry))
 			ret false
 		end if
 	default
@@ -93,10 +83,4 @@ func build(): bool
 	end if
 	
 	ret true
-	
-	func searchResFiles(path: []char, isDir: bool, data: kuin@Class): bool
-		var data2: ResFiles :: data $ ResFiles
-		do data2.files.add(path)
-		ret true
-	end func
 end func

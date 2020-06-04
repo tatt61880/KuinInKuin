@@ -94,26 +94,12 @@ EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res
 		ReleaseDC(nullptr, dc);
 	}
 
-	// TODO:
-	/*
-	Init();
-	Snd::Init();
-	Input::Init();
-	*/
-
 	OnKeyPress = nullptr;
 	FileDialogDir[0] = L'\0';
 }
 
 EXPORT_CPP void _fin()
 {
-	// TODO:
-	/*
-	Input::Fin();
-	Snd::Fin();
-	Fin();
-	*/
-
 	DeleteObject(static_cast<HGDIOBJ>(FontCtrl));
 }
 

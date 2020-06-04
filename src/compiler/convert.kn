@@ -183,3 +183,71 @@ end func
 +func bit64ToBin(n: bit64): []bit8
 	ret[n $ bit8, n.shr(8) $ bit8, n.shr(16) $ bit8, n.shr(24) $ bit8, n.shr(32) $ bit8, n.shr(40) $ bit8, n.shr(48) $ bit8, n.shr(56) $ bit8]
 end func
+
++func getResFiles(): list<[]char>
+	class ResFiles()
+		+var files: list<[]char>
+	end class
+	var resFiles: ResFiles :: #ResFiles
+	do resFiles.files :: #list<[]char>
+	if(file@exist(\option@resDir))
+		do file@forEach(\option@resDir, true, searchResFiles, resFiles)
+	end if
+	ret resFiles.files
+	
+	func searchResFiles(path: []char, isDir: bool, data: kuin@Class): bool
+		var data2: ResFiles :: data $ ResFiles
+		do data2.files.add(path)
+		ret true
+	end func
+end func
+
++func writeResFiles()
+	if(\option@rls)
+		do archive(getResFiles())
+	else
+		var src: []char :: \option@resDir
+		var dst: []char :: \option@outputDir ~ "res/"
+		if(src = dst)
+			ret
+		end if
+		do file@copyDir(dst, src)
+	end if
+	
+	func getResFiles(): [][]char
+		var resFiles: list<[]char> :: @getResFiles()
+		var result: list<[]char> :: #list<[]char>
+		var resDirLen: int :: ^\option@resDir
+		do resFiles.head()
+		while loop(!resFiles.term())
+			var resFile: []char :: resFiles.get()
+			if(resFile[^resFile - 1] = '/')
+				skip loop
+			end if
+			do result.add(resFile.sub(resDirLen, -1))
+			do resFiles.next()
+		end while
+		var result2: [][]char :: result.toArray()
+		do result2.sort()
+		ret result2
+	end func
+	
+	func archive(resFiles: [][]char)
+		var writer: file@Writer :: file@makeWriter(\option@outputDir ~ "res.knd", false)
+		var key: bit64 :: lib@rndBit64().xor(0x8364FF023819442Eb64)
+		do writer.write(@bit64ToBin(key))
+		do key :: key.xor(\option@appCode $ bit64 * 0x9271AC8394027ACBb64 + 0x35718394CA72849Eb64)
+		block
+			var signature: bit64 :: (0x83261772FA0C01A7b64).xor(key)
+			do writer.write(@bit64ToBin(signature))
+			var len: bit64 :: ((^resFiles) $ bit64).xor(0x9C4CAB83CE74A67Eb64).xor(key)
+			do writer.write(@bit64ToBin(len))
+		end block
+		for i(0, ^resFiles - 1)
+			var reader: file@Reader :: file@makeReader(\option@resDir ~ resFiles[i])
+			var pathLen: bit16 :: ((^resFiles[i]) $ bit16).xor(0x82A7b16).xor((i + 1) $ bit16 * 0x51CBb16 + 0x3219b16)
+			do reader.fin()
+		end for
+		do writer.fin()
+	end func
+end func

@@ -31,7 +31,7 @@ end class
 
 const nonGcBufSize: []char :: "0x2000000"
 
-+func output(entry: \ast@AstFunc, resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>): bool
++func output(entry: \ast@AstFunc, funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	do @gc :: !\option@extra.get("nogc", &)
 	do @funcs :: #queue<\ast@AstFunc>
 	do @funcs.add(entry)
@@ -60,7 +60,7 @@ const nonGcBufSize: []char :: "0x2000000"
 		end while
 	end while
 	
-	do @write(resFiles, funcAttrs)
+	do @write(funcAttrs)
 	if(!@deploy(funcAttrs))
 		ret false
 	end if
@@ -1391,7 +1391,7 @@ func buildExprRef(ast: \ast@AstExpr)
 	do @codes.add(info.id)
 end func
 
-func write(resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
+func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 	if(\option@extra.get("merge", &))
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
 		if(writer =& null)
@@ -1410,7 +1410,7 @@ func write(resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr(s ~ "\n")
 		end while
 		do reader.fin()
-		do writeCpp(writer, resFiles, funcAttrs)
+		do writeCpp(writer, funcAttrs)
 		do writer.fin()
 	else
 		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
@@ -1422,7 +1422,7 @@ func write(resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
 		end if
 		do writeCommonCode(writer)
 		do writer.writeStr("#include \"common.h\"\n")
-		do writeCpp(writer, resFiles, funcAttrs)
+		do writeCpp(writer, funcAttrs)
 		do writer.fin()
 	end if
 	
@@ -1491,7 +1491,7 @@ func write(resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
 		end if
 	end func
 	
-	func writeCpp(writer: file@Writer, resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
+	func writeCpp(writer: file@Writer, funcAttrs: dict<[]char, dict<[]char, bool>>)
 		do writer.writeStr("namespace {\n")
 		
 		if(^funcAttrs <> 0)
@@ -1509,7 +1509,6 @@ func write(resFiles: list<[]char>, funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr(@funcPrototypes.get())
 			do @funcPrototypes.next()
 		end while
-		; TODO: ResFiles
 		do writer.writeStr("static int64_t argc_;\n")
 		do writer.writeStr("static char** argv_;\n")
 		do @classDefs.head()
@@ -1883,6 +1882,7 @@ func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	if(!funcAttrs.forEach(deployDll, null))
 		ret false
 	end if
+	do \convert@writeResFiles()
 	ret true
 	
 	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
