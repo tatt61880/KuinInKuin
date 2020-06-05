@@ -339,7 +339,7 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 	end class
 	
 	func addInitFuncs(key: []char, value: \ast@Ast, data: kuin@Class): bool
-		if(key[0] = '\\' | key = "kuin")
+		if(key[0] = '\\' | key = "kuin" | value.scopeChildren =& null)
 			ret true
 		end if
 		var data2: AddInitFuncsData :: data $ AddInitFuncsData
