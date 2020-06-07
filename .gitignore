@@ -10,6 +10,7 @@
 *.tlog
 *.user
 *.VC.db
+*.FileListAbsolute.txt
 
 /src/lib/dll/output/
 /build/output/
