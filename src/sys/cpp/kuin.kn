@@ -543,8 +543,8 @@ func[__any, __rav]_toArrayValue(me_: int, type: []int): int
 end func
 
 func _toBit64(me_: []char, success: &bool): bit64
-	excode "std::u16string s_=`0`->B;\n"
-	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "std::u16string u_=`0`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(u_);\n"
 	excode "try{\n"
 	excode "std::size_t s_;\n"
 	excode "uint64_t v_=t_.size()>2&&t_[0]=='0'&&t_[1]=='x'?std::stoull(t_,&s_,16):std::stoull(t_,&s_);\n"
@@ -562,8 +562,8 @@ func _toBit64(me_: []char, success: &bool): bit64
 end func
 
 func _toFloat(me_: []char, success: &bool): float
-	excode "std::u16string s_=`0`->B;\n"
-	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "std::u16string u_=`0`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(u_);\n"
 	excode "try{\n"
 	excode "std::size_t s_;\n"
 	excode "double v_=std::stod(t_,&s_);\n"
@@ -581,8 +581,8 @@ func _toFloat(me_: []char, success: &bool): float
 end func
 
 func _toInt(me_: []char, success: &bool): int
-	excode "std::u16string s_=`0`->B;\n"
-	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
+	excode "std::u16string u_=`0`->B;\n"
+	excode "const std::string&t_=utf16ToUtf8_(u_);\n"
 	excode "try{\n"
 	excode "std::size_t s_;\n"
 	excode "int64_t v_=t_.size()>2&&t_[0]=='0'&&t_[1]=='x'?std::stoll(t_,&s_,16):std::stoull(t_,&s_);\n"
