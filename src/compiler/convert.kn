@@ -238,6 +238,9 @@ end func
 			ret
 		end if
 		var writer: file@Writer :: file@makeWriter(\option@outputDir ~ "res.knd", false)
+		if(writer =& null)
+			ret
+		end if
 		var key: bit64 :: lib@rndBit64()
 		do writer.write(@bit64ToBin(key))
 		do key :: key.xor(\option@appCode $ bit64 * 0x9271AC8394027ACBb64 + 0x35718394CA72849Eb64)
@@ -261,10 +264,19 @@ end func
 			do writer.write(p)
 			do v :: v * 0x8121BBA7C238010Fb64 + 0x190273B5C19BF763b64
 			do writer.write(@bit64ToBin((offset $ bit64).xor(v)))
-			do offset :+ file@fileSize(paths[i])
+			var size: int :: file@fileSize(\option@resDir ~ paths[i])
+			if(size < 0)
+				do writer.fin()
+				ret
+			end if
+			do offset :+ size
 		end for
 		for i(0, ^paths - 1)
 			var reader: file@Reader :: file@makeReader(\option@resDir ~ paths[i])
+			if(reader =& null)
+				do writer.fin()
+				ret
+			end if
 			var bin: []bit8 :: reader.read(reader.fileSize())
 			do reader.fin()
 			for j(0, ^bin - 1)

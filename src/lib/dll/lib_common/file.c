@@ -220,12 +220,13 @@ EXPORT void _setCurDir(const U8* path)
 
 EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 {
+	UNUSED(pack);
 #if !defined(DBG)
 	if (pack)
 	{
 		S64 idx = -1;
 		{
-			const U8* path2 = path + 0x10;
+			const Char* path2 = (const Char*)(path + 0x10) + 4 /* "res/" */;
 			S64 a = 0, b = FileInfoNum - 1;
 			while (a <= b)
 			{
@@ -234,7 +235,7 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 				int j;
 				for (j = 0; j < 260; j++)
 				{
-					U8 c1 = path2[j];
+					U8 c1 = (U8)path2[j];
 					U8 c2 = FileInfo[c].Path[j];
 					if (c1 > c2)
 					{

@@ -1875,8 +1875,7 @@ func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	block
 		var dataPath: []char :: \option@outputDir ~ "data/"
 		if(!file@makeDir(dataPath))
-			do \err@err(%fileSaveFailed, null, [dataPath])
-			ret false
+			ret true
 		end if
 	end block
 	if(!funcAttrs.forEach(deployDll, null))
