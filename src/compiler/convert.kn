@@ -208,24 +208,15 @@ end func
 	else
 		var src: []char :: \option@resDir
 		var dst: []char :: \option@outputDir ~ "res/"
-		if(src = dst)
+		if(!file@exist(src) | src = dst)
 			ret
 		end if
 		do file@copyDir(dst, src)
 	end if
 	
-	class Path()
-		+*func cmp(t: kuin@Class): int
-			ret(me.hash - (t $ Path).hash) $ int
-		end func
-		
-		+var path: []char
-		+var hash: bit64
-	end class
-	
-	func getResFiles(): []Path
+	func getResFiles(): [][]char
 		var resFiles: list<[]char> :: @getResFiles()
-		var result: list<Path> :: #list<Path>
+		var result: list<[]char> :: #list<[]char>
 		var resDirLen: int :: ^\option@resDir
 		do resFiles.head()
 		while loop(!resFiles.term())
@@ -234,28 +225,20 @@ end func
 				do resFiles.next()
 				skip loop
 			end if
-			var path: Path :: #Path
-			do path.path :: resFile
-			block
-				var p: []char :: resFile.sub(resDirLen, -1)
-				var s: []bit8 :: #[2 * ^p]bit8
-				for i(0, ^p - 1)
-					do s[i * 2 + 0] :: p[i] $ bit8
-					do s[i * 2 + 1] :: (p[i] $ bit16).shr(8) $ bit8
-				end for
-				do path.hash :: hash@xxh64(s, 917b64)
-			end block
-			do result.add(path)
+			do result.add(resFile.sub(resDirLen, -1))
 			do resFiles.next()
 		end while
-		var result2: []Path :: result.toArray()
+		var result2: [][]char :: result.toArray()
 		do result2.sort()
 		ret result2
 	end func
 	
-	func archive(paths: []Path)
+	func archive(paths: [][]char)
+		if(^paths = 0)
+			ret
+		end if
 		var writer: file@Writer :: file@makeWriter(\option@outputDir ~ "res.knd", false)
-		var key: bit64 :: lib@rndBit64().xor(0x8364FF023819442Eb64)
+		var key: bit64 :: lib@rndBit64()
 		do writer.write(@bit64ToBin(key))
 		do key :: key.xor(\option@appCode $ bit64 * 0x9271AC8394027ACBb64 + 0x35718394CA72849Eb64)
 		block
@@ -264,14 +247,24 @@ end func
 			var len: bit64 :: ((^paths) $ bit64).xor(0x9C4CAB83CE74A67Eb64).xor(key)
 			do writer.write(@bit64ToBin(len))
 		end block
-		var offset: int :: 0x18 + ^paths * 0x10
+		var offset: int :: 0x18 + ^paths * (260 + 0x08)
+		var v: bit64 :: (0x17100B7AC917DC87b64).xor(key)
 		for i(0, ^paths - 1)
-			do writer.write(@bit64ToBin(paths[i].hash.xor(0x8121BBA7C238010Fb64).xor(key)))
-			do writer.write(@bit64ToBin((offset $ bit64).xor(0x17100B7AC917DC87b64).xor(key)))
-			do offset :+ file@fileSize(paths[i].path)
+			var p: []bit8 :: #[260]bit8
+			for j(0, lib@min(^paths[i], 260) - 1)
+				do p[j] :: paths[i][j] $ bit8
+			end for
+			for j(0, 260 - 1)
+				do v :: v * 0x8121BBA7C238010Fb64 + 0x190273B5C19BF763b64
+				do p[j] :: p[j].xor(v.shr(32) $ bit8)
+			end for
+			do writer.write(p)
+			do v :: v * 0x8121BBA7C238010Fb64 + 0x190273B5C19BF763b64
+			do writer.write(@bit64ToBin((offset $ bit64).xor(v)))
+			do offset :+ file@fileSize(paths[i])
 		end for
 		for i(0, ^paths - 1)
-			var reader: file@Reader :: file@makeReader(paths[i].path)
+			var reader: file@Reader :: file@makeReader(\option@resDir ~ paths[i])
 			var bin: []bit8 :: reader.read(reader.fileSize())
 			do reader.fin()
 			for j(0, ^bin - 1)

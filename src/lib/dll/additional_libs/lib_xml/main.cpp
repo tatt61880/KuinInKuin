@@ -40,8 +40,7 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 
 EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
-	if (!InitEnvVars(heap, heap_cnt, app_code, use_res_flags))
-		return;
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
 }
 
 EXPORT_CPP SClass* _xmlNodeAddChild(SClass* me_, SClass* me2, const U8* name)

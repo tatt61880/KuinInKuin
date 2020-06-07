@@ -2,6 +2,8 @@
 
 #include "..\common.h"
 
+EXPORT void _fileInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
+EXPORT void _fileFin(void);
 EXPORT Bool _copyDir(const U8* dst, const U8* src);
 EXPORT Bool _copyFile(const U8* dst, const U8* src);
 EXPORT Bool _delDir(const U8* path);

@@ -27,8 +27,7 @@ static double Gamma(double value);
 
 EXPORT_CPP void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
-	if (!InitEnvVars(heap, heap_cnt, app_code, use_res_flags))
-		return;
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
 
 	if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED, &Factory)))
 		THROW(0xe9170009);

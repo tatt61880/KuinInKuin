@@ -67,8 +67,7 @@ static void* DictDelMinRec(void* node, U8* key_type, U8* item_type);
 
 EXPORT void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
-	if (!InitEnvVars(heap, heap_cnt, app_code, use_res_flags))
-		return;
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
 
 	setlocale(LC_ALL, "");
 

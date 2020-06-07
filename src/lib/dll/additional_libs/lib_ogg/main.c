@@ -64,8 +64,7 @@ EXPORT void* LoadOgg(size_t size, const U8* data, S64* channel, S64* samples_per
 
 EXPORT void init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
-	if (!InitEnvVars(heap, heap_cnt, app_code, use_res_flags))
-		return;
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
 }
 
 static size_t OggCBRead(void* ptr, size_t size, size_t nmemb, void* data)

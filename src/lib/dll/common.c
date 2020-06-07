@@ -2,10 +2,10 @@
 
 SEnvVars EnvVars;
 
-Bool InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
+void InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
 {
 	if (EnvVars.Heap != NULL)
-		return False;
+		return;
 
 	EnvVars.Heap = heap;
 #if defined(_DEBUG)
@@ -74,8 +74,6 @@ Bool InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flag
 		}
 	}
 #endif
-
-	return True;
 }
 
 void* AllocMem(size_t size)

@@ -1,11 +1,93 @@
 #include "file.h"
 
+typedef struct SFileInfo
+{
+	U8 Path[260];
+	S64 Offset;
+	S64 Size;
+} SFileInfo;
+
+typedef struct SPackHandle
+{
+	S64 Head;
+	S64 Size;
+	S64 Cur;
+} SPackHandle;
+
+static FILE* PackFile;
+S64 FileInfoNum;
+SFileInfo* FileInfo;
+U64 FileKey;
 static char* NewLine = "\r\n";
 
 static Bool ForEachDirRecursion(const Char* path, Bool recursion, void* callback, void* data);
 static Bool DelDirRecursion(const Char* path);
 static Bool CopyDirRecursion(const Char* dst, const Char* src);
 static void NormPath(Char* path, Bool dir);
+
+EXPORT void _fileInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags)
+{
+	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
+
+#if !defined(DBG)
+	PackFile = _wfopen(L"res.knd", L"rb");
+	if (PackFile != NULL)
+	{
+		S64 i, j;
+		_fseeki64(PackFile, 0, SEEK_END);
+		S64 size = _ftelli64(PackFile);
+		_fseeki64(PackFile, 0, SEEK_SET);
+		if (size < 0x18)
+			THROW(0xe9170008);
+		fread(&FileKey, sizeof(U64), 1, PackFile);
+		FileKey ^= ((U64)EnvVars.AppCode * 0x9271ac8394027acb + 0x35718394ca72849e);
+		{
+			U64 signature;
+			fread(&signature, sizeof(U64), 1, PackFile);
+			if ((signature ^ FileKey) != 0x83261772fa0c01a7)
+				THROW(0xe9170008);
+		}
+		fread(&FileInfoNum, sizeof(U64), 1, PackFile);
+		FileInfoNum ^= 0x9c4cab83ce74a67e ^ FileKey;
+		if (FileInfoNum <= 0 || size < 0x18 + FileInfoNum * 0x10)
+			THROW(0xe9170008);
+		FileInfo = (SFileInfo*)AllocMem(sizeof(SFileInfo) * (size_t)FileInfoNum);
+		{
+			U64 v = 0x17100b7ac917dc87 ^ FileKey;
+			for (i = 0; i < FileInfoNum; i++)
+			{
+				fread(&FileInfo[i].Path, 1, 260, PackFile);
+				fread(&FileInfo[i].Offset, sizeof(S64), 1, PackFile);
+				for (j = 0; j < 260; j++)
+				{
+					v = v * 0x8121bba7c238010f + 0x190273b5c19bf763;
+					FileInfo[i].Path[j] ^= (U8)(v >> 32);
+				}
+				v = v * 0x8121bba7c238010f + 0x190273b5c19bf763;
+				FileInfo[i].Offset ^= v;
+			}
+		}
+		for (i = 0; i < FileInfoNum - 1; i++)
+			FileInfo[i].Size = FileInfo[i + 1].Offset - FileInfo[i].Offset;
+		FileInfo[FileInfoNum - 1].Size = size - FileInfo[FileInfoNum - 1].Offset;
+		for (i = 0; i < FileInfoNum - 1; i++)
+		{
+			if (FileInfo[i].Size < 0)
+				THROW(0xe9170008);
+		}
+	}
+#endif
+}
+
+EXPORT void _fileFin(void)
+{
+#if !defined(DBG)
+	if (FileInfo != NULL)
+		FreeMem(FileInfo);
+	if (PackFile != NULL)
+		fclose(PackFile);
+#endif
+}
 
 EXPORT Bool _copyDir(const U8* dst, const U8* src)
 {
@@ -141,9 +223,54 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 #if !defined(DBG)
 	if (pack)
 	{
-		// TODO:
-		*success = False;
-		return NULL;
+		S64 idx = -1;
+		{
+			const U8* path2 = path + 0x10;
+			S64 a = 0, b = FileInfoNum - 1;
+			while (a <= b)
+			{
+				S64 c = (a + b) / 2;
+				S64 m = 0;
+				int j;
+				for (j = 0; j < 260; j++)
+				{
+					U8 c1 = path2[j];
+					U8 c2 = FileInfo[c].Path[j];
+					if (c1 > c2)
+					{
+						m = 1;
+						break;
+					}
+					if (c1 < c2)
+					{
+						m = -1;
+						break;
+					}
+					if (c1 == 0)
+						break;
+				}
+				if (m < 0)
+					b = c - 1;
+				else if (m > 0)
+					a = c + 1;
+				else
+				{
+					idx = c;
+					break;
+				}
+			}
+		}
+		if (idx == -1)
+		{
+			*success = False;
+			return NULL;
+		}
+		SPackHandle* handle = (SPackHandle*)AllocMem(sizeof(SPackHandle));
+		handle->Head = FileInfo[idx].Offset;
+		handle->Size = FileInfo[idx].Size;
+		handle->Cur = 0;
+		*success = True;
+		return (void*)((S64)handle | 1LL);
 	}
 	else
 #endif
@@ -152,7 +279,7 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 		if (file_ptr == NULL)
 		{
 			*success = False;
-			return 0;
+			return NULL;
 		}
 		*success = True;
 		return file_ptr;
@@ -161,59 +288,85 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 
 EXPORT void _readerCloseImpl(void* handle)
 {
-	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	void* handle2 = (void*)((S64)handle & (~1LL));
 	Bool pack = ((S64)handle & 1LL) != 0LL;
 	if (pack)
-	{
-		// TODO:
-	}
+		FreeMem((SPackHandle*)handle2);
 	else
-		fclose(handle2);
+		fclose((FILE*)handle2);
 }
 
 EXPORT void _readerSeekImpl(void* handle, S64 origin, S64 pos)
 {
-	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	void* handle2 = (void*)((S64)handle & (~1LL));
 	Bool pack = ((S64)handle & 1LL) != 0LL;
 	if (pack)
 	{
-		// TODO:
+		SPackHandle* handle3 = (SPackHandle*)handle2;
+		S64 p;
+		switch (origin)
+		{
+			case SEEK_SET: p = handle3->Head; break;
+			case SEEK_CUR: p = handle3->Cur; break;
+			case SEEK_END: p = handle3->Head + handle3->Size; break;
+			default:
+				return;
+		}
+		p += pos;
+		if (p < handle3->Head)
+			return;
+		handle3->Cur = p;
 	}
 	else
 	{
 #if defined(DBG)
-		if (_fseeki64((FILE*)handle, pos, (int)origin) != 0)
+		if (_fseeki64((FILE*)handle2, pos, (int)origin) != 0)
 			THROW(0xe9170006);
 #else
-		_fseeki64((FILE*)handle, pos, (int)origin);
+		_fseeki64((FILE*)handle2, pos, (int)origin);
 #endif
 	}
 }
 
 EXPORT S64 _readerTellImpl(void* handle)
 {
-	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	void* handle2 = (void*)((S64)handle & (~1LL));
 	Bool pack = ((S64)handle & 1LL) != 0LL;
 	if (pack)
 	{
-		// TODO:
-		return 0;
+		SPackHandle* handle3 = (SPackHandle*)handle2;
+		return handle3->Cur - handle3->Head;
 	}
 	else
-		return _ftelli64((FILE*)handle);
+		return _ftelli64((FILE*)handle2);
 }
 
 EXPORT Bool _readerReadImpl(void* handle, void* buf, S64 start, S64 size)
 {
-	FILE* handle2 = (FILE*)((S64)handle & (~1LL));
+	void* handle2 = (void*)((S64)handle & (~1LL));
 	Bool pack = ((S64)handle & 1LL) != 0LL;
 	if (pack)
 	{
-		// TODO:
-		return 0;
+		SPackHandle* handle3 = (SPackHandle*)handle2;
+		if (handle3->Cur + size > handle3->Head + handle3->Size)
+			return False;
+		_fseeki64(PackFile, handle3->Cur, SEEK_SET);
+		if (fread((U8*)buf + 0x10 + start, 1, (size_t)size, PackFile) != (size_t)size)
+			return False;
+		U8* p = (U8*)buf + 0x10 + start;
+		S64 v = handle3->Cur - handle3->Head;
+		S64 i;
+		for (i = 0; i < size; i++)
+		{
+			*p ^= (U8)((((U64)v ^ FileKey) * 0x351cd819923acae7) >> 32);
+			p++;
+			v++;
+		}
+		handle3->Cur += size;
+		return True;
 	}
 	else
-		return fread((U8*)buf + 0x10 + start, 1, (size_t)size, (FILE*)handle) == (size_t)size;
+		return fread((U8*)buf + 0x10 + start, 1, (size_t)size, (FILE*)handle2) == (size_t)size;
 }
 
 EXPORT void* _openAsWritingImpl(const U8* path, Bool append, Bool* success)

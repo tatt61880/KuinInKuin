@@ -5,11 +5,26 @@ var eBuf: []bit8
 var curDir: []char
 #any
 
+#exe
+func[d0000.knd, _fileInit]_init()
+#cpp,web
 func _init()
+#any
 	do @strBuf :: #[@strBufSize]char
 	do @eBuf :: #[8]bit8
+#cpp
+	; TODO:
 #web
 	do @curDir :: "/"
+#any
+end func
+
+#exe
+func[d0000.knd, _fileFin]_fin()
+#cpp,web
+func _fin()
+#cpp
+	; TODO:
 #any
 end func
 
@@ -687,7 +702,7 @@ func[d0000.knd, _openAsReadingImpl]openAsReadingImpl(path: []char, pack: bool, s
 #cpp,web
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
 #cpp
-	if(pack)
+	if(!dbg & pack)
 		; TODO:
 		excode "*`2`=false;\n"
 		excode "return 0;\n"
