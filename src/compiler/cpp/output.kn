@@ -77,25 +77,25 @@ func buildFunc(ast: \ast@AstFunc)
 	var template: []char :: ""
 	if(ast.funcOption.and(%any) = %any)
 		if(ast.funcOption.and(%tkv) = %tkv)
-			do template :: "template<typename T_, typename K_, typename V_> "
+			do template :: "template<typename T_,typename K_,typename V_>"
 		elif(ast.funcOption.and(%tch) = %tch)
 			if(ast.funcOption.and(%rch) = %rch)
-				do template :: "template<typename T_, typename C_, typename R_> "
+				do template :: "template<typename T_,typename C_,typename R_>"
 			else
-				do template :: "template<typename T_, typename C_> "
+				do template :: "template<typename T_,typename C_>"
 			end if
 		elif(ast.funcOption.and(%rch) = %rch)
-			do template :: "template<typename T_, typename R_> "
+			do template :: "template<typename T_,typename R_>"
 		elif(ast.funcOption.and(%kvf) = %kvf)
-			do template :: "template<typename T_, typename K_, typename V_, typename F_> "
+			do template :: "template<typename T_,typename K_,typename V_,typename F_>"
 		elif(ast.funcOption.and(%rac) = %rac)
-			do template :: "template<typename T_, typename C_> "
+			do template :: "template<typename T_,typename C_>"
 		elif(ast.funcOption.and(%rak) = %rak)
-			do template :: "template<typename T_, typename K_> "
+			do template :: "template<typename T_,typename K_>"
 		elif(ast.funcOption.and(%rav) = %rav)
-			do template :: "template<typename T_, typename V_> "
+			do template :: "template<typename T_,typename V_>"
 		else
-			do template :: "template<typename T_> "
+			do template :: "template<typename T_>"
 		end if
 	end if
 	
@@ -174,8 +174,11 @@ func buildFunc(ast: \ast@AstFunc)
 	if(ast.name <>& null)
 		do @codes.add("// \{ast.name}\n")
 	end if
-	do @funcPrototypes.add("\{template}static \{retType} \{info.id}(\{arg});\n")
-	do @codes.add("\{template}static \{retType} \{info.id}(\{arg}){\n")
+	block
+		var static: []char :: ast.funcOption.and(%rwi) = %rwi ?("", "static ")
+		do @funcPrototypes.add("\{template}\{static}\{retType} \{info.id}(\{arg});\n")
+		do @codes.add("\{template}\{static}\{retType} \{info.id}(\{arg}){\n")
+	end block
 	
 	do @codes.tail()
 	var listPtr: kuin@ListPtr :: @codes.getPtr()
@@ -1606,6 +1609,11 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr("return static_cast<int>(exitCode_);\n")
 		end if
 		do writer.writeStr("}\n")
+		if(lib)
+			do writer.writeStr("void*allocMem(std::size_t s){\n")
+			do writer.writeStr("return static_cast<void*>(newPrimArray_(s,uint8_t));\n")
+			do writer.writeStr("}\n")
+		end if
 		
 		func writeDllDef(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
 			class Data()

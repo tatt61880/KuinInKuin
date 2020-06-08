@@ -70,10 +70,6 @@ end enum
 				if(!getArg0(&@quiet, c))
 					ret false
 				end if
-			case 'a'
-				if(!getArg1(&appCodeStr, cmdLines, &i, c))
-					ret false
-				end if
 			case 'p'
 				if(!getArg1(&@resDir, cmdLines, &i, c))
 					ret false
@@ -114,16 +110,7 @@ end enum
 		end switch
 	end if
 	
-	if(appCodeStr =& null)
-		do @appCode :: lib@rnd(1, 0xFFFFFFFF)
-	else
-		var success: bool
-		do @appCode :: appCodeStr.toInt(&success)
-		if(!success)
-			do \err@err(%incorrectOption, null, ["-a"])
-			ret false
-		end if
-	end if
+	do @appCode :: lib@rnd(1, 0xFFFFFFFF)
 	
 	if(@outputFile =& null)
 		do @outputFile :: file@dir(@inputFile) ~ "out"
