@@ -10,7 +10,8 @@
 #define UNUSED(var) (void)(var)
 #define EXPORT_CPP extern "C" _declspec(dllexport)
 
-// TODO: void resetMem_();
+void initLib();
+void finLib();
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -23,12 +24,14 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 EXPORT_CPP void InitCompiler(int64_t lang)
 {
 	UNUSED(lang); // TODO: Remove this.
+	initLib();
 	// TODO:
 }
 
 EXPORT_CPP void FinCompiler()
 {
 	// TODO:
+	finLib();
 }
 
 EXPORT_CPP bool BuildMem(const uint8_t* path, const void* (*func_get_src)(const uint8_t*), const uint8_t* sys_dir, const uint8_t* output, const uint8_t* icon, const void* related_files, bool rls, const uint8_t* env, void(*func_log)(const void* args, int64_t row, int64_t col), int64_t lang, int64_t app_code)
@@ -55,8 +58,8 @@ EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
 
 EXPORT_CPP void ResetMemAllocator()
 {
-	// TODO: resetMem_();
-	// TODO:
+	finLib();
+	initLib();
 }
 
 EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int64_t y, void* callback)

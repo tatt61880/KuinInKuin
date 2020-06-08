@@ -1557,6 +1557,13 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 		do writer.writeStr("}\n")
 		if(lib)
 			do writer.writeStr("void initLib(){\n")
+			do @globalVars.head()
+			while(!@globalVars.term())
+				var globalVar: \ast@AstArg :: @globalVars.get()
+				var info: @CppInfo :: @getInfo(globalVar)
+				do writer.writeStr("\{info.id}=(\{@getType(globalVar.type)})0;\n")
+				do @globalVars.next()
+			end while
 		else
 			do writer.writeStr("int main(int c, char** v){\n")
 			do writer.writeStr("argc_ = static_cast<int64_t>(c) - 1;\n")
