@@ -115,7 +115,8 @@ end class
 	rak :: 0x0200 {Return array of dictionary key.}
 	rav :: 0x0400 {Return array of dictionary value.}
 	mki :: 0x0800 {Make an instance automatically.}
-	ex0 :: 0x100000000
+	ext :: 0x100000000 {'exe': 'exit'.}
+	rwi :: 0x200000000 {'cpp', 'web': 'raw identifier'.}
 end enum
 
 +class AstFunc(@Ast)

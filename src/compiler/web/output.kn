@@ -1919,7 +1919,11 @@ end func
 	if(ast.extra =& null | ast.extra.typeId <> %info)
 		var info: @WebInfo :: #@WebInfo
 		do info.typeId :: %info
-		do info.id :: @getId()
+		if(ast.typeId = %func_ & (ast $ \ast@AstFunc).funcOption.and(%rwi) = %rwi)
+			do info.id :: ast.name
+		else
+			do info.id :: @getId()
+		end if
 		if(ast.typeId.and(%statBreakable) = %statBreakable & ast.name <>& null & ast.name <> "$")
 			do info.breakSkipLabel :: @getId()
 		else

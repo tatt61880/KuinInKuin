@@ -260,7 +260,7 @@ end func
 +func[d0000.knd, _dist]dist(x: float, y: float, centerX: float, centerY: float): float
 end func
 
-+func[__ex0]exitCode(code: int)
++func[__ext]exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
 			throw 0xE9170006

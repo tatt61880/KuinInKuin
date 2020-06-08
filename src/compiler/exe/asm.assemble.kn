@@ -1006,7 +1006,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		end while
 		do @refFuncArgNums.peek().add(info.rawArgNum)
 	end if
-	if(ast.funcOption.and(%ex0) <> %none)
+	if(ast.funcOption.and(%ext) <> %none)
 		; Set 'ExitCode'.
 		var addr: lib@Int :: @addWritableData("ExitCode", 8)
 		do ast.args.head()

@@ -374,7 +374,7 @@ end func
 end func
 
 #exe
-+func[__ex0]exitCode(code: int)
++func[__ext]exitCode(code: int)
 #cpp,web
 +func exitCode(code: int)
 #any

@@ -1,8 +1,14 @@
 +var errCnt: int
 
 +func err(id: \msg@Id, pos: \pos@Pos, args: [][]char)
-	if(id < %_nonErrs & @errCnt >= 100)
-		ret {Stop error detection at 100 pieces.}
+	if(id < %_nonErrs)
+		if(@errCnt >= 100)
+			ret {Stop error detection at 100 pieces.}
+		end if
+	else
+		if(\option@quiet)
+			ret
+		end if
 	end if
 	
 	var msg: []char :: \msg@get(id, args)

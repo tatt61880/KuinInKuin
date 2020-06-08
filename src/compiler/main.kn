@@ -3,7 +3,7 @@ const minor: int :: 12
 const micro: int :: 22
 
 func main()
-	if(!\option@acquireOption())
+	if(!\option@acquireOption(lib@cmdLine()))
 		do lib@exitCode(1)
 		ret
 	end if
@@ -27,13 +27,11 @@ func main()
 		ret
 	end if
 	
-	if(!\option@quiet)
-		do \err@err(%failure, null, null)
-	end if
+	do \err@err(%failure, null, null)
 	do lib@exitCode(1)
 end func
 
-func build(): bool
+func[__rwi]build(): bool
 	var asts: dict<[]char, \ast@Ast>
 	var entry: \ast@AstFunc
 	
