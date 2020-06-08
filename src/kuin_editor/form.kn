@@ -299,6 +299,7 @@ var drag: bool
 	do @popupMainEdit.add(0x003A, \common@langEn ?("&Replace...\tCtrl+H", "置換(&R)...\tCtrl+H"))
 	do @popupMainEdit.add(0x003B, \common@langEn ?("Find Pre&vious\tShift+F3", "前を検索(&V)\tShift+F3"))
 	do @popupMainEdit.add(0x003C, \common@langEn ?("Find &Next\tF3", "次を検索(&N)\tF3"))
+	do @popupMainEdit.add(0x0041, \common@langEn ?("&Go To Line...\tCtrl+G", "指定行へ移動(&G)...\tCtrl+G"))
 	do @popupMainEdit.addLine()
 	do @popupMainEdit.add(0x0060, \common@langEn ?("Other Settings...", "その他の設定..."))
 	do @menuMain.addPopup(\common@langEn ?("&Edit", "編集(&E)"), @popupMainEdit)
@@ -405,6 +406,9 @@ func onKeyPress(key: wnd@Key, shiftCtrl: wnd@ShiftCtrl): bool
 			case %f
 				do @wndMainOnPushMenu(@wndMain, 0x0039)
 				ret true
+			case %g
+				do @wndMainOnPushMenu(@wndMain, 0x0041)
+				ret true
 			case %h
 				do @wndMainOnPushMenu(@wndMain, 0x003A)
 				ret true
@@ -478,6 +482,9 @@ func onKeyPress(key: wnd@Key, shiftCtrl: wnd@ShiftCtrl): bool
 				end if
 			case %f
 				do @wndMainOnPushMenu(@wndMain, 0x0039)
+				ret true
+			case %g
+				do @wndMainOnPushMenu(@wndMain, 0x0041)
 				ret true
 			case %h
 				do @wndMainOnPushMenu(@wndMain, 0x003A)
@@ -554,6 +561,25 @@ func onKeyPress(key: wnd@Key, shiftCtrl: wnd@ShiftCtrl): bool
 		if(\completion@displayed() & key <> %ctrl & !editFocused)
 			ret \src@curDoc.keyDown(key, shiftCtrl)
 		end if
+	elif(\go_to_line@wndGoToLine <>& null & \go_to_line@wndGoToLine.focusedWnd())
+		switch(shiftCtrl)
+		case %none
+			switch(key)
+			case %esc
+				do \go_to_line@wndGoToLine.close()
+				ret true
+			case %enter
+				do \go_to_line@goToLine()
+				ret true
+			case %bs, %del
+				ret false
+			case %up, %right, %down, %left
+				ret false
+			case %_0 to %_9
+				ret false
+			end switch
+			ret true
+		end switch
 	end if
 	ret false
 end func
@@ -680,6 +706,8 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 			end if
 			do(\src@curDoc $ \doc_src@DocSrc).toggleBreakPoint()
 		end if
+	case 0x0041
+		do \go_to_line@show()
 	case 0x0050
 		if(@zoom < 0.25)
 			do @zoom :: 0.25
