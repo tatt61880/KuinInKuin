@@ -4,7 +4,7 @@
     <ClInclude Include="common.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="kuin_cpp.cpp" />
     <ClCompile Include="kuin_dll_main.cpp" />
+    <ClCompile Include="kuin_dll.cpp" />
   </ItemGroup>
 </Project>

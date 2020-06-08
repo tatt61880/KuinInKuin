@@ -135,7 +135,11 @@ func rebuild(mainFunc: \ast@AstFunc): \ast@AstFunc
 	
 	; Build the entry point and register it in the root.
 	block
-		do entry :: @makeEntryPoint(mainFunc)
+		if(\option@env_ = %cpp & \option@extra.get("lib", &))
+			do entry :: @makeLibraryPoint(mainFunc)
+		else
+			do entry :: @makeEntryPoint(mainFunc)
+		end if
 		do @rebuildFunc(entry)
 		var root: \ast@Ast :: @asts.get("\\" ~ \option@inputName, &)
 		assert root =$ \ast@AstRoot
@@ -147,12 +151,172 @@ func rebuild(mainFunc: \ast@AstFunc): \ast@AstFunc
 	ret entry
 end func
 
+class AddInitFuncsData()
+	+var funcs: list<\ast@Ast>
+	+var name: []char
+end class
+
+func addInitFuncs(key: []char, value: \ast@Ast, data: kuin@Class): bool
+	if(key[0] = '\\' | key = "kuin" | value.scopeChildren =& null)
+		ret true
+	end if
+	var data2: @AddInitFuncsData :: data $ @AddInitFuncsData
+	var ast: \ast@Ast :: value.scopeChildren.get(data2.name, &)
+	if(ast =& null)
+		ret true
+	end if
+	do data2.funcs.add(ast)
+	ret true
+end func
+
+func makeLibraryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
+	var pos: \pos@Pos :: \pos@make("kuin", 1, 1)
+	var entry: \ast@AstFunc :: #\ast@AstFunc
+	var init: \ast@AstFunc :: #\ast@AstFunc
+	var fin: \ast@AstFunc :: #\ast@AstFunc
+	do @initAst(entry, %func_, pos)
+	do entry.name :: "$"
+	do entry.funcOption :: %none
+	do entry.funcAttr :: #list<[]char>
+	do entry.args :: #list<\ast@AstArg>
+	do entry.ret_ :: null
+	do entry.stats :: #list<\ast@AstStat>
+	do @initAst(init, %func_, pos)
+	do init.name :: "k_init_"
+	do init.funcOption :: %rwi
+	do init.funcAttr :: #list<[]char>
+	do init.args :: #list<\ast@AstArg>
+	do init.ret_ :: null
+	do init.stats :: #list<\ast@AstStat>
+	do @initAst(fin, %func_, pos)
+	do fin.name :: "k_fin_"
+	do fin.funcOption :: %rwi
+	do fin.funcAttr :: #list<[]char>
+	do fin.args :: #list<\ast@AstArg>
+	do fin.ret_ :: null
+	do fin.stats :: #list<\ast@AstStat>
+	block
+		var do_: \ast@AstStatDo :: #\ast@AstStatDo
+		do @initAst(do_, %statDo, pos)
+		block
+			var call: \ast@AstExprCall :: #\ast@AstExprCall
+			do @initAstExpr(call, %exprCall, pos)
+			do call.args :: #list<\ast@AstExprCallArg>
+			block
+				var ref: \ast@AstExpr :: #\ast@AstExpr
+				do @initAstExpr(ref, %exprRef, pos)
+				do ref.refItem :: init
+				do call.func_ :: ref
+			end block
+			do do_.expr :: call
+		end block
+		do entry.stats.add(do_)
+	end block
+	block
+		var do_: \ast@AstStatDo :: #\ast@AstStatDo
+		do @initAst(do_, %statDo, pos)
+		block
+			var call: \ast@AstExprCall :: #\ast@AstExprCall
+			do @initAstExpr(call, %exprCall, pos)
+			do call.args :: #list<\ast@AstExprCallArg>
+			block
+				var ref: \ast@AstExpr :: #\ast@AstExpr
+				do @initAstExpr(ref, %exprRef, pos)
+				do ref.refItem :: mainFunc
+				do call.func_ :: ref
+			end block
+			do do_.expr :: call
+		end block
+		do entry.stats.add(do_)
+	end block
+	block
+		var do_: \ast@AstStatDo :: #\ast@AstStatDo
+		do @initAst(do_, %statDo, pos)
+		block
+			var call: \ast@AstExprCall :: #\ast@AstExprCall
+			do @initAstExpr(call, %exprCall, pos)
+			do call.args :: #list<\ast@AstExprCallArg>
+			block
+				var ref: \ast@AstExpr :: #\ast@AstExpr
+				do @initAstExpr(ref, %exprRef, pos)
+				do ref.refItem :: fin
+				do call.func_ :: ref
+			end block
+			do do_.expr :: call
+		end block
+		do entry.stats.add(do_)
+	end block
+	block
+		; Make the program to call 'init'.
+		var funcs: list<\ast@Ast> :: #list<\ast@Ast>
+		do funcs.add(@searchStdItem("kuin", "_init", false))
+		var data: @AddInitFuncsData :: #@AddInitFuncsData
+		do data.funcs :: funcs
+		do data.name :: "_init"
+		do @asts.forEach(@addInitFuncs, data)
+		do funcs.add(@searchStdItem("kuin", "_initVars", false))
+		block
+			do funcs.head()
+			while(!funcs.term())
+				var do_: \ast@AstStatDo :: #\ast@AstStatDo
+				do @initAst(do_, %statDo, pos)
+				block
+					var call: \ast@AstExprCall :: #\ast@AstExprCall
+					do @initAstExpr(call, %exprCall, pos)
+					do call.args :: #list<\ast@AstExprCallArg>
+					block
+						var ref: \ast@AstExpr :: #\ast@AstExpr
+						do @initAstExpr(ref, %exprRef, pos)
+						do ref.refItem :: funcs.get()
+						do call.func_ :: ref
+					end block
+					do do_.expr :: call
+				end block
+				do init.stats.add(do_)
+				do funcs.next()
+			end while
+		end block
+	end block
+	block
+		; Make the program to call 'fin'.
+		var funcs: list<\ast@Ast> :: #list<\ast@Ast>
+		do funcs.add(@searchStdItem("kuin", "_finVars", false))
+		var data: @AddInitFuncsData :: #@AddInitFuncsData
+		do data.funcs :: funcs
+		do data.name :: "_fin"
+		do @asts.forEach(@addInitFuncs, data)
+		do funcs.add(@searchStdItem("kuin", "_fin", false))
+		block
+			do funcs.head()
+			while(!funcs.term())
+				var do_: \ast@AstStatDo :: #\ast@AstStatDo
+				do @initAst(do_, %statDo, pos)
+				block
+					var call: \ast@AstExprCall :: #\ast@AstExprCall
+					do @initAstExpr(call, %exprCall, pos)
+					do call.args :: #list<\ast@AstExprCallArg>
+					block
+						var ref: \ast@AstExpr :: #\ast@AstExpr
+						do @initAstExpr(ref, %exprRef, pos)
+						do ref.refItem :: funcs.get()
+						do call.func_ :: ref
+					end block
+					do do_.expr :: call
+				end block
+				do fin.stats.add(do_)
+				do funcs.next()
+			end while
+		end block
+	end block
+	ret entry
+end func
+
 func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 	var pos: \pos@Pos :: \pos@make("kuin", 1, 1)
 	var entry: \ast@AstFunc :: #\ast@AstFunc
 	do @initAst(entry, %func_, pos)
-	do entry.name :: "$"
-	do entry.funcOption :: %none
+	do entry.name :: "k_main_"
+	do entry.funcOption :: %rwi
 	do entry.funcAttr :: #list<[]char>
 	do entry.args :: #list<\ast@AstArg>
 	do entry.ret_ :: null
@@ -196,10 +360,10 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			; Make the program to call 'init' and 'main'.
 			var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 			do funcs.add(@searchStdItem("kuin", "_init", false))
-			var data: AddInitFuncsData :: #AddInitFuncsData
+			var data: @AddInitFuncsData :: #@AddInitFuncsData
 			do data.funcs :: funcs
 			do data.name :: "_init"
-			do @asts.forEach(addInitFuncs, data)
+			do @asts.forEach(@addInitFuncs, data)
 			do funcs.add(@searchStdItem("kuin", "_initVars", false))
 			do funcs.add(mainFunc)
 			block
@@ -302,10 +466,10 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			; Make the program to call 'fin'.
 			var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 			do funcs.add(@searchStdItem("kuin", "_finVars", false))
-			var data: AddInitFuncsData :: #AddInitFuncsData
+			var data: @AddInitFuncsData :: #@AddInitFuncsData
 			do data.funcs :: funcs
 			do data.name :: "_fin"
-			do @asts.forEach(addInitFuncs, data)
+			do @asts.forEach(@addInitFuncs, data)
 			do funcs.add(@searchStdItem("kuin", "_fin", false))
 			block
 				do funcs.head()
@@ -332,24 +496,6 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 		do entry.stats.add(try_)
 	end block
 	ret entry
-	
-	class AddInitFuncsData()
-		+var funcs: list<\ast@Ast>
-		+var name: []char
-	end class
-	
-	func addInitFuncs(key: []char, value: \ast@Ast, data: kuin@Class): bool
-		if(key[0] = '\\' | key = "kuin" | value.scopeChildren =& null)
-			ret true
-		end if
-		var data2: AddInitFuncsData :: data $ AddInitFuncsData
-		var ast: \ast@Ast :: value.scopeChildren.get(data2.name, &)
-		if(ast =& null)
-			ret true
-		end if
-		do data2.funcs.add(ast)
-		ret true
-	end func
 end func
 
 func rebuildRoot(key: []char, value: \ast@Ast, data: kuin@Class): bool

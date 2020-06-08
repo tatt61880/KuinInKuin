@@ -1858,7 +1858,7 @@ func write()
 			end while
 		end if
 		
-		do writer.writeStr("a();\n")
+		do writer.writeStr("k_main_();\n")
 		if(static)
 			do writer.writeStr("}\n")
 		else

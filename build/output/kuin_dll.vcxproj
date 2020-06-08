@@ -22,7 +22,7 @@
     <ClInclude Include="common.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="kuin_cpp.cpp" />
+    <ClCompile Include="kuin_dll.cpp" />
     <ClCompile Include="kuin_dll_main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
