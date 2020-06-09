@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #define STRICT
 #define _WIN32_DCOM
 #define _USE_MATH_DEFINES
@@ -5,8 +6,21 @@
 #define _WINSOCKAPI_
 #include <Windows.h>
 
+#include <cstddef>
+#include <cstdint>
+static int64_t* classTable_;
+#define new_(...) newImpl_<__VA_ARGS__>
 #define type_(...) __VA_ARGS__*
+#define newPrim_(...) newImpl_<__VA_ARGS__>
+#define delPrim_(x)
+#define newPrimArray_(x, ...) newArrayImpl_<__VA_ARGS__>(x)
+#define delPrimArray_(x)
+#define dcast_(...) reinterpret_cast<__VA_ARGS__*>
+#define addr_(...) reinterpret_cast<uint64_t>(__VA_ARGS__)
+template<typename T> T* newArrayImpl_(std::size_t n);
+template<typename T, typename... A> T* newImpl_(A... a);
 #include "common.h"
+
 #include "kuin_interpreter.h"
 
 #define UNUSED(var) (void)(var)
@@ -14,7 +28,6 @@
 
 void initLib();
 void finLib();
-void* allocMem(std::size_t s);
 bool acquireOption(Array_<Array_<char16_t>*>* args);
 bool build();
 void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t));
@@ -62,67 +75,66 @@ EXPORT_CPP bool BuildMem(const uint8_t* path, const void* (*func_get_src)(const 
 		len++;
 	if (env != nullptr)
 		len += 2;
-	auto* args = static_cast<Array_<Array_<char16_t>*>*>(allocMem(sizeof(Array_<Array_<char16_t>*>)));
-	new(args)Array_<Array_<char16_t>*>();
+	auto* args = new_(Array_<Array_<char16_t>*>)();
 	args->L = static_cast<int64_t>(len);
-	args->B = static_cast<Array_<char16_t>**>(allocMem(sizeof(Array_<char16_t>*) * static_cast<size_t>(len)));
+	args->B = newPrimArray_(static_cast<size_t>(len), Array_<char16_t>*);
 	int idx = 0;
 	args->B[idx]->L = 2;
-	args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+	args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 	memcpy(args->B[idx]->B, L"-i", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 	idx++;
 	args->B[idx]->L = *reinterpret_cast<const int64_t*>(path + 0x08);
-	args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+	args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 	memcpy(args->B[idx]->B, path + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 	idx++;
 	if (sys_dir != nullptr)
 	{
 		args->B[idx]->L = 2;
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, L"-s", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 		args->B[idx]->L = *reinterpret_cast<const int64_t*>(sys_dir + 0x08);
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, sys_dir + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 	}
 	if (output != nullptr)
 	{
 		args->B[idx]->L = 2;
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, L"-o", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 		args->B[idx]->L = *reinterpret_cast<const int64_t*>(output + 0x08);
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, output + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 	}
 	if (icon != nullptr)
 	{
 		args->B[idx]->L = 2;
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, L"-c", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 		args->B[idx]->L = *reinterpret_cast<const int64_t*>(icon + 0x08);
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, icon + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 	}
 	if (rls)
 	{
 		args->B[idx]->L = 2;
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, L"-r", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 	}
 	if (env != nullptr)
 	{
 		args->B[idx]->L = 2;
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, L"-e", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 		args->B[idx]->L = *reinterpret_cast<const int64_t*>(env + 0x08);
-		args->B[idx]->B = static_cast<char16_t*>(allocMem(sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1)));
+		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
 		memcpy(args->B[idx]->B, env + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
 		idx++;
 	}
@@ -131,10 +143,13 @@ EXPORT_CPP bool BuildMem(const uint8_t* path, const void* (*func_get_src)(const 
 	result = build();
 	FuncGetSrc = NULL;
 	FuncLog = NULL;
+	// TODO:
+	/*
 	DecSrc();
 	Src = NULL;
 	SrcLine = NULL;
 	SrcChar = NULL;
+	*/
 	return result;
 }
 
@@ -158,8 +173,11 @@ EXPORT_CPP void ResetMemAllocator()
 {
 	finLib();
 	initLib();
+	// TODO:
+	/*
 	KeywordListNum = 0;
 	KeywordList = NULL;
+	*/
 }
 
 EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int64_t y, void* callback)

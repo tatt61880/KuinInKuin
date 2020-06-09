@@ -11,6 +11,7 @@ var tmpVars: list<@TmpVar>
 var globalVars: list<\ast@AstArg>
 var localVars: list<\ast@AstArg>
 var classTable: list<[]char>
+var funcTypeIds: dict<[]char, []char>
 var gc: bool
 var curFunc: \ast@AstFunc
 
@@ -47,6 +48,7 @@ const nonGcBufSize: []char :: "0x2000000"
 	do @globalVars :: #list<\ast@AstArg>
 	do @localVars :: #list<\ast@AstArg>
 	do @classTable :: #list<[]char>
+	do @funcTypeIds :: #dict<[]char, []char>
 	
 	while(^@funcs > 0 | ^@classes > 0)
 		while(^@funcs > 0)
@@ -1466,7 +1468,7 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr("static MemList_* CurMem_;\n")
 			do writer.writeStr("static void* CurMemBuf_;\n")
 			do writer.writeStr("template<typename T>\n")
-			do writer.writeStr("static T* newArrayImpl_(std::size_t n){\n")
+			do writer.writeStr("T* newArrayImpl_(std::size_t n){\n")
 			do writer.writeStr("if (sizeof(T) * n > \{@nonGcBufSize}){\n")
 			do writer.writeStr("MemList_* m = new MemList_();\n")
 			do writer.writeStr("m->B = new uint8_t[sizeof(T) * n];\n")
@@ -1488,7 +1490,7 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr("}\n")
 			do writer.writeStr("}\n")
 			do writer.writeStr("template<typename T, typename... A>\n")
-			do writer.writeStr("static T* newImpl_(A... a){\n")
+			do writer.writeStr("T* newImpl_(A... a){\n")
 			do writer.writeStr("return new(newArrayImpl_<T>(1))T(a...);\n")
 			do writer.writeStr("}\n")
 			do writer.writeStr("static void initMem_(){\n")
@@ -1516,13 +1518,19 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 	
 	func writeCpp(writer: file@Writer, funcAttrs: dict<[]char, dict<[]char, bool>>)
 		var lib: bool :: \option@extra.get("lib", &)
-		do writer.writeStr("namespace {\n")
-		
 		if(^funcAttrs <> 0)
 			do writer.writeStr("#if defined(_WIN32)\n")
 			do funcAttrs.forEach(writeDllDef, writer)
 			do writer.writeStr("#endif;\n")
 		end if
+		var globalVarDefs: list<[]char> :: #list<[]char>
+		do @globalVars.head()
+		while(!@globalVars.term())
+			var globalVar: \ast@AstArg :: @globalVars.get()
+			var info: @CppInfo :: @getInfo(globalVar)
+			do globalVarDefs.add("static \{@getType(globalVar.type)} \{info.id};\n")
+			do @globalVars.next()
+		end while
 		do @classPrototypes.head()
 		while(!@classPrototypes.term())
 			do writer.writeStr(@classPrototypes.get())
@@ -1540,12 +1548,10 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr(@classDefs.get())
 			do @classDefs.next()
 		end while
-		do @globalVars.head()
-		while(!@globalVars.term())
-			var globalVar: \ast@AstArg :: @globalVars.get()
-			var info: @CppInfo :: @getInfo(globalVar)
-			do writer.writeStr("static \{@getType(globalVar.type)} \{info.id};\n")
-			do @globalVars.next()
+		do globalVarDefs.head()
+		while(!globalVarDefs.term())
+			do writer.writeStr(globalVarDefs.get())
+			do globalVarDefs.next()
 		end while
 		do @classFuncs.head()
 		while(!@classFuncs.term())
@@ -1557,7 +1563,6 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr(@codes.get())
 			do @codes.next()
 		end while
-		do writer.writeStr("}\n")
 		if(lib)
 			do writer.writeStr("void initLib(){\n")
 			do @globalVars.head()
@@ -1609,11 +1614,6 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 			do writer.writeStr("return static_cast<int>(exitCode_);\n")
 		end if
 		do writer.writeStr("}\n")
-		if(lib)
-			do writer.writeStr("void*allocMem(std::size_t s){\n")
-			do writer.writeStr("return static_cast<void*>(newPrimArray_(s,uint8_t));\n")
-			do writer.writeStr("}\n")
-		end if
 		
 		func writeDllDef(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
 			class Data()
@@ -1672,8 +1672,7 @@ func getType(type: \ast@AstType): []char
 		ret "uint\{(type $ \ast@AstTypeBit).size * 8}_t"
 	case %typeFunc
 		var func_: \ast@AstTypeFunc :: type $ \ast@AstTypeFunc
-		var id: []char :: @getId()
-		do @funcPrototypes.add("using \{id} = \{@getType(func_.ret_)}(*)(")
+		var t: []char
 		block
 			var arg: []char :: ""
 			var first: bool :: true
@@ -1692,8 +1691,14 @@ func getType(type: \ast@AstType): []char
 				end if
 				do items.next()
 			end while
-			do @funcPrototypes.add("\{arg});\n")
+			do t :: "\{@getType(func_.ret_)}(*)(\{arg})"
 		end block
+		var id: []char :: @funcTypeIds.get(t, &)
+		if(id =& null)
+			do id :: @getId()
+			do @funcPrototypes.add("using \{id}=\{t};\n")
+			do @funcTypeIds.add(t, id)
+		end if
 		ret id
 	case %typeGen
 		var gen: \ast@AstTypeGen :: type $ \ast@AstTypeGen
