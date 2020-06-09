@@ -3,6 +3,8 @@ const minor: int :: 12
 const micro: int :: 22
 
 func main()
+	do \err@setLogFunc(null)
+	
 	if(!\option@acquireOption(lib@cmdLine()))
 		do lib@exitCode(1)
 		ret

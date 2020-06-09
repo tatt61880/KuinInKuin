@@ -16,8 +16,10 @@
 #include <type_traits>
 #include <vector>
 
-template<typename T> std::size_t bufLen_() { return 0; }
-template<> std::size_t bufLen_<char16_t>() { return 1; }
+namespace {
+	template<typename T> std::size_t bufLen_() { return 0; }
+	template<> std::size_t bufLen_<char16_t>() { return 1; }
+}
 static int64_t exitCode_ = 0;
 
 struct Class_ {
