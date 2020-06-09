@@ -31,6 +31,6 @@ var logFunc: func<(int, []char, []char, int, int)>
 	end if
 end func
 
-func[__rwi]setLogFunc(logFunc: func<(int, []char, []char, int, int)>)
++func[__rwi]setLogFunc(logFunc: func<(int, []char, []char, int, int)>)
 	do @logFunc :: logFunc
 end func

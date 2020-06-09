@@ -4,7 +4,7 @@
 func main()
 	do \common@init()
 	
-	do \dll@initCompiler(\common@langEn ?(1, 0))
+	do \dll@initCompiler()
 	do \completion@init()
 	do \find@init()
 	do \snippet@load()

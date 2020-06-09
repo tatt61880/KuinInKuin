@@ -6,21 +6,6 @@
 #define _WINSOCKAPI_
 #include <Windows.h>
 
-#include <cstddef>
-#include <cstdint>
-static int64_t* classTable_;
-#define new_(...) newImpl_<__VA_ARGS__>
-#define type_(...) __VA_ARGS__*
-#define newPrim_(...) newImpl_<__VA_ARGS__>
-#define delPrim_(x)
-#define newPrimArray_(x, ...) newArrayImpl_<__VA_ARGS__>(x)
-#define delPrimArray_(x)
-#define dcast_(...) reinterpret_cast<__VA_ARGS__*>
-#define addr_(...) reinterpret_cast<uint64_t>(__VA_ARGS__)
-template<typename T> T* newArrayImpl_(std::size_t n);
-template<typename T, typename... A> T* newImpl_(A... a);
-#include "common.h"
-
 #include "kuin_interpreter.h"
 
 #define UNUSED(var) (void)(var)
@@ -28,12 +13,17 @@ template<typename T, typename... A> T* newImpl_(A... a);
 
 void initLib();
 void finLib();
-bool acquireOption(Array_<Array_<char16_t>*>* args);
 bool build();
 void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t));
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
+static void* Src = nullptr;
+static const void* SrcLine = nullptr;
+static const wchar_t* SrcChar = nullptr;
+
+static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col);
+static void DecSrc();
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -43,9 +33,8 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 	return TRUE;
 }
 
-EXPORT_CPP void InitCompiler(int64_t lang)
+EXPORT_CPP void InitCompiler()
 {
-	UNUSED(lang); // TODO: Remove this.
 	initLib();
 	InitInterpreter();
 }
@@ -58,104 +47,37 @@ EXPORT_CPP void FinCompiler()
 
 EXPORT_CPP bool BuildMem(const uint8_t* path, const void* (*func_get_src)(const uint8_t*), const uint8_t* sys_dir, const uint8_t* output, const uint8_t* icon, const void* related_files, bool rls, const uint8_t* env, void(*func_log)(const void* args, int64_t row, int64_t col), int64_t lang, int64_t app_code)
 {
-	UNUSED(lang); // TODO: Remove this.
 	UNUSED(related_files); // TODO: Remove this.
+	UNUSED(lang); // TODO: Remove this.
+	UNUSED(app_code); // TODO: Remove this.
 	bool result;
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
 
-	int len = 2;
-	if (sys_dir != nullptr)
-		len += 2;
-	if (output != nullptr)
-		len += 2;
-	if (icon != nullptr)
-		len += 2;
-	if (rls)
-		len++;
-	if (env != nullptr)
-		len += 2;
-	auto* args = new_(Array_<Array_<char16_t>*>)();
-	args->L = static_cast<int64_t>(len);
-	args->B = newPrimArray_(static_cast<size_t>(len), Array_<char16_t>*);
-	int idx = 0;
-	args->B[idx]->L = 2;
-	args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-	memcpy(args->B[idx]->B, L"-i", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-	idx++;
-	args->B[idx]->L = *reinterpret_cast<const int64_t*>(path + 0x08);
-	args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-	memcpy(args->B[idx]->B, path + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-	idx++;
-	if (sys_dir != nullptr)
-	{
-		args->B[idx]->L = 2;
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, L"-s", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-		args->B[idx]->L = *reinterpret_cast<const int64_t*>(sys_dir + 0x08);
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, sys_dir + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-	}
-	if (output != nullptr)
-	{
-		args->B[idx]->L = 2;
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, L"-o", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-		args->B[idx]->L = *reinterpret_cast<const int64_t*>(output + 0x08);
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, output + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-	}
-	if (icon != nullptr)
-	{
-		args->B[idx]->L = 2;
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, L"-c", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-		args->B[idx]->L = *reinterpret_cast<const int64_t*>(icon + 0x08);
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, icon + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-	}
-	if (rls)
-	{
-		args->B[idx]->L = 2;
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, L"-r", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-	}
-	if (env != nullptr)
-	{
-		args->B[idx]->L = 2;
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, L"-e", sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-		args->B[idx]->L = *reinterpret_cast<const int64_t*>(env + 0x08);
-		args->B[idx]->B = newPrimArray_(static_cast<size_t>(args->B[idx]->L + 1), char16_t);
-		memcpy(args->B[idx]->B, env + 0x10, sizeof(char16_t) * static_cast<size_t>(args->B[idx]->L + 1));
-		idx++;
-	}
-	acquireOption(args);
-
+	SetOption(path, sys_dir, output, icon, rls, env);
+	setLogFunc(OutputLog);
 	result = build();
-	FuncGetSrc = NULL;
-	FuncLog = NULL;
-	// TODO:
-	/*
+	FuncGetSrc = nullptr;
+	FuncLog = nullptr;
 	DecSrc();
-	Src = NULL;
-	SrcLine = NULL;
-	SrcChar = NULL;
-	*/
+	Src = nullptr;
+	SrcLine = nullptr;
+	SrcChar = nullptr;
 	return result;
 }
 
 EXPORT_CPP void Interpret1(void* src, int64_t line, void* me, void* replace_func, int64_t cursor_x, int64_t cursor_y, int64_t* new_cursor_x, int64_t old_line, int64_t new_line)
 {
-	// TODO:
+	for (; ; )
+	{
+		void* str = *(void**)((uint8_t*)src + 0x10);
+		void* color = *(void**)((uint8_t*)src + 0x18);
+		void* comment_level = *(void**)((uint8_t*)src + 0x20);
+		void* flags = *(void**)((uint8_t*)src + 0x28);
+		if (InterpretImpl1(str, color, comment_level, flags, line, me, replace_func, cursor_x, cursor_y, new_cursor_x, old_line, new_line))
+			break;
+		old_line = -1;
+	}
 }
 
 EXPORT_CPP bool Interpret2(const uint8_t* path, const void* (*func_get_src)(const uint8_t*), const uint8_t* sys_dir, const uint8_t* env, void(*func_log)(const void* args, int64_t row, int64_t col), int64_t lang)
@@ -167,23 +89,20 @@ EXPORT_CPP bool Interpret2(const uint8_t* path, const void* (*func_get_src)(cons
 EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
 {
 	// TODO:
+	*major = 2019;
+	*minor = 9;
+	*micro = 17;
 }
 
 EXPORT_CPP void ResetMemAllocator()
 {
 	finLib();
 	initLib();
-	// TODO:
-	/*
-	KeywordListNum = 0;
-	KeywordList = NULL;
-	*/
 }
 
 EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int64_t y, void* callback)
 {
-	// TODO:
-	return nullptr;
+	return GetKeywordsImpl(src, src_name, x, y, callback);
 }
 
 EXPORT_CPP bool RunDbg(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, void* event_func, void* break_points_func, void* break_func, void* dbg_func)
@@ -201,4 +120,43 @@ EXPORT_CPP bool Archive(const uint8_t* dst, const uint8_t* src, int64_t app_code
 {
 	// TODO:
 	return false;
+}
+
+static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col)
+{
+	uint8_t args[0x10 + 0x18];
+	*reinterpret_cast<int64_t*>(args + 0x00) = 2;
+	*reinterpret_cast<int64_t*>(args + 0x08) = 3;
+	uint8_t code2[0x10 + sizeof(wchar_t) * 11];
+	{
+		*reinterpret_cast<int64_t*>(code2 + 0x00) = 1;
+		*reinterpret_cast<int64_t*>(code2 + 0x08) = 10;
+		swprintf(reinterpret_cast<wchar_t*>(code2 + 0x10), 11, L"0x%08X", static_cast<uint32_t>(code));
+		*reinterpret_cast<void**>(args + 0x10) = code2;
+	}
+	uint8_t* msg2 = newPrimArray_(0x10 + sizeof(wchar_t) * static_cast<size_t>(msg->L + 1), uint8_t);
+	{
+		*reinterpret_cast<int64_t*>(msg2 + 0x00) = 1;
+		*reinterpret_cast<int64_t*>(msg2 + 0x08) = msg->L;
+		memcpy(msg2 + 0x10, msg->B, sizeof(wchar_t) * static_cast<size_t>(msg->L + 1));
+		*reinterpret_cast<void**>(args + 0x18) = msg2;
+	}
+	uint8_t src2[0x10 + sizeof(wchar_t) * 260];
+	if (src == nullptr)
+		*reinterpret_cast<void**>(args + 0x20) = nullptr;
+	else
+	{
+		*reinterpret_cast<int64_t*>(src2 + 0x00) = 1;
+		*reinterpret_cast<int64_t*>(src2 + 0x08) = src->L;
+		memcpy(src2 + 0x10, src->B, sizeof(wchar_t) * static_cast<size_t>(src->L + 1));
+		*reinterpret_cast<void**>(args + 0x20) = src2;
+	}
+	Call3Asm(args, reinterpret_cast<void*>(row), reinterpret_cast<void*>(col), FuncLog);
+}
+
+static void DecSrc()
+{
+	// Decrement 'Src', but do not release it here. It will be released in '.kn'.
+	if (Src != NULL)
+		(*reinterpret_cast<int64_t*>(Src))--;
 }
