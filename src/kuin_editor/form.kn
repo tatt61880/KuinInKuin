@@ -864,7 +864,18 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 	try
 		do \src@resetErrList()
 		do \src@docs.forEach(fixAll, null)
-		if(\dll@build(\src@mainSrcPath, \src@getSrc, null, out, @iconPath, @relatedFiles, false, @getEnv(), @log))
+		var option: list<[]char> :: #list<[]char>
+		do option.add("-i")
+		do option.add(\src@mainSrcPath)
+		do option.add("-o")
+		do option.add(out)
+		if(@iconPath <> "")
+			do option.add("-c")
+			do option.add(@iconPath)
+		end if
+		do @addEnv(option)
+		; TODO: @relatedFiles
+		if(\dll@build(option.toArray(), \src@getSrc, @log))
 			if(\src@mainSrcDir <> \common@defaultDir)
 				var filePtr: file@Writer :: file@makeWriter(tmp ~ "_curdir_.txt", false)
 				do filePtr.writeStr(\src@mainSrcDir)
@@ -1010,7 +1021,19 @@ func btnRlsOnPush(wnd: wnd@WndBase)
 	do @editLog.setText("")
 	try
 		do \src@resetErrList()
-		if(\dll@build(\src@mainSrcPath, \src@getSrc, null, out, @iconPath, @relatedFiles, true, @getEnv(), @log))
+		var option: list<[]char> :: #list<[]char>
+		do option.add("-i")
+		do option.add(\src@mainSrcPath)
+		do option.add("-o")
+		do option.add(out)
+		if(@iconPath <> "")
+			do option.add("-c")
+			do option.add(@iconPath)
+		end if
+		do option.add("-r")
+		do @addEnv(option)
+		; TODO: @relatedFiles
+		if(\dll@build(option.toArray(), \src@getSrc, @log))
 			if(\src@mainSrcDir <> \common@defaultDir)
 				var resSrc: []char :: \src@mainSrcDir ~ "res/"
 				if(file@exist(resSrc))
@@ -1124,6 +1147,18 @@ end func
 
 +func focusDrawEditor()
 	do @drawEditor.focus()
+end func
+
++func addEnv(option: list<[]char>)
+	if(@radioEnvWnd.getChk())
+		do option.add("-e")
+		do option.add("exe")
+		do option.add("-x")
+		do option.add("wnd")
+	elif(@radioEnvCui.getChk())
+		do option.add("-e")
+		do option.add("exe")
+	end if
 end func
 
 +func getEnv(): []char

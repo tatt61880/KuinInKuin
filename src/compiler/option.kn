@@ -21,7 +21,7 @@ end enum
 +var inputName: []char
 +var outputDir: []char
 
-+func acquireOption(cmdLines: [][]char): bool
++func[__rwi]acquireOption(cmdLines: [][]char): bool
 	var envStr: []char
 	var appCodeStr: []char
 	do @extra :: #dict<[]char, bool>

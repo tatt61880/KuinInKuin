@@ -18,10 +18,6 @@
 		<resource>exe\machine.kn</resource>
 		<resource>exe\manifest.kn</resource>
 		<resource>exe\output.kn</resource>
-		<resource>interpret.kn</resource>
-		<resource>interpret.debugger.kn</resource>
-		<resource>interpret.i1.kn</resource>
-		<resource>interpret.i2.kn</resource>
 		<resource>msg.kn</resource>
 		<resource>option.kn</resource>
 		<resource>parse.kn</resource>

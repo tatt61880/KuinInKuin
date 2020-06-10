@@ -15,7 +15,7 @@ void initLib();
 void finLib();
 bool build();
 void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t));
-void setOption(Array_<char16_t>*, Array_<char16_t>*, Array_<char16_t>*, Array_<char16_t>*, bool, Array_<char16_t>*);
+bool acquireOption(Array_<Array_<char16_t>*>*);
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
@@ -23,6 +23,7 @@ static void* Src = nullptr;
 static const void* SrcLine = nullptr;
 static const wchar_t* SrcChar = nullptr;
 
+static void SetOption(const uint8_t* option);
 static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col);
 static void DecSrc();
 
@@ -52,37 +53,8 @@ EXPORT_CPP bool BuildMem(const uint8_t* option, const void* (*func_get_src)(cons
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
 
-	// TODO:
-	/*
-+func[__rwi]setOption(path: []char, sysDir: []char, output: []char, icon: []char, rls: bool, env_: []char)
-	var cmd: list<[]char> :: #list<[]char>
-	do cmd.add("-i")
-	do cmd.add(path)
-	if(sysDir <>& null)
-		do cmd.add("-s")
-		do cmd.add(sysDir)
-	end if
-	if(output <>& null)
-		do cmd.add("-o")
-		do cmd.add(output)
-	end if
-	if(icon <>& null)
-		do cmd.add("-c")
-		do cmd.add(icon)
-	end if
-	if(rls)
-		do cmd.add("-r")
-	end if
-	if(env_ <>& null)
-		do cmd.add("-e")
-		do cmd.add(env_)
-	end if
-	do \option@acquireOption(cmd.toArray())
-end func
-	*/
-
 	setLogFunc(OutputLog);
-	setOption(MakeStr(path), MakeStr(sys_dir), MakeStr(output), MakeStr(icon), rls, MakeStr(env));
+	SetOption(option);
 	result = build();
 	FuncGetSrc = nullptr;
 	FuncLog = nullptr;
@@ -191,6 +163,24 @@ EXPORT_CPP bool Archive(const uint8_t* dst, const uint8_t* src)
 {
 	// TODO:
 	return false;
+}
+
+static void SetOption(const uint8_t* option)
+{
+	int64_t len = *reinterpret_cast<const int64_t*>(option + 0x08);
+	auto* args = new_(Array_<Array_<char16_t>*>)();
+	args->L = len;
+	args->B = newPrimArray_(len, Array_<char16_t>*);
+	for (int64_t i = 0; i < len; i++)
+	{
+		const uint8_t* item = static_cast<const uint8_t*>(*reinterpret_cast<void* const*>(option + 0x10 + i * 0x08));
+		int64_t len2 = *reinterpret_cast<const int64_t*>(item + 0x08);
+		args->B[i] = new_(Array_<char16_t>)();
+		args->B[i]->L = len2;
+		args->B[i]->B = newPrimArray_(len2 + 1, char16_t);
+		memcpy(args->B[i]->B, item + 0x10, sizeof(char16_t) * static_cast<size_t>(len2 + 1));
+	}
+	acquireOption(args);
 }
 
 static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col)
