@@ -23,7 +23,6 @@ extern "C" void* Call3Asm(void* arg1, void* arg2, void* arg3, void* func);
 #define AUXILIARY_BUF_SIZE (4096)
 
 // debugger.cpp
-void SetOption(const uint8_t* path, const uint8_t* sys_dir, const uint8_t* output, const uint8_t* icon, bool rls, const uint8_t* env);
 
 // interpret1.cpp
 bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, int64_t line, void* me, void* replace_func, int64_t cursor_x, int64_t cursor_y, int64_t* new_cursor_x, int64_t old_line, int64_t new_line);

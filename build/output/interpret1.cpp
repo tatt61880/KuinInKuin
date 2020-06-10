@@ -1,5 +1,7 @@
 #include "kuin_interpreter.h"
 
+// TODO: Rewrite them in Kuin.
+
 enum EAlignmentToken
 {
 	AlignmentToken_None = 0x01,

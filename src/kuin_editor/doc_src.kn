@@ -1690,6 +1690,7 @@ end func
 				do me.refreshCursor(false, true)
 				
 				do \src@resetErrList()
+				do \dll@resetMemAllocator()
 				try
 					do \dll@interpret2(\src@mainSrcPath, \src@getSrc, null, \form@getEnv(), \form@logForInterpret, \common@langEn ?(1, 0))
 				catch

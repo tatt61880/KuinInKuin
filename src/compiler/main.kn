@@ -3,7 +3,7 @@ const minor: int :: 12
 const micro: int :: 22
 
 func main()
-	do \err@setLogFunc(null)
+	do refLibFuncs()
 	
 	if(!\option@acquireOption(lib@cmdLine()))
 		do lib@exitCode(1)
@@ -31,6 +31,14 @@ func main()
 	
 	do \err@err(%failure, null, null)
 	do lib@exitCode(1)
+	
+	func refLibFuncs()
+		; Prevent dead code elimination.
+		if(env = "cpp")
+			var refSetLogFunc: func<(func<(int, []char, []char, int, int)>)> :: \err@setLogFunc
+			var refSetOption: func<([]char, []char, []char, []char, bool, []char)> :: \interpret@setOption
+		end if
+	end func
 end func
 
 func[__rwi]build(): bool
@@ -42,7 +50,7 @@ func[__rwi]build(): bool
 	do \err@err(%compilationStarted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	; 'Parse'
-	do asts :: \parse@parse()
+	do asts :: \parse@parse(null, null, null, null)
 	do \err@err(%parsingCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	; 'Analyze'

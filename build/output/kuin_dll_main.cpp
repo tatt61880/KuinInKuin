@@ -15,6 +15,7 @@ void initLib();
 void finLib();
 bool build();
 void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t));
+void setOption(Array_<char16_t>*, Array_<char16_t>*, Array_<char16_t>*, Array_<char16_t>*, bool, Array_<char16_t>*);
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
@@ -45,17 +46,43 @@ EXPORT_CPP void FinCompiler()
 	finLib();
 }
 
-EXPORT_CPP bool BuildMem(const uint8_t* path, const void* (*func_get_src)(const uint8_t*), const uint8_t* sys_dir, const uint8_t* output, const uint8_t* icon, const void* related_files, bool rls, const uint8_t* env, void(*func_log)(const void* args, int64_t row, int64_t col), int64_t lang, int64_t app_code)
+EXPORT_CPP bool BuildMem(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
 {
-	UNUSED(related_files); // TODO: Remove this.
-	UNUSED(lang); // TODO: Remove this.
-	UNUSED(app_code); // TODO: Remove this.
 	bool result;
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
 
-	SetOption(path, sys_dir, output, icon, rls, env);
+	// TODO:
+	/*
++func[__rwi]setOption(path: []char, sysDir: []char, output: []char, icon: []char, rls: bool, env_: []char)
+	var cmd: list<[]char> :: #list<[]char>
+	do cmd.add("-i")
+	do cmd.add(path)
+	if(sysDir <>& null)
+		do cmd.add("-s")
+		do cmd.add(sysDir)
+	end if
+	if(output <>& null)
+		do cmd.add("-o")
+		do cmd.add(output)
+	end if
+	if(icon <>& null)
+		do cmd.add("-c")
+		do cmd.add(icon)
+	end if
+	if(rls)
+		do cmd.add("-r")
+	end if
+	if(env_ <>& null)
+		do cmd.add("-e")
+		do cmd.add(env_)
+	end if
+	do \option@acquireOption(cmd.toArray())
+end func
+	*/
+
 	setLogFunc(OutputLog);
+	setOption(MakeStr(path), MakeStr(sys_dir), MakeStr(output), MakeStr(icon), rls, MakeStr(env));
 	result = build();
 	FuncGetSrc = nullptr;
 	FuncLog = nullptr;
@@ -80,10 +107,54 @@ EXPORT_CPP void Interpret1(void* src, int64_t line, void* me, void* replace_func
 	}
 }
 
-EXPORT_CPP bool Interpret2(const uint8_t* path, const void* (*func_get_src)(const uint8_t*), const uint8_t* sys_dir, const uint8_t* env, void(*func_log)(const void* args, int64_t row, int64_t col), int64_t lang)
+EXPORT_CPP bool Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
 {
+	bool result = false;
 	// TODO:
-	return false;
+	/*
+	const wchar_t* sys_dir2 = sys_dir == nullptr ? nullptr : (const wchar_t*)(sys_dir + 0x10);
+	FuncGetSrc = func_get_src;
+	FuncLog = func_log;
+
+	// Set the system directory.
+	if (sys_dir2 == nullptr)
+	{
+		wchar_t sys_dir3[1024 + 1];
+		GetModuleFileName(nullptr, sys_dir3, 1024 + 1);
+		sys_dir2 = GetDir(sys_dir3, false, L"sys/");
+	}
+	else
+		sys_dir2 = GetDir(sys_dir2, true, nullptr);
+
+	setLogFunc(OutputLog); // TODO: after makeOption.
+	ResetErrOccurred();
+
+	{
+		SOption option;
+		SDict* asts;
+		SDict* dlls;
+		MakeOption(&option, (const wchar_t*)(path + 0x10), nullptr, sys_dir2, nullptr, false, env == nullptr ? nullptr : (const wchar_t*)(env + 0x10), false);
+		if (!ErrOccurred())
+		{
+			U8 use_res_flags[USE_RES_FLAGS_LEN] = { 0 };
+			asts = Parse(BuildMemWfopen, BuildMemFclose, BuildMemFgetwc, BuildMemGetSize, &option, use_res_flags);
+			if (asts != nullptr)
+			{
+				Analyze(asts, &option, &dlls);
+				MakeKeywordList(asts);
+				result = true;
+			}
+		}
+	}
+
+	FuncGetSrc = nullptr;
+	FuncLog = nullptr;
+	DecSrc();
+	Src = nullptr;
+	SrcLine = nullptr;
+	SrcChar = nullptr;
+	*/
+	return result;
 }
 
 EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
@@ -116,7 +187,7 @@ EXPORT_CPP void SetBreakPoints(const void* break_points)
 	// TODO:
 }
 
-EXPORT_CPP bool Archive(const uint8_t* dst, const uint8_t* src, int64_t app_code)
+EXPORT_CPP bool Archive(const uint8_t* dst, const uint8_t* src)
 {
 	// TODO:
 	return false;
@@ -157,6 +228,6 @@ static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src
 static void DecSrc()
 {
 	// Decrement 'Src', but do not release it here. It will be released in '.kn'.
-	if (Src != NULL)
+	if (Src != nullptr)
 		(*reinterpret_cast<int64_t*>(Src))--;
 }

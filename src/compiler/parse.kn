@@ -16,7 +16,17 @@ var uniqueCnt: int
 var scopeRefedItems: list<\ast@ScopeRefedItem>
 var inSubSrc: bool
 
-+func parse(): dict<[]char, \ast@Ast>
+var fileOpenFunc: func<([]char): file@Reader>
+var fileCloseFunc: func<(file@Reader)>
+var fileSizeFunc: func<(file@Reader): int>
+var fileReadLetterFunc: func<(file@Reader): char>
+
++func parse(fileOpenFunc: func<([]char): file@Reader>, fileCloseFunc: func<(file@Reader)>, fileSizeFunc: func<(file@Reader): int>, fileReadLetterFunc: func<(file@Reader): char>): dict<[]char, \ast@Ast>
+	do @fileOpenFunc :: fileOpenFunc
+	do @fileCloseFunc :: fileCloseFunc
+	do @fileSizeFunc :: fileSizeFunc
+	do @fileReadLetterFunc :: fileReadLetterFunc
+	
 	do @srcesCur :: #dict<[]char, \ast@Ast>
 	block
 		var inputName: []char :: "\\" ~ \option@inputName
@@ -58,7 +68,7 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	else
 		do truePath :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/" ~ replacePath(key) ~ ".kn"
 	end if
-	do @filePtr :: file@makeReader(truePath)
+	do @filePtr :: @fileOpenFunc =& null ?(file@makeReader(truePath), @fileOpenFunc(truePath))
 	if(@filePtr =& null)
 		do \err@err(%fileOpenFailed, null, [truePath])
 		ret true
@@ -66,14 +76,18 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	
 	block
 		var reload: []char :: null
-		var fileSize: int :: @filePtr.fileSize()
+		var fileSize: int :: @fileSizeFunc =& null ?(@filePtr.fileSize(), @fileSizeFunc(@filePtr))
 		if(fileSize = 0)
 			do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset00.kn"
 		end if
 		if(reload <>& null)
-			do @filePtr.fin()
+			if(@fileCloseFunc =& null)
+				do @filePtr.fin()
+			else
+				do @fileCloseFunc(@filePtr)
+			end if
 			do truePath :: reload
-			do @filePtr :: file@makeReader(truePath)
+			do @filePtr :: @fileOpenFunc =& null ?(file@makeReader(truePath), @fileOpenFunc(truePath))
 			if(@filePtr =& null)
 				do \err@err(%fileOpenFailed, null, [truePath])
 				ret true
@@ -102,7 +116,11 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 			do parentAstRoot :: @srcesNext.get(@srcName.sub(0, dot), &existence) $ \ast@AstRoot
 			if(!existence)
 				do \err@err(%parentOfSubsourceNotFound, null, [@srcName])
-				do @filePtr.fin()
+				if(@fileCloseFunc =& null)
+					do @filePtr.fin()
+				else
+					do @fileCloseFunc(@filePtr)
+				end if
 				ret true
 			end if
 			assert parentAstRoot <>& null
@@ -112,7 +130,11 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	end block
 	
 	var ast: \ast@AstRoot :: @parseRoot(parentAstRoot)
-	do @filePtr.fin()
+	if(@fileCloseFunc =& null)
+		do @filePtr.fin()
+	else
+		do @fileCloseFunc(@filePtr)
+	end if
 	if(parentAstRoot =& null)
 		do @srcesNext.add(key, ast)
 	end if
@@ -2511,7 +2533,11 @@ func readBuf(): char
 	if(@fileBuf = '\0')
 		if(@fileBufTmp = '\0')
 			while(c = '\u000D', skip)
-				do c :: @filePtr.term() ?('\0', @filePtr.readLetter())
+				if(@fileReadLetterFunc =& null)
+					do c :: @filePtr.term() ?('\0', @filePtr.readLetter())
+				else
+					do c :: @fileReadLetterFunc(@filePtr)
+				end if
 			end while
 			if(c = '\n')
 				do @row :+ 1

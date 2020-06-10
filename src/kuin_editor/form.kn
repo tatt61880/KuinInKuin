@@ -864,7 +864,7 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 	try
 		do \src@resetErrList()
 		do \src@docs.forEach(fixAll, null)
-		if(\dll@build(\src@mainSrcPath, \src@getSrc, null, out, @iconPath, @relatedFiles, false, @getEnv(), @log, \common@langEn ?(1, 0), 0))
+		if(\dll@build(\src@mainSrcPath, \src@getSrc, null, out, @iconPath, @relatedFiles, false, @getEnv(), @log))
 			if(\src@mainSrcDir <> \common@defaultDir)
 				var filePtr: file@Writer :: file@makeWriter(tmp ~ "_curdir_.txt", false)
 				do filePtr.writeStr(\src@mainSrcDir)
@@ -1010,16 +1010,12 @@ func btnRlsOnPush(wnd: wnd@WndBase)
 	do @editLog.setText("")
 	try
 		do \src@resetErrList()
-		var appCode: int :: lib@rnd(1, lib@intMax) * (lib@rnd(0, 1) = 0 ?(1, -1))
-		if(appCode = 0)
-			do appCode :: 1 {Since it is not convenient when 'AppCode' becomes 0, it is set to 1.}
-		end if
-		if(\dll@build(\src@mainSrcPath, \src@getSrc, null, out, @iconPath, @relatedFiles, true, @getEnv(), @log, \common@langEn ?(1, 0), appCode))
+		if(\dll@build(\src@mainSrcPath, \src@getSrc, null, out, @iconPath, @relatedFiles, true, @getEnv(), @log))
 			if(\src@mainSrcDir <> \common@defaultDir)
 				var resSrc: []char :: \src@mainSrcDir ~ "res/"
 				if(file@exist(resSrc))
 					var resDst: []char :: tmp ~ "res.knd"
-					if(!\dll@archive(resDst, resSrc, appCode))
+					if(!\dll@archive(resDst, resSrc))
 						var msg: []char
 						if(\common@langEn)
 							do msg :: "Could not make the resource file. " ~ resDst
