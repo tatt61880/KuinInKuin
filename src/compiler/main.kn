@@ -36,8 +36,12 @@ func main()
 		; Prevent dead code elimination.
 		if(env = "cpp")
 			var refSetLogFunc: func<(func<(int, []char, []char, int, int)>)> :: \err@setLogFunc
-			var refAcquireOptionFunc: func<([][]char, bool): bool> :: \option@acquireOption
+			var refAcquireOption: func<([][]char, bool): bool> :: \option@acquireOption
 			var refSetFileFuncs: func<(func<([]char): int>, func<(int)>, func<(int): int>, func<(int): char>)> :: \parse@setFileFuncs
+			
+			var refSetBreakPointAddrs: func<([]bit64, []bit8)> :: \interpret@setBreakPointAddrs
+			var refGetBreakPointAddrs: func<(&[]bit64, &[]bit8)> :: \interpret@getBreakPointAddrs
+			var refgetBreakPointNum: func<(): int> :: \interpret@getBreakPointNum
 		end if
 	end func
 end func

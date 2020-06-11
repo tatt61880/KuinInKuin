@@ -1,0 +1,19 @@
+var dbgStartAddr: bit64
+var breakPointPoses: []\pos@Pos
+var breakPointAddrs: []bit64
+var breakPointOpes: []bit8
+var breakPointNum: int
+
++func[__rwi]setBreakPointAddrs(addrs: []bit64, opes: []bit8)
+	do @breakPointAddrs :: addrs
+	do @breakPointOpes :: opes
+end func
+
++func[__rwi]getBreakPointAddrs(addrs: &[]bit64, opes: &[]bit8)
+	do addrs :: @breakPointAddrs
+	do opes :: @breakPointOpes
+end func
+
++func[__rwi]getBreakPointNum(): int
+	ret @breakPointNum
+end func

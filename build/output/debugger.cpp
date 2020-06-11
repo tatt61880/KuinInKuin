@@ -4,35 +4,12 @@
 
 #pragma comment(lib, "DbgHelp.lib")
 
-struct SPos
-{
-	const wchar_t* SrcName;
-	int Row;
-	int Col;
-};
-
-struct SBreakPointAddr
-{
-	uint64_t Addr;
-	uint8_t Ope;
-};
-
-static uint64_t DbgStartAddr;
-static int64_t BreakPointNum;
-static SPos* BreakPointPoses;
-static int BreakPointAddrNum = 0;
-static SBreakPointAddr* BreakPointAddrs = NULL;
+void setBreakPointAddrs(Array_<uint64_t>*, Array_<uint8_t>*);
+void getBreakPointAddrs(Array_<uint64_t>**, Array_<uint8_t>**);
+int64_t getBreakPointNum();
 
 static void SetBreakPointOpes(HANDLE process_handle);
 static void UnsetBreakPointOpes(HANDLE process_handle);
-
-void InitDebugger()
-{
-	BreakPointNum = 0;
-	BreakPointPoses = nullptr;
-	BreakPointAddrNum = 0;
-	BreakPointAddrs = nullptr;
-}
 
 bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, void* event_func, void* break_points_func, void* break_func, void* dbg_func)
 {
@@ -71,7 +48,6 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 	{
 		DEBUG_EVENT debug_event = { 0 };
 		bool end = false;
-		DbgStartAddr = 0;
 		ResumeThread(process_info.hThread);
 		while (!end)
 		{
@@ -337,8 +313,10 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 
 static void SetBreakPointOpes(HANDLE process_handle)
 {
-	// TODO:
-	/*
+	int64_t break_point_num = getBreakPointNum();
+	auto* break_point_addrs = new_(Array_<uint64_t>)();
+	break_point_addrs->L = break_point_num;
+	break_point_addrs->B = newPrimArray_(break_point_num, uint64_t);
 	BreakPointAddrNum = (int)BreakPointNum;
 	BreakPointAddrs = newPrimArray_(BreakPointNum, SBreakPointAddr);
 	for (int64_t i = 0; i < BreakPointNum; i++)
@@ -357,7 +335,7 @@ static void SetBreakPointOpes(HANDLE process_handle)
 		BreakPointAddrs[i].Addr = addr;
 		BreakPointAddrs[i].Ope = old_code;
 	}
-	*/
+	setBreakPointAddrs();
 	FlushInstructionCache(process_handle, NULL, 0);
 }
 
@@ -365,7 +343,8 @@ static void UnsetBreakPointOpes(HANDLE process_handle)
 {
 	if (BreakPointAddrs == NULL)
 		return;
-	for (int64_t i = BreakPointNum - 1; i >= 0; i--)
+	int64_t break_point_num = getBreakPointNum();
+	for (int64_t i = break_point_num - 1; i >= 0; i--)
 	{
 		if (BreakPointAddrs[i].Addr == 0)
 			continue;

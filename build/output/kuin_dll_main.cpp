@@ -43,7 +43,6 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 EXPORT_CPP void InitCompiler()
 {
 	initLib();
-	InitDebugger();
 	InitInterpret2();
 }
 
