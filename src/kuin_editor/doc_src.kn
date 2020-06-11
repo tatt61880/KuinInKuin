@@ -1690,8 +1690,13 @@ end func
 				do me.refreshCursor(false, true)
 				
 				do \src@resetErrList()
+				do \dll@resetMemAllocator()
+				var option: list<[]char> :: #list<[]char>
+				do option.add("-i")
+				do option.add(\src@mainSrcPath)
+				do \form@addEnv(option)
 				try
-					do \dll@interpret2(\src@mainSrcPath, \src@getSrc, null, \form@getEnv(), \form@logForInterpret, \common@langEn ?(1, 0))
+					do \dll@interpret2(option.toArray(), \src@getSrc, \form@logForInterpret)
 				catch
 				end try
 				do \src@updateErrList()

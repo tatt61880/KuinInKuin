@@ -3,9 +3,9 @@ const minor: int :: 12
 const micro: int :: 22
 
 func main()
-	do \err@setLogFunc(null)
+	do refLibFuncs()
 	
-	if(!\option@acquireOption(lib@cmdLine()))
+	if(!\option@acquireOption(lib@cmdLine(), true))
 		do lib@exitCode(1)
 		ret
 	end if
@@ -31,6 +31,24 @@ func main()
 	
 	do \err@err(%failure, null, null)
 	do lib@exitCode(1)
+	
+	func refLibFuncs()
+		; Prevent dead code elimination.
+		if(env = "cpp")
+			var refSetLogFunc: func<(func<(int, []char, []char, int, int)>)> :: \err@setLogFunc
+			var refAcquireOption: func<([][]char, bool): bool> :: \option@acquireOption
+			var refSetFileFuncs: func<(func<([]char): int>, func<(int)>, func<(int): int>, func<(int): char>)> :: \parse@setFileFuncs
+			
+			var refPreventDeadCodeElimination: func<()> :: \interpret@preventDeadCodeElimination
+			var refSetDbgStartAddr: func<(bit64)> :: \interpret@setDbgStartAddr
+			var refSetBreakPointAddrs: func<([]bit64, []bit8)> :: \interpret@setBreakPointAddrs
+			var refGetBreakPointAddrs: func<(&[]bit64, &[]bit8)> :: \interpret@getBreakPointAddrs
+			var refgetBreakPointPosesNum: func<(): int> :: \interpret@getBreakPointPosesNum
+			var refPosToAddr: func<(int): bit64> :: \interpret@posToAddr
+			var refAddrToPos: func<(&[]char, &[]char, &int, &int, bit64): bool> :: \interpret@addrToPos
+			var refGetExcptMsg: func<(int): []char> :: \interpret@getExcptMsg
+		end if
+	end func
 end func
 
 func[__rwi]build(): bool

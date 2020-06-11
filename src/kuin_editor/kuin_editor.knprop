@@ -19,6 +19,7 @@
 		<resource>doc_src.kn</resource>
 		<resource>find.kn</resource>
 		<resource>form.kn</resource>
+		<resource>go_to_line.kn</resource>
 		<resource>knobj_maker.kn</resource>
 		<resource>obj_prop.kn</resource>
 		<resource>proj_settings.kn</resource>
