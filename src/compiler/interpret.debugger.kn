@@ -2,7 +2,18 @@ var dbgStartAddr: bit64
 var breakPointPoses: []\pos@Pos
 var breakPointAddrs: []bit64
 var breakPointOpes: []bit8
-var breakPointNum: int
+
++func preventDeadCodeElimination()
+	excode "}\n"
+	excode "template uint64_t* newArrayImpl_<uint64_t>(std::size_t n);\n"
+	excode "template Array_<uint64_t>* newImpl_<Array_<uint64_t>>();\n"
+	; TODO: Remove "/*}*/".
+	excode "namespace{/*}*/\n"
+end func
+
++func[__rwi]setDbgStartAddr(addr: bit64)
+	do @dbgStartAddr :: addr
+end func
 
 +func[__rwi]setBreakPointAddrs(addrs: []bit64, opes: []bit8)
 	do @breakPointAddrs :: addrs
@@ -14,6 +25,23 @@ end func
 	do opes :: @breakPointOpes
 end func
 
-+func[__rwi]getBreakPointNum(): int
-	ret @breakPointNum
++func[__rwi]getBreakPointPosesNum(): int
+	ret @breakPointPoses =& null ?(0, ^@breakPointPoses)
+end func
+
++func[__rwi]posToAddr(idx: int): bit64
+	; TODO:
+	ret 0b64
+end func
+
++func[__rwi]addrToPos(name: &[]char, src: &[]char, row: &int, col: &int, addr: bit64): bool
+	do name :: ""
+	; TODO:
+	ret false
+end func
+
++func[__rwi]getExcptMsg(code: int): []char
+	; TODO:
+	; "%s\nAn exception '0x%08X' occurred."
+	ret ""
 end func

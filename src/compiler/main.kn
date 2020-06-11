@@ -39,9 +39,14 @@ func main()
 			var refAcquireOption: func<([][]char, bool): bool> :: \option@acquireOption
 			var refSetFileFuncs: func<(func<([]char): int>, func<(int)>, func<(int): int>, func<(int): char>)> :: \parse@setFileFuncs
 			
+			var refPreventDeadCodeElimination: func<()> :: \interpret@preventDeadCodeElimination
+			var refSetDbgStartAddr: func<(bit64)> :: \interpret@setDbgStartAddr
 			var refSetBreakPointAddrs: func<([]bit64, []bit8)> :: \interpret@setBreakPointAddrs
 			var refGetBreakPointAddrs: func<(&[]bit64, &[]bit8)> :: \interpret@getBreakPointAddrs
-			var refgetBreakPointNum: func<(): int> :: \interpret@getBreakPointNum
+			var refgetBreakPointPosesNum: func<(): int> :: \interpret@getBreakPointPosesNum
+			var refPosToAddr: func<(int): bit64> :: \interpret@posToAddr
+			var refAddrToPos: func<(&[]char, &[]char, &int, &int, bit64): bool> :: \interpret@addrToPos
+			var refGetExcptMsg: func<(int): []char> :: \interpret@getExcptMsg
 		end if
 	end func
 end func

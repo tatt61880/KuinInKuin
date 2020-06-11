@@ -103,7 +103,7 @@ EXPORT_CPP bool Interpret2(const uint8_t* option, const void* (*func_get_src)(co
 	else
 		sys_dir2 = GetDir(sys_dir2, true, nullptr);
 
-	setLogFunc(OutputLog); // TODO: after makeOption.
+	setLogFunc(OutputLog);
 	ResetErrOccurred();
 
 	{
