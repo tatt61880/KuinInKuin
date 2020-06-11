@@ -5,7 +5,7 @@ const micro: int :: 22
 func main()
 	do refLibFuncs()
 	
-	if(!\option@acquireOption(lib@cmdLine()))
+	if(!\option@acquireOption(lib@cmdLine(), true))
 		do lib@exitCode(1)
 		ret
 	end if
@@ -36,7 +36,8 @@ func main()
 		; Prevent dead code elimination.
 		if(env = "cpp")
 			var refSetLogFunc: func<(func<(int, []char, []char, int, int)>)> :: \err@setLogFunc
-			var refAcquireOptionFunc: func<([][]char): bool> :: \option@acquireOption
+			var refAcquireOptionFunc: func<([][]char, bool): bool> :: \option@acquireOption
+			var refSetFileFuncs: func<(func<([]char): int>, func<(int)>, func<(int): int>, func<(int): char>)> :: \parse@setFileFuncs
 		end if
 	end func
 end func
@@ -50,7 +51,7 @@ func[__rwi]build(): bool
 	do \err@err(%compilationStarted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	; 'Parse'
-	do asts :: \parse@parse(null, null, null, null)
+	do asts :: \parse@parse()
 	do \err@err(%parsingCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	; 'Analyze'

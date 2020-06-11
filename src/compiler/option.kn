@@ -21,7 +21,7 @@ end enum
 +var inputName: []char
 +var outputDir: []char
 
-+func[__rwi]acquireOption(cmdLines: [][]char): bool
++func[__rwi]acquireOption(cmdLines: [][]char, toFullPath: bool): bool
 	var envStr: []char
 	var appCodeStr: []char
 	do @extra :: #dict<[]char, bool>
@@ -34,7 +34,9 @@ end enum
 				if(!getArg1(&@inputFile, cmdLines, &i, c))
 					ret false
 				end if
-				do @inputFile :: file@fullPath(@inputFile)
+				if(toFullPath)
+					do @inputFile :: file@fullPath(@inputFile)
+				end if
 			case 'o'
 				if(!getArg1(&@outputFile, cmdLines, &i, c))
 					ret false

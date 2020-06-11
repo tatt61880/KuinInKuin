@@ -23,11 +23,12 @@ extern "C" void* Call3Asm(void* arg1, void* arg2, void* arg3, void* func);
 #define AUXILIARY_BUF_SIZE (4096)
 
 // debugger.cpp
+void InitDebugger();
+bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, void* event_func, void* break_points_func, void* break_func, void* dbg_func);
 
 // interpret1.cpp
 bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, int64_t line, void* me, void* replace_func, int64_t cursor_x, int64_t cursor_y, int64_t* new_cursor_x, int64_t old_line, int64_t new_line);
 
 // interpret2.cpp
-void InitInterpreter();
-void FinInterpreter();
+void InitInterpret2();
 void* GetKeywordsImpl(void* src, const uint8_t* src_name, int64_t x, int64_t y, void* callback);

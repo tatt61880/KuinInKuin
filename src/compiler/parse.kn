@@ -3,6 +3,7 @@ var reserved: [][]char
 var srcesCur: dict<[]char, \ast@Ast>
 var srcesNext: dict<[]char, \ast@Ast>
 var filePtr: file@Reader
+var fileHandle: int
 
 var srcName: []char
 var row: int
@@ -16,17 +17,19 @@ var uniqueCnt: int
 var scopeRefedItems: list<\ast@ScopeRefedItem>
 var inSubSrc: bool
 
-var fileOpenFunc: func<([]char): file@Reader>
-var fileCloseFunc: func<(file@Reader)>
-var fileSizeFunc: func<(file@Reader): int>
-var fileReadLetterFunc: func<(file@Reader): char>
+var fileOpenFunc: func<([]char): int>
+var fileCloseFunc: func<(int)>
+var fileSizeFunc: func<(int): int>
+var fileReadLetterFunc: func<(int): char>
 
-+func parse(fileOpenFunc: func<([]char): file@Reader>, fileCloseFunc: func<(file@Reader)>, fileSizeFunc: func<(file@Reader): int>, fileReadLetterFunc: func<(file@Reader): char>): dict<[]char, \ast@Ast>
++func[__rwi]setFileFuncs(fileOpenFunc: func<([]char): int>, fileCloseFunc: func<(int)>, fileSizeFunc: func<(int): int>, fileReadLetterFunc: func<(int): char>)
 	do @fileOpenFunc :: fileOpenFunc
 	do @fileCloseFunc :: fileCloseFunc
 	do @fileSizeFunc :: fileSizeFunc
 	do @fileReadLetterFunc :: fileReadLetterFunc
-	
+end func
+
++func parse(): dict<[]char, \ast@Ast>
 	do @srcesCur :: #dict<[]char, \ast@Ast>
 	block
 		var inputName: []char :: "\\" ~ \option@inputName
@@ -68,15 +71,19 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	else
 		do truePath :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/" ~ replacePath(key) ~ ".kn"
 	end if
-	do @filePtr :: @fileOpenFunc =& null ?(file@makeReader(truePath), @fileOpenFunc(truePath))
-	if(@filePtr =& null)
+	if(@fileOpenFunc =& null)
+		do @filePtr :: file@makeReader(truePath)
+	else
+		do @fileHandle :: @fileOpenFunc(truePath)
+	end if
+	if(@filePtr =& null & @fileHandle = 0)
 		do \err@err(%fileOpenFailed, null, [truePath])
 		ret true
 	end if
 	
 	block
 		var reload: []char :: null
-		var fileSize: int :: @fileSizeFunc =& null ?(@filePtr.fileSize(), @fileSizeFunc(@filePtr))
+		var fileSize: int :: @fileSizeFunc =& null ?(@filePtr.fileSize(), @fileSizeFunc(@fileHandle))
 		if(fileSize = 0)
 			do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset00.kn"
 		end if
@@ -84,11 +91,15 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 			if(@fileCloseFunc =& null)
 				do @filePtr.fin()
 			else
-				do @fileCloseFunc(@filePtr)
+				do @fileCloseFunc(@fileHandle)
 			end if
 			do truePath :: reload
-			do @filePtr :: @fileOpenFunc =& null ?(file@makeReader(truePath), @fileOpenFunc(truePath))
-			if(@filePtr =& null)
+			if(@fileOpenFunc =& null)
+				do @filePtr :: file@makeReader(truePath)
+			else
+				do @fileHandle :: @fileOpenFunc(truePath)
+			end if
+			if(@filePtr =& null & @fileHandle = 0)
 				do \err@err(%fileOpenFailed, null, [truePath])
 				ret true
 			end if
@@ -119,7 +130,7 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 				if(@fileCloseFunc =& null)
 					do @filePtr.fin()
 				else
-					do @fileCloseFunc(@filePtr)
+					do @fileCloseFunc(@fileHandle)
 				end if
 				ret true
 			end if
@@ -133,7 +144,7 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	if(@fileCloseFunc =& null)
 		do @filePtr.fin()
 	else
-		do @fileCloseFunc(@filePtr)
+		do @fileCloseFunc(@fileHandle)
 	end if
 	if(parentAstRoot =& null)
 		do @srcesNext.add(key, ast)
@@ -2536,7 +2547,7 @@ func readBuf(): char
 				if(@fileReadLetterFunc =& null)
 					do c :: @filePtr.term() ?('\0', @filePtr.readLetter())
 				else
-					do c :: @fileReadLetterFunc(@filePtr)
+					do c :: @fileReadLetterFunc(@fileHandle)
 				end if
 			end while
 			if(c = '\n')
