@@ -60,6 +60,8 @@ var drag: bool
 +var zoom: float
 +var iconPath: []char
 +var relatedFiles: list<[]char>
+var redrawingRequired: bool
+var interpret2Required: bool
 
 +func makeWnd()
 	do @lockUi :: true
@@ -337,6 +339,8 @@ var drag: bool
 	do @zoom :: 1.0
 	do @iconPath :: ""
 	do @relatedFiles :: #list<[]char>
+	do @redrawingRequired :: false
+	do @interpret2Required :: false
 	
 	func btnFileAddOnPush(wnd: wnd@WndBase)
 		do @wndMainOnPushMenu(@wndMain, 0x0030)
@@ -886,12 +890,13 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 		do wnd@msgBox(@wndMain, msg, \common@title, %err, %ok)
 		ret
 	end try
+	do \src@docs.forEach(@fixAll, null)
+	do @updateState()
 	do \dll@resetMemAllocator()
 	do @editLog.setText("")
 	var cmd: []char :: out
 	try
 		do \src@resetErrList()
-		do \src@docs.forEach(fixAll, null)
 		var option: list<[]char> :: #list<[]char>
 		do option.add("-i")
 		do option.add(\src@mainSrcPath)
@@ -930,11 +935,6 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 	do @updateUi()
 	do @lockEditor(false)
 	do @wndMain.activate()
-	
-	func fixAll(key: []char, value: \doc@Doc, data: kuin@Class): bool
-		do value.fix()
-		ret true
-	end func
 	
 	func idleFunc()
 		do wnd@act()
@@ -1045,6 +1045,8 @@ func btnRlsOnPush(wnd: wnd@WndBase)
 		do wnd@msgBox(@wndMain, msg, \common@title, %err, %ok)
 		ret
 	end try
+	do \src@docs.forEach(@fixAll, null)
+	do @updateState()
 	do \dll@resetMemAllocator()
 	do @editLog.setText("")
 	try
@@ -1170,14 +1172,14 @@ func lockEditor(lock: bool)
 end func
 
 +func paintDrawEditor()
-	do @drawEditor.paint()
+	do @redrawingRequired :: true
 end func
 
 +func focusDrawEditor()
 	do @drawEditor.focus()
 end func
 
-+func addEnv(option: list<[]char>)
+func addEnv(option: list<[]char>)
 	if(@radioEnvWnd.getChk())
 		do option.add("-e")
 		do option.add("exe")
@@ -1186,6 +1188,8 @@ end func
 	elif(@radioEnvCui.getChk())
 		do option.add("-e")
 		do option.add("exe")
+		do option.add("-x")
+		do option.add("pause")
 	end if
 end func
 
@@ -1225,7 +1229,7 @@ func log(args: [][]char, row: int, col: int)
 	do \src@addErrList(pos, args[0], args[1], args[2], row, col)
 end func
 
-+func logForInterpret(args: [][]char, row: int, col: int)
+func logForInterpret(args: [][]char, row: int, col: int)
 	var pos: \src@Pos :: #\src@Pos
 	do pos.src :: args[2] =& null ?("", ##args[2])
 	do pos.row :: row
@@ -1258,4 +1262,35 @@ func openResFolder()
 		end if
 	end if
 	do task@open(path)
+end func
+
+func fixAll(key: []char, value: \doc@Doc, data: kuin@Class): bool
+	do value.fix()
+	ret true
+end func
+
++func updateState()
+	if(@redrawingRequired)
+		do @drawEditor.paint()
+		do @redrawingRequired :: false
+	end if
+	if(@interpret2Required)
+		do \src@resetErrList()
+		do \dll@resetMemAllocator()
+		var option: list<[]char> :: #list<[]char>
+		do option.add("-i")
+		do option.add(\src@mainSrcPath)
+		do @addEnv(option)
+		try
+			do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret)
+		catch
+		end try
+		do \src@updateErrList()
+		do @updateUi()
+		do @interpret2Required :: false
+	end if
+end func
+
++func callInterpret2()
+	do @interpret2Required :: true
 end func

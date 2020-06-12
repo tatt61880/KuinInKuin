@@ -1271,7 +1271,12 @@ end func
 func buildExprValuePrim(ast: \ast@AstExprValuePrim)
 	var type: \ast@AstType :: ast.type
 	if(\ast@isInt(type) | \ast@isEnum(type))
-		do @codes.add((ast.value $ int).toStr() ~ "LL")
+		var s: []char :: (ast.value $ int).toStr()
+		if(s = "-9223372036854775808")
+			do @codes.add("-9223372036854775807LL-1LL")
+		else
+			do @codes.add(s ~ "LL")
+		end if
 	elif(\ast@isChar(type))
 		do @codes.add("u'\\u\{(ast.value $ bit16).toStr().sub(2, -1)}'")
 	elif(\ast@isBool(type))
@@ -1378,6 +1383,7 @@ func buildExprRef(ast: \ast@AstExpr)
 			if(!info.alreadyWritten)
 				do info.alreadyWritten :: true
 				do @globalVars.add(arg)
+				do @getType(arg.type)
 			end if
 		case %localArg
 			; Do nothing.

@@ -1250,6 +1250,9 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 		do scopeEntry.catchFunc :: null
 		do asms.add(@asmNop())
 		do asms.add(scopeEntry.end_)
+		if(!\option@rls & !\option@extra.get("wnd", &) & \option@extra.get("pause", &))
+			do @callKuinLib("_pause")
+		end if
 		; Finalize the program.
 		block
 			; Finalize the Dlls.

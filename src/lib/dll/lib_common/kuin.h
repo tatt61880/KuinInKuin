@@ -5,6 +5,9 @@
 EXPORT void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flags);
 EXPORT void _fin(void);
 EXPORT void _err(S64 excpt);
+#if defined(DBG)
+EXPORT void _pause(void);
+#endif
 EXPORT void _freeSet(void* ptr, const U8* type);
 EXPORT void* _copy(const void* me_, const U8* type);
 EXPORT void* _toBin(const void* me_, const U8* type, const void* root);

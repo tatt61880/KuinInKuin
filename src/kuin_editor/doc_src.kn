@@ -1689,18 +1689,7 @@ end func
 				do me.cursorY :: newY
 				do me.refreshCursor(false, true)
 				
-				do \src@resetErrList()
-				do \dll@resetMemAllocator()
-				var option: list<[]char> :: #list<[]char>
-				do option.add("-i")
-				do option.add(\src@mainSrcPath)
-				do \form@addEnv(option)
-				try
-					do \dll@interpret2(option.toArray(), \src@getSrc, \form@logForInterpret)
-				catch
-				end try
-				do \src@updateErrList()
-				do \form@updateUi()
+				do \form@callInterpret2()
 				
 				if(modified)
 					do me.dirtyLine :: line

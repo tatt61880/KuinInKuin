@@ -1,1 +1,130 @@
-;
+class KeywordListItem()
+	+*func cmp(t: kuin@Class): int
+		var t2: @KeywordListItem :: t $ @KeywordListItem
+		var m: int
+		do m :: lib@cmp(me.name, t2.name)
+		if(m <> 0)
+			ret m
+		end if
+		do m :: lib@cmp(me.ast.pos.srcName, t2.ast.pos.srcName)
+		if(m <> 0)
+			ret m
+		end if
+		if(me.first <>& null & t2.first <>& null)
+			do m :: me.first.value - t2.first.value
+			if(m <> 0)
+				ret m
+			end if
+			if(me.last <>& null & t2.last <>& null)
+				do m :: me.last.value - t2.last.value
+			end if
+		end if
+		ret m
+	end func
+	
+	+var name: []char
+	+var ast: \ast@Ast
+	+var first: lib@Int
+	+var last: lib@Int
+end class
+
+class CorrectKeywordsParam()
+	
+	+var src: []char
+	+var keywords: list<@KeywordListItem>
+	+var first: lib@Int
+	+var last: lib@Int
+	+var parentType: \ast@TypeId
+end class
+
+var keywordList: []@KeywordListItem
+
++func[__rwi]interpret2(): bool
+	if(\err@errCnt > 0)
+		ret false
+	end if
+	
+	var asts: dict<[]char, \ast@Ast> :: \parse@parse()
+	do \analyze@analyze(asts, &)
+	do @makeKeywordList(asts)
+	ret true
+end func
+
+func makeKeywordList(asts: dict<[]char, \ast@Ast>)
+	var param: @CorrectKeywordsParam :: #@CorrectKeywordsParam
+	do param.src :: null
+	do param.keywords :: #list<@KeywordListItem>
+	do param.first :: #lib@Int
+	do param.first.value :: lib@intMax
+	do param.last :: #lib@Int
+	do param.last.value :: lib@intMin
+	do param.parentType :: %none
+	do asts.forEach(@correctKeywords, param)
+	do @keywordList :: param.keywords.toArray()
+	do @keywordList.sort()
+end func
+
+func correctKeywords(srcName: []char, ast: \ast@Ast, data: kuin@Class): bool
+	var param: @CorrectKeywordsParam :: data $ @CorrectKeywordsParam
+	var param2: @CorrectKeywordsParam :: #@CorrectKeywordsParam
+	do param2.src :: param.src =& null ?(srcName, param.src)
+	do param2.keywords :: param.keywords
+	do param2.first :: param.first
+	do param2.last :: param.last
+	do param2.parentType :: param.parentType
+	if(ast <>& \ast@getSubSrcDummyAst())
+		do @correctKeywordsRecursion(param2, ast)
+	end if
+	ret true
+end func
+
+func correctKeywordsRecursion(param: @CorrectKeywordsParam, ast: \ast@Ast)
+	if(ast.pos <>& null & ast.pos.srcName = param.src & ast.pos.row <> -1 &
+		|(ast.pos.srcName[0] = '\\' | param.parentType = %root | param.parentType = %enum_ | param.parentType = %class_))
+		var row: int :: ast.pos.row
+		if(param.first.value > row)
+			do param.first.value :: row
+		end if
+		if(param.last.value < row)
+			do param.last.value :: row
+		end if
+		if(ast.name <>& null & ast.name <> "me" &
+			|!(ast.pos.srcName[0] <> '\\' & ast.name[0] = '_' & !('0' <= ast.name[1] & ast.name[1] <= '9')))
+			var keyword: @KeywordListItem :: #@KeywordListItem
+			switch(param.parentType)
+			case %root
+				do keyword.name :: "@" ~ ast.name
+			case %enum_
+				do keyword.name :: "%" ~ ast.name
+			case %class_
+				if(ast.typeId = %arg | ast.typeId = %func_)
+					do keyword.name :: "." ~ ast.name
+				else
+					do keyword.name :: ast.name
+				end if
+			default
+				do keyword.name :: ast.name
+			end switch
+			do keyword.ast :: ast
+			do keyword.first :: param.first
+			do keyword.last :: param.last
+			do param.keywords.add(keyword)
+		end if
+	end if
+	if(ast.scopeChildren <>& null)
+		var param2: @CorrectKeywordsParam :: #@CorrectKeywordsParam
+		do param2.src :: param.src
+		do param2.keywords :: param.keywords
+		do param2.first :: #lib@Int
+		do param2.first.value :: lib@intMax
+		do param2.last :: #lib@Int
+		do param2.last.value :: lib@intMin
+		do param2.parentType :: ast.typeId
+		do ast.scopeChildren.forEach(@correctKeywords, param2)
+	end if
+end func
+
++func[__rwi]getKeywordsRoot(str: []char, srcName: []char, x: int, y: int, callCallbackFunc: func<(int, []char)>, callback: int): []char
+	; TODO:
+	ret null
+end func

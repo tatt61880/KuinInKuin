@@ -5,6 +5,9 @@
 		do attrs1 :: #dict<[]char, bool>
 		do funcAttrs.add("d0000.knd", attrs1)
 	end if
+	if(!\option@rls & !\option@extra.get("wnd", &) & \option@extra.get("pause", &))
+		do attrs1.add("_pause", true)
+	end if
 	do attrs1.add("_freeSet", true)
 	do attrs1.add("_copy", true)
 	do attrs1.add("_toBin", true)

@@ -125,6 +125,13 @@ EXPORT void _err(S64 excpt)
 #endif
 }
 
+#if defined(DBG)
+EXPORT void _pause(void)
+{
+	system("pause");
+}
+#endif
+
 EXPORT void _freeSet(void* ptr, const U8* type)
 {
 	switch (*type)

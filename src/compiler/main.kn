@@ -1,6 +1,6 @@
-const major: int :: 2019
-const minor: int :: 12
-const micro: int :: 22
+const major: int :: 2020
+const minor: int :: 6
+const micro: int :: 17
 
 func main()
 	do refLibFuncs()
@@ -35,8 +35,8 @@ func main()
 	func refLibFuncs()
 		; Prevent dead code elimination.
 		if(env = "cpp")
+			var refGetVersion: func<(&int, &int, &int)> :: @getVersion
 			var refSetLogFunc: func<(func<(int, []char, []char, int, int)>)> :: \err@setLogFunc
-			var refAcquireOption: func<([][]char, bool): bool> :: \option@acquireOption
 			var refSetFileFuncs: func<(func<([]char): int>, func<(int)>, func<(int): int>, func<(int): char>)> :: \parse@setFileFuncs
 			
 			var refPreventDeadCodeElimination: func<()> :: \interpret@preventDeadCodeElimination
@@ -47,8 +47,18 @@ func main()
 			var refPosToAddr: func<(int): bit64> :: \interpret@posToAddr
 			var refAddrToPos: func<(&[]char, &[]char, &int, &int, bit64): bool> :: \interpret@addrToPos
 			var refGetExcptMsg: func<(int): []char> :: \interpret@getExcptMsg
+			var refGetDbgVars: func<([]char, int, int, bit64, func<(int, int): int>, func<([]char, []char, int)>, int)> :: \interpret@getDbgVars
+			
+			var refInterpret2: func<(): bool> :: \interpret@interpret2
+			var refGetKeywordsRoot: func<([]char, []char, int, int, func<(int, []char)>, int): []char> :: \interpret@getKeywordsRoot
 		end if
 	end func
+end func
+
+func[__rwi]getVersion(major: &int, minor: &int, micro: &int)
+	do major :: @major
+	do minor :: @minor
+	do micro :: @micro
 end func
 
 func[__rwi]build(): bool

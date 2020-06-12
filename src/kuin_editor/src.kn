@@ -171,6 +171,9 @@ end func
 end func
 
 +func setCurSrc(doc: \doc@Doc)
+	if(@curDoc =& doc)
+		ret
+	end if
 	do \completion@close()
 	do @curDoc :: doc
 	do @curDocName :: @getDocName(doc)

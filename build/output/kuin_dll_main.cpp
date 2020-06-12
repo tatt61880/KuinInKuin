@@ -14,9 +14,13 @@
 void initLib();
 void finLib();
 bool build();
+void getVersion(int64_t*, int64_t*, int64_t*);
 void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t));
 bool acquireOption(Array_<Array_<char16_t>*>*, bool);
 void setFileFuncs(int64_t(*)(Array_<char16_t>*), void(*)(int64_t), int64_t(*)(int64_t), char16_t(*)(int64_t));
+
+bool interpret2();
+Array_<char16_t>* getKeywordsRoot(Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
@@ -31,6 +35,7 @@ static int64_t FileOpen(Array_<char16_t>* path);
 static void FileClose(int64_t handle);
 static int64_t FileSize(int64_t handle);
 static char16_t FileReadLetter(int64_t handle);
+static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keyword);
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -43,7 +48,6 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 EXPORT_CPP void InitCompiler()
 {
 	initLib();
-	InitInterpret2();
 }
 
 EXPORT_CPP void FinCompiler()
@@ -53,14 +57,12 @@ EXPORT_CPP void FinCompiler()
 
 EXPORT_CPP bool BuildMem(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
 {
-	bool result;
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
-
 	setLogFunc(OutputLog);
 	SetOption(option);
 	setFileFuncs(FileOpen, FileClose, FileSize, FileReadLetter);
-	result = build();
+	bool result = build();
 	FuncGetSrc = nullptr;
 	FuncLog = nullptr;
 	DecSrc();
@@ -86,60 +88,24 @@ EXPORT_CPP void Interpret1(void* src, int64_t line, void* me, void* replace_func
 
 EXPORT_CPP bool Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
 {
-	bool result = false;
-	// TODO:
-	/*
-	const wchar_t* sys_dir2 = sys_dir == nullptr ? nullptr : (const wchar_t*)(sys_dir + 0x10);
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
-
-	// Set the system directory.
-	if (sys_dir2 == nullptr)
-	{
-		wchar_t sys_dir3[1024 + 1];
-		GetModuleFileName(nullptr, sys_dir3, 1024 + 1);
-		sys_dir2 = GetDir(sys_dir3, false, L"sys/");
-	}
-	else
-		sys_dir2 = GetDir(sys_dir2, true, nullptr);
-
 	setLogFunc(OutputLog);
-	ResetErrOccurred();
-
-	{
-		SOption option;
-		SDict* asts;
-		SDict* dlls;
-		MakeOption(&option, (const wchar_t*)(path + 0x10), nullptr, sys_dir2, nullptr, false, env == nullptr ? nullptr : (const wchar_t*)(env + 0x10), false);
-		if (!ErrOccurred())
-		{
-			uint8_t use_res_flags[USE_RES_FLAGS_LEN] = { 0 };
-			asts = Parse(BuildMemWfopen, BuildMemFclose, BuildMemFgetwc, BuildMemGetSize, &option, use_res_flags);
-			if (asts != nullptr)
-			{
-				Analyze(asts, &option, &dlls);
-				MakeKeywordList(asts);
-				result = true;
-			}
-		}
-	}
-
+	SetOption(option);
+	setFileFuncs(FileOpen, FileClose, FileSize, FileReadLetter);
+	bool result = interpret2();
 	FuncGetSrc = nullptr;
 	FuncLog = nullptr;
 	DecSrc();
 	Src = nullptr;
 	SrcLine = nullptr;
 	SrcChar = nullptr;
-	*/
 	return result;
 }
 
 EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
 {
-	// TODO:
-	*major = 2019;
-	*minor = 9;
-	*micro = 17;
+	getVersion(major, minor, micro);
 }
 
 EXPORT_CPP void ResetMemAllocator()
@@ -150,7 +116,27 @@ EXPORT_CPP void ResetMemAllocator()
 
 EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int64_t y, void* callback)
 {
-	return GetKeywordsImpl(src, src_name, x, y, callback);
+	void* str = *reinterpret_cast<void**>(reinterpret_cast<uint8_t*>(src) + 0x10);
+	void** str2 = reinterpret_cast<void**>(reinterpret_cast<uint8_t*>(str) + 0x10 + 0x08 * y);
+	uint8_t* str3 = reinterpret_cast<uint8_t*>(*str2);
+	auto* str4 = new_(Array_<char16_t>)();
+	str4->L = *reinterpret_cast<int64_t*>(str3 + 0x08);
+	str4->B = newPrimArray_(static_cast<size_t>(str4->L + 1), char16_t);
+	memcpy(str4->B, str3 + 0x10, sizeof(char16_t) * static_cast<size_t>(str4->L + 1));
+
+	auto* src_name2 = new_(Array_<char16_t>)();
+	src_name2->L = *reinterpret_cast<const int64_t*>(src_name);
+	src_name2->B = newPrimArray_(static_cast<size_t>(src_name2->L + 1), char16_t);
+	memcpy(src_name2->B, src_name + 0x10, sizeof(char16_t) * static_cast<size_t>(src_name2->L + 1));
+
+	auto* hint = getKeywordsRoot(str4, src_name2, x, y, CallCallbackForGetKeywords, reinterpret_cast<int64_t>(callback));
+	if (hint == nullptr)
+		return nullptr;
+	auto* result = newPrimArray_(0x10 + sizeof(wchar_t) * static_cast<size_t>(hint->L + 1), uint8_t);
+	reinterpret_cast<int64_t*>(result)[0] = 1;
+	reinterpret_cast<int64_t*>(result)[1] = hint->L;
+	memcpy(result + 0x10, hint->B, sizeof(wchar_t) * static_cast<size_t>(hint->L + 1));
+	return result;
 }
 
 EXPORT_CPP bool RunDbg(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, void* event_func, void* break_points_func, void* break_func, void* dbg_func)
@@ -290,4 +276,14 @@ static char16_t FileReadLetter(int64_t handle)
 		return L'\0';
 	SrcChar = reinterpret_cast<wchar_t*>(reinterpret_cast<uint8_t*>(*reinterpret_cast<void* const*>(SrcLine)) + 0x10);
 	return L'\n';
+}
+
+static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keyword)
+{
+	wchar_t buf[256];
+	int64_t len = keyword->L;
+	reinterpret_cast<int64_t*>(buf)[0] = 2;
+	reinterpret_cast<int64_t*>(buf)[1] = len;
+	memcpy(buf + 0x08, keyword->B, sizeof(wchar_t) * static_cast<size_t>(len + 1));
+	Call1Asm(buf, reinterpret_cast<void*>(callback));
 }

@@ -45,3 +45,7 @@ end func
 	; "%s\nAn exception '0x%08X' occurred."
 	ret ""
 end func
+
++func[__rwi]getDbgVars(excptPosSrc: []char, excptPosRow: int, processHandle: int, contextRip: bit64, readProcessMemoryFunc: func<(int, int): int>, callCallbackFunc: func<([]char, []char, int)>, callback: int)
+	; TODO:
+end func
