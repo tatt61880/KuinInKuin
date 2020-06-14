@@ -1820,7 +1820,7 @@ func rebuildExcode(ast: \ast@AstStatExcode): \ast@AstStat
 	end if
 	do ast.extra :: ast
 	do ast.code :: @rebuildExpr(ast.code, false)
-	if(ast.code.typeId <> %exprValueStr)
+	if(ast.code <>& null & ast.code.typeId <> %exprValueStr)
 		do \err@err(%excodeMustBeStrConst, ast.code.pos, null)
 	end if
 	ret ast

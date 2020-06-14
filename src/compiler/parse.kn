@@ -1,5 +1,6 @@
 var reserved: [][]char
 
+var makeHint: bool
 var srcesCur: dict<[]char, \ast@Ast>
 var srcesNext: dict<[]char, \ast@Ast>
 var filePtr: file@Reader
@@ -30,6 +31,8 @@ var fileReadLetterFunc: func<(int): char>
 end func
 
 +func parse(): dict<[]char, \ast@Ast>
+	do @makeHint :: \option@extra.get("hint", &)
+	
 	do @srcesCur :: #dict<[]char, \ast@Ast>
 	block
 		var inputName: []char :: "\\" ~ \option@inputName
@@ -261,6 +264,9 @@ func parseRoot(parentAstRoot: \ast@AstRoot): \ast@AstRoot
 		do ast.items.add(item)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -447,6 +453,9 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 		do ast.stats.add(stat)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -589,6 +598,9 @@ func parseClass(): \ast@AstClass
 		do ast.items.add(item)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -647,6 +659,9 @@ func parseEnum(): \ast@AstEnum
 		do @addScopeName(item, true)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -901,6 +916,9 @@ func parseStatIf(): \ast@AstStat
 		assert typeId = %statEnd
 	end block
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -974,6 +992,9 @@ func parseStatSwitch(row: int, col: int): \ast@AstStat
 		assert typeId = %statEnd
 	end block
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -1081,6 +1102,9 @@ func parseStatWhile(): \ast@AstStat
 		do ast.stats.add(stat)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -1125,6 +1149,9 @@ func parseStatFor(row: int, col: int): \ast@AstStat
 		do ast.stats.add(stat)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -1171,6 +1198,9 @@ func parseStatTry(row: int, col: int): \ast@AstStat
 		assert typeId = %statEnd
 	end block
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -1290,6 +1320,9 @@ func parseStatBlock(): \ast@AstStat
 		do ast.stats.add(stat)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -2885,6 +2918,9 @@ func parseDummyBlock(outStat: &\ast@AstStat, outTypeId: &\ast@TypeId, typeId: \a
 		do ast.stats.add(stat)
 	end while
 	
+	if(@makeHint)
+		do @addEndPosScope()
+	end if
 	do @scope.get()
 	ret ast
 end func
@@ -2970,4 +3006,14 @@ func escChar(c: char): char
 		do \err@err(%wrongEscSequence, @makePos(), [@charToStr(c)])
 		ret c
 	end switch
+end func
+
+func addEndPosScope()
+	assert @makeHint
+	; This is used for hints on the editor.
+	var dummy: \ast@Ast :: #\ast@Ast
+	do @initAst(dummy, %none, \pos@make(@srcName, @row - 1, 0), null, true)
+	do dummy.scopeChildren :: #dict<[]char, \ast@Ast>
+	do @scope.peek().scopeChildren.add("$" ~ @uniqueCnt.toStr(), dummy)
+	do @uniqueCnt :+ 1
 end func

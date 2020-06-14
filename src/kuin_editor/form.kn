@@ -906,6 +906,8 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 			do option.add("-c")
 			do option.add(@iconPath)
 		end if
+		do option.add("-x")
+		do option.add("hint")
 		do @addEnv(option)
 		; TODO: @relatedFiles
 		if(\dll@build(option.toArray(), \src@getSrc, @log))
@@ -1280,6 +1282,8 @@ end func
 		var option: list<[]char> :: #list<[]char>
 		do option.add("-i")
 		do option.add(\src@mainSrcPath)
+		do option.add("-x")
+		do option.add("hint")
 		do @addEnv(option)
 		try
 			do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret)

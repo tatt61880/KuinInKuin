@@ -125,7 +125,7 @@ EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int6
 	memcpy(str4->B, str3 + 0x10, sizeof(char16_t) * static_cast<size_t>(str4->L + 1));
 
 	auto* src_name2 = new_(Array_<char16_t>)();
-	src_name2->L = *reinterpret_cast<const int64_t*>(src_name);
+	src_name2->L = *reinterpret_cast<const int64_t*>(src_name + 0x08);
 	src_name2->B = newPrimArray_(static_cast<size_t>(src_name2->L + 1), char16_t);
 	memcpy(src_name2->B, src_name + 0x10, sizeof(char16_t) * static_cast<size_t>(src_name2->L + 1));
 

@@ -1076,7 +1076,7 @@ func getKeywordsReadExprPow(str: []char, idx: &int, type: &[]char, context: @Get
 	if(@getKeywordsReadExprCall(str, &idx, &type, context))
 		ret true
 	end if
-	if(old <> idx)
+	if(old = idx)
 		ret false {Interpret as a unary operator.}
 	end if
 	var c: char :: @getKeywordsReadChar(str, &idx)
@@ -1098,7 +1098,7 @@ func getKeywordsReadExprCall(str: []char, idx: &int, type: &[]char, context: @Ge
 	if(@getKeywordsReadExprValue(str, &idx, &type, context))
 		ret true
 	end if
-	if(old <> idx)
+	if(old = idx)
 		ret false
 	end if
 	while loop(true)
@@ -1358,7 +1358,14 @@ func getKeywordsReadExprValue(str: []char, idx: &int, type: &[]char, context: @G
 			elif(buf[0] = 't' & buf[1] = 'r' & buf[2] = 'u' & buf[3] = 'e' & buf[4] = '\0')
 				do type :: "bool"
 			else
-				do type :: @getKeywordType(buf, context)
+				var len: int :: -1
+				for i(0, ^buf - 1)
+					if(buf[i] = '\0')
+						do len :: i
+						break i
+					end if
+				end for
+				do type :: @getKeywordType(buf.sub(0, len), context)
 			end if
 			ret false
 		end if
