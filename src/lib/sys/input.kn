@@ -1,5 +1,6 @@
 #exe
 func[d0001.knd, _inputInit]_init()
+	do wnd@addAction(@_update)
 end func
 
 func[d0001.knd, _inputFin]_fin()

@@ -87,8 +87,26 @@ func parseSrc(key: []char, value: \ast@Ast, data: kuin@Class): bool
 	block
 		var reload: []char :: null
 		var fileSize: int :: @fileSizeFunc =& null ?(@filePtr.fileSize(), @fileSizeFunc(@fileHandle))
-		if(fileSize = 0)
-			do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset00.kn"
+		if(fileSize <= 1 & key = "\\" ~ \option@inputName)
+			var prefix: []char :: \option@env_ = %exe & \option@extra.get("wnd", &) ?("_wnd", "")
+			if(fileSize = 0)
+				do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset00" ~ prefix ~ ".kn"
+			else
+				var c: char
+				if(@fileReadLetterFunc =& null)
+					do c :: @filePtr.readLetter()
+				else
+					do c :: @fileReadLetterFunc(@fileHandle)
+				end if
+				switch(c)
+				case 'q'
+					do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset01" ~ prefix ~ ".kn"
+				case 'f'
+					do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset02" ~ prefix ~ ".kn"
+				case '9'
+					do reload :: \option@sysDir ~ \option@getEnvStr(\option@env_) ~ "/_preset03" ~ prefix ~ ".kn"
+				end switch
+			end if
 		end if
 		if(reload <>& null)
 			if(@fileCloseFunc =& null)

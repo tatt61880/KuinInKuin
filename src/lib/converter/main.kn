@@ -14,7 +14,8 @@ func convert(path: []char, dir: bool, data: kuin@Class): bool
 		ret true
 	end if
 	var reader: file@Reader :: file@makeReader(path)
-	var writer: file@Writer :: file@makeWriter("./../sys/\{@curTarget}/\{file@fileName(path)}", false)
+	var writingPath: []char :: "./../sys/\{@curTarget}/\{file@fileName(path)}"
+	var writer: file@Writer :: file@makeWriter(writingPath, false)
 	var skip_: bool :: false
 	while loop(!reader.term())
 		var s: []char :: reader.readLine()
@@ -36,5 +37,8 @@ func convert(path: []char, dir: bool, data: kuin@Class): bool
 	end while
 	do writer.fin()
 	do reader.fin()
+	if(file@fileSize(writingPath) = 0)
+		do file@delFile(writingPath)
+	end if
 	ret true
 end func

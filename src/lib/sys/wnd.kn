@@ -1,4 +1,6 @@
 #exe
+var actions: list<func<()>>
+
 func[d0001.knd, _init]_init()
 end func
 
@@ -844,6 +846,20 @@ end class
 end enum
 
 +func[d0001.knd, _act]act(): bool
+	if(@actions <>& null)
+		do @actions.head()
+		while(!@actions.term())
+			do @actions.get()()
+			do @actions.next()
+		end while
+	end if
+end func
+
++func addAction(action: func<()>)
+	if(@actions =& null)
+		do @actions :: #list<func<()>>
+	end if
+	do @actions.add(action)
 end func
 
 +func[d0001.knd, _colorDialog]colorDialog(parent: @Wnd, defaultColor: int): int
