@@ -57,7 +57,7 @@ end class
 end func
 
 +func makeSnd(path: []char): @Snd
-	var f: file@Reader(path)
+	var f: file@Reader :: file@makeReader(path)
 	if(f =& null)
 		ret null
 	end if

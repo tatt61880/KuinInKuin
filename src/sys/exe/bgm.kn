@@ -1,4 +1,3 @@
-#exe
 func _init()
 	do wnd@addAction(@_update)
 	do bgmVolume :: 1.0
