@@ -186,6 +186,8 @@ EXPORT_CPP void* _xmlNodeGetAttr(SClass* me_, const U8* attr_name)
 	const std::string& t = utf16ToUtf8_(s);
 	const char* buf = t.c_str();
 	const char* str = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->Attribute(buf);
+	if (str == nullptr)
+		return nullptr;
 	std::string s2 = str;
 	return utf8ToUtf16_(s2);
 }
@@ -204,7 +206,10 @@ EXPORT_CPP void* _xmlNodeGetValue(SClass* me_)
 	SXmlNode* me2 = reinterpret_cast<SXmlNode*>(me_);
 	if (me2->Root)
 		return nullptr;
-	std::string s = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->GetText();
+	const char* str = static_cast<tinyxml2::XMLNode*>(me2->Node)->ToElement()->GetText();
+	if (str == nullptr)
+		return nullptr;
+	std::string s = str;
 	return utf8ToUtf16_(s);
 }
 
