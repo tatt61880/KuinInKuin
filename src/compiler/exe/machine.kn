@@ -619,7 +619,7 @@ func writeReadonlyData()
 				do @writer.write(\convert@bit32ToBin((^table.tryScopes) $ bit32))
 				; Write 'TryScopes' in reverse order.
 				var items2: list<\exe\asm@ExcptTableTry> :: table.tryScopes
-				do items2.head()
+				do items2.tail()
 				while(!items2.term())
 					var try_: \exe\asm@ExcptTableTry :: items2.get()
 					assert try_.begin.addr.value = try_.begin.addr.value $ bit32 $ int
@@ -632,7 +632,7 @@ func writeReadonlyData()
 						do @writer.write(\convert@bit32ToBin(try_.catchFunc.value $ bit32))
 					end if
 					do @writer.write(\convert@bit32ToBin(try_.end_.addr.value $ bit32))
-					do items2.next()
+					do items2.prev()
 				end while
 			end if
 			do items.next()
