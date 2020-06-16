@@ -1,4 +1,3 @@
-#exe
 var state: float
 var type: @Type
 var speed: float

@@ -1,4 +1,3 @@
-#exe
 +class Cursor()
 	*func ctor()
 		do me.num :: 1

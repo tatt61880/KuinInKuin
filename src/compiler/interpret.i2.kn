@@ -728,6 +728,9 @@ func getKeywordsAddKeywords(kind: char, context: @GetKeywordsContext)
 	var callback: int :: context.callback
 	for i(0, ^@keywordList - 1)
 		var item: @KeywordListItem :: @keywordList[i]
+		if(^item.name = 0)
+			skip i
+		end if
 		if(item.name[0] = '%' | item.name[0] = '.')
 			skip i
 		end if

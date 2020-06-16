@@ -647,11 +647,13 @@ func rebuildClass(ast: \ast@AstClass)
 	var toBin: \ast@AstFunc :: null
 	var fromBin: \ast@AstFunc :: null
 	do process1(ast, &dtor, &copy, &toBin, &fromBin)
-	do process2(ast, dtor, copy, toBin, fromBin)
-	do @rebuildFunc(dtor)
-	do @rebuildFunc(copy)
-	do @rebuildFunc(toBin)
-	do @rebuildFunc(fromBin)
+	if(dtor <>& null & copy <>& null & toBin <>& null & fromBin <>& null)
+		do process2(ast, dtor, copy, toBin, fromBin)
+		do @rebuildFunc(dtor)
+		do @rebuildFunc(copy)
+		do @rebuildFunc(toBin)
+		do @rebuildFunc(fromBin)
+	end if
 	
 	func process1(ast: \ast@AstClass, dtor: &\ast@AstFunc, copy: &\ast@AstFunc, toBin: &\ast@AstFunc, fromBin: &\ast@AstFunc)
 		if(ast.refItem <>& null)
@@ -1381,6 +1383,9 @@ func rebuildStat(ast: \ast@AstStat, retType: \ast@AstType, parentFunc: \ast@AstF
 				do astRef.refItem :: superFunc
 				do arg.expr :: astRef
 			end block
+		end if
+		if(arg.type =& null)
+			ret null
 		end if
 		if(arg.expr =& null)
 			do arg.expr :: @makeExprDefaultValue(arg.type, arg.pos) $ \ast@AstExpr

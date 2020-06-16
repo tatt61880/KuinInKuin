@@ -1,4 +1,3 @@
-#exe
 func[d1006.knd, _init]_init()
 end func
 
