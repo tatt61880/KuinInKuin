@@ -2740,6 +2740,10 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 	end if
 	
 	block
+		if(ast.func_.type.typeId <> %typeFunc)
+			do \err@err(%callNonFunction, ast.pos, null)
+			ret null
+		end if
 		var type: \ast@AstTypeFunc :: ast.func_.type $ \ast@AstTypeFunc
 		if(type.funcOption.and(%mki) <> %none)
 			; Make an instance and add it to the second argument when '__mki' is specified.
@@ -2760,7 +2764,7 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 				do ast.args.ins(valueType)
 			end if
 		end if
-		if(ast.func_.typeId = %exprDot & ast.func_.type.typeId = %typeFunc)
+		if(ast.func_.typeId = %exprDot)
 			var me_: \ast@AstExprCallArg :: #\ast@AstExprCallArg
 			do me_.arg :: (ast.func_ $ \ast@AstExprDot).var_
 			do me_.refVar :: false
@@ -2803,12 +2807,6 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 					do ast.args.ins(meType)
 				end if
 			end if
-		else
-			if(type.typeId <> %typeFunc)
-				do \err@err(%callNonFunction, ast.pos, null)
-				ret null
-			end if
-			do type :: ast.func_.type $ \ast@AstTypeFunc
 		end if
 		do ast.type :: type.ret_
 		if(^ast.args <> ^type.args)
