@@ -30,6 +30,3 @@ end func
 
 +func[d0917.knd, SetBreakPoints]setBreakPoints(breakPoints: []\src@Pos)
 end func
-
-+func[d0917.knd, Archive]archive(dst: []char, src: []char): bool
-end func

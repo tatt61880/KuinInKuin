@@ -149,12 +149,6 @@ EXPORT_CPP void SetBreakPoints(const void* break_points)
 	// TODO:
 }
 
-EXPORT_CPP bool Archive(const uint8_t* dst, const uint8_t* src)
-{
-	// TODO:
-	return false;
-}
-
 static void SetOption(const uint8_t* option)
 {
 	int64_t len = *reinterpret_cast<const int64_t*>(option + 0x08);

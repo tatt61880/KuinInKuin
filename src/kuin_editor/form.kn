@@ -1066,22 +1066,6 @@ func btnRlsOnPush(wnd: wnd@WndBase)
 		do @addEnv(option)
 		; TODO: @relatedFiles
 		if(\dll@build(option.toArray(), \src@getSrc, @log))
-			if(\src@mainSrcDir <> \common@defaultDir)
-				var resSrc: []char :: \src@mainSrcDir ~ "res/"
-				if(file@exist(resSrc))
-					var resDst: []char :: tmp ~ "res.knd"
-					if(!\dll@archive(resDst, resSrc))
-						var msg: []char
-						if(\common@langEn)
-							do msg :: "Could not make the resource file. " ~ resDst
-						else
-							do msg :: "リソースファイルを作成できませんでした。 " ~ resDst
-						end if
-						do wnd@msgBox(@wndMain, msg, \common@title, %err, %ok)
-						ret
-					end if
-				end if
-			end if
 			if(zip@zip(file, tmp, -1))
 				do wnd@msgBox(@wndMain, \common@langEn ?("The build succeeded.", "ビルドが成功しました。"), \common@title, %info, %ok)
 			else

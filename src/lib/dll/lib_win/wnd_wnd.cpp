@@ -724,7 +724,7 @@ EXPORT_CPP void* _openFileDialog(SClass* parent, const U8* filter, S64 defaultFi
 	open_file_name.nMaxFile = KUIN_MAX_PATH + 1;
 	open_file_name.lpstrInitialDir = FileDialogDir[0] == L'\0' ? nullptr : FileDialogDir;
 	open_file_name.lpstrTitle = nullptr;
-	open_file_name.Flags = OFN_FILEMUSTEXIST;
+	open_file_name.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 	BOOL success = GetOpenFileName(&open_file_name);
 	if (filter_mem != nullptr)
 		FreeMem(filter_mem);
@@ -758,7 +758,7 @@ EXPORT_CPP void* _saveFileDialog(SClass* parent, const U8* filter, S64 defaultFi
 	open_file_name.lpstrInitialDir = FileDialogDir[0] == L'\0' ? nullptr : FileDialogDir;
 	open_file_name.lpstrTitle = nullptr;
 	open_file_name.lpstrDefExt = defaultExt == nullptr ? nullptr : reinterpret_cast<const Char*>(defaultExt + 0x10);
-	open_file_name.Flags = OFN_OVERWRITEPROMPT;
+	open_file_name.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
 	BOOL success = GetSaveFileName(&open_file_name);
 	if (filter_mem != nullptr)
 		FreeMem(filter_mem);
