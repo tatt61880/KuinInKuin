@@ -1,15 +1,15 @@
 func main()
 end func
 
-var rcon: []bit32
+var rcon: []bit8
 var sbox: []bit8
 var invSbox: []bit8
 
 func _init()
 	do @rcon :: [
-	|0x01b32, 0x02b32, 0x04b32, 0x08b32,
-	|0x10b32, 0x20b32, 0x40b32, 0x80b32,
-	|0x1Bb32, 0x36b32]
+	|0x01b8, 0x02b8, 0x04b8, 0x08b8,
+	|0x10b8, 0x20b8, 0x40b8, 0x80b8,
+	|0x1Bb8, 0x36b8]
 	
 	do @sbox :: [
 	|0x63b8, 0x7Cb8, 0x77b8, 0x7Bb8, 0xF2b8, 0x6Bb8, 0x6Fb8, 0xC5b8, 0x30b8, 0x01b8, 0x67b8, 0x2Bb8, 0xFEb8, 0xD7b8, 0xABb8, 0x76b8,
@@ -58,10 +58,25 @@ end func
 		do data :~ #[16 - ^data % 16]bit8
 	end if
 	var buf: []bit8 :: #[^data]bit8
-	; TODO:
+	var w: []bit8 :: @keyExpansion(key)
+	var cur: []bit8 :: #[16]bit8
+	var old: []bit8 :: #[16]bit8
+	var dataIdx: int :: 0
+	var bufIdx: int :: 0
 	var len: int :: ^data
 	while(len > 0)
+		for i(0, 16 - 1)
+			do cur[i] :: data[dataIdx + i].xor(old[i])
+		end for
+		do @addRoundKey(cur, w, 0)
 		; TODO:
+		do @addRoundKey(cur, w, 14)
+		for i(0, 16 - 1)
+			do buf[bufIdx + i] :: cur[i]
+			do old[i] :: cur[i]
+		end for
+		do dataIdx :+ 16
+		do bufIdx :+ 16
 		do len :- 16
 	end while
 	ret buf
@@ -74,10 +89,62 @@ end func
 		end if
 	end if
 	var buf: []bit8 :: #[^data]bit8
-	; TODO:
+	var w: []bit8 :: @keyExpansion(key)
+	var cur: []bit8 :: #[16]bit8
+	var old: []bit8 :: #[16]bit8
+	var tmp: []bit8 :: #[16]bit8
+	var dataIdx: int :: 0
+	var bufIdx: int :: 0
 	var len: int :: ^data
 	while(len > 0)
+		for i(0, 16 - 1)
+			do cur[i] :: data[dataIdx + i]
+			do tmp[i] :: old[i]
+			do old[i] :: cur[i]
+		end for
+		do @addRoundKey(cur, w, 14)
 		; TODO:
+		do @addRoundKey(cur, w, 0)
+		for i(0, 16 - 1)
+			do cur[i] :: cur[i].xor(tmp[i])
+			do buf[bufIdx + i] :: cur[i]
+		end for
+		do dataIdx :+ 16
+		do bufIdx :+ 16
+		do len :- 16
 	end while
 	ret buf
+end func
+
+func keyExpansion(key: []bit8): []bit8
+	var w: []bit8 :: key ~ #[4 * 60]bit8
+	var tmp: []bit8 :: #[4]bit8
+	for i(8, 60 - 1)
+		do tmp[0] :: w[4 * (i - 1)]
+		do tmp[1] :: w[4 * (i - 1) + 1]
+		do tmp[2] :: w[4 * (i - 1) + 2]
+		do tmp[3] :: w[4 * (i - 1) + 3]
+		if(i % 8 = 0)
+			var t: bit8 :: @sbox[tmp[0] $ int].xor(@rcon[i / 8 - 1])
+			do tmp[0] :: @sbox[tmp[1] $ int]
+			do tmp[1] :: @sbox[tmp[2] $ int]
+			do tmp[2] :: @sbox[tmp[3] $ int]
+			do tmp[3] :: t
+		elif(i % 8 = 4)
+			do tmp[0] :: @sbox[tmp[0] $ int]
+			do tmp[1] :: @sbox[tmp[1] $ int]
+			do tmp[2] :: @sbox[tmp[2] $ int]
+			do tmp[3] :: @sbox[tmp[3] $ int]
+		end if
+		do w[4 * i] :: w[4 * (i - 8)].xor(tmp[0])
+		do w[4 * i + 1] :: w[4 * (i - 8) + 1].xor(tmp[1])
+		do w[4 * i + 2] :: w[4 * (i - 8) + 2].xor(tmp[2])
+		do w[4 * i + 3] :: w[4 * (i - 8) + 3].xor(tmp[3])
+	end for
+end func
+
+func addRoundKey(data: []bit8, w: []bit8, n: int)
+	for i(0, 16 - 1)
+		do data[i] :: data[i].xor(w[16 * n + i])
+	end for
 end func
