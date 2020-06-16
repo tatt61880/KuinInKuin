@@ -2,6 +2,8 @@ const major: int :: 2020
 const minor: int :: 6
 const micro: int :: 17
 
++const useResFlagsLen: int :: 1
+
 func main()
 	do refLibFuncs()
 	
@@ -64,13 +66,14 @@ end func
 func[__rwi]build(): bool
 	var asts: dict<[]char, \ast@Ast>
 	var entry: \ast@AstFunc
+	var useResFlags: []bit8 :: #[@useResFlagsLen]bit8
 	
 	do \err@errCnt :: 0
 	var beginTime: int :: lib@sysTime()
 	do \err@err(%compilationStarted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	; 'Parse'
-	do asts :: \parse@parse()
+	do asts :: \parse@parse(useResFlags)
 	do \err@err(%parsingCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
 	; 'Analyze'
@@ -89,7 +92,7 @@ func[__rwi]build(): bool
 		if(env = "web")
 			ret false
 		else
-			if(!\exe\output@output(entry, funcAttrs))
+			if(!\exe\output@output(entry, funcAttrs, useResFlags))
 				ret false
 			end if
 		end if

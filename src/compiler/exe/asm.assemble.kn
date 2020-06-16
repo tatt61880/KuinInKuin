@@ -6,6 +6,7 @@ var floatNeg: []bit8
 var real43e0: []bit8
 var real43f0: []bit8
 var pack: @Pack
+var useResFlags: []bit8
 var funcAttrs: dict<[]char, dict<[]char, bool>>
 var funcs: queue<\ast@AstFunc>
 var localVars: stack<list<\ast@AstArg>>
@@ -16,7 +17,7 @@ class TmpVars()
 	+var fVars: []\ast@AstArg
 end class
 
-+func assemble(entry: \ast@AstFunc, funcAttrs: dict<[]char, dict<[]char, bool>>): @Pack
++func assemble(entry: \ast@AstFunc, funcAttrs: dict<[]char, dict<[]char, bool>>, useResFlags: []bit8): @Pack
 	if(@regI =& null)
 		do @regI :: [%ax $ @Reg, %cx, %dx, %r8, %r9, %r10, %r11, %r12, %r13, %r14, %r15, %bx]
 	end if
@@ -39,6 +40,7 @@ end class
 		do @real43f0 :: [0x00b8, 0x00b8, 0x00b8, 0x00b8, 0x00b8, 0x00b8, 0xF0b8, 0x43b8]
 	end if
 	
+	do @useResFlags :: useResFlags
 	do @funcAttrs :: funcAttrs
 	do @pack :: #@Pack
 	do @pack.asms :: #list<@Asm>
@@ -1030,8 +1032,7 @@ func assembleFunc(ast: \ast@AstFunc, entry: bool)
 			end if
 			do asms.add(@asmMov(@valReg(8, %r8), @valImmS(8, \option@appCode)))
 			block
-				; TODO: var addr: lib@Int :: @addReadonlyData(@resFlags, false)
-				var addr: lib@Int :: @addReadonlyData([0b8], false) {TODO: Remove.}
+				var addr: lib@Int :: @addReadonlyData(@useResFlags, false)
 				do asms.add(@asmLea(@valReg(8, %r9), @valRip(8, @refValueAddr(addr, true))))
 			end block
 		else

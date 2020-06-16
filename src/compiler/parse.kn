@@ -1,5 +1,6 @@
 var reserved: [][]char
 
+var useResFlags: []bit8
 var makeHint: bool
 var srcesCur: dict<[]char, \ast@Ast>
 var srcesNext: dict<[]char, \ast@Ast>
@@ -30,7 +31,8 @@ var fileReadLetterFunc: func<(int): char>
 	do @fileReadLetterFunc :: fileReadLetterFunc
 end func
 
-+func parse(): dict<[]char, \ast@Ast>
++func parse(useResFlags: []bit8): dict<[]char, \ast@Ast>
+	do @useResFlags :: useResFlags
 	do @makeHint :: \option@extra.get("hint", &)
 	
 	do @srcesCur :: #dict<[]char, \ast@Ast>
@@ -348,6 +350,15 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 							do ast.funcOption :: ast.funcOption.or(%tkv)
 						end if
 					end switch
+				elif(^s >= 2 & s[0] = '_' & '0' <= s[1] & s[1] <= '9')
+					var success: bool
+					var value: int :: s.sub(1, -1).toInt(&success)
+					if(success)
+						var value2: int :: (value - 1) / 8
+						if(1 <= value & value2 < \main@useResFlagsLen)
+							do @useResFlags[value2] :: @useResFlags[value2].or((1b8).shl((value - 1) % 8))
+						end if
+					end if
 				else
 					do ast.funcAttr.add(s)
 				end if

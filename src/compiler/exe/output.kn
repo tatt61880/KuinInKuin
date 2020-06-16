@@ -1,4 +1,4 @@
-+func output(entry: \ast@AstFunc, funcAttrs: dict<[]char, dict<[]char, bool>>): bool
++func output(entry: \ast@AstFunc, funcAttrs: dict<[]char, dict<[]char, bool>>, useResFlags: []bit8): bool
 	; DLL functions loaded when the program starts.
 	var attrs1: dict<[]char, bool> :: funcAttrs.get("d0000.knd", &)
 	if(attrs1 =& null)
@@ -19,7 +19,7 @@
 	do attrs1.add("_newArray", true)
 	do attrs1.add("_dictValueType", true)
 	
-	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry, funcAttrs)
+	var pack: \exe\asm@Pack :: \exe\asm@assemble(entry, funcAttrs, useResFlags)
 	do \exe\machine@convert(pack)
 	if(!@deploy(funcAttrs))
 		ret false
