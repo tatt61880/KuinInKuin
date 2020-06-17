@@ -287,3 +287,41 @@ end func
 		do writer.fin()
 	end func
 end func
+
++func copyAdditionalFiles(): bool
+	if(\option@additionalFiles =& null)
+		ret true
+	end if
+	
+	var reader: file@Reader :: file@makeReader(\option@additionalFiles)
+	if(reader =& null)
+		do \err@err(%fileOpenFailed, null, [\option@additionalFiles])
+		ret false
+	end if
+	while loop1(!reader.term())
+		var readingPath: []char :: reader.readLine().trim()
+		if(^readingPath = 0)
+			skip loop1
+		end if
+		var writingPath: []char :: null
+		while loop2(!reader.term())
+			var path: []char :: reader.readLine().trim()
+			if(^path <> 0)
+				do writingPath :: path
+				break loop2
+			end if
+		end while
+		if(writingPath =& null)
+			skip loop1
+		end if
+		
+		var trueReadingPath: []char :: file@fullPath(\option@inputDir ~ readingPath)
+		var trueWritingPath: []char :: file@fullPath(\option@outputDir ~ writingPath)
+		if(!file@copyFile(trueWritingPath, trueReadingPath))
+			do \err@err(%fileSaveFailed, null, [trueReadingPath])
+			ret false
+		end if
+	end while
+	do reader.fin()
+	ret true
+end func

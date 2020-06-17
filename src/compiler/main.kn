@@ -20,7 +20,7 @@ func main()
 	end if
 	
 	if(\option@help | \option@inputFile =& null)
-		do cui@print("Usage: kuincl [-i input.kn] [-o output.kn] [-s 'sys' directory] [-e environment] [-a appcode] [-p 'res' directory] [-c icon.ico] [-r] [-h] [-v] [-q] [-x extended option]\n")
+		do cui@print("Usage: kuincl [-i input.kn] [-o output.kn] [-s 'sys' directory] [-e environment] [-a appcode] [-p 'res' directory] [-c icon.ico] [-f additional files] [-r] [-h] [-v] [-q] [-x extended option]\n")
 		do lib@exitCode(0)
 		ret
 	end if
@@ -107,6 +107,11 @@ func[__rwi]build(): bool
 	default
 		assert false
 	end switch
+	
+	; Copy additional files.
+	if(!\convert@copyAdditionalFiles())
+		ret false
+	end if
 	
 	do \err@err(%generationProcessCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	if(\err@errCnt > 0)

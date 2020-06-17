@@ -15,7 +15,7 @@ rem Kuin2.cpp ->[Visual Studio]->Kuin2.exe
 "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" "%~dp0output/kuin_cpp.sln" /t:clean;rebuild /p:Configuration="Release" /p:Platform="x64" /m
 if exist "%~dp0deploy_exe" rd /s /q "%~dp0deploy_exe"
 mkdir "%~dp0deploy_exe"
-copy /Y ".\output\x64\Release\kuin_cpp\kuin_cpp.exe" "%~dp0deploy_exe\kuin.exe"
+copy /Y ".\output\x64\Release\kuin_cpp\kuin_cpp.exe" "%~dp0deploy_exe\kuincl.exe"
 xcopy /s /e /q /i /y "..\src\sys" "%~dp0deploy_exe\sys"
 mkdir ".\deploy_exe\sys\data"
 mkdir ".\deploy_exe\sys\data\dbg"

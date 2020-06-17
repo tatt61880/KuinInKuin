@@ -8,6 +8,7 @@ end enum
 +var outputFile: []char
 +var sysDir: []char
 +var icon: []char
++var additionalFiles: []char
 +var rls: bool
 +var env_: @Env
 +var help: bool
@@ -52,6 +53,11 @@ end enum
 					ret false
 				end if
 				do @icon :: file@fullPath(@icon)
+			case 'f'
+				if(!getArg1(&@additionalFiles, cmdLines, &i, c))
+					ret false
+				end if
+				do @additionalFiles :: file@fullPath(@additionalFiles)
 			case 'r'
 				if(!getArg0(&@rls, c))
 					ret false
