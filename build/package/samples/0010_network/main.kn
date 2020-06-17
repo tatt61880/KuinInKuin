@@ -3,7 +3,7 @@
 const url: []char :: "http://kuina.ch"
 
 func main()
-	var wndMain: wnd@Wnd :: wnd@makeWnd(null, %normal, 1024, 768, "File Sample")
+	var wndMain: wnd@Wnd :: wnd@makeWnd(null, %normal, 1024, 768, "Network Sample")
 	var edit1: wnd@EditMulti :: wnd@makeEditMulti(wndMain, 12, 12, 485, 676, %fix, %scale)
 	do edit1.readonly(true)
 	var edit2: wnd@EditMulti :: wnd@makeEditMulti(wndMain, 500, 12, 485, 676, %scale, %scale)

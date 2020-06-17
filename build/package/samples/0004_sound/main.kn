@@ -10,23 +10,24 @@ func main()
 	do btnSe.onPush :: btnSeOnPush {SEボタンが押されたときのイベント}
 	var btnBgm: wnd@Btn :: wnd@makeBtn(wndMain, 168, 12, 150, 23, %fix, %fix, "Play BGM") {BGMボタンの作成}
 	do btnBgm.onPush :: btnBgmOnPush {BGMボタンが押されたときのイベント}
-	do @sndSe :: snd@makeSnd("res/se.wav", false) {サウンドを非ストリーミングで読み込む}
-	do @sndBgm :: snd@makeSnd("res/bgm.ogg", true) {サウンドをストリーミングで読み込む}
+	do @sndSe :: snd@makeSnd("res/se.wav") {サウンドを非ストリーミングで読み込む}
+	do @sndBgm :: snd@makeSnd("res/bgm.ogg") {サウンドをストリーミングで読み込む}
 	while(wnd@act())
 	end while
 	
-	func btnSeOnPush(wnd: wnd@Btn)
+	func btnSeOnPush(wnd: wnd@WndBase)
 		do @sndSe.setPos(0.0) {再生位置を0秒に設定}
 		do @sndSe.play() {SEボタンが押されたらSEを再生}
 	end func
 	
-	func btnBgmOnPush(wnd: wnd@Btn)
+	func btnBgmOnPush(wnd: wnd@WndBase)
+		var btn: wnd@Btn :: wnd $ wnd@Btn
 		if(@sndBgm.playing())
 			do @sndBgm.stop() {BGMボタンが押されたら再生中ならBGMを停止}
-			do wnd.setText("Play BGM")
+			do btn.setText("Play BGM")
 		else
-			do @sndBgm.playLoop(0.0) {BGMボタンが押されたら停止中ならBGMをループ再生}
-			do wnd.setText("Stop BGM")
+			do @sndBgm.playLoop() {BGMボタンが押されたら停止中ならBGMをループ再生}
+			do btn.setText("Stop BGM")
 		end if
 	end func
 end func

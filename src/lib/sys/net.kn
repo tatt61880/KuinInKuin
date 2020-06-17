@@ -69,7 +69,7 @@ end class
 	+func[d0004.knd, _tcpServerFin]fin()
 	end func
 	
-	+func[d0004.knd, _tcpServerGet, _make_instance]get(me2: @Tcp): @Tcp
+	+func[d0004.knd, _tcpServerGet, __mki]get(me2: @Tcp): @Tcp
 	end func
 	
 	var socket: int

@@ -8,9 +8,7 @@ func main()
 	const itemNum: int :: 15
 	var wndMain: wnd@Wnd :: wnd@makeWnd(null, %aspect, 1600, 900, "Collision and Particles Sample") {ウインドウの生成}
 	var drawMain: wnd@Draw :: wnd@makeDraw(wndMain, 0, 0, 1600, 900, %scale, %scale, false) {ドローコントロールの生成}
-	var particle: draw@Particle :: draw@makeParticle()
-	do particle.lifespan :: 30
-	do particle.color2 :: 0x00FFFFFF
+	var particle: draw@Particle :: draw@makeParticle(30, 0xFFFFFFFF, 0x00FFFFFF, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 	var texParticle: draw@Tex :: draw@makeTex("res/tex_particle.png")
 	var rects: []Item :: #[itemNum]Item
 	for i(0, itemNum - 1)

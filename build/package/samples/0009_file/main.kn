@@ -35,7 +35,7 @@ func main()
 		; "Hello"というデータを暗号化して書き込む
 		do writer :: file@makeWriter(@fileName2, false)
 		var data: []char :: "Hello" {データを用意}
-		var encryptedData: []bit8 :: lib@encrypt(data $> []bit8, @getKey()) {暗号化}
+		var encryptedData: []bit8 :: cipher@encrypt(data $> []bit8, @getKey()) {暗号化}
 		do writer.write(encryptedData) {書き込み}
 		do writer.fin()
 	end func
@@ -54,7 +54,7 @@ func main()
 		; 暗号化されたファイルを読み込んで復号する
 		do reader :: file@makeReader(@fileName2)
 		var encryptedData: []bit8 :: reader.read(reader.fileSize()) {ファイルをすべて読み込む}
-		var data: []char :: lib@decrypt(encryptedData, @getKey()) $< []char {復号}
+		var data: []char :: cipher@decrypt(encryptedData, @getKey()) $< []char {復号}
 		do str :~ data
 		
 		ret str

@@ -42,13 +42,13 @@ func main()
 	end while
 end func
 
-func wndMainOnActivate(wnd: wnd@Wnd, active: bool, minimized: bool)
+func wndMainOnActivate(wnd: wnd@WndBase, active: bool, minimized: bool)
 	if(active & !minimized)
 		do @drawMain.focus() {キーを受け取るためにフォーカスさせる}
 	end if
 end func
 
-func drawMainOnMouseMove(wnd: wnd@Draw, x: int, y: int)
+func drawMainOnMouseMove(wnd: wnd@WndBase, x: int, y: int)
 	; マウスが動いたら追跡する
 	var width: int
 	var height: int
@@ -57,23 +57,23 @@ func drawMainOnMouseMove(wnd: wnd@Draw, x: int, y: int)
 	do @mouseY :: y * 900 / height
 end func
 
-func drawMainOnMouseDownL(wnd: wnd@Draw, x: int, y: int)
+func drawMainOnMouseDownL(wnd: wnd@WndBase, x: int, y: int)
 	do @mouseDownL :: true {左ボタンが押された}
 end func
 
-func drawMainOnMouseUpL(wnd: wnd@Draw, x: int, y: int)
+func drawMainOnMouseUpL(wnd: wnd@WndBase, x: int, y: int)
 	do @mouseDownL :: false {左ボタンが離された}
 end func
 
-func drawMainOnMouseEnter(wnd: wnd@Draw, x: int, y: int)
+func drawMainOnMouseEnter(wnd: wnd@WndBase, x: int, y: int)
 	do @mouseDownL :: wnd@key(%mouseL) {左ボタンを押したままウインドウ外に出て入りなおす場合の対処}
 	do draw@clearColor(0xFFFF9999) {ウインドウ内に入ったら背景色をピンクにする}
 end func
 
-func drawMainOnMouseLeave(wnd: wnd@Draw)
+func drawMainOnMouseLeave(wnd: wnd@WndBase)
 	do draw@clearColor(0xFF000000) {ウインドウ外に出たら背景色を黒にする}
 end func
 
-func drawMainOnKeyChar(wnd: wnd@Draw, key: char)
+func drawMainOnKeyChar(wnd: wnd@WndBase, key: char)
 	do @keyBuf :: (@keyBuf ~ key.toStr()).sub(1, 20)
 end func

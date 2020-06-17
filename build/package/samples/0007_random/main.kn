@@ -6,7 +6,7 @@ func main()
 	do edit1.readonly(true)
 	var edit2: wnd@EditMulti :: wnd@makeEditMulti(wndMain, 500, 12, 485, 676, %scale, %scale)
 	do edit2.readonly(true)
-	var rnd: lib@Rnd :: lib@makeRnd(1234) {シード1234で再現性のある乱数を生成}
+	var rnd: lib@Rnd :: lib@makeRnd(1234b32) {シード1234で再現性のある乱数を生成}
 	
 	; 1以上6以下の整数の乱数を生成
 	do edit1.setText("[1, 6]\n----------\n")
