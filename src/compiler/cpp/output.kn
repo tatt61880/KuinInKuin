@@ -493,9 +493,18 @@ func buildSwitch(ast: \ast@AstStatSwitch, breakStat: \ast@AstStat, skipStat: \as
 				end if
 				if(exprs.expr1 =& null)
 					if(\ast@isRef(ast.cond.type))
-						do @codes.add("cmp_(\{info.id}, (")
-						do @buildExpr(exprs.expr0)
-						do @codes.add(")) == 0")
+						if(\ast@isStr(ast.cond.type) & exprs.expr0.typeId.and(%exprValue) = %exprValue)
+							var value: []char :: (exprs.expr0 $ \ast@AstExprValueStr).value
+							do @codes.add("(\{info.id}->L==\{^value}")
+							for i(0, ^value - 1)
+								do @codes.add("&&\{info.id}->B[\{i}]==\{value[i] $ int}")
+							end for
+							do @codes.add(")")
+						else
+							do @codes.add("cmp_(\{info.id}, (")
+							do @buildExpr(exprs.expr0)
+							do @codes.add(")) == 0")
+						end if
 					else
 						do @codes.add("\{info.id} == (")
 						do @buildExpr(exprs.expr0)
@@ -899,6 +908,16 @@ func buildExpr2(ast: \ast@AstExpr2)
 		end if
 	case %eq
 		if(\ast@isRef(type))
+			if(\ast@isStr(type))
+				if(ast.children0.typeId.and(%exprValue) = %exprValue)
+					do strEq(ast.children1, ast.children0 $ \ast@AstExprValueStr)
+					ret
+				end if
+				if(ast.children1.typeId.and(%exprValue) = %exprValue)
+					do strEq(ast.children0, ast.children1 $ \ast@AstExprValueStr)
+					ret
+				end if
+			end if
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
 			do @codes.add("), (")
@@ -913,6 +932,16 @@ func buildExpr2(ast: \ast@AstExpr2)
 		end if
 	case %nEq
 		if(\ast@isRef(type))
+			if(\ast@isStr(type))
+				if(ast.children0.typeId.and(%exprValue) = %exprValue)
+					do strNEq(ast.children1, ast.children0 $ \ast@AstExprValueStr)
+					ret
+				end if
+				if(ast.children1.typeId.and(%exprValue) = %exprValue)
+					do strNEq(ast.children0, ast.children1 $ \ast@AstExprValueStr)
+					ret
+				end if
+			end if
 			do @codes.add("cmp_((")
 			do @buildExpr(ast.children0)
 			do @codes.add("), (")
@@ -1000,6 +1029,28 @@ func buildExpr2(ast: \ast@AstExpr2)
 	default
 		assert false
 	end switch
+	
+	func strEq(v: \ast@AstExpr, c: \ast@AstExprValueStr)
+		var tmp: []char :: @addTmpVar(@getType(v.type))
+		var value: []char :: c.value
+		do @codes.add("\{tmp}=(")
+		do @buildExpr(v)
+		do @codes.add("),\{tmp}->L==\{^value}")
+		for i(0, ^value - 1)
+			do @codes.add("&&\{tmp}->B[\{i}]==\{value[i] $ int}")
+		end for
+	end func
+	
+	func strNEq(v: \ast@AstExpr, c: \ast@AstExprValueStr)
+		var tmp: []char :: @addTmpVar(@getType(v.type))
+		var value: []char :: c.value
+		do @codes.add("\{tmp}=(")
+		do @buildExpr(v)
+		do @codes.add("),\{tmp}->L!=\{^value}")
+		for i(0, ^value - 1)
+			do @codes.add("||\{tmp}->B[\{i}]!=\{value[i] $ int}")
+		end for
+	end func
 end func
 
 func buildExpr3(ast: \ast@AstExpr3)
