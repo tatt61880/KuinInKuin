@@ -10,7 +10,7 @@ end func
 +func[d0917.knd, Interpret1]interpret1(src: kuin@Class, line: int, me_: kuin@Class, replaceFunc: func<(\doc_src@DocSrc, int, []char)>, cursorX: int, cursorY: int, newCursorX: &int, oldLine: int, newLine: int)
 end func
 
-+func[d0917.knd, Interpret2]interpret2(option: [][]char, funcGetSrc: func<([]char): [][]char>, funcLog: func<([][]char, int, int)>): bool
++func[d0917.knd, Interpret2]interpret2(option: [][]char, funcGetSrc: func<([]char): [][]char>, funcLog: func<([][]char, int, int)>)
 end func
 
 +func[d0917.knd, Version]version(major: &int, minor: &int, micro: &int)
@@ -29,4 +29,13 @@ end func
 end func
 
 +func[d0917.knd, SetBreakPoints]setBreakPoints(breakPoints: []\src@Pos)
+end func
+
++func[d0917.knd, LockThread]lockThread()
+end func
+
++func[d0917.knd, Interpret2Running]interpret2Running(): bool
+end func
+
++func[d0917.knd, WaitEndOfInterpret2]waitEndOfInterpret2()
 end func

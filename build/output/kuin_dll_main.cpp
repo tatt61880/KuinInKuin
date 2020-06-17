@@ -27,6 +27,9 @@ static void(*FuncLog)(const void*, int64_t, int64_t);
 static void* Src = nullptr;
 static const void* SrcLine = nullptr;
 static const wchar_t* SrcChar = nullptr;
+static CRITICAL_SECTION CriticalSection;
+static HANDLE Interpret2ThreadHandle = nullptr;
+static int ReadingLetterCnt = 0;
 
 static void SetOption(const uint8_t* option);
 static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col);
@@ -36,6 +39,7 @@ static void FileClose(int64_t handle);
 static int64_t FileSize(int64_t handle);
 static char16_t FileReadLetter(int64_t handle);
 static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keyword);
+static DWORD WINAPI RunInterpret2(LPVOID data);
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -47,12 +51,16 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 
 EXPORT_CPP void InitCompiler()
 {
+	InitializeCriticalSection(&CriticalSection);
+	EnterCriticalSection(&CriticalSection);
 	initLib();
 }
 
 EXPORT_CPP void FinCompiler()
 {
 	finLib();
+	LeaveCriticalSection(&CriticalSection);
+	DeleteCriticalSection(&CriticalSection);
 }
 
 EXPORT_CPP bool BuildMem(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
@@ -86,21 +94,16 @@ EXPORT_CPP void Interpret1(void* src, int64_t line, void* me, void* replace_func
 	}
 }
 
-EXPORT_CPP bool Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
+EXPORT_CPP void Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
 {
+	printf("c: %d\n", timeGetTime());
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
 	setLogFunc(OutputLog);
 	SetOption(option);
 	setFileFuncs(FileOpen, FileClose, FileSize, FileReadLetter);
-	bool result = interpret2();
-	FuncGetSrc = nullptr;
-	FuncLog = nullptr;
-	DecSrc();
-	Src = nullptr;
-	SrcLine = nullptr;
-	SrcChar = nullptr;
-	return result;
+	DWORD id;
+	Interpret2ThreadHandle = CreateThread(nullptr, 0, RunInterpret2, nullptr, 0, &id);
 }
 
 EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
@@ -147,6 +150,28 @@ EXPORT_CPP bool RunDbg(const uint8_t* path, const uint8_t* cmd_line, void* idle_
 EXPORT_CPP void SetBreakPoints(const void* break_points)
 {
 	// TODO:
+}
+
+EXPORT_CPP void LockThread()
+{
+	LeaveCriticalSection(&CriticalSection);
+	Sleep(1);
+	EnterCriticalSection(&CriticalSection);
+}
+
+EXPORT_CPP bool Interpret2Running()
+{
+	return Interpret2ThreadHandle != nullptr;
+}
+
+EXPORT_CPP void WaitEndOfInterpret2()
+{
+	while (Interpret2ThreadHandle != nullptr)
+	{
+		LeaveCriticalSection(&CriticalSection);
+		Sleep(1);
+		EnterCriticalSection(&CriticalSection);
+	}
 }
 
 static void SetOption(const uint8_t* option)
@@ -249,8 +274,17 @@ static int64_t FileSize(int64_t handle)
 	return total;
 }
 
+#pragma comment (lib, "winmm.lib")
 static char16_t FileReadLetter(int64_t handle)
 {
+	ReadingLetterCnt++;
+	if (ReadingLetterCnt == 1000)
+	{
+		ReadingLetterCnt = 0;
+		LeaveCriticalSection(&CriticalSection);
+		Sleep(1);
+		EnterCriticalSection(&CriticalSection);
+	}
 	UNUSED(handle);
 	const void* term;
 	{
@@ -280,4 +314,23 @@ static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keywo
 	reinterpret_cast<int64_t*>(buf)[1] = len;
 	memcpy(buf + 0x08, keyword->B, sizeof(wchar_t) * static_cast<size_t>(len + 1));
 	Call1Asm(buf, reinterpret_cast<void*>(callback));
+}
+
+static DWORD WINAPI RunInterpret2(LPVOID data)
+{
+	UNUSED(data);
+	EnterCriticalSection(&CriticalSection);
+	printf("x: %d\n", timeGetTime());
+	ReadingLetterCnt = 0;
+	interpret2();
+	FuncGetSrc = nullptr;
+	FuncLog = nullptr;
+	DecSrc();
+	Src = nullptr;
+	SrcLine = nullptr;
+	SrcChar = nullptr;
+	Interpret2ThreadHandle = nullptr;
+	printf("y: %d\n", timeGetTime());
+	LeaveCriticalSection(&CriticalSection);
+	return TRUE;
 }

@@ -34,6 +34,7 @@ end class
 end func
 
 +func fin()
+	do \dll@waitEndOfInterpret2()
 	do @clearDocs()
 end func
 
@@ -43,6 +44,7 @@ func updateMainSrcDir(dir: []char)
 end func
 
 +func newMainSrc()
+	do \dll@waitEndOfInterpret2()
 	var doc: \doc_src@DocSrc :: #\doc_src@DocSrc
 	do @curDoc :: doc
 	do @mainSrcPath :: \common@defaultDir ~ "main.kn"
@@ -68,6 +70,7 @@ end func
 		do wnd@msgBox(\form@wndMain, msg, \common@title, %err, %ok)
 		ret
 	end if
+	do \dll@waitEndOfInterpret2()
 	do @curDoc :: doc
 	do @mainSrcPath :: path
 	do @updateMainSrcDir(file@dir(path))

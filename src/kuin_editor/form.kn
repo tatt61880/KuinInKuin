@@ -898,6 +898,9 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 	end try
 	do \src@docs.forEach(@fixAll, null)
 	do @updateState()
+	if(\dll@interpret2Running())
+		do \dll@waitEndOfInterpret2()
+	end if
 	do \dll@resetMemAllocator()
 	do @editLog.setText("")
 	var cmd: []char :: out
@@ -1054,6 +1057,9 @@ func btnRlsOnPush(wnd: wnd@WndBase)
 	end try
 	do \src@docs.forEach(@fixAll, null)
 	do @updateState()
+	if(\dll@interpret2Running())
+		do \dll@waitEndOfInterpret2()
+	end if
 	do \dll@resetMemAllocator()
 	do @editLog.setText("")
 	try
@@ -1265,7 +1271,7 @@ end func
 		do @drawEditor.paint()
 		do @redrawingRequired :: false
 	end if
-	if(@interpret2Required)
+	if(@interpret2Required & !\dll@interpret2Running())
 		do \src@resetErrList()
 		do \dll@resetMemAllocator()
 		var option: list<[]char> :: #list<[]char>
