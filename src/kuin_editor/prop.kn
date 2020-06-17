@@ -47,10 +47,16 @@ end func
 		var cfg: xml@Node :: root.findChild("configuration")
 		try
 			do \form@iconPath :: cfg.findChild("icon").getValue()
+			if(\form@iconPath =& null)
+				do \form@iconPath :: ""
+			end if
 		catch
 		end try
 		try
-			do \form@setEnvDirectly(cfg.findChild("env").getValue())
+			var value: []char :: cfg.findChild("env").getValue()
+			if(value <>& null)
+				do \form@setEnvDirectly(value)
+			end if
 		catch
 		end try
 		try

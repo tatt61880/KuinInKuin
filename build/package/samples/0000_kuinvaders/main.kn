@@ -64,8 +64,8 @@ func game()
 				do playerY :+ 12.0 {下に移動}
 			end if
 			; 自機が移動可能な範囲を超えないようにクランプする。
-			do playerX :: playerX.clamp(140.0 / 2.0, 1600.0 - 140.0 / 2.0)
-			do playerY :: playerY.clamp(700.0, 900.0)
+			do playerX :: lib@clampFloat(playerX, 140.0 / 2.0, 1600.0 - 140.0 / 2.0)
+			do playerY :: lib@clampFloat(playerY, 700.0, 900.0)
 			; 自機の弾発射およびゲームオーバー時のボタン処理。
 			if(input@pad(0, %a) = 1)
 				if(gameover = 1)
@@ -113,7 +113,7 @@ func game()
 					if(enemies[i * 6 + j] = 0)
 						skip j {敵が消えた箇所はスキップ}
 					end if
-					if(lib@rnd(0, 60 * enemyNum / stage.clampMax(30)) = 0) {一定確率で弾を発射する}
+					if(lib@rnd(0, 60 * enemyNum / lib@min(stage, 30)) = 0) {一定確率で弾を発射する}
 						var beam: Beam :: #Beam
 						do beam.x :: enemyX + j $ float * 100.0
 						do beam.y :: enemyY + i $ float * 45.0

@@ -220,7 +220,7 @@ static int GetVlc(SJpgData* jpg_data, SVlcCode* vlc, U8* code)
 		ShowBits(jpg_data, bits);
 	jpg_data->BufBits -= bits;
 	if (value < (1 << (bits - 1)))
-		value += ((-1) << bits) + 1;
+		value += ((0xffffffff) << bits) + 1;
 	return value;
 }
 
@@ -431,15 +431,15 @@ static void DecodeSof(SJpgData* jpg_data)
 static void DecodeDht(SJpgData* jpg_data)
 {
 	ReadLen(jpg_data);
-	static U8 counts[16];
+	U8 counts[16];
 	while (jpg_data->Len >= 17)
 	{
 		int i = jpg_data->Ptr[0];
 		if ((i & 0xec) != 0 || (i & 0x02) != 0)
 			THROW(0xe9170008);
 		i = (i | (i >> 3)) & 3;
-		for (int codelen = 1; codelen <= 16; codelen++)
-			counts[codelen - 1] = jpg_data->Ptr[codelen];
+		for (int codelen = 0; codelen < 16; codelen++)
+			counts[codelen] = jpg_data->Ptr[codelen + 1];
 		Skip(jpg_data, 17);
 		SVlcCode* vlc = &jpg_data->VlcTab[i][0];
 		int remain = 65536;
