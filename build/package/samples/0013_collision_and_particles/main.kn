@@ -8,7 +8,7 @@ func main()
 	const itemNum: int :: 15
 	var wndMain: wnd@Wnd :: wnd@makeWnd(null, %aspect, 1600, 900, "Collision and Particles Sample") {ウインドウの生成}
 	var drawMain: wnd@Draw :: wnd@makeDraw(wndMain, 0, 0, 1600, 900, %scale, %scale, false) {ドローコントロールの生成}
-	var particle: draw@Particle :: draw@makeParticle(30, 0xFFFFFFFF, 0x00FFFFFF, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	var particle: draw@Particle :: draw@makeParticle(30, 0xFFCCCCCC, 0x00CCCCCC, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 	var texParticle: draw@Tex :: draw@makeTex("res/tex_particle.png")
 	var rects: []Item :: #[itemNum]Item
 	for i(0, itemNum - 1)
@@ -54,8 +54,8 @@ func main()
 		for i(0, itemNum - 1)
 			for j(0, i - 1)
 				if(game@hitRectRect(rects[i], rects[j], rects[i].weight, rects[j].weight, 1.0, 0.0) <> %none)
-					for k(0, 19)
-						do particle.emit(rects[i].x, rects[i].y, 0.0, lib@rndFloat(-3.0, 3.0), lib@rndFloat(-3.0, 3.0), 0.0, 150.0, 0.5, 0.0, lib@rndFloat(-lib@pi / 30.0, lib@pi / 30.0))
+					for k(0, 4)
+						do particle.emit(rects[i].x, rects[i].y, 0.0, lib@rndFloat(-1.0, 1.0), lib@rndFloat(-1.0, 1.0), 0.0, lib@rndFloat(120.0, 150.0), 0.5, 0.0, lib@rndFloat(-lib@pi / 30.0, lib@pi / 30.0))
 					end for
 				end if
 			end for

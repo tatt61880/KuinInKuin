@@ -129,15 +129,14 @@ EXPORT_CPP SClass* _makeParticle(SClass* me_, S64 life_span, S64 color1, S64 col
 		me2->PsConstBuf.Color2[3] = static_cast<float>(a);
 	}
 
-	SParticleUpdatingPsConstBuf const_buf;
-	const_buf.AccelAndFriction[0] = static_cast<float>(accel_x);
-	const_buf.AccelAndFriction[1] = static_cast<float>(accel_y);
-	const_buf.AccelAndFriction[2] = static_cast<float>(accel_z);
-	const_buf.AccelAndFriction[3] = static_cast<float>(friction);
-	const_buf.SizeAccelAndRotAccel[0] = static_cast<float>(size_accel);
-	const_buf.SizeAccelAndRotAccel[1] = static_cast<float>(rot_accel);
-	const_buf.SizeAccelAndRotAccel[2] = 0.0f;
-	const_buf.SizeAccelAndRotAccel[3] = 0.0f;
+	me2->UpdatingPsConstBuf.AccelAndFriction[0] = static_cast<float>(accel_x);
+	me2->UpdatingPsConstBuf.AccelAndFriction[1] = static_cast<float>(accel_y);
+	me2->UpdatingPsConstBuf.AccelAndFriction[2] = static_cast<float>(accel_z);
+	me2->UpdatingPsConstBuf.AccelAndFriction[3] = static_cast<float>(friction);
+	me2->UpdatingPsConstBuf.SizeAccelAndRotAccel[0] = static_cast<float>(size_accel);
+	me2->UpdatingPsConstBuf.SizeAccelAndRotAccel[1] = static_cast<float>(rot_accel);
+	me2->UpdatingPsConstBuf.SizeAccelAndRotAccel[2] = 0.0f;
+	me2->UpdatingPsConstBuf.SizeAccelAndRotAccel[3] = 0.0f;
 
 	{
 		Bool success = True;
