@@ -62,6 +62,7 @@ var drag: bool
 +var relatedFiles: list<[]char>
 var redrawingRequired: bool
 var interpret2Required: bool
+var completionRequired: bool
 
 +func makeWnd()
 	do @lockUi :: true
@@ -344,6 +345,7 @@ var interpret2Required: bool
 	do @relatedFiles :: #list<[]char>
 	do @redrawingRequired :: false
 	do @interpret2Required :: false
+	do @completionRequired :: false
 	
 	func btnFileAddOnPush(wnd: wnd@WndBase)
 		do @wndMainOnPushMenu(@wndMain, 0x0030)
@@ -1280,11 +1282,18 @@ end func
 		do option.add("-x")
 		do option.add("hint")
 		do @addEnv(option)
-		do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret)
-		do \src@updateErrList()
-		do @updateUi()
+		do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret, complete)
 		do @interpret2Required :: false
 	end if
+	if(@completionRequired)
+		do \src@updateErrList()
+		do @updateUi()
+		do @completionRequired :: false
+	end if
+	
+	func complete()
+		do @completionRequired :: true
+	end func
 end func
 
 +func callInterpret2()

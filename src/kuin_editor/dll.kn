@@ -10,7 +10,7 @@ end func
 +func[d0917.knd, Interpret1]interpret1(src: kuin@Class, line: int, me_: kuin@Class, replaceFunc: func<(\doc_src@DocSrc, int, []char)>, cursorX: int, cursorY: int, newCursorX: &int, oldLine: int, newLine: int)
 end func
 
-+func[d0917.knd, Interpret2]interpret2(option: [][]char, funcGetSrc: func<([]char): [][]char>, funcLog: func<([][]char, int, int)>)
++func[d0917.knd, Interpret2]interpret2(option: [][]char, funcGetSrc: func<([]char): [][]char>, funcLog: func<([][]char, int, int)>, funcComplete: func<()>)
 end func
 
 +func[d0917.knd, Version]version(major: &int, minor: &int, micro: &int)
