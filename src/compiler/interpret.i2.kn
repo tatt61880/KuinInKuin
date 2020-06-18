@@ -34,6 +34,7 @@ class CorrectKeywordsParam()
 	+var first: lib@Int
 	+var last: lib@Int
 	+var parentType: \ast@TypeId
+	+var i2Data: @Interpret2Data
 end class
 
 class GetKeywordsContext()
@@ -43,22 +44,29 @@ class GetKeywordsContext()
 	+var cursorX: int
 	+var cursorY: int
 	+var hintFunc: \ast@AstFunc
+	+var i2Data: @Interpret2Data
 end class
 
-var keywordList: []@KeywordListItem
+class Interpret2Data()
+	+var keywordList: []@KeywordListItem
+	+var subSrcDummyAst: \ast@Ast
+end class
 
-+func[__rwi]interpret2(): bool
++func[__rwi]interpret2(): int
 	if(\err@errCnt > 0)
-		ret false
+		ret 0
 	end if
 	
 	var asts: dict<[]char, \ast@Ast> :: \parse@parse(#[\main@useResFlagsLen]bit8)
 	do \analyze@analyze(asts, &)
-	do @makeKeywordList(asts)
-	ret true
+	var i2Data: @Interpret2Data :: #@Interpret2Data
+	do i2Data.keywordList :: null
+	do i2Data.subSrcDummyAst :: \ast@getSubSrcDummyAst()
+	do @makeKeywordList(i2Data, asts)
+	ret @i2DataToInt(i2Data)
 end func
 
-func makeKeywordList(asts: dict<[]char, \ast@Ast>)
+func makeKeywordList(i2Data: @Interpret2Data, asts: dict<[]char, \ast@Ast>)
 	var param: @CorrectKeywordsParam :: #@CorrectKeywordsParam
 	do param.src :: null
 	do param.keywords :: #list<@KeywordListItem>
@@ -67,9 +75,10 @@ func makeKeywordList(asts: dict<[]char, \ast@Ast>)
 	do param.last :: #lib@Int
 	do param.last.value :: lib@intMin
 	do param.parentType :: %none
+	do param.i2Data :: i2Data
 	do asts.forEach(@correctKeywords, param)
-	do @keywordList :: param.keywords.toArray()
-	do @keywordList.sort()
+	do i2Data.keywordList :: param.keywords.toArray()
+	do i2Data.keywordList.sort()
 end func
 
 func correctKeywords(srcName: []char, ast: \ast@Ast, data: kuin@Class): bool
@@ -80,7 +89,8 @@ func correctKeywords(srcName: []char, ast: \ast@Ast, data: kuin@Class): bool
 	do param2.first :: param.first
 	do param2.last :: param.last
 	do param2.parentType :: param.parentType
-	if(ast <>& \ast@getSubSrcDummyAst())
+	do param2.i2Data :: param.i2Data
+	if(ast <>& param.i2Data.subSrcDummyAst)
 		do @correctKeywordsRecursion(param2, ast)
 	end if
 	ret true
@@ -128,11 +138,15 @@ func correctKeywordsRecursion(param: @CorrectKeywordsParam, ast: \ast@Ast)
 		do param2.last :: #lib@Int
 		do param2.last.value :: lib@intMin
 		do param2.parentType :: ast.typeId
+		do param2.i2Data :: param.i2Data
 		do ast.scopeChildren.forEach(@correctKeywords, param2)
 	end if
 end func
 
-+func[__rwi]getKeywordsRoot(str: []char, srcName: []char, x: int, y: int, callCallbackFunc: func<(int, []char)>, callback: int): []char
++func[__rwi]getKeywordsRoot(i2Data: int, str: []char, srcName: []char, x: int, y: int, callCallbackFunc: func<(int, []char)>, callback: int): []char
+	if(i2Data = 0)
+		ret null
+	end if
 	var context: @GetKeywordsContext :: #@GetKeywordsContext
 	do context.callCallbackFunc :: callCallbackFunc
 	do context.callback :: callback
@@ -140,6 +154,7 @@ end func
 	do context.cursorX :: x
 	do context.cursorY :: y
 	do context.hintFunc :: null
+	do context.i2Data :: @intToI2Data(i2Data)
 	do @getKeywordsRootImpl(str, srcName, context)
 	if(context.hintFunc <>& null)
 		var hintFunc: \ast@AstFunc :: context.hintFunc
@@ -721,13 +736,14 @@ func getKeywordsReadType(str: []char, idx: &int, type: &[]char, context: @GetKey
 end func
 
 func getKeywordsAddKeywords(kind: char, context: @GetKeywordsContext)
-	if(@keywordList =& null)
+	var keywordList: []@KeywordListItem :: context.i2Data.keywordList
+	if(keywordList =& null)
 		ret
 	end if
 	var callCallbackFunc: func<(int, []char)> :: context.callCallbackFunc
 	var callback: int :: context.callback
-	for i(0, ^@keywordList - 1)
-		var item: @KeywordListItem :: @keywordList[i]
+	for i(0, ^keywordList - 1)
+		var item: @KeywordListItem :: keywordList[i]
 		if(^item.name = 0)
 			skip i
 		end if
@@ -1312,11 +1328,12 @@ func getKeywordsReadExprValue(str: []char, idx: &int, type: &[]char, context: @G
 	case '%'
 		var buf: []char :: #[129]char
 		if(@getKeywordsReadIdentifier(buf, str, &idx, false, false))
-			if(@keywordList <>& null)
+			var keywordList: []@KeywordListItem :: context.i2Data.keywordList
+			if(keywordList <>& null)
 				var callCallbackFunc: func<(int, []char)> :: context.callCallbackFunc
 				var callback: int :: context.callback
-				for i(0, ^@keywordList - 1)
-					var item: @KeywordListItem :: @keywordList[i]
+				for i(0, ^keywordList - 1)
+					var item: @KeywordListItem :: keywordList[i]
 					if(item.name[0] = '%')
 						do callCallbackFunc(callback, item.name)
 					end if
@@ -1505,12 +1522,13 @@ func getKeywordHintTypeNameRecursion(type: \ast@AstType, context: @GetKeywordsCo
 end func
 
 func getKeywordType(identifier: []char, context: @GetKeywordsContext): []char
-	if(@keywordList =& null)
+	var keywordList: []@KeywordListItem :: context.i2Data.keywordList
+	if(keywordList =& null)
 		ret ""
 	end if
 	var ast: \ast@Ast :: null
-	for i(0, ^@keywordList - 1)
-		var item: @KeywordListItem :: @keywordList[i]
+	for i(0, ^keywordList - 1)
+		var item: @KeywordListItem :: keywordList[i]
 		if(item.name[0] = '.' | item.name[0] = '%')
 			skip i
 		end if
@@ -1728,5 +1746,17 @@ func strToPtr(type: []char): \ast@Ast
 		excode "wchar_t*p_;\n"
 		excode "int64_t v_=wcstoll(reinterpret_cast<wchar_t*>(`0`->B),&p_,16);\n"
 		excode "return reinterpret_cast<decltype(`1`)>(v_);\n"
+	end func
+end func
+
+func i2DataToInt(i2Data: @Interpret2Data): int
+	excode "return reinterpret_cast<int64_t>(`0`);\n"
+end func
+
+func intToI2Data(i2Data: int): @Interpret2Data
+	ret intToI2DataImpl(i2Data, null)
+	
+	func intToI2DataImpl(i2Data: int, dummy: @Interpret2Data): @Interpret2Data
+		excode "return reinterpret_cast<decltype(`1`)>(`0`);\n"
 	end func
 end func

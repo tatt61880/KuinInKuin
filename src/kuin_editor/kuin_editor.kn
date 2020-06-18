@@ -27,6 +27,7 @@ func main()
 	
 	func mainLoop()
 		while(wnd@act())
+			do \dll@lockThread()
 			do \form@updateState()
 		end while
 	end func

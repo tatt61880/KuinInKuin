@@ -7,7 +7,7 @@
 		do me.undo :: null
 	end func
 	
-	+func fix()
+	+func fix(first: bool)
 	end func
 	
 	+func load(path: []char): bool

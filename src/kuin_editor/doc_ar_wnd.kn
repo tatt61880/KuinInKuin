@@ -8,7 +8,7 @@
 		do me.root.init("wndMain", true, 0, 0, width, height, null)
 	end func
 	
-	+*func fix()
+	+*func fix(first: bool)
 		var lines: list<[]char> :: #list<[]char>
 		do lines.add("+var \{me.root.name}: \{(me.root $ @ObjArWnd).type()}")
 		

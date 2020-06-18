@@ -34,6 +34,7 @@ end class
 end func
 
 +func fin()
+	do \dll@waitEndOfInterpret2()
 	do @clearDocs()
 end func
 
@@ -43,6 +44,7 @@ func updateMainSrcDir(dir: []char)
 end func
 
 +func newMainSrc()
+	do \dll@waitEndOfInterpret2()
 	var doc: \doc_src@DocSrc :: #\doc_src@DocSrc
 	do @curDoc :: doc
 	do @mainSrcPath :: \common@defaultDir ~ "main.kn"
@@ -52,7 +54,7 @@ end func
 	do @docs :: #dict<[]char, \doc@Doc>
 	do @docs.add("\\main", @curDoc)
 	do @initMainSrc()
-	do @curDoc.fix()
+	do @curDoc.fix(true)
 	do \form@updateUi()
 end func
 
@@ -68,6 +70,7 @@ end func
 		do wnd@msgBox(\form@wndMain, msg, \common@title, %err, %ok)
 		ret
 	end if
+	do \dll@waitEndOfInterpret2()
 	do @curDoc :: doc
 	do @mainSrcPath :: path
 	do @updateMainSrcDir(file@dir(path))
@@ -78,7 +81,7 @@ end func
 	do \form@iconPath :: ""
 	do \prop@load()
 	do @initMainSrc()
-	do @curDoc.fix()
+	do @curDoc.fix(true)
 	do \form@updateUi()
 end func
 
@@ -178,7 +181,7 @@ end func
 	do \completion@close()
 	do @curDoc :: doc
 	do @curDocName :: @getDocName(doc)
-	do @curDoc.fix()
+	do @curDoc.fix(false)
 	do \form@paintDrawEditor()
 	do \form@focusDrawEditor()
 	do \form@updateUi()

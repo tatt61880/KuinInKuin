@@ -57,14 +57,17 @@ end func
 		do me.setSrc(null)
 		do me.resetListInfoItem()
 		do me.dirtyLine :: -1
-		do me.dirtyLineForce :: false
+		do me.forceToInterpret1 :: false
 		do me.caretX :: -1
 		do me.caretY :: -1
 		do me.caretShown :: false
 	end func
 	
-	+*func fix()
-		do me.dirtyLineForce :: true
+	+*func fix(first: bool)
+		do me.forceToInterpret1 :: true
+		if(first)
+			do me.dirtyLine :: 2 {Force to run 'interpret2'.}
+		end if
 		do me.interpret1SetDirty(-1, false, false)
 	end func
 	
@@ -1155,7 +1158,7 @@ end func
 	var lineNumWidth: int
 	+var errList: []@ErrListItem
 	var dirtyLine: int
-	var dirtyLineForce: bool
+	var forceToInterpret1: bool
 	var caretX: int
 	var caretY: int
 	var caretShown: bool
@@ -1522,7 +1525,7 @@ end func
 				do me.src.flags :: me.src.flags.sub(0, y + 1) ~ [%none $ LineFlag] ~ me.src.flags.sub(y + 1, -1)
 				do x :: 0
 				do y :+ 1
-				do me.dirtyLineForce :: true
+				do me.forceToInterpret1 :: true
 			else
 				do me.src.src[y] :: me.src.src[y].sub(0, x) ~ str[i].toStr() ~ me.src.src[y].sub(x, -1)
 				do me.src.color[y] :: me.src.color[y].sub(0, x) ~ #[1]bit8 ~ me.src.color[y].sub(x, -1)
@@ -1567,7 +1570,7 @@ end func
 					do me.src.flags :: me.src.flags.sub(0, y) ~ me.src.flags.sub(y + 1, -1)
 					do y :- 1
 					do x :: x2
-					do me.dirtyLineForce :: true
+					do me.forceToInterpret1 :: true
 				end if
 			else
 				do undoStr :: me.src.src[y][x - 1].toStr() ~ undoStr
@@ -1610,7 +1613,7 @@ end func
 					do me.src.color :: me.src.color.sub(0, y + 1) ~ me.src.color.sub(y + 2, -1)
 					do me.src.commentLevel :: me.src.commentLevel.sub(0, y + 1) ~ me.src.commentLevel.sub(y + 2, -1)
 					do me.src.flags :: me.src.flags.sub(0, y + 1) ~ me.src.flags.sub(y + 2, -1)
-					do me.dirtyLineForce :: true
+					do me.forceToInterpret1 :: true
 				end if
 			else
 				do undoStr :~ me.src.src[y][x].toStr()
@@ -1672,15 +1675,15 @@ end func
 		if(record)
 			do me.undo.recordBegin()
 		end if
-		if(me.dirtyLine = -1 & !me.dirtyLineForce)
+		if(me.dirtyLine = -1 & !me.forceToInterpret1)
 			if(modified)
 				do me.dirtyLine :: line
 				do \dll@interpret1(me.src, me.dirtyLine, me, me.replaceForAuxiliary, me.cursorX, me.cursorY, &, 0, 0)
 				do \form@paintDrawEditor()
 			end if
 		else
-			if(me.dirtyLine <> line | me.dirtyLineForce)
-				do me.dirtyLineForce :: false
+			if(me.dirtyLine <> line | me.forceToInterpret1)
+				do me.forceToInterpret1 :: false
 				do \completion@close()
 				var newX: int
 				var newY: int :: me.cursorY
@@ -1689,14 +1692,11 @@ end func
 				do me.cursorY :: newY
 				do me.refreshCursor(false, true)
 				
-				do \form@callInterpret2()
-				
-				if(modified)
-					do me.dirtyLine :: line
-					do \dll@interpret1(me.src, me.dirtyLine, me, me.replaceForAuxiliary, me.cursorX, me.cursorY, &, 0, 0)
-				else
-					do me.dirtyLine :: -1
+				if(me.dirtyLine <> line)
+					do \form@callInterpret2()
 				end if
+				
+				do me.dirtyLine :: -1
 				do \form@paintDrawEditor()
 			else
 				if(modified)

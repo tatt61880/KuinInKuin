@@ -19,14 +19,18 @@ void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, 
 bool acquireOption(Array_<Array_<char16_t>*>*, bool);
 void setFileFuncs(int64_t(*)(Array_<char16_t>*), void(*)(int64_t), int64_t(*)(int64_t), char16_t(*)(int64_t));
 
-bool interpret2();
-Array_<char16_t>* getKeywordsRoot(Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
+int64_t interpret2();
+Array_<char16_t>* getKeywordsRoot(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
 static void* Src = nullptr;
 static const void* SrcLine = nullptr;
 static const wchar_t* SrcChar = nullptr;
+static CRITICAL_SECTION CriticalSection;
+static HANDLE Interpret2ThreadHandle = nullptr;
+static int ReadingLetterCnt = 0;
+static int64_t Interpret2Data = 0;
 
 static void SetOption(const uint8_t* option);
 static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col);
@@ -36,6 +40,7 @@ static void FileClose(int64_t handle);
 static int64_t FileSize(int64_t handle);
 static char16_t FileReadLetter(int64_t handle);
 static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keyword);
+static DWORD WINAPI RunInterpret2(LPVOID data);
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 {
@@ -47,12 +52,16 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved)
 
 EXPORT_CPP void InitCompiler()
 {
+	InitializeCriticalSection(&CriticalSection);
+	EnterCriticalSection(&CriticalSection);
 	initLib();
 }
 
 EXPORT_CPP void FinCompiler()
 {
 	finLib();
+	LeaveCriticalSection(&CriticalSection);
+	DeleteCriticalSection(&CriticalSection);
 }
 
 EXPORT_CPP bool BuildMem(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
@@ -86,21 +95,15 @@ EXPORT_CPP void Interpret1(void* src, int64_t line, void* me, void* replace_func
 	}
 }
 
-EXPORT_CPP bool Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col))
+EXPORT_CPP void Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col), void(*func_complete)())
 {
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
 	setLogFunc(OutputLog);
 	SetOption(option);
 	setFileFuncs(FileOpen, FileClose, FileSize, FileReadLetter);
-	bool result = interpret2();
-	FuncGetSrc = nullptr;
-	FuncLog = nullptr;
-	DecSrc();
-	Src = nullptr;
-	SrcLine = nullptr;
-	SrcChar = nullptr;
-	return result;
+	DWORD id;
+	Interpret2ThreadHandle = CreateThread(nullptr, 0, RunInterpret2, func_complete, 0, &id);
 }
 
 EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
@@ -129,7 +132,7 @@ EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int6
 	src_name2->B = newPrimArray_(static_cast<size_t>(src_name2->L + 1), char16_t);
 	memcpy(src_name2->B, src_name + 0x10, sizeof(char16_t) * static_cast<size_t>(src_name2->L + 1));
 
-	auto* hint = getKeywordsRoot(str4, src_name2, x, y, CallCallbackForGetKeywords, reinterpret_cast<int64_t>(callback));
+	auto* hint = getKeywordsRoot(Interpret2Data, str4, src_name2, x, y, CallCallbackForGetKeywords, reinterpret_cast<int64_t>(callback));
 	if (hint == nullptr)
 		return nullptr;
 	auto* result = newPrimArray_(0x10 + sizeof(wchar_t) * static_cast<size_t>(hint->L + 1), uint8_t);
@@ -147,6 +150,28 @@ EXPORT_CPP bool RunDbg(const uint8_t* path, const uint8_t* cmd_line, void* idle_
 EXPORT_CPP void SetBreakPoints(const void* break_points)
 {
 	// TODO:
+}
+
+EXPORT_CPP void LockThread()
+{
+	LeaveCriticalSection(&CriticalSection);
+	Sleep(1);
+	EnterCriticalSection(&CriticalSection);
+}
+
+EXPORT_CPP bool Interpret2Running()
+{
+	return Interpret2ThreadHandle != nullptr;
+}
+
+EXPORT_CPP void WaitEndOfInterpret2()
+{
+	while (Interpret2ThreadHandle != nullptr)
+	{
+		LeaveCriticalSection(&CriticalSection);
+		Sleep(1);
+		EnterCriticalSection(&CriticalSection);
+	}
 }
 
 static void SetOption(const uint8_t* option)
@@ -251,6 +276,14 @@ static int64_t FileSize(int64_t handle)
 
 static char16_t FileReadLetter(int64_t handle)
 {
+	ReadingLetterCnt++;
+	if (ReadingLetterCnt == 1000)
+	{
+		ReadingLetterCnt = 0;
+		LeaveCriticalSection(&CriticalSection);
+		Sleep(1);
+		EnterCriticalSection(&CriticalSection);
+	}
 	UNUSED(handle);
 	const void* term;
 	{
@@ -280,4 +313,28 @@ static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keywo
 	reinterpret_cast<int64_t*>(buf)[1] = len;
 	memcpy(buf + 0x08, keyword->B, sizeof(wchar_t) * static_cast<size_t>(len + 1));
 	Call1Asm(buf, reinterpret_cast<void*>(callback));
+}
+
+static DWORD WINAPI RunInterpret2(LPVOID data)
+{
+	void(*func_complete)() = static_cast<void(*)()>(data);
+	EnterCriticalSection(&CriticalSection);
+	ReadingLetterCnt = 0;
+	try
+	{
+		Interpret2Data = interpret2();
+	}
+	catch (...)
+	{
+	}
+	FuncGetSrc = nullptr;
+	FuncLog = nullptr;
+	DecSrc();
+	Src = nullptr;
+	SrcLine = nullptr;
+	SrcChar = nullptr;
+	Interpret2ThreadHandle = nullptr;
+	func_complete();
+	LeaveCriticalSection(&CriticalSection);
+	return TRUE;
 }

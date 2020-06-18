@@ -62,6 +62,7 @@ var drag: bool
 +var relatedFiles: list<[]char>
 var redrawingRequired: bool
 var interpret2Required: bool
+var completionRequired: bool
 
 +func makeWnd()
 	do @lockUi :: true
@@ -344,6 +345,7 @@ var interpret2Required: bool
 	do @relatedFiles :: #list<[]char>
 	do @redrawingRequired :: false
 	do @interpret2Required :: false
+	do @completionRequired :: false
 	
 	func btnFileAddOnPush(wnd: wnd@WndBase)
 		do @wndMainOnPushMenu(@wndMain, 0x0030)
@@ -696,7 +698,7 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 		do \find@findNext()
 	case 0x003D
 		do \snippet@add(\src@curDoc.getSelCode())
-		do \src@curDoc.fix()
+		do \src@curDoc.fix(false)
 	case 0x003E
 		if(@lockingEditor)
 			do @showMsgRunning()
@@ -898,6 +900,9 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 	end try
 	do \src@docs.forEach(@fixAll, null)
 	do @updateState()
+	if(\dll@interpret2Running())
+		do \dll@waitEndOfInterpret2()
+	end if
 	do \dll@resetMemAllocator()
 	do @editLog.setText("")
 	var cmd: []char :: out
@@ -1054,6 +1059,9 @@ func btnRlsOnPush(wnd: wnd@WndBase)
 	end try
 	do \src@docs.forEach(@fixAll, null)
 	do @updateState()
+	if(\dll@interpret2Running())
+		do \dll@waitEndOfInterpret2()
+	end if
 	do \dll@resetMemAllocator()
 	do @editLog.setText("")
 	try
@@ -1256,7 +1264,7 @@ func openResFolder()
 end func
 
 func fixAll(key: []char, value: \doc@Doc, data: kuin@Class): bool
-	do value.fix()
+	do value.fix(false)
 	ret true
 end func
 
@@ -1265,7 +1273,7 @@ end func
 		do @drawEditor.paint()
 		do @redrawingRequired :: false
 	end if
-	if(@interpret2Required)
+	if(@interpret2Required & !\dll@interpret2Running())
 		do \src@resetErrList()
 		do \dll@resetMemAllocator()
 		var option: list<[]char> :: #list<[]char>
@@ -1274,14 +1282,18 @@ end func
 		do option.add("-x")
 		do option.add("hint")
 		do @addEnv(option)
-		try
-			do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret)
-		catch
-		end try
-		do \src@updateErrList()
-		do @updateUi()
+		do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret, complete)
 		do @interpret2Required :: false
 	end if
+	if(@completionRequired)
+		do \src@updateErrList()
+		do @updateUi()
+		do @completionRequired :: false
+	end if
+	
+	func complete()
+		do @completionRequired :: true
+	end func
 end func
 
 +func callInterpret2()
