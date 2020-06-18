@@ -696,7 +696,7 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 		do \find@findNext()
 	case 0x003D
 		do \snippet@add(\src@curDoc.getSelCode())
-		do \src@curDoc.fix()
+		do \src@curDoc.fix(false)
 	case 0x003E
 		if(@lockingEditor)
 			do @showMsgRunning()
@@ -1262,7 +1262,7 @@ func openResFolder()
 end func
 
 func fixAll(key: []char, value: \doc@Doc, data: kuin@Class): bool
-	do value.fix()
+	do value.fix(false)
 	ret true
 end func
 

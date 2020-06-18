@@ -4,8 +4,8 @@
 		do me.designer.fin()
 	end func
 	
-	+*func fix()
-		do me.designer.fix()
+	+*func fix(first: bool)
+		do me.designer.fix(first)
 	end func
 	
 	+*func load(path: []char): bool
@@ -21,7 +21,7 @@
 				ret false
 			end switch
 			do me.designer.loadImpl(root)
-			do me.designer.fix()
+			do me.designer.fix(false)
 		catch
 			ret false
 		end try
@@ -214,7 +214,7 @@
 	+func swapMode()
 		do me.cur :: me.cur =& me.src ?(me.designer $ \doc@Doc, me.src $ \doc@Doc)
 		if(me.cur =& me.src)
-			do me.designer.fix()
+			do me.designer.fix(false)
 			do me.src.setSrc(me.designer.getSrc())
 		end if
 	end func

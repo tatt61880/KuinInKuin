@@ -54,7 +54,7 @@ end func
 	do @docs :: #dict<[]char, \doc@Doc>
 	do @docs.add("\\main", @curDoc)
 	do @initMainSrc()
-	do @curDoc.fix()
+	do @curDoc.fix(true)
 	do \form@updateUi()
 end func
 
@@ -81,7 +81,7 @@ end func
 	do \form@iconPath :: ""
 	do \prop@load()
 	do @initMainSrc()
-	do @curDoc.fix()
+	do @curDoc.fix(true)
 	do \form@updateUi()
 end func
 
@@ -181,7 +181,7 @@ end func
 	do \completion@close()
 	do @curDoc :: doc
 	do @curDocName :: @getDocName(doc)
-	do @curDoc.fix()
+	do @curDoc.fix(false)
 	do \form@paintDrawEditor()
 	do \form@focusDrawEditor()
 	do \form@updateUi()
