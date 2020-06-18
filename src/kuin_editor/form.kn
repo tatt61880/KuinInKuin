@@ -1280,10 +1280,7 @@ end func
 		do option.add("-x")
 		do option.add("hint")
 		do @addEnv(option)
-		try
-			do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret)
-		catch
-		end try
+		do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret)
 		do \src@updateErrList()
 		do @updateUi()
 		do @interpret2Required :: false

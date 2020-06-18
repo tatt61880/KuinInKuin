@@ -19,8 +19,8 @@ void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, 
 bool acquireOption(Array_<Array_<char16_t>*>*, bool);
 void setFileFuncs(int64_t(*)(Array_<char16_t>*), void(*)(int64_t), int64_t(*)(int64_t), char16_t(*)(int64_t));
 
-bool interpret2();
-Array_<char16_t>* getKeywordsRoot(Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
+int64_t interpret2();
+Array_<char16_t>* getKeywordsRoot(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
@@ -30,6 +30,7 @@ static const wchar_t* SrcChar = nullptr;
 static CRITICAL_SECTION CriticalSection;
 static HANDLE Interpret2ThreadHandle = nullptr;
 static int ReadingLetterCnt = 0;
+static int64_t Interpret2Data = 0;
 
 static void SetOption(const uint8_t* option);
 static void OutputLog(int64_t code, Array_<char16_t>* msg, Array_<char16_t>* src, int64_t row, int64_t col);
@@ -132,7 +133,7 @@ EXPORT_CPP void* GetKeywords(void* src, const uint8_t* src_name, int64_t x, int6
 	src_name2->B = newPrimArray_(static_cast<size_t>(src_name2->L + 1), char16_t);
 	memcpy(src_name2->B, src_name + 0x10, sizeof(char16_t) * static_cast<size_t>(src_name2->L + 1));
 
-	auto* hint = getKeywordsRoot(str4, src_name2, x, y, CallCallbackForGetKeywords, reinterpret_cast<int64_t>(callback));
+	auto* hint = getKeywordsRoot(Interpret2Data, str4, src_name2, x, y, CallCallbackForGetKeywords, reinterpret_cast<int64_t>(callback));
 	if (hint == nullptr)
 		return nullptr;
 	auto* result = newPrimArray_(0x10 + sizeof(wchar_t) * static_cast<size_t>(hint->L + 1), uint8_t);
@@ -322,7 +323,13 @@ static DWORD WINAPI RunInterpret2(LPVOID data)
 	EnterCriticalSection(&CriticalSection);
 	printf("x: %d\n", timeGetTime());
 	ReadingLetterCnt = 0;
-	interpret2();
+	try
+	{
+		Interpret2Data = interpret2();
+	}
+	catch (...)
+	{
+	}
 	FuncGetSrc = nullptr;
 	FuncLog = nullptr;
 	DecSrc();
