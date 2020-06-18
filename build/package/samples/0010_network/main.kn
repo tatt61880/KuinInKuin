@@ -1,6 +1,6 @@
 ; Network Sample (C)Kuina-chan
 
-const url: []char :: "http://kuina.ch"
+const url: []char :: "https://kuina.ch"
 
 func main()
 	var wndMain: wnd@Wnd :: wnd@makeWnd(null, %normal, 1024, 768, "Network Sample")

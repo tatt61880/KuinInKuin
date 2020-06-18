@@ -66,10 +66,10 @@ end class
 	+func[d1004.knd, _rectUpdate]update()
 	end func
 	
-	+var width: float
-	+var height: float
 	+var x: float
 	+var y: float
+	+var width: float
+	+var height: float
 	+var veloX: float
 	+var veloY: float
 	var flags: bit64
