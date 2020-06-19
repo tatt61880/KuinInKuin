@@ -2,13 +2,17 @@ var dbgStartAddr: bit64
 var breakPointPoses: []\pos@Pos
 var breakPointAddrs: []bit64
 var breakPointOpes: []bit8
+var pack: \exe\asm@Pack
 
 +func preventDeadCodeElimination()
 	excode "}\n"
 	excode "template uint64_t* newArrayImpl_<uint64_t>(std::size_t n);\n"
 	excode "template Array_<uint64_t>* newImpl_<Array_<uint64_t>>();\n"
-	; TODO: Remove "/*}*/".
-	excode "namespace{/*}*/\n"
+	excode "namespace{\n"
+end func
+
++func setPack(pack: \exe\asm@Pack)
+	do @pack :: pack
 end func
 
 +func[__rwi]setDbgStartAddr(addr: bit64)
@@ -25,19 +29,58 @@ end func
 	do opes :: @breakPointOpes
 end func
 
++func[__rwi]setBreakPointPoses(srcNames: [][]char, rows: []int, cols: []int)
+	do @breakPointPoses :: #[^srcNames]\pos@Pos
+	for i(0, ^srcNames - 1)
+		var success: bool :: false
+		while loop(true)
+			var pos: \pos@Pos
+			do pos.srcName :: srcNames[i]
+			do pos.row :: rows[i]
+			do pos.col :: cols[i]
+			var addr: bit64 :: @posToAddrImpl(pos)
+			if(addr <> 0b64)
+				var pos2: \pos@Pos :: @addrToPosImpl(&, addr)
+				if(pos2 <>& null & pos.srcName = pos2.srcName)
+					if(pos.row <> pos2.row)
+						do rows[i] :: pos2.row
+						skip loop
+					end if
+					do success :: true
+				end if
+			end if
+			break loop
+		end while
+		if(!success)
+			do @breakPointPoses[i].srcName :: ""
+			do @breakPointPoses[i].row :: -1
+			do @breakPointPoses[i].col :: -1
+			do rows[i] :: -1
+			skip i
+		end if
+		do @breakPointPoses[i].srcName :: srcNames[i]
+		do @breakPointPoses[i].row :: rows[i]
+		do @breakPointPoses[i].col :: cols[i]
+	end for
+end func
+
 +func[__rwi]getBreakPointPosesNum(): int
 	ret @breakPointPoses =& null ?(0, ^@breakPointPoses)
 end func
 
 +func[__rwi]posToAddr(idx: int): bit64
-	; TODO:
-	ret 0b64
+	ret @posToAddrImpl(@breakPointPoses[idx])
 end func
 
 +func[__rwi]addrToPos(name: &[]char, src: &[]char, row: &int, col: &int, addr: bit64): bool
-	do name :: ""
-	; TODO:
-	ret false
+	var pos: \pos@Pos :: @addrToPosImpl(&name, addr)
+	if(pos =& null)
+		ret false
+	end if
+	do src :: pos.srcName
+	do row :: pos.row
+	do col :: pos.col
+	ret true
 end func
 
 +func[__rwi]getExcptMsg(code: int): []char
@@ -48,4 +91,39 @@ end func
 
 +func[__rwi]getDbgVars(excptPosSrc: []char, excptPosRow: int, processHandle: int, contextRip: bit64, readProcessMemoryFunc: func<(int, int): int>, callCallbackFunc: func<([]char, []char, int)>, callback: int)
 	; TODO:
+end func
+
+func posToAddrImpl(pos: \pos@Pos): bit64
+	class Data()
+		+var addr: bit64
+		+var pos2: \pos@Pos
+	end class
+	
+	var data: Data :: #Data
+	do data.pos2 :: pos
+	do @pack.funcAddrs.forEach(posToAddrCallback, data)
+	ret data.addr
+	
+	func posToAddrCallback(key: \ast@AstFunc, value: []\exe\asm@Asm, data: kuin@Class): bool
+		var data2: Data :: data $ Data
+		var funcPos: \pos@Pos :: key.pos
+		var pos: \pos@Pos :: data2.pos2
+		; TODO:
+		{
+		if(data2.addr = 0b64 & funcPos <>& null & funcPos.srcName = pos.srcName & funcPos.row <= pos.row & pos.row <= key.posRowBottom)
+			do data2.addr :: posToAddrCallbackRecursion(key.stats, pos)
+		end if
+		}
+		ret true
+	end func
+	
+	func posToAddrCallbackRecursion(stats: list<\ast@AstStat>, targetPos: \pos@Pos): bit64
+		; TODO:
+		ret 0b64
+	end func
+end func
+
+func addrToPosImpl(name: &[]char, addr: bit64): \pos@Pos
+	; TODO:
+	ret null
 end func

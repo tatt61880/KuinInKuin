@@ -3051,6 +3051,5 @@ func addEndPosScope()
 	var dummy: \ast@Ast :: #\ast@Ast
 	do @initAst(dummy, %none, \pos@make(@srcName, @row - 1, 0), null, true)
 	do dummy.scopeChildren :: #dict<[]char, \ast@Ast>
-	do @scope.peek().scopeChildren.add("$" ~ @uniqueCnt.toStr(), dummy)
-	do @uniqueCnt :+ 1
+	do @scope.peek().scopeChildren.add("$E", dummy)
 end func
