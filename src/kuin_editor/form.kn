@@ -1282,7 +1282,12 @@ end func
 		do option.add("-x")
 		do option.add("hint")
 		do @addEnv(option)
-		do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret, complete)
+		var prioritizedCode: []char :: \src@curDocName
+		var pos: int :: prioritizedCode.find('.', -1)
+		if(pos <> -1)
+			do prioritizedCode :: prioritizedCode.sub(0, pos)
+		end if
+		do \dll@interpret2(option.toArray(), \src@getSrc, @logForInterpret, complete, prioritizedCode)
 		do @interpret2Required :: false
 	end if
 	if(@completionRequired)

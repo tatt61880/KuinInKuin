@@ -31,7 +31,7 @@ var fileReadLetterFunc: func<(int): char>
 	do @fileReadLetterFunc :: fileReadLetterFunc
 end func
 
-+func parse(useResFlags: []bit8): dict<[]char, \ast@Ast>
++func parse(useResFlags: []bit8, prioritizedCode: []char): dict<[]char, \ast@Ast>
 	do @useResFlags :: useResFlags
 	do @makeHint :: \option@extra.get("hint", &)
 	
@@ -48,6 +48,14 @@ end func
 	
 	var endFlag: lib@Bool :: #lib@Bool
 	do endFlag.value :: false
+	if(prioritizedCode <>& null)
+		do @srcesCur.del(prioritizedCode)
+		do endFlag.value :: true
+		do @srcesNext :: #dict<[]char, \ast@Ast>
+		do @parseSrc(prioritizedCode, null, endFlag)
+		do @srcesCur.forEach(@parseSrc, endFlag)
+		do @srcesCur :: @srcesNext
+	end if
 	while(!endFlag.value)
 		do endFlag.value :: true
 		do @srcesNext :: #dict<[]char, \ast@Ast>

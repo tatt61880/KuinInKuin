@@ -19,8 +19,14 @@ void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, 
 bool acquireOption(Array_<Array_<char16_t>*>*, bool);
 void setFileFuncs(int64_t(*)(Array_<char16_t>*), void(*)(int64_t), int64_t(*)(int64_t), char16_t(*)(int64_t));
 
-int64_t interpret2();
+int64_t interpret2(Array_<char16_t>*);
 Array_<char16_t>* getKeywordsRoot(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
+
+struct Interpret2Arg
+{
+	void(*FuncComplete)();
+	Array_<char16_t>* PrioritizedCode;
+};
 
 static const void* (*FuncGetSrc)(const uint8_t*);
 static void(*FuncLog)(const void*, int64_t, int64_t);
@@ -95,15 +101,26 @@ EXPORT_CPP void Interpret1(void* src, int64_t line, void* me, void* replace_func
 	}
 }
 
-EXPORT_CPP void Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col), void(*func_complete)())
+EXPORT_CPP void Interpret2(const uint8_t* option, const void* (*func_get_src)(const uint8_t*), void(*func_log)(const void* args, int64_t row, int64_t col), void(*func_complete)(), const uint8_t* prioritized_code)
 {
 	FuncGetSrc = func_get_src;
 	FuncLog = func_log;
 	setLogFunc(OutputLog);
 	SetOption(option);
 	setFileFuncs(FileOpen, FileClose, FileSize, FileReadLetter);
+	Interpret2Arg* arg = reinterpret_cast<Interpret2Arg*>(newPrimArray_(sizeof(Interpret2Arg), uint8_t));
+	arg->FuncComplete = func_complete;
+	if (prioritized_code == nullptr)
+		arg->PrioritizedCode = nullptr;
+	else
+	{
+		arg->PrioritizedCode = new_(Array_<char16_t>)();
+		arg->PrioritizedCode->L = *reinterpret_cast<const int64_t*>(prioritized_code + 0x08);
+		arg->PrioritizedCode->B = newPrimArray_(arg->PrioritizedCode->L + 1, char16_t);
+		memcpy(arg->PrioritizedCode->B, prioritized_code + 0x10, sizeof(char16_t) * static_cast<size_t>(arg->PrioritizedCode->L + 1));
+	}
 	DWORD id;
-	Interpret2ThreadHandle = CreateThread(nullptr, 0, RunInterpret2, func_complete, 0, &id);
+	Interpret2ThreadHandle = CreateThread(nullptr, 0, RunInterpret2, arg, 0, &id);
 }
 
 EXPORT_CPP void Version(int64_t* major, int64_t* minor, int64_t* micro)
@@ -317,12 +334,12 @@ static void CallCallbackForGetKeywords(int64_t callback, Array_<char16_t>* keywo
 
 static DWORD WINAPI RunInterpret2(LPVOID data)
 {
-	void(*func_complete)() = static_cast<void(*)()>(data);
+	Interpret2Arg* arg = static_cast<Interpret2Arg*>(data);
 	EnterCriticalSection(&CriticalSection);
 	ReadingLetterCnt = 0;
 	try
 	{
-		Interpret2Data = interpret2();
+		Interpret2Data = interpret2(arg->PrioritizedCode);
 	}
 	catch (...)
 	{
@@ -334,7 +351,7 @@ static DWORD WINAPI RunInterpret2(LPVOID data)
 	SrcLine = nullptr;
 	SrcChar = nullptr;
 	Interpret2ThreadHandle = nullptr;
-	func_complete();
+	arg->FuncComplete();
 	LeaveCriticalSection(&CriticalSection);
 	return TRUE;
 }

@@ -52,12 +52,12 @@ class Interpret2Data()
 	+var subSrcDummyAst: \ast@Ast
 end class
 
-+func[__rwi]interpret2(): int
++func[__rwi]interpret2(prioritizedCode: []char): int
 	if(\err@errCnt > 0)
 		ret 0
 	end if
 	
-	var asts: dict<[]char, \ast@Ast> :: \parse@parse(#[\main@useResFlagsLen]bit8)
+	var asts: dict<[]char, \ast@Ast> :: \parse@parse(#[\main@useResFlagsLen]bit8, prioritizedCode)
 	do \analyze@analyze(asts, &)
 	var i2Data: @Interpret2Data :: #@Interpret2Data
 	do i2Data.keywordList :: null
