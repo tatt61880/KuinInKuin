@@ -1325,7 +1325,7 @@ template<typename T1, typename T2> dictImpl_<T1, T2>* dictDelRec_(dictImpl_<T1, 
 			while (p->CL != nullptr)
 				p = p->CL;
 			n->K = p->K;
-			n->V = p->K;
+			n->V = p->V;
 			n->CR = dictDelMinRec_<T1, T2>(n->CR);
 		}
 		else
