@@ -9,6 +9,9 @@ func _init()
 	do @curDir :: "/"
 end func
 
+func _fin()
+end func
+
 +enum Encoding
 	utf8
 	utf16le

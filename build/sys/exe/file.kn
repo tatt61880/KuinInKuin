@@ -2,9 +2,12 @@ const strBufSize: int :: 1024
 var strBuf: []char
 var eBuf: []bit8
 
-func _init()
+func[d0000.knd, _fileInit]_init()
 	do @strBuf :: #[@strBufSize]char
 	do @eBuf :: #[8]bit8
+end func
+
+func[d0000.knd, _fileFin]_fin()
 end func
 
 +enum Encoding
