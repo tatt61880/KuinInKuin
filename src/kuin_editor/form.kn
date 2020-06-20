@@ -311,12 +311,9 @@ var completionRequired: bool
 	do @popupMainBuild.addLine()
 	do @popupMainBuild.add(0x0021, \common@langEn ?("&Release Build...\tCtrl+Shift+B", "リリースビルド(&R)...\tCtrl+Shift+B"))
 	do @menuMain.addPopup(\common@langEn ?("&Build", "ビルド(&B)"), @popupMainBuild)
-	; TODO:
-	{
 	do @popupMainDbg :: wnd@makePopup()
 	do @popupMainDbg.add(0x0040, \common@langEn ?("Toggle &Breakpoint\tF9", "ブレークポイントの設定/解除(&B)\tF9"))
 	do @menuMain.addPopup(\common@langEn ?("&Debug", "デバッグ(&D)"), @popupMainDbg)
-	}
 	do @popupMainTools :: wnd@makePopup()
 	do @popupMainTools.add(0x0070, \common@langEn ?("3D &Model Converter...", "3D モデルコンバータ(&M)..."))
 	do @menuMain.addPopup(\common@langEn ?("&Tools", "ツール(&T)"), @popupMainTools)
@@ -708,8 +705,6 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 	case 0x003F
 		do \snippet@showSnippet()
 	case 0x0040
-		; TODO:
-		{
 		if(\src@curDoc =$ \doc_src@DocSrc)
 			if(\src@breakPos =& null & @lockingEditor)
 				do @showMsgRunning()
@@ -717,7 +712,6 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 			end if
 			do(\src@curDoc $ \doc_src@DocSrc).toggleBreakPoint()
 		end if
-		}
 	case 0x0041
 		do \go_to_line@show()
 	case 0x0050

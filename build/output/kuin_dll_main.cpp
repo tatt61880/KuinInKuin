@@ -18,6 +18,7 @@ void getVersion(int64_t*, int64_t*, int64_t*);
 void setLogFunc(void(*)(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t));
 bool acquireOption(Array_<Array_<char16_t>*>*, bool);
 void setFileFuncs(int64_t(*)(Array_<char16_t>*), void(*)(int64_t), int64_t(*)(int64_t), char16_t(*)(int64_t));
+void setBreakPointPoses(Array_<Array_<char16_t>*>*, Array_<int64_t>*, Array_<int64_t>*);
 
 int64_t interpret2(Array_<char16_t>*);
 Array_<char16_t>* getKeywordsRoot(int64_t, Array_<char16_t>*, Array_<char16_t>*, int64_t, int64_t, void(*)(int64_t, Array_<char16_t>*), int64_t);
@@ -166,7 +167,36 @@ EXPORT_CPP bool RunDbg(const uint8_t* path, const uint8_t* cmd_line, void* idle_
 
 EXPORT_CPP void SetBreakPoints(const void* break_points)
 {
-	// TODO:
+	int64_t len = ((int64_t*)break_points)[1];
+	auto* poses_src_names = new_(Array_<Array_<char16_t>*>)();
+	poses_src_names->L = len;
+	poses_src_names->B = newPrimArray_(len, Array_<char16_t>*);
+	auto* poses_rows = new_(Array_<int64_t>)();
+	poses_rows->L = len;
+	poses_rows->B = newPrimArray_(len, int64_t);
+	auto* poses_cols = new_(Array_<int64_t>)();
+	poses_cols->L = len;
+	poses_cols->B = newPrimArray_(len, int64_t);
+
+	void* const* ptr = reinterpret_cast<void* const*>(reinterpret_cast<const uint8_t*>(break_points) + 0x10);
+	for (int64_t i = 0; i < len; i++)
+	{
+		wchar_t* src_name = reinterpret_cast<wchar_t*>(reinterpret_cast<uint8_t*>(*reinterpret_cast<void**>(reinterpret_cast<uint8_t*>(ptr[i]) + 0x10)) + 0x10);
+		int64_t row = *reinterpret_cast<int64_t*>(reinterpret_cast<uint8_t*>(ptr[i]) + 0x18);
+		int64_t col = *reinterpret_cast<int64_t*>(reinterpret_cast<uint8_t*>(ptr[i]) + 0x20);
+		int64_t name_len = (reinterpret_cast<int64_t*>(*reinterpret_cast<void**>(reinterpret_cast<uint8_t*>(ptr[i]) + 0x10)))[1];
+		poses_src_names->B[i] = new_(Array_<char16_t>)();
+		poses_src_names->B[i]->L = name_len;
+		poses_src_names->B[i]->B = newPrimArray_(name_len + 1, char16_t);
+		memcpy(poses_src_names->B[i]->B, src_name, sizeof(char16_t) * static_cast<size_t>(name_len + 1));
+		poses_rows->B[i] = row;
+		poses_cols->B[i] = col;
+	}
+
+	setBreakPointPoses(poses_src_names, poses_rows, poses_cols);
+
+	for (int64_t i = 0; i < len; i++)
+		*reinterpret_cast<int64_t*>(reinterpret_cast<uint8_t*>(ptr[i]) + 0x18) = poses_rows->B[i];
 }
 
 EXPORT_CPP void LockThread()

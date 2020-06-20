@@ -50,6 +50,7 @@ func main()
 			var refAddrToPos: func<(&[]char, &[]char, &int, &int, bit64): bool> :: \interpret@addrToPos
 			var refGetExcptMsg: func<(int): []char> :: \interpret@getExcptMsg
 			var refGetDbgVars: func<([]char, int, int, bit64, func<(int, int): int>, func<([]char, []char, int)>, int)> :: \interpret@getDbgVars
+			var refSetBreakPointPoses: func<([][]char, []int, []int)> :: \interpret@setBreakPointPoses
 			
 			var refInterpret2: func<([]char): int> :: \interpret@interpret2
 			var refGetKeywordsRoot: func<(int, []char, []char, int, int, func<(int, []char)>, int): []char> :: \interpret@getKeywordsRoot
