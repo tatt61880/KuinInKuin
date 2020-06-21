@@ -82,7 +82,7 @@ end func
 +func[__rwi]getExcptMsg(code: int): []char
 	; TODO:
 	; "%s\nAn exception '0x%08X' occurred."
-	ret ""
+	ret "An exception \{code $ bit32} occurred."
 end func
 
 func posToAddrImpl(pos: \pos@Pos): bit64

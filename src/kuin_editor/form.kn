@@ -1002,6 +1002,7 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 			do @focusDrawEditor()
 		end if
 		while(\src@breakPos <>& null & wnd@act())
+			do @updateState()
 		end while
 		do @btnCompile.setEnabled(false)
 		do @btnCompile.setText(\common@langEn ?("Compile && Run", "コンパイル＆実行"))

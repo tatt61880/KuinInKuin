@@ -209,8 +209,6 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 									uint8_t pos_buf[0x28];
 									{
 										size_t pos_name_len = excpt_pos_src->L;
-										if (pos_name_len > 255)
-											pos_name_len = 255;
 										((int64_t*)pos_name)[0] = 1;
 										((int64_t*)pos_name)[1] = (int64_t)pos_name_len;
 										memcpy((uint8_t*)pos_name + 0x10, excpt_pos_src->B, sizeof(wchar_t) * (pos_name_len + 1));
