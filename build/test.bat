@@ -21,6 +21,7 @@ rem ---------------------------------------------------------------------------
 
 rem Kuin2.kn ->[Kuin2.exe]-> Kuin2.cpp
 .\output\kuin.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_cpp" -s "%~dp0output/test_res/sys/" -e cpp -x nogc
+.\output\kuin.exe -i "%~dp0../src/compiler/main.kn" -o "%~dp0output/kuin_dll" -s "%~dp0output/test_res/sys/" -e cpp -x nogc -x nogcdb -x lib
 
 rem Kuin2.cpp ->[Visual Studio]->Kuin2.exe
 "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" "%~dp0output/kuin_cpp.sln" /t:clean;rebuild /p:Configuration="Release" /p:Platform="x64" /m
