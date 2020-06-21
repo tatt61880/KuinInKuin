@@ -215,10 +215,12 @@ func posToAddrImpl(pos: \pos@Pos): bit64
 	func getStatPosRowBottom(stat: \ast@AstStat): int
 		switch(stat.typeId)
 		case %statIf, %statSwitch, %statWhile, %statFor, %statTry, %statBlock
-			; In a dummy scope.
-			do ast :: stat.scopeParent.scopeChildren.get("$E", &found)
-			assert found
-			ret ast.pos.row
+			if(stat.scopeParent <>& null)
+				; In a dummy scope.
+				do ast :: stat.scopeParent.scopeChildren.get("$E", &found)
+				assert found
+				ret ast.pos.row
+			end if
 		end switch
 		if(stat.scopeChildren =& null)
 			ret stat.pos.row

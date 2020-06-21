@@ -54,7 +54,7 @@ func main()
 			var refInterpret2: func<([]char): int> :: \interpret@interpret2
 			var refGetKeywordsRoot: func<(int, []char, []char, int, int, func<(int, []char)>, int): []char> :: \interpret@getKeywordsRoot
 			var refInitDbgVars: func<(): int> :: \interpret@initDbgVars
-			var refGetDbgVars: func<(int, []char, int, int, bit64, func<(int, int): int>, func<([]char, []char, int)>, int)> :: \interpret@getDbgVars
+			var refGetDbgVars: func<(int, []char, int, int, bit64, func<(int, bit64): bit64>, func<([]char, []char, int)>, int)> :: \interpret@getDbgVars
 		end if
 	end func
 end func

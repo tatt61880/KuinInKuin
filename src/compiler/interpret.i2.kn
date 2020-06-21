@@ -1769,6 +1769,76 @@ end func
 	ret @i2DataToInt(i2Data)
 end func
 
-+func[__rwi]getDbgVars(i2Data: int, excptPosSrc: []char, excptPosRow: int, processHandle: int, contextRip: bit64, readProcessMemoryFunc: func<(int, int): int>, callCallbackFunc: func<([]char, []char, int)>, callback: int)
-	; TODO:
++func[__rwi]getDbgVars(i2Data: int, excptPosSrc: []char, excptPosRow: int, processHandle: int, contextRsp: bit64, readProcessMemoryFunc: func<(int, bit64): bit64>, callCallbackFunc: func<([]char, []char, int)>, callback: int)
+	var keywordList: []@KeywordListItem :: @intToI2Data(i2Data).keywordList
+	var str1: []char
+	var str2: []char
+	var addr: bit64
+	for i(0, ^keywordList - 1)
+		var item: @KeywordListItem :: keywordList[i]
+		if(item.name[0] = '%' | item.name[0] = '.' | item.ast.typeId <> %arg)
+			skip i
+		end if
+		if(item.name[0] = '@')
+			if(excptPosSrc = item.ast.pos.srcName)
+				do str1 :: item.name
+			else
+				if(!item.ast.publicInSrc)
+					skip i
+				end if
+				do str1 :: item.ast.pos.srcName ~ item.name
+			end if
+		elif(excptPosSrc = item.ast.pos.srcName & item.first.value <= excptPosRow & excptPosRow <= item.last.value)
+			do str1 :: item.name
+		else
+			skip i
+		end if
+		assert item.ast.typeId = %arg
+		var arg: \ast@AstArg :: item.ast $ \ast@AstArg
+		var argInfo: \exe\asm@ExeArgInfo :: \exe\asm@getExeArgInfo(arg)
+		switch(arg.kind)
+		case %global
+			do addr :: @dbgStartAddr + argInfo.addr.value $ bit64
+		case %localArg, %localVar
+			do addr :: contextRsp + argInfo.addr.value $ bit64
+		default
+			skip i
+		end switch
+		var value: bit64 :: readProcessMemoryFunc(processHandle, addr)
+		switch(arg.type.typeId)
+		case %typePrim
+			switch((arg.type $ \ast@AstTypePrim).kind)
+			case %int_
+				do str2 :: (value $ int).toStr() ~ " (" ~ (value $ bit64).toStr() ~ ")"
+			case %float_
+				do str2 :: lib@toFloatForcibly(value).toStr()
+			case %char_
+				do str2 :: "'" ~ (value $ char).toStr() ~ "' " ~ (value $ int).toStr() ~ " (" ~ (value $ bit16).toStr() ~ ")"
+			case %bool_
+				do str2 :: value = 0b64 ?("false", "true")
+			default
+				assert(false)
+			end switch
+		case %typeBit
+			switch((arg.type $ \ast@AstTypeBit).size)
+			case 1
+				do str2 :: (value $ int).toStr() ~ " (" ~ (value $ bit8).toStr() ~ ")"
+			case 2
+				do str2 :: (value $ int).toStr() ~ " (" ~ (value $ bit16).toStr() ~ ")"
+			case 4
+				do str2 :: (value $ int).toStr() ~ " (" ~ (value $ bit32).toStr() ~ ")"
+			case 8
+				do str2 :: (value $ int).toStr() ~ " (" ~ (value $ bit64).toStr() ~ ")"
+			default
+				assert(false)
+			end switch
+		default
+			if(\ast@isEnum(arg.type))
+				do str2 :: (value $ int).toStr() ~ " (" ~ value.toStr() ~ ")"
+			else
+				do str2 :: value.toStr()
+			end if
+		end switch
+		do callCallbackFunc(str1, str2, callback)
+	end for
 end func

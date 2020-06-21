@@ -12,11 +12,11 @@ uint64_t posToAddr(int64_t);
 bool addrToPos(Array_<char16_t>**, Array_<char16_t>**, int64_t*, int64_t*, uint64_t);
 Array_<char16_t>* getExcptMsg(int64_t);
 int64_t initDbgVars();
-void getDbgVars(int64_t, Array_<char16_t>*, int64_t, int64_t, uint64_t, int64_t(*)(int64_t, int64_t), void(*)(Array_<char16_t>*, Array_<char16_t>*, int64_t), int64_t);
+void getDbgVars(int64_t, Array_<char16_t>*, int64_t, int64_t, uint64_t, uint64_t(*)(int64_t, uint64_t), void(*)(Array_<char16_t>*, Array_<char16_t>*, int64_t), int64_t);
 
 static void SetBreakPointOpes(HANDLE process_handle);
 static void UnsetBreakPointOpes(HANDLE process_handle);
-static int64_t CallReadProcessMemory(int64_t process_handle, int64_t addr);
+static uint64_t CallReadProcessMemory(int64_t process_handle, uint64_t addr);
 static void CallCallbackForGetDbgVars(Array_<char16_t>* data1, Array_<char16_t>* data2, int64_t callback);
 
 bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, void* event_func, void* break_points_func, void* break_func, void* dbg_func)
@@ -202,7 +202,7 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 							}
 							if (excpt_pos_found)
 							{
-								getDbgVars(interpret2_data, excpt_pos_src, excpt_pos_row, reinterpret_cast<int64_t>(process_info.hProcess), static_cast<uint64_t>(context.Rip), CallReadProcessMemory, CallCallbackForGetDbgVars, reinterpret_cast<int64_t>(dbg_func));
+								getDbgVars(interpret2_data, excpt_pos_src, excpt_pos_row, reinterpret_cast<int64_t>(process_info.hProcess), static_cast<uint64_t>(context.Rsp), CallReadProcessMemory, CallCallbackForGetDbgVars, reinterpret_cast<int64_t>(dbg_func));
 								{
 									void* pos_ptr = nullptr;
 									wchar_t pos_name[0x08 + 256];
@@ -347,10 +347,10 @@ static void UnsetBreakPointOpes(HANDLE process_handle)
 	FlushInstructionCache(process_handle, nullptr, 0);
 }
 
-static int64_t CallReadProcessMemory(int64_t process_handle, int64_t addr)
+static uint64_t CallReadProcessMemory(int64_t process_handle, uint64_t addr)
 {
-	int64_t value;
-	if (!ReadProcessMemory(reinterpret_cast<HANDLE>(process_handle), reinterpret_cast<LPCVOID>(addr), &value, sizeof(value), nullptr))
+	uint64_t value;
+	if (ReadProcessMemory(reinterpret_cast<HANDLE>(process_handle), reinterpret_cast<LPCVOID>(addr), &value, sizeof(value), nullptr))
 		return value;
 	return 0;
 }
