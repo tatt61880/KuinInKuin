@@ -217,7 +217,7 @@ end func
 	+*func mouseDownL(x: int, y: int)
 		do me.setArea(wnd@key(%shift) ?(%shift $ wnd@ShiftCtrl, %none))
 		do me.mousePosToCharPos(x, y)
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		if(!me.areaSel())
 			do me.areaX :: me.cursorX
 			do me.areaY :: me.cursorY
@@ -228,12 +228,12 @@ end func
 	end func
 	
 	+*func mouseUpL(x: int, y: int)
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 	end func
 	
 	+*func mouseDoubleClick(x: int, y: int)
 		do me.mousePosToCharPos(x, y)
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do me.areaX :: me.cursorX
 		do me.areaY :: me.cursorY
 		if(me.cursorX = ^me.src.src[me.cursorY])
@@ -258,7 +258,7 @@ end func
 	+*func mouseMove(x: int, y: int)
 		if(\form@dragging())
 			do me.mousePosToCharPos(x, y)
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do me.interpret1SetDirty(me.cursorY, false, false)
 			do \form@paintDrawEditor()
 		end if
@@ -274,7 +274,7 @@ end func
 	end func
 	
 	+*func updateScrollBar()
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, false)
 	end func
 	
 	+*func keyDown(key: wnd@Key, shiftCtrl: wnd@ShiftCtrl): bool
@@ -297,7 +297,7 @@ end func
 				end if
 				do me.interpret1SetDirty(me.cursorY, true, false)
 				do me.undo.recordEnd()
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do \form@paintDrawEditor()
 				ret true
 			end if
@@ -312,11 +312,11 @@ end func
 					do me.ins(me.cursorX, me.cursorY, "\t", true)
 					do me.interpret1SetDirty(me.cursorY, true, false)
 					do me.undo.recordEnd()
-					do me.refreshCursor(false, true)
+					do me.refreshCursor(false, true, true)
 					do \form@paintDrawEditor()
 				else
 					do me.indentAreaStr()
-					do me.refreshCursor(false, true)
+					do me.refreshCursor(false, true, true)
 					do \form@paintDrawEditor()
 				end if
 				ret true
@@ -326,7 +326,7 @@ end func
 				end if
 				if(me.areaSel())
 					do me.unindentAreaStr()
-					do me.refreshCursor(false, true)
+					do me.refreshCursor(false, true, true)
 					do \form@paintDrawEditor()
 				end if
 				ret true
@@ -344,7 +344,7 @@ end func
 					do me.ins(me.cursorX, me.cursorY, "\n", true)
 					do me.interpret1SetDirty(me.cursorY, true, false)
 					do me.undo.recordEnd()
-					do me.refreshCursor(false, true)
+					do me.refreshCursor(false, true, true)
 					do \form@paintDrawEditor()
 				end if
 				ret true
@@ -360,7 +360,7 @@ end func
 					var absoluteX: int :: me.getAbsoluteX()
 					do me.cursorY :- height / \common@cellHeight
 					do me.setAbsoluteX(absoluteX)
-					do me.refreshCursor(false, true)
+					do me.refreshCursor(false, true, true)
 					do me.interpret1SetDirty(me.cursorY, false, false)
 				end if
 				do \form@paintDrawEditor()
@@ -377,7 +377,7 @@ end func
 					var absoluteX: int :: me.getAbsoluteX()
 					do me.cursorY :+ height / \common@cellHeight
 					do me.setAbsoluteX(absoluteX)
-					do me.refreshCursor(false, true)
+					do me.refreshCursor(false, true, true)
 					do me.interpret1SetDirty(me.cursorY, false, false)
 				end if
 				do \form@paintDrawEditor()
@@ -389,7 +389,7 @@ end func
 			if(shiftCtrl.and(%ctrl) <> %none)
 				do me.cursorY :: lib@intMax
 			end if
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do \completion@close()
 			do \form@paintDrawEditor()
 			do me.interpret1SetDirty(me.cursorY, false, false)
@@ -400,7 +400,7 @@ end func
 			if(shiftCtrl.and(%ctrl) <> %none)
 				do me.cursorY :: 0
 			end if
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do \completion@close()
 			do \form@paintDrawEditor()
 			do me.interpret1SetDirty(me.cursorY, false, false)
@@ -411,7 +411,7 @@ end func
 			else
 				do me.setArea(shiftCtrl)
 				do me.cursorX :- 1
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 			end if
 			do \completion@close()
@@ -428,7 +428,7 @@ end func
 				var absoluteX: int :: me.getAbsoluteX()
 				do me.cursorY :- 1
 				do me.setAbsoluteX(absoluteX)
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 				do \form@paintDrawEditor()
 			end if
@@ -439,7 +439,7 @@ end func
 			else
 				do me.setArea(shiftCtrl)
 				do me.cursorX :+ 1
-				do me.refreshCursor(true, true)
+				do me.refreshCursor(true, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 			end if
 			do \completion@close()
@@ -456,7 +456,7 @@ end func
 				var absoluteX: int :: me.getAbsoluteX()
 				do me.cursorY :+ 1
 				do me.setAbsoluteX(absoluteX)
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 				do \form@paintDrawEditor()
 			end if
@@ -493,19 +493,19 @@ end func
 		do me.ins(me.cursorX, me.cursorY, [key], true)
 		do me.interpret1SetDirty(me.cursorY, true, true)
 		do me.undo.recordEnd()
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do \form@paintDrawEditor()
 	end func
 	
 	+*func scrollX(pos: int)
 		do me.pageX :: pos
-		do me.refreshCursor(false, false)
+		do me.refreshCursor(false, false, false)
 		do \form@paintDrawEditor()
 	end func
 	
 	+*func scrollY(pos: int)
 		do me.pageY :: pos
-		do me.refreshCursor(false, false)
+		do me.refreshCursor(false, false, false)
 		do \form@paintDrawEditor()
 	end func
 	
@@ -529,7 +529,7 @@ end func
 			do me.areaX :: -1
 		end if
 		do me.undo.undo()
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do \form@paintDrawEditor()
 	end func
 	
@@ -541,7 +541,7 @@ end func
 			do me.areaX :: -1
 		end if
 		do me.undo.redo()
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do \form@paintDrawEditor()
 	end func
 	
@@ -555,7 +555,7 @@ end func
 			do me.delAreaStr()
 			do me.interpret1SetDirty(me.cursorY, true, false)
 			do me.undo.recordEnd()
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do \form@paintDrawEditor()
 		end if
 	end func
@@ -579,7 +579,7 @@ end func
 			do me.ins(me.cursorX, me.cursorY, str, true)
 			do me.interpret1SetDirty(me.cursorY, true, false)
 			do me.undo.recordEnd()
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do \form@paintDrawEditor()
 		end if
 	end func
@@ -596,7 +596,7 @@ end func
 		end if
 		do me.interpret1SetDirty(me.cursorY, true, false)
 		do me.undo.recordEnd()
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do \form@paintDrawEditor()
 	end func
 	
@@ -605,7 +605,7 @@ end func
 		do me.areaY :: 0
 		do me.cursorX :: lib@intMax
 		do me.cursorY :: lib@intMax
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do me.interpret1SetDirty(me.cursorY, false, false)
 		do \form@paintDrawEditor()
 	end func
@@ -756,7 +756,7 @@ end func
 			do me.ins(me.cursorX, me.cursorY, code, true)
 			do me.interpret1SetDirty(me.cursorY, true, false)
 			do me.undo.recordEnd()
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do \form@paintDrawEditor()
 		case %listRbOnMouseClick
 			var sel: int :: \form@listRb.getSel()
@@ -832,7 +832,7 @@ end func
 				do me.areaY :: i
 				do me.cursorX :: pos + ^found
 				do me.cursorY :: i
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 				do \form@paintDrawEditor()
 				ret true
@@ -845,7 +845,7 @@ end func
 				do me.areaY :: i
 				do me.cursorX :: pos + ^found
 				do me.cursorY :: i
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 				do \form@paintDrawEditor()
 				ret true
@@ -873,7 +873,7 @@ end func
 				do me.areaY :: i
 				do me.cursorX :: pos + ^found
 				do me.cursorY :: i
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 				do \form@paintDrawEditor()
 				ret true
@@ -886,7 +886,7 @@ end func
 				do me.areaY :: i
 				do me.cursorX :: pos + ^found
 				do me.cursorY :: i
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				do me.interpret1SetDirty(me.cursorY, false, false)
 				do \form@paintDrawEditor()
 				ret true
@@ -1060,7 +1060,7 @@ end func
 		do me.cursorY :: row
 		do me.areaX :: -1
 		do me.areaY :: -1
-		do me.refreshCursor(false, true)
+		do me.refreshCursor(false, true, true)
 		do me.interpret1SetDirty(me.cursorY, false, false)
 	end func
 	
@@ -1218,7 +1218,7 @@ end func
 		do me.cursorX :: ^me.src.src[me.cursorY]
 	end func
 	
-	func refreshCursor(moveRight: bool, refreshScroll: bool)
+	func refreshCursor(moveRight: bool, refreshScroll: bool, refreshScrollPos: bool)
 		var scrWidth: int
 		var scrHeight: int
 		do \form@drawEditor.getPos(&, &, &scrWidth, &scrHeight)
@@ -1253,13 +1253,15 @@ end func
 			var paint: bool :: false
 			var paddingX: int :: (me.lineNumWidth + 17) / \common@cellWidth + 1
 			const paddingY: int :: 17 / \common@cellHeight + 1
-			if(me.pageY > me.cursorY)
-				do me.pageY :: me.cursorY
-				do paint :: true
-			end if
-			if(me.pageY < me.cursorY - scrHeight / \common@cellHeight + paddingY + 1)
-				do me.pageY :: me.cursorY - scrHeight / \common@cellHeight + paddingY + 1
-				do paint :: true
+			if(refreshScrollPos)
+				if(me.pageY > me.cursorY)
+					do me.pageY :: me.cursorY
+					do paint :: true
+				end if
+				if(me.pageY < me.cursorY - scrHeight / \common@cellHeight + paddingY + 1)
+					do me.pageY :: me.cursorY - scrHeight / \common@cellHeight + paddingY + 1
+					do paint :: true
+				end if
 			end if
 			do \form@scrollYSrc.setState(0, ^me.src.src - 1 + paddingY, scrHeight / \common@cellHeight, me.pageY)
 			var maxX: int :: 0
@@ -1284,13 +1286,15 @@ end func
 					end if
 					do x :+ me.charWidth(me.src.src[me.cursorY][i], x)
 				end for
-				if(me.pageX > x)
-					do me.pageX :: x
-					do paint :: true
-				end if
-				if(me.pageX < x - scrWidth / \common@cellWidth + paddingX + 1)
-					do me.pageX :: x - scrWidth / \common@cellWidth + paddingX + 1
-					do paint :: true
+				if(refreshScrollPos)
+					if(me.pageX > x)
+						do me.pageX :: x
+						do paint :: true
+					end if
+					if(me.pageX < x - scrWidth / \common@cellWidth + paddingX + 1)
+						do me.pageX :: x - scrWidth / \common@cellWidth + paddingX + 1
+						do paint :: true
+					end if
 				end if
 			end block
 			do \form@scrollXSrc.setState(0, maxX - 1 + paddingX, scrWidth / \common@cellWidth, me.pageX)
@@ -1640,7 +1644,7 @@ end func
 		if(me.pageX < 0)
 			do me.pageX :: 0
 		end if
-		do me.refreshCursor(false, false)
+		do me.refreshCursor(false, false, false)
 		do \form@scrollXSrc.setScrollPos(me.pageX)
 		do \form@paintDrawEditor()
 	end func
@@ -1657,7 +1661,7 @@ end func
 		if(me.pageY < 0)
 			do me.pageY :: 0
 		end if
-		do me.refreshCursor(false, false)
+		do me.refreshCursor(false, false, false)
 		do \form@scrollYSrc.setScrollPos(me.pageY)
 		do \form@paintDrawEditor()
 	end func
@@ -1690,7 +1694,7 @@ end func
 				do \dll@interpret1(me.src, -1, me, me.replaceForAuxiliary, me.cursorX, me.cursorY, &newX, me.dirtyLine, modified ?(me.cursorY, me.dirtyLine))
 				do me.cursorX :: newX
 				do me.cursorY :: newY
-				do me.refreshCursor(false, true)
+				do me.refreshCursor(false, true, true)
 				
 				if(me.dirtyLine <> line)
 					do \form@callInterpret2()
@@ -1754,7 +1758,7 @@ end func
 			do me.cursorX :: first + ^replaceStr
 			do me.areaX :: -1
 			do me.areaY :: -1
-			do me.refreshCursor(false, true)
+			do me.refreshCursor(false, true, true)
 			do \form@paintDrawEditor()
 		end if
 		do \completion@close()
