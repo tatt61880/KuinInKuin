@@ -1760,3 +1760,15 @@ func intToI2Data(i2Data: int): @Interpret2Data
 		excode "return reinterpret_cast<decltype(`1`)>(`0`);\n"
 	end func
 end func
+
++func[__rwi]initDbgVars(): int
+	var i2Data: @Interpret2Data :: #@Interpret2Data
+	do i2Data.keywordList :: null
+	do i2Data.subSrcDummyAst :: \ast@getSubSrcDummyAst()
+	do @makeKeywordList(i2Data, \exe\output@asts)
+	ret @i2DataToInt(i2Data)
+end func
+
++func[__rwi]getDbgVars(i2Data: int, excptPosSrc: []char, excptPosRow: int, processHandle: int, contextRip: bit64, readProcessMemoryFunc: func<(int, int): int>, callCallbackFunc: func<([]char, []char, int)>, callback: int)
+	; TODO:
+end func

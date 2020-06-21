@@ -85,10 +85,6 @@ end func
 	ret ""
 end func
 
-+func[__rwi]getDbgVars(excptPosSrc: []char, excptPosRow: int, processHandle: int, contextRip: bit64, readProcessMemoryFunc: func<(int, int): int>, callCallbackFunc: func<([]char, []char, int)>, callback: int)
-	; TODO:
-end func
-
 func posToAddrImpl(pos: \pos@Pos): bit64
 	class Data()
 		+var addr: bit64
@@ -106,6 +102,7 @@ func posToAddrImpl(pos: \pos@Pos): bit64
 		var pos: \pos@Pos :: data2.pos2
 		if(data2.addr = 0b64 & funcPos <>& null & funcPos.srcName = pos.srcName & funcPos.row <= pos.row & pos.row <= getFuncPosRowBottom(key))
 			do data2.addr :: posToAddrCallbackRecursion(key.stats, pos)
+			ret false
 		end if
 		ret true
 	end func
@@ -216,17 +213,19 @@ func posToAddrImpl(pos: \pos@Pos): bit64
 	end func
 	
 	func getStatPosRowBottom(stat: \ast@AstStat): int
+		switch(stat.typeId)
+		case %statIf, %statSwitch, %statWhile, %statFor, %statTry, %statBlock
+			; In a dummy scope.
+			do ast :: stat.scopeParent.scopeChildren.get("$E", &found)
+			assert found
+			ret ast.pos.row
+		end switch
 		if(stat.scopeChildren =& null)
 			ret stat.pos.row
 		end if
 		var found: bool
 		var ast: \ast@Ast
 		do ast :: stat.scopeChildren.get("$E", &found)
-		if(found)
-			ret ast.pos.row
-		end if
-		; In a dummy scope.
-		do ast :: stat.scopeParent.scopeChildren.get("$E", &found)
 		assert found
 		ret ast.pos.row
 	end func

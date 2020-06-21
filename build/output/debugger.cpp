@@ -11,7 +11,8 @@ int64_t getBreakPointPosesNum();
 uint64_t posToAddr(int64_t);
 bool addrToPos(Array_<char16_t>**, Array_<char16_t>**, int64_t*, int64_t*, uint64_t);
 Array_<char16_t>* getExcptMsg(int64_t);
-void getDbgVars(Array_<char16_t>*, int64_t, int64_t, uint64_t, int64_t(*)(int64_t, int64_t), void(*)(Array_<char16_t>*, Array_<char16_t>*, int64_t), int64_t);
+int64_t initDbgVars();
+void getDbgVars(int64_t, Array_<char16_t>*, int64_t, int64_t, uint64_t, int64_t(*)(int64_t, int64_t), void(*)(Array_<char16_t>*, Array_<char16_t>*, int64_t), int64_t);
 
 static void SetBreakPointOpes(HANDLE process_handle);
 static void UnsetBreakPointOpes(HANDLE process_handle);
@@ -52,6 +53,7 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 	if (cmd_line_buf != nullptr)
 		free(cmd_line_buf);
 
+	int64_t interpret2_data = initDbgVars();
 	{
 		DEBUG_EVENT debug_event = { 0 };
 		bool end = false;
@@ -189,7 +191,7 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 									if (found)
 									{
 										wchar_t buf[0x08 + 1024];
-										swprintf(buf + 0x08, 1024, L"%s (%s: %d, %d)", name, src, row, col);
+										swprintf(buf + 0x08, 1024, L"%s (%s: %I64d, %I64d)", reinterpret_cast<wchar_t*>(name->B), reinterpret_cast<wchar_t*>(src->B), row, col);
 										((int64_t*)buf)[0] = 2;
 										((int64_t*)buf)[1] = (int64_t)wcslen(buf + 0x08);
 										Call3Asm((void*)2, buf, nullptr, dbg_func);
@@ -200,7 +202,7 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 							}
 							if (excpt_pos_found)
 							{
-								getDbgVars(excpt_pos_src, excpt_pos_row, reinterpret_cast<int64_t>(process_info.hProcess), static_cast<uint64_t>(context.Rip), CallReadProcessMemory, CallCallbackForGetDbgVars, reinterpret_cast<int64_t>(dbg_func));
+								getDbgVars(interpret2_data, excpt_pos_src, excpt_pos_row, reinterpret_cast<int64_t>(process_info.hProcess), static_cast<uint64_t>(context.Rip), CallReadProcessMemory, CallCallbackForGetDbgVars, reinterpret_cast<int64_t>(dbg_func));
 								{
 									void* pos_ptr = nullptr;
 									wchar_t pos_name[0x08 + 256];
