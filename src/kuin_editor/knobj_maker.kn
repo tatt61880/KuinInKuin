@@ -65,6 +65,12 @@ var btnClose: wnd@Btn
 			do format :: format.or(0x02b32)
 		end if
 		var process: task@Process :: task@makeProcess(wnd@exeDir() ~ "tools/knobj_maker.exe", "\{format $ int} \"\{inputPath}\"")
+		if(process =& null)
+			do wnd@msgBox(@wndKnobjMaker, \common@langEn ?("The conversion failed.", "コンバートが失敗しました。"), \common@title, %none, %ok)
+			do @btnConvert.setEnabled(true)
+			do @btnClose.setEnabled(true)
+			ret
+		end if
 		do process.run(false)
 		while(process.running(&), skip)
 			var log: []char :: process.readPipe()
@@ -81,7 +87,7 @@ var btnClose: wnd@Btn
 			end if
 		end block
 		do process.fin()
-		do wnd@msgBox(@wndKnobjMaker, \common@langEn ?("The conversion is complete.", "コンバートが完了しました。"), \common@title, %none, %ok)
+		do wnd@msgBox(@wndKnobjMaker, \common@langEn ?("The conversion has finished.", "コンバートが終了しました。"), \common@title, %none, %ok)
 		do @btnConvert.setEnabled(true)
 		do @btnClose.setEnabled(true)
 	end func

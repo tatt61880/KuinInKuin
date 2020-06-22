@@ -2089,10 +2089,8 @@ func parseExprValue(): \ast@AstExpr
 					end block
 					ret cat
 				end if
-				if(len = 1024)
-					do \err@err(%tooLongStringLiteral, pos, [buf])
-					do @readUntilRet(c)
-					ret null
+				if(len = ^buf)
+					do buf :~ #[1024]char
 				end if
 				do buf[len] :: @escChar(c)
 				do len :+ 1
@@ -2106,10 +2104,8 @@ func parseExprValue(): \ast@AstExpr
 				do esc :: true
 				skip loop
 			end if
-			if(len = 1024)
-				do \err@err(%tooLongStringLiteral, pos, [buf])
-				do @readUntilRet(c)
-				ret null
+			if(len = ^buf)
+				do buf :~ #[1024]char
 			end if
 			do buf[len] :: c
 			do len :+ 1

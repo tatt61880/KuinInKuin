@@ -324,7 +324,7 @@ static int64_t FileSize(int64_t handle)
 static char16_t FileReadLetter(int64_t handle)
 {
 	ReadingLetterCnt++;
-	if (ReadingLetterCnt == 1000)
+	if (ReadingLetterCnt == 10000)
 	{
 		ReadingLetterCnt = 0;
 		LeaveCriticalSection(&CriticalSection);

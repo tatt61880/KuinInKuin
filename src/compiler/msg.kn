@@ -51,7 +51,6 @@ end enum
 	wrongClauseInSwitch
 	wrongWord
 	wrongOperator
-	tooLongStringLiteral
 	wrongEscSequence
 	wrongCharCodeRepresentation
 	nonClosingStrLiteral
@@ -439,13 +438,6 @@ end enum
 			ret "「不正な形式の演算子「\{args[0]}」が記述されました。"
 		default
 			ret "An incorrect operator '\{args[0]}' was written."
-		end switch
-	case %tooLongStringLiteral
-		switch(@lang)
-		case %ja
-			ret "文字列リテラル「\{args[0]}...」が長すぎます。 1024文字以下でなければなりません。"
-		default
-			ret "The string literal '\{args[0]}' is too long. Must be 1024 characters or less."
 		end switch
 	case %wrongEscSequence
 		switch(@lang)

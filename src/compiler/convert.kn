@@ -325,3 +325,12 @@ end func
 	do reader.fin()
 	ret true
 end func
+
++func convertToBinaryFiles(asts: dict<[]char, \ast@Ast>)
+	do asts.forEach(convertToBinaryFile, null)
+	
+	func convertToBinaryFile(key: []char, value: \ast@Ast, data: kuin@Class): bool
+		; TODO:
+		ret true
+	end func
+end func

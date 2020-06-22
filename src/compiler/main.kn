@@ -78,6 +78,15 @@ func[__rwi]build(): bool
 	do asts :: \parse@parse(useResFlags, null)
 	do \err@err(%parsingCompleted, null, [((lib@sysTime() - beginTime) $ float / 1000.0).toStr()])
 	
+	; Convert to binary files.
+	if(\option@extra.get("binary", &))
+		if(\err@errCnt > 0)
+			ret false
+		end if
+		do \convert@convertToBinaryFiles(asts)
+		ret false
+	end if
+	
 	; 'Analyze'
 	var funcAttrs: dict<[]char, dict<[]char, bool>>
 	do entry :: \analyze@analyze(asts, &funcAttrs)

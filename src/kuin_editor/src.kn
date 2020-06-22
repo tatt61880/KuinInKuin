@@ -89,7 +89,7 @@ func initMainSrc()
 	do \completion@close()
 	do @resetErrList()
 	do \form@updateUi()
-	do \form@paintDrawEditor()
+	do \form@paintDrawEditor(false)
 	do \form@focusDrawEditor()
 end func
 
@@ -182,7 +182,7 @@ end func
 	do @curDoc :: doc
 	do @curDocName :: @getDocName(doc)
 	do @curDoc.fix(false)
-	do \form@paintDrawEditor()
+	do \form@paintDrawEditor(false)
 	do \form@focusDrawEditor()
 	do \form@updateUi()
 end func
@@ -264,7 +264,7 @@ end func
 	do path :: file@fullPath(path)
 	var doc: \doc@Doc
 	switch(file@ext(path).lower())
-	case "kn", "knp"
+	case "kn"
 		do doc :: #\doc_src@DocSrc
 	case "kngen"
 		do doc :: #\doc_gen@DocGen
@@ -317,7 +317,7 @@ end func
 			do \form@listFileOnSel(\form@listFile)
 		end if
 		do(@curDoc $ \doc_src@DocSrc).move(pos.col - 1, pos.row - 1)
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 		do \form@focusDrawEditor()
 		ret true
 	end if
@@ -395,7 +395,7 @@ end func
 	if(@curDoc =$ \doc_src@DocSrc)
 		do @errList.forEach(callback, @curDoc $ \doc_src@DocSrc)
 	end if
-	do \form@paintDrawEditor()
+	do \form@paintDrawEditor(false)
 	
 	func callback(pos: @Pos, msg: []char, data: kuin@Class): bool
 		var doc_src: \doc_src@DocSrc :: data $ \doc_src@DocSrc

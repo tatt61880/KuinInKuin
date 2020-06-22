@@ -234,7 +234,7 @@
 			do me.undo.recordEnd()
 			do \form@updateUi()
 		end if
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 	end func
 	
 	+*func mouseUpL(x: int, y: int)
@@ -270,7 +270,7 @@
 				do \form@listLt.setSel(0)
 			end if
 			do \form@updateUi()
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(false)
 		case %sel
 			var x1: int :: me.holdOriginX
 			var y1: int :: me.holdOriginY
@@ -299,7 +299,7 @@
 			end while
 			do me.mode :: %none
 			do \form@updateUi()
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(false)
 		end switch
 	end func
 	
@@ -319,11 +319,11 @@
 			do me.curOriginX :: arrangedX
 			do me.curOriginY :: arrangedY
 			do me.updateProp()
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(true)
 		case %sel
 			do me.curOriginX :: (x $ float / \form@zoom) $ int + me.pageX
 			do me.curOriginY :: (y $ float / \form@zoom) $ int + me.pageY
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(true)
 		end switch
 	end func
 	
@@ -365,12 +365,12 @@
 	
 	+*func scrollX(pos: int)
 		do me.pageX :: pos - me.scrollOffsetX
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(true)
 	end func
 	
 	+*func scrollY(pos: int)
 		do me.pageY :: pos - me.scrollOffsetY
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(true)
 	end func
 	
 	+*func wheelX(wheel: int)
@@ -468,7 +468,7 @@
 		end if
 		do me.undo.undo()
 		do \form@updateUi()
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 	end func
 	
 	+*func cmdRedo()
@@ -478,7 +478,7 @@
 		end if
 		do me.undo.redo()
 		do \form@updateUi()
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 	end func
 	
 	+*func cmdCut()
@@ -516,7 +516,7 @@
 		end while
 		do me.undo.recordEnd()
 		do \form@updateUi()
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 	end func
 	
 	+*func cmdDel()
@@ -528,7 +528,7 @@
 		end while
 		do me.undo.recordEnd()
 		do \form@updateUi()
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 	end func
 	
 	+*func cmdSelAll()
@@ -539,7 +539,7 @@
 			do me.nodes.next()
 		end while
 		do \form@updateUi()
-		do \form@paintDrawEditor()
+		do \form@paintDrawEditor(false)
 	end func
 	
 	+*func undoImpl(undo2: \doc@UndoCmd)
@@ -622,7 +622,7 @@
 				end if
 			end for
 			do me.updateProp()
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(true)
 		case %listLbOnMoveNode
 			var len: int :: \form@listLb.len()
 			var names: [][]char :: #[len][]char
@@ -632,7 +632,7 @@
 			do me.undo.recordBegin()
 			do me.order(names, true)
 			do me.undo.recordEnd()
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(false)
 			do \form@updateUi()
 		case %listRbOnMouseClick
 		case %editRbArNameOnKillFocus
@@ -647,7 +647,7 @@
 				do me.undo.recordBegin()
 				do me.rename(obj.name, name, true)
 				do me.undo.recordEnd()
-				do \form@paintDrawEditor()
+				do \form@paintDrawEditor(false)
 			end if
 			do \form@updateUi()
 		case %chkRbArVisibleOnPush
@@ -798,7 +798,7 @@
 				end for
 			end if
 			do \form@updateUi()
-			do \form@paintDrawEditor()
+			do \form@paintDrawEditor(false)
 		end switch
 	end func
 	
@@ -1322,7 +1322,7 @@
 				do me.undo.recordBegin()
 				do apply(me, obj, data)
 				do me.undo.recordEnd()
-				do \form@paintDrawEditor()
+				do \form@paintDrawEditor(false)
 			end if
 		else
 			var diff: bool :: false
@@ -1345,7 +1345,7 @@
 					do me.holds.next()
 				end while
 				do me.undo.recordEnd()
-				do \form@paintDrawEditor()
+				do \form@paintDrawEditor(false)
 			end if
 		end if
 		do \form@updateUi()

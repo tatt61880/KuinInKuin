@@ -1,7 +1,7 @@
 #exe
 func _init()
 	do wnd@addAction(@_update)
-	do bgmVolume :: 1.0
+	do @bgmVolume :: 1.0
 end func
 
 func _update()
