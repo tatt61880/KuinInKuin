@@ -233,7 +233,7 @@ static int64_t getCurDir_(char16_t* p) {
 	char b[512];
 	if (getcwd(b, 511) == nullptr)
 		return 0;
-	normPath_(b);
+	normPath_(b, true);
 	std::string s = b;
 	const std::u16string& t = utf8ToUtf16_(s);
 	if (t.size() >= 512)
@@ -307,9 +307,9 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 	std::u16string s2 = s;
 	const std::string& t2 = utf16ToUtf8_(s2);
 	struct stat b;
-	if (::stat(d.c_str(), &b) == 0)
+	if (::stat(t1.c_str(), &b) == 0)
 	{
-		if (::unlink(t.c_str()) != 0)
+		if (::unlink(t1.c_str()) != 0)
 			return false;
 	}
 	return ::rename(t2.c_str(), t1.c_str()) == 0;
@@ -317,10 +317,10 @@ static bool moveFile_(const char16_t* d, const char16_t* s) {
 static int64_t fullPath_(char16_t* p, const char16_t* q) {
 	std::u16string s1 = q;
 	const std::string& t1 = utf16ToUtf8_(s1);
-	char a[MAX_PATH + 1];
+	char a[512 + 1];
 	if (::realpath(t1.c_str(), a) == nullptr)
 		return 0;
-	normPath_(a);
+	normPath_(a, t1[t1.size() - 1] == '/');
 	std::string s2 = a;
 	const std::u16string& t2 = utf8ToUtf16_(s2);
 	if (t2.size() >= 512)
@@ -453,7 +453,7 @@ static bool delDir_(const std::u16string& p) {
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
-		h = opendir(p2.c_str());
+		h = opendir(p.c_str());
 		if (h == nullptr)
 			return false;
 #endif
@@ -484,6 +484,7 @@ static bool delDir_(const std::u16string& p) {
 				continue;
 			p2 += reinterpret_cast<const char16_t*>(n);
 #else
+			const char* n = t->d_name;
 			if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
 				continue;
 			std::string s = n;
@@ -508,7 +509,7 @@ static bool delDir_(const std::u16string& p) {
 #if defined(_WIN32)
 		a = ::RemoveDirectoryW(reinterpret_cast<const wchar_t*>(p.c_str())) != 0;
 #else
-		a = ::rmdir(p2.c_str()) == 0;
+		a = ::rmdir(p.c_str()) == 0;
 #endif
 	}
 	return a;
@@ -535,7 +536,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
-		h = opendir(p2.c_str());
+		h = opendir(s.c_str());
 		if (h == nullptr)
 			return false;
 #endif
@@ -579,6 +580,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 				s2 += reinterpret_cast<const char16_t*>(n);
 				d2 += reinterpret_cast<const char16_t*>(n);
 #else
+				const char* n = t->d_name;
 				if (strcmp(n, ".") == 0 || strcmp(n, "..") == 0)
 					continue;
 				std::string t = n;
