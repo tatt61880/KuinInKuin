@@ -927,6 +927,7 @@ func rebuildClass(ast: \ast@AstClass)
 							var new_: \ast@AstExprNew :: #\ast@AstExprNew
 							do @initAstExpr(new_, %exprNew, ast.pos)
 							do new_.itemType :: arg.type
+							do new_.direct :: false
 							do arg.expr :: new_
 						end block
 						do var2.arg :: arg
@@ -1146,6 +1147,7 @@ func rebuildClass(ast: \ast@AstClass)
 							var new_: \ast@AstExprNew :: #\ast@AstExprNew
 							do @initAstExpr(new_, %exprNew, ast.pos)
 							do new_.itemType :: arg.type
+							do new_.direct :: false
 							do arg.expr :: new_
 						end block
 						do var2.arg :: arg
@@ -2458,13 +2460,27 @@ func rebuildExprNew(ast: \ast@AstExprNew): \ast@AstExpr
 		ret null
 	end if
 	
-	if(\ast@isClass(ast.itemType) & ast.itemType.refItem =& null)
+	var isClass: bool :: \ast@isClass(ast.itemType)
+	if(isClass & ast.itemType.refItem =& null)
 		ret null
 	end if
 	
-	if(!(\ast@isClass(ast.itemType) | ast.itemType.typeId = %typeGen | ast.itemType.typeId = %typeDict))
+	if(!(isClass | ast.itemType.typeId = %typeGen | ast.itemType.typeId = %typeDict))
 		do \err@err(%wrongTypeForNewOperator, ast.pos, null)
 		ret null
+	end if
+	if(ast.direct & isClass)
+		var astItems: list<\ast@AstClassItem> :: (ast.itemType.refItem $ \ast@AstClass).items
+		do astItems.head()
+		while(!astItems.term())
+			var item: \ast@AstClassItem :: astItems.get()
+			var def: \ast@Ast :: item.def
+			if(def.typeId = %func_ & (def $ \ast@AstFunc).funcOption.and(%ndc) = %ndc & def.name = "ctor")
+				do \err@err(%cannotInstantiateDirectly, ast.pos, [ast.itemType.refItem.name])
+				ret null
+			end if
+			do astItems.next()
+		end while
 	end if
 	do ast.type :: ast.itemType
 	do ast.varKind :: %value
@@ -2753,6 +2769,7 @@ func rebuildExprCall(ast: \ast@AstExprCall): \ast@AstExpr
 				var expr: \ast@AstExprNew :: #\ast@AstExprNew
 				do @initAstExpr(expr, %exprNew, ast.pos)
 				do expr.itemType :: type.ret_
+				do expr.direct :: false
 				do valueType.arg :: @rebuildExpr(expr, false)
 			end block
 			do valueType.refVar :: false

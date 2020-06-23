@@ -357,7 +357,7 @@ static bool fileForEach_(const std::u16string& p, bool r, bool(*f)(type_(Array_<
 			return false;
 #else
 		const std::string& p2 = utf16ToUtf8_(p);
-		h = opendir(p2.c_str());
+		h = ::opendir(p2.c_str());
 		if (h == nullptr)
 			return false;
 #endif
@@ -453,7 +453,8 @@ static bool delDir_(const std::u16string& p) {
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
-		h = opendir(p.c_str());
+		const std::string& p2 = utf16ToUtf8_(p);
+		h = ::opendir(p2.c_str());
 		if (h == nullptr)
 			return false;
 #endif
@@ -509,7 +510,8 @@ static bool delDir_(const std::u16string& p) {
 #if defined(_WIN32)
 		a = ::RemoveDirectoryW(reinterpret_cast<const wchar_t*>(p.c_str())) != 0;
 #else
-		a = ::rmdir(p.c_str()) == 0;
+		const std::string& p2 = utf16ToUtf8_(p);
+		a = ::rmdir(p2.c_str()) == 0;
 #endif
 	}
 	return a;
@@ -536,7 +538,8 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
-		h = opendir(s.c_str());
+		const std::string& p2 = utf16ToUtf8_(s);
+		h = ::opendir(p2.c_str());
 		if (h == nullptr)
 			return false;
 #endif

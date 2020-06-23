@@ -4,8 +4,7 @@
 +const pi: float :: 3.14159265358979323846
 
 func _init()
-	do @globalRnd :: #@Rnd
-	do @globalRnd.setSeed((@sysTime() $ bit32).xor(@now() $ bit32))
+	do @globalRnd :: @makeRnd((@sysTime() $ bit32).xor(@now() $ bit32))
 end func
 
 +class Bool()
@@ -526,10 +525,9 @@ end func
 	ret @ln(x) / @ln(base)
 end func
 
-+func makeRnd(seed: bit32): @Rnd
-	var r: @Rnd :: #@Rnd
-	do r.setSeed(seed)
-	ret r
++func[__mki]makeRnd(me2: @Rnd, seed: bit32): @Rnd
+	do me2.setSeed(seed)
+	ret me2
 end func
 
 +func max(n1: int, n2: int): int

@@ -133,6 +133,7 @@ end enum
 	inaccessibleElement
 	excodeMustBeStrConst
 	dictKeyMustBeComparable
+	cannotInstantiateDirectly
 	
 	_nonErrs :: 0x00030000
 	success
@@ -998,6 +999,13 @@ end enum
 			ret "「dict」型のキーは比較可能な型でなければなりません。"
 		default
 			ret "The key of 'dict' must be a comparable type."
+		end switch
+	case %cannotInstantiateDirectly
+		switch(@lang)
+		case %ja
+			ret "クラス「\{args[0]}」のインスタンスは#演算子で生成できません。"
+		default
+			ret "The class '\{args[0]}' cannot instantiate directly."
 		end switch
 	case %success
 		switch(@lang)

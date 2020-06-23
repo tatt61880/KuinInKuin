@@ -333,6 +333,10 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 						if(s[3] = 'k' & s[4] = 'i')
 							do ast.funcOption :: ast.funcOption.or(%mki)
 						end if
+					case 'n'
+						if(s[3] = 'd' & s[4] = 'c')
+							do ast.funcOption :: ast.funcOption.or(%ndc)
+						end if
 					case 'r'
 						if(s[3] = 'm' & s[4] = 'e')
 							do ast.funcOption :: ast.funcOption.or(%rme)
@@ -1889,6 +1893,7 @@ func parseExprPlus(): \ast@AstExpr
 			var ast2: \ast@AstExprNew :: #\ast@AstExprNew
 			do @initAstExpr(ast2, %exprNew, \pos@make(@srcName, row, col))
 			do ast2.itemType :: @parseType()
+			do ast2.direct :: true
 			do ast :: ast2
 		end switch
 	else

@@ -501,27 +501,25 @@ end func
 	ret false
 end func
 
-+func makeReader(path: []char): @Reader
++func[__mki]makeReader(me2: @Reader, path: []char): @Reader
 	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
 	var success: bool
 	var handle: int :: @openAsReadingImpl(path, pack, &success)
 	if(!success)
 		ret null
 	end if
-	var r: @Reader :: #@Reader
-	do r._init(handle)
-	ret r
+	do me2._init(handle)
+	ret me2
 end func
 
-+func makeWriter(path: []char, append: bool): @Writer
++func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
 	var success: bool
 	var handle: int :: @openAsWritingImpl(path, append, &success)
 	if(!success)
 		ret null
 	end if
-	var r: @Writer :: #@Writer
-	do r._init(handle, append)
-	ret r
+	do me2._init(handle, append)
+	ret me2
 end func
 
 +func moveDir(dst: []char, src: []char): bool

@@ -291,10 +291,13 @@ EXPORT void _readerCloseImpl(void* handle)
 {
 	void* handle2 = (void*)((S64)handle & (~1LL));
 	Bool pack = ((S64)handle & 1LL) != 0LL;
-	if (pack)
-		FreeMem((SPackHandle*)handle2);
-	else
-		fclose((FILE*)handle2);
+	if (handle2 != NULL)
+	{
+		if (pack)
+			FreeMem((SPackHandle*)handle2);
+		else
+			fclose((FILE*)handle2);
+	}
 }
 
 EXPORT void _readerSeekImpl(void* handle, S64 origin, S64 pos)

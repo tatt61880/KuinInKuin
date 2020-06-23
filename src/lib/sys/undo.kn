@@ -96,8 +96,7 @@ end class
 	var state: int
 end class
 
-+func makeUndo(undoBufSize: int): @Undo
-	var r: @Undo :: #@Undo
-	do r._init(undoBufSize)
-	ret r
++func[__mki]makeUndo(me2: @Undo, undoBufSize: int): @Undo
+	do me2._init(undoBufSize)
+	ret me2
 end func
