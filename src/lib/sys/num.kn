@@ -77,7 +77,7 @@ end class
 	+func[d1006.knd, _bigFloatFromStr]fromStr(value: []char): bool
 	end func
 	
-	+func[d1006.knd, _bigFloatToFloat]toFloat(): int
+	+func[d1006.knd, _bigFloatToFloat]toFloat(): float
 	end func
 	
 	+func[d1006.knd, _bigFloatFromFloat]fromFloat(value: float)
