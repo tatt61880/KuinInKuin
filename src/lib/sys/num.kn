@@ -70,7 +70,7 @@ end class
 	+*func[d1006.knd, _bigFloatToStr]toStr(): []char
 	end func
 	
-	+func[d1006.knd, _bigFloatToFloat]toFloat(): int
+	+func[d1006.knd, _bigFloatToFloat]toFloat(): float
 	end func
 	
 	+func[d1006.knd, _bigFloatAdd, __mki]add(me2: @BigFloat, value: @BigFloat): @BigFloat
