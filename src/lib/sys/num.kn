@@ -15,50 +15,46 @@ end func
 	+*func[d1006.knd, _bigIntToStr]toStr(): []char
 	end func
 	
-	+func[d1006.knd, _bigIntFromStr]fromStr(value: []char): bool
-	end func
-	
 	+func[d1006.knd, _bigIntToInt]toInt(): int
 	end func
 	
-	+func[d1006.knd, _bigIntFromInt]fromInt(value: int)
+	+func[d1006.knd, _bigIntAdd, __mki]add(me2: @BigInt, value: @BigInt): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntAdd]add(value: @BigInt): @BigInt
+	+func[d1006.knd, _bigIntAddInt, __mki]addInt(me2: @BigInt, value: int): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntAddInt]addInt(value: int): @BigInt
+	+func[d1006.knd, _bigIntSub, __mki]sub(me2: @BigInt, value: @BigInt): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntSub]sub(value: @BigInt): @BigInt
+	+func[d1006.knd, _bigIntSubInt, __mki]subInt(me2: @BigInt, value: int): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntSubInt]subInt(value: int): @BigInt
+	+func[d1006.knd, _bigIntMul, __mki]mul(me2: @BigInt, value: @BigInt): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntMul]mul(value: @BigInt): @BigInt
+	+func[d1006.knd, _bigIntMulInt, __mki]mulInt(me2: @BigInt, value: int): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntMulInt]mulInt(value: int): @BigInt
+	+func[d1006.knd, _bigIntDiv, __mki]div(me2: @BigInt, value: @BigInt): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntDiv]div(value: @BigInt): @BigInt
+	+func[d1006.knd, _bigIntDivInt, __mki]divInt(me2: @BigInt, value: int): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntDivInt]divInt(value: int): @BigInt
+	+func[d1006.knd, _bigIntMod, __mki]mod(me2: @BigInt, value: @BigInt): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntMod]mod(value: @BigInt): @BigInt
+	+func[d1006.knd, _bigIntModInt, __mki]modInt(me2: @BigInt, value: int): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntModInt]modInt(value: int): @BigInt
+	+func[d1006.knd, _bigIntPowInt, __mki]powInt(me2: @BigInt, value: int): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntPowInt]powInt(value: int): @BigInt
+	+func[d1006.knd, _bigIntAbs, __mki]abs(me2: @BigInt): @BigInt
 	end func
 	
-	+func[d1006.knd, _bigIntAbs]abs(): @BigInt
-	end func
+	var value: int
 end class
 
 +class BigFloat()
@@ -74,110 +70,100 @@ end class
 	+*func[d1006.knd, _bigFloatToStr]toStr(): []char
 	end func
 	
-	+func[d1006.knd, _bigFloatFromStr]fromStr(value: []char): bool
-	end func
-	
 	+func[d1006.knd, _bigFloatToFloat]toFloat(): int
 	end func
 	
-	+func[d1006.knd, _bigFloatFromFloat]fromFloat(value: float)
+	+func[d1006.knd, _bigFloatAdd, __mki]add(me2: @BigFloat, value: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAdd]add(value: @BigFloat): @BigFloat
+	+func[d1006.knd, _bigFloatAddFloat, __mki]addFloat(me2: @BigFloat, value: float): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAddFloat]addFloat(value: float): @BigFloat
+	+func[d1006.knd, _bigFloatSub, __mki]sub(me2: @BigFloat, value: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatSub]sub(value: @BigFloat): @BigFloat
+	+func[d1006.knd, _bigFloatSubFloat, __mki]subFloat(me2: @BigFloat, value: float): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatSubFloat]subFloat(value: float): @BigFloat
+	+func[d1006.knd, _bigFloatMul, __mki]mul(me2: @BigFloat, value: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatMul]mul(value: @BigFloat): @BigFloat
+	+func[d1006.knd, _bigFloatMulFloat, __mki]mulFloat(me2: @BigFloat, value: float): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatMulFloat]mulFloat(value: float): @BigFloat
+	+func[d1006.knd, _bigFloatDiv, __mki]div(me2: @BigFloat, value: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatDiv]div(value: @BigFloat): @BigFloat
+	+func[d1006.knd, _bigFloatDivFloat, __mki]divFloat(me2: @BigFloat, value: float): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatDivFloat]divFloat(value: float): @BigFloat
+	+func[d1006.knd, _bigFloatMod, __mki]mod(me2: @BigFloat, value: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatMod]mod(value: @BigFloat): @BigFloat
+	+func[d1006.knd, _bigFloatModFloat, __mki]modFloat(me2: @BigFloat, value: float): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatModFloat]modFloat(value: float): @BigFloat
+	+func[d1006.knd, _bigFloatPow, __mki]pow(me2: @BigFloat, value: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatPow]pow(value: @BigFloat): @BigFloat
+	+func[d1006.knd, _bigFloatPowFloat, __mki]powFloat(me2: @BigFloat, value: float): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatPowFloat]powFloat(value: float): @BigFloat
+	+func[d1006.knd, _bigFloatExp, __mki]exp(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatExp]exp(): @BigFloat
+	+func[d1006.knd, _bigFloatLn, __mki]ln(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatLn]ln(): @BigFloat
+	+func[d1006.knd, _bigFloatSqrt, __mki]sqrt(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatSqrt]sqrt(): @BigFloat
+	+func[d1006.knd, _bigFloatFloor, __mki]floor(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatFloor]floor(): @BigFloat
+	+func[d1006.knd, _bigFloatCeil, __mki]ceil(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatCeil]ceil(): @BigFloat
+	+func[d1006.knd, _bigFloatCos, __mki]cos(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatCos]cos(): @BigFloat
+	+func[d1006.knd, _bigFloatSin, __mki]sin(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatSin]sin(): @BigFloat
+	+func[d1006.knd, _bigFloatTan, __mki]tan(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatTan]tan(): @BigFloat
+	+func[d1006.knd, _bigFloatAcos, __mki]acos(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAcos]acos(): @BigFloat
+	+func[d1006.knd, _bigFloatAsin, __mki]asin(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAsin]asin(): @BigFloat
+	+func[d1006.knd, _bigFloatAtan, __mki]atan(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAtan]atan(): @BigFloat
+	+func[d1006.knd, _bigFloatCosh, __mki]cosh(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatCosh]cosh(): @BigFloat
+	+func[d1006.knd, _bigFloatSinh, __mki]sinh(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatSinh]sinh(): @BigFloat
+	+func[d1006.knd, _bigFloatTanh, __mki]tanh(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatTanh]tanh(): @BigFloat
+	+func[d1006.knd, _bigFloatAcosh, __mki]acosh(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAcosh]acosh(): @BigFloat
+	+func[d1006.knd, _bigFloatAsinh, __mki]asinh(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAsinh]asinh(): @BigFloat
+	+func[d1006.knd, _bigFloatAtanh, __mki]atanh(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAtanh]atanh(): @BigFloat
+	+func[d1006.knd, _bigFloatAbs, __mki]abs(me2: @BigFloat): @BigFloat
 	end func
 	
-	+func[d1006.knd, _bigFloatAbs]abs(): @BigFloat
-	end func
-	
-	+func[d1006.knd, _bigFloatPi]pi(): @BigFloat
-	end func
-	
-	+func[d1006.knd, _bigFloatE]e(): @BigFloat
-	end func
+	var value: int
 end class
 
 +class Complex()
@@ -196,78 +182,98 @@ end class
 	+func[d1006.knd, _complexIm]im(): float
 	end func
 	
-	+func[d1006.knd, _complexSet]set(re: float, im: float): @Complex
+	+func[d1006.knd, _complexAdd, __mki]add(me2: @Complex, value: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAdd]add(value: @Complex): @Complex
+	+func[d1006.knd, _complexSub, __mki]sub(me2: @Complex, value: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexSub]sub(value: @Complex): @Complex
+	+func[d1006.knd, _complexMul, __mki]mul(me2: @Complex, value: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexMul]mul(value: @Complex): @Complex
+	+func[d1006.knd, _complexDiv, __mki]div(me2: @Complex, value: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexDiv]div(value: @Complex): @Complex
+	+func[d1006.knd, _complexPow, __mki]pow(me2: @Complex, value: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexPow]pow(value: @Complex): @Complex
+	+func[d1006.knd, _complexExp, __mki]exp(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexExp]exp(): @Complex
+	+func[d1006.knd, _complexLn, __mki]ln(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexLn]ln(): @Complex
+	+func[d1006.knd, _complexSqrt, __mki]sqrt(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexSqrt]sqrt(): @Complex
+	+func[d1006.knd, _complexCos, __mki]cos(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexCos]cos(): @Complex
+	+func[d1006.knd, _complexSin, __mki]sin(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexSin]sin(): @Complex
+	+func[d1006.knd, _complexTan, __mki]tan(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexTan]tan(): @Complex
+	+func[d1006.knd, _complexAcos, __mki]acos(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAcos]acos(): @Complex
+	+func[d1006.knd, _complexAsin, __mki]asin(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAsin]asin(): @Complex
+	+func[d1006.knd, _complexAtan, __mki]atan(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAtan]atan(): @Complex
+	+func[d1006.knd, _complexCosh, __mki]cosh(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexCosh]cosh(): @Complex
+	+func[d1006.knd, _complexSinh, __mki]sinh(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexSinh]sinh(): @Complex
+	+func[d1006.knd, _complexTanh, __mki]tanh(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexTanh]tanh(): @Complex
+	+func[d1006.knd, _complexAcosh, __mki]acosh(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAcosh]acosh(): @Complex
+	+func[d1006.knd, _complexAsinh, __mki]asinh(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAsinh]asinh(): @Complex
+	+func[d1006.knd, _complexAtanh, __mki]atanh(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAtanh]atanh(): @Complex
+	+func[d1006.knd, _complexAbs, __mki]abs(me2: @Complex): @Complex
 	end func
 	
-	+func[d1006.knd, _complexAbs]abs(): @Complex
-	end func
+	var value: int
 end class
 
 +func[d1006.knd, _makeBigInt, __mki]makeBigInt(me2: @BigInt): @BigInt
 end func
 
++func[d1006.knd, _makeBigIntFromInt, __mki]makeBigIntFromInt(me2: @BigInt, value: int): @BigInt
+end func
+
++func[d1006.knd, _makeBigIntFromStr, __mki]makeBigIntFromStr(me2: @BigInt, value: []char): @BigInt
+end func
+
 +func[d1006.knd, _makeBigFloat, __mki]makeBigFloat(me2: @BigFloat): @BigFloat
 end func
 
++func[d1006.knd, _makeBigFloatE, __mki]makeBigFloatE(me2: @BigFloat): @BigFloat
+end func
+
++func[d1006.knd, _makeBigFloatFromFloat, __mki]makeBigFloatFromFloat(me2: @BigFloat, value: float): @BigFloat
+end func
+
++func[d1006.knd, _makeBigFloatFromStr, __mki]makeBigFloatFromStr(me2: @BigFloat, value: []char): @BigFloat
+end func
+
++func[d1006.knd, _makeBigFloatPi, __mki]makeBigFloatPi(me2: @BigFloat): @BigFloat
+end func
+
 +func[d1006.knd, _makeComplex, __mki]makeComplex(me2: @Complex): @Complex
+end func
+
++func[d1006.knd, _makeComplexFromFloat, __mki]makeComplexFromFloat(me2: @Complex, re: float, im: float): @Complex
 end func
