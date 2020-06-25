@@ -60,6 +60,12 @@ end class
 		ret me.flags.and(0x02b64) <> 0b64
 	end func
 	
+	+func[d1004.knd, _rectBackFriction]backFriction(backFriction_: float)
+	end func
+	
+	+func[d1004.knd, _rectFluidFriction]fluidFriction(fluidFriction_: float)
+	end func
+	
 	+func[d1004.knd, _rectMove]move(maxVelo: float)
 	end func
 	
