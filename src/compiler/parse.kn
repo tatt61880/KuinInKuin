@@ -2508,7 +2508,7 @@ func addScopeName(ast: \ast@Ast, refuseReserved: bool)
 	do scope.scopeChildren.add(ast.name, ast)
 end func
 
-func isReserved(name: []char): bool
++func isReserved(name: []char): bool
 	if(@reserved =& null)
 		do @reserved :: [
 		|"alias",

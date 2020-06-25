@@ -8,7 +8,6 @@
     <ClCompile Include="kuin_dll_main.cpp" />
     <ClCompile Include="kuin_dll.cpp" />
     <ClCompile Include="interpret1.cpp" />
-    <ClCompile Include="interpret2.cpp" />
     <ClCompile Include="debugger.cpp" />
   </ItemGroup>
   <ItemGroup>

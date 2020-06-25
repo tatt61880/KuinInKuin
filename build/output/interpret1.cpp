@@ -26,64 +26,13 @@ enum ECharColor
 	CharColor_Err,
 };
 
-static const wchar_t* Reserved[] =
-{
-	L"alias",
-	L"assert",
-	L"bit16",
-	L"bit32",
-	L"bit64",
-	L"bit8",
-	L"block",
-	L"bool",
-	L"break",
-	L"case",
-	L"catch",
-	L"char",
-	L"class",
-	L"const",
-	L"dbg",
-	L"default",
-	L"dict",
-	L"do",
-	L"elif",
-	L"else",
-	L"end",
-	L"enum",
-	L"env",
-	L"false",
-	L"finally",
-	L"float",
-	L"for",
-	L"func",
-	L"if",
-	L"include",
-	L"inf",
-	L"int",
-	L"list",
-	L"me",
-	L"null",
-	L"queue",
-	L"ret",
-	L"skip",
-	L"stack",
-	L"super",
-	L"switch",
-	L"throw",
-	L"to",
-	L"true",
-	L"try",
-	L"var",
-	L"while",
-};
+bool isReserved(Array_<char16_t>*);
 
 static void InterpretImpl1Color(int* ptr, int str_level, const wchar_t* str, uint8_t* color, int64_t comment_level, uint64_t flags);
 static void InterpretImpl1Align(int* ptr_buf, int* ptr_str, wchar_t* buf, const wchar_t* str, int64_t* comment_level, uint64_t* flags, int64_t* tab_context, int64_t cursor_x, int64_t* new_cursor_x, wchar_t* add_end);
 static void InterpretImpl1AlignRecursion(int* ptr_buf, int* ptr_str, int str_level, int type_level, wchar_t* buf, const wchar_t* str, int64_t* comment_level, uint64_t* flags, int64_t* tab_context, EAlignmentToken* prev, int64_t cursor_x, int64_t* new_cursor_x);
 static void InterpretImpl1Write(int* ptr, wchar_t* buf, wchar_t c);
 static void Interpret1Impl1UpdateCursor(int64_t cursor_x, int64_t* new_cursor_x, int* ptr_str, int* ptr_buf);
-static bool IsReserved(const wchar_t* word);
-static int BinSearch(const wchar_t** hay_stack, int num, const wchar_t* needle);
 
 bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, int64_t line, void* me, void* replace_func, int64_t cursor_x, int64_t cursor_y, int64_t* new_cursor_x, int64_t old_line, int64_t new_line)
 {
@@ -195,7 +144,10 @@ static void InterpretImpl1Color(int* ptr, int str_level, const wchar_t* str, uin
 						wchar_t word[17];
 						wcsncpy_s(word, str + begin, word_len);
 						word[word_len] = L'\0';
-						if (IsReserved(word))
+						auto* word2 = new_(Array_<char16_t>)();
+						word2->L = word_len;
+						word2->B = reinterpret_cast<char16_t*>(word);
+						if (isReserved(word2))
 							new_color = (uint8_t)CharColor_Reserved;
 					}
 					int i;
@@ -991,27 +943,4 @@ static void Interpret1Impl1UpdateCursor(int64_t cursor_x, int64_t* new_cursor_x,
 {
 	if (new_cursor_x != nullptr && cursor_x == (int64_t)*ptr_str)
 		*new_cursor_x = (int64_t)*ptr_buf;
-}
-
-static bool IsReserved(const wchar_t* word)
-{
-	return BinSearch(Reserved, (int)(sizeof(Reserved) / sizeof(wchar_t*)), word) != -1;
-}
-
-static int BinSearch(const wchar_t** hay_stack, int num, const wchar_t* needle)
-{
-	int min = 0;
-	int max = num - 1;
-	while (min <= max)
-	{
-		int mid = (min + max) / 2;
-		int cmp = wcscmp(needle, hay_stack[mid]);
-		if (cmp < 0)
-			max = mid - 1;
-		else if (cmp > 0)
-			min = mid + 1;
-		else
-			return mid;
-	}
-	return -1;
 }

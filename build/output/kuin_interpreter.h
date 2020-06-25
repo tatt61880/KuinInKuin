@@ -27,5 +27,3 @@ bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, v
 
 // interpret1.cpp
 bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, int64_t line, void* me, void* replace_func, int64_t cursor_x, int64_t cursor_y, int64_t* new_cursor_x, int64_t old_line, int64_t new_line);
-
-// interpret2.cpp

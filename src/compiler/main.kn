@@ -51,6 +51,8 @@ func main()
 			var refGetExcptMsg: func<(int): []char> :: \interpret@getExcptMsg
 			var refSetBreakPointPoses: func<([][]char, []int, []int)> :: \interpret@setBreakPointPoses
 			
+			var refIsReserved: func<([]char): bool> :: \interpret@isReserved
+			
 			var refInterpret2: func<([]char): int> :: \interpret@interpret2
 			var refGetKeywordsRoot: func<(int, []char, []char, int, int, func<(int, []char)>, int): []char> :: \interpret@getKeywordsRoot
 			var refInitDbgVars: func<(): int> :: \interpret@initDbgVars
