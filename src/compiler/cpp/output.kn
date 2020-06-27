@@ -1454,26 +1454,31 @@ func buildExprRef(ast: \ast@AstExpr)
 end func
 
 func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
+	; TODO:
+	{
 	if(\option@extra.get("merge", &))
-		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
-		if(writer =& null)
-			do \err@err(%fileSaveFailed, null, [\option@outputFile ~ ".cpp"])
-			ret
-		end if
-		do writeCommonCode(writer)
-		var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
-		if(reader =& null)
-			do \err@err(%fileOpenFailed, null, [\option@sysDir ~ "common.h"])
-			do writer.fin()
-			ret
-		end if
-		while(!reader.term())
-			var s: []char :: reader.readLine()
-			do writer.writeStr(s ~ "\n")
-		end while
-		do reader.fin()
-		do writeCpp(writer, funcAttrs)
+	}
+	var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
+	if(writer =& null)
+		do \err@err(%fileSaveFailed, null, [\option@outputFile ~ ".cpp"])
+		ret
+	end if
+	do writeCommonCode(writer)
+	var reader: file@Reader :: file@makeReader(\option@sysDir ~ "common.h")
+	if(reader =& null)
+		do \err@err(%fileOpenFailed, null, [\option@sysDir ~ "common.h"])
 		do writer.fin()
+		ret
+	end if
+	while(!reader.term())
+		var s: []char :: reader.readLine()
+		do writer.writeStr(s ~ "\n")
+	end while
+	do reader.fin()
+	do writeCpp(writer, funcAttrs)
+	do writer.fin()
+	; TODO:
+	{
 	else
 		do file@copyFile(\option@outputDir ~ "common.h", \option@sysDir ~ "common.h")
 		
@@ -1487,6 +1492,7 @@ func write(funcAttrs: dict<[]char, dict<[]char, bool>>)
 		do writeCpp(writer, funcAttrs)
 		do writer.fin()
 	end if
+	}
 	
 	func writeCommonCode(writer: file@Writer)
 		do writer.writeStr("#if defined(_WIN32)\n")

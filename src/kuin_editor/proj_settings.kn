@@ -22,12 +22,6 @@ var listRelatedFile: wnd@List
 	var btnDelRelatedFile: wnd@Btn :: wnd@makeBtn(@wndProjSettings, 92, 370, 80, 23, %fix, %fix, \common@langEn ?("Remove", "削除"))
 	do btnDelRelatedFile.onPush :: btnDelRelatedFileOnPush
 	
-	; TODO:
-	do labelRelatedFile.setVisible(false)
-	do @listRelatedFile.setVisible(false)
-	do btnAddRelatedFile.setVisible(false)
-	do btnDelRelatedFile.setVisible(false)
-	
 	var btnOk: wnd@Btn :: wnd@makeBtn(@wndProjSettings, 422, 370, 100, 23, %fix, %fix, "OK")
 	do btnOk.onPush :: btnOkOnPush
 	var btnCancel: wnd@Btn :: wnd@makeBtn(@wndProjSettings, 528, 370, 100, 23, %fix, %fix, "キャンセル")

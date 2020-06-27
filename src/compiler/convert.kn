@@ -315,10 +315,10 @@ end func
 			skip loop1
 		end if
 		
-		var trueReadingPath: []char :: file@fullPath(\option@inputDir ~ readingPath)
+		var trueReadingPath: []char :: file@fullPath(readingPath)
 		var trueWritingPath: []char :: file@fullPath(\option@outputDir ~ writingPath)
 		if(!file@copyFile(trueWritingPath, trueReadingPath))
-			do \err@err(%fileSaveFailed, null, [trueReadingPath])
+			do \err@err(%fileSaveFailed, null, [trueWritingPath])
 			ret false
 		end if
 	end while

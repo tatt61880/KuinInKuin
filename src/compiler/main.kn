@@ -1,6 +1,6 @@
 const major: int :: 2020
 const minor: int :: 6
-const micro: int :: 17
+const micro: int :: 27
 
 +const useResFlagsLen: int :: 1
 
@@ -20,7 +20,7 @@ func main()
 	end if
 	
 	if(\option@help | \option@inputFile =& null)
-		do cui@print("Usage: kuincl [-i input.kn] [-o output.kn] [-s 'sys' directory] [-e environment] [-a appcode] [-p 'res' directory] [-c icon.ico] [-f additional files] [-r] [-h] [-v] [-q] [-x extended option]\n")
+		do cui@print("Usage: kuincl [-i input.kn] [-o output.kn] [-s 'sys' directory] [-e environment] [-a appcode] [-p 'res' directory] [-c icon.ico] [-f additional files] [-r] [-h] [-v] [-q] [-x extra option]\n")
 		do lib@exitCode(0)
 		ret
 	end if
