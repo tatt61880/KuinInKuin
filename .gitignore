@@ -13,5 +13,7 @@
 *.FileListAbsolute.txt
 
 /src/lib/dll/output/
+/src/lib/dll/additional_libs/
 /build/output/
 /build/deploy_*/
+/build/package/
