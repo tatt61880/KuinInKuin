@@ -132,6 +132,11 @@ EXPORT void _pause(void)
 }
 #endif
 
+EXPORT void _setCurDirToExeDir(void)
+{
+	SetCurrentDirectory(EnvVars.ResRoot);
+}
+
 EXPORT void _freeSet(void* ptr, const U8* type)
 {
 	switch (*type)
