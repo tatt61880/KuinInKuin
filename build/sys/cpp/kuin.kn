@@ -402,22 +402,20 @@ func _lower(me_: []char): []char
 end func
 
 func[__any, __rch]_max(me_: int, type: []int): int
-	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
-	excode "TI_ r_;\n"
-	excode "if(l_==0)return(TI_)0;\n"
-	excode "for(int64_t i_=0;i_<l_;i_++){\n"
+	excode "if(l_==0)return 0;\n"
+	excode "auto r_=`0`->B[0];\n"
+	excode "for(int64_t i_=1;i_<l_;i_++){\n"
 	excode "if(i_==0||cmp_(r_,`0`->B[i_])<0)r_=`0`->B[i_];\n"
 	excode "}\n"
 	excode "return r_;\n"
 end func
 
 func[__any, __rch]_min(me_: int, type: []int): int
-	excode "using TI_=decltype(*`0`->B);\n"
 	excode "int64_t l_=`0`->L;\n"
-	excode "TI_ r_;\n"
-	excode "if(l_==0)return(TI_)0;\n"
-	excode "for(int64_t i_=0;i_<l_;i_++){\n"
+	excode "if(l_==0)return 0;\n"
+	excode "auto r_=`0`->B[0];\n"
+	excode "for(int64_t i_=1;i_<l_;i_++){\n"
 	excode "if(i_==0||cmp_(r_,`0`->B[i_])>0)r_=`0`->B[i_];\n"
 	excode "}\n"
 	excode "return r_;\n"
