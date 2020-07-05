@@ -339,7 +339,7 @@ static bool fileForEach_(const std::u16string& p, bool r, bool(*f)(type_(Array_<
 	if (p.size() > 512)
 		return false;
 #if defined(_WIN32)
-	WIN32_FIND_DATA t;
+	WIN32_FIND_DATAW t;
 	HANDLE h;
 #else
 	dirent* t;
@@ -352,7 +352,7 @@ static bool fileForEach_(const std::u16string& p, bool r, bool(*f)(type_(Array_<
 		memcpy(p3, p.c_str(), sizeof(wchar_t) * static_cast<std::size_t>(p.size()));
 		p3[p.size()] = '*';
 		p3[p.size() + 1] = 0;
-		h = FindFirstFile(p3, &t);
+		h = FindFirstFileW(p3, &t);
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
@@ -419,7 +419,7 @@ static bool fileForEach_(const std::u16string& p, bool r, bool(*f)(type_(Array_<
 			}
 		}
 #if defined(_WIN32)
-		while (FindNextFile(h, &t));
+		while (FindNextFileW(h, &t));
 #endif
 	}
 #if defined(_WIN32)
@@ -436,7 +436,7 @@ static bool delDir_(const std::u16string& p) {
 	if (!fileExists_(p.c_str()))
 		return true;
 #if defined(_WIN32)
-	WIN32_FIND_DATA t;
+	WIN32_FIND_DATAW t;
 	HANDLE h;
 #else
 	dirent* t;
@@ -449,7 +449,7 @@ static bool delDir_(const std::u16string& p) {
 		memcpy(p3, p.c_str(), sizeof(wchar_t) * static_cast<std::size_t>(p.size()));
 		p3[p.size()] = '*';
 		p3[p.size() + 1] = 0;
-		h = FindFirstFile(p3, &t);
+		h = FindFirstFileW(p3, &t);
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
@@ -501,7 +501,7 @@ static bool delDir_(const std::u16string& p) {
 		}
 	}
 #if defined(_WIN32)
-	while (FindNextFile(h, &t));
+	while (FindNextFileW(h, &t));
 	FindClose(h);
 #else
 	closedir(h);
@@ -521,7 +521,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 	if (s.size() > 512)
 		return false;
 #if defined(_WIN32)
-	WIN32_FIND_DATA t;
+	WIN32_FIND_DATAW t;
 	HANDLE h;
 #else
 	dirent* t;
@@ -534,7 +534,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 		memcpy(p3, s.c_str(), sizeof(wchar_t) * static_cast<std::size_t>(s.size()));
 		p3[s.size()] = '*';
 		p3[s.size() + 1] = 0;
-		h = FindFirstFile(p3, &t);
+		h = FindFirstFileW(p3, &t);
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 #else
@@ -601,7 +601,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 			}
 		}
 #if defined(_WIN32)
-		while (FindNextFile(h, &t));
+		while (FindNextFileW(h, &t));
 #endif
 	}
 #if defined(_WIN32)
@@ -614,7 +614,7 @@ static bool copyDir_(const std::u16string& d, const std::u16string& s) {
 
 static bool moveDir_(const char16_t* d, const char16_t* s) {
 #if defined(_WIN32)
-	if (::MoveFileEx(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING))
+	if (::MoveFileExW(reinterpret_cast<const wchar_t*>(s), reinterpret_cast<const wchar_t*>(d), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING))
 		return true;
 #endif
 	std::u16string d2 = d;
