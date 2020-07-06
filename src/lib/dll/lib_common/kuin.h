@@ -50,6 +50,7 @@ EXPORT void _ins(void* me_, const U8* type, const void* item);
 EXPORT void* _max(const void* me_, const U8* type);
 EXPORT void* _min(const void* me_, const U8* type);
 EXPORT void _moveOffset(void* me_, const U8* type, S64 offset);
+EXPORT Bool _nan(double me_);
 EXPORT void _next(void* me_, const U8* type);
 EXPORT S64 _not(const void* me_, const U8* type);
 EXPORT S64 _or(const void* me_, const U8* type, const void* n);

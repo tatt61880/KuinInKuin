@@ -1882,4 +1882,7 @@ func test20()
 	var a: []int :: [2, 3, 1, 5, 4]
 	do cui@print("\{a.min()}\n")
 	do cui@print("\{a.max()}\n")
+	var x: float :: 0.0
+	do cui@print("\{(x / x).nan()}\n")
+	do cui@print("\{(x / 1.0).nan()}\n")
 end func

@@ -1473,6 +1473,11 @@ EXPORT void _moveOffset(void* me_, const U8* type, S64 offset)
 	*(void**)((U8*)me_ + 0x20) = ptr;
 }
 
+EXPORT Bool _nan(double me_)
+{
+	return isnan(me_);
+}
+
 EXPORT void _next(void* me_, const U8* type)
 {
 	THROWDBG(me_ == NULL, EXCPT_ACCESS_VIOLATION);

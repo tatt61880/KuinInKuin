@@ -438,6 +438,10 @@ func[__any]_moveOffset(me_: int, type: []int, offset: int)
 	excode "}\n"
 end func
 
+func _nan(me_: float): bool
+	excode "return std::isnan(`0`);\n"
+end func
+
 func[__any]_next(me_: int, type: []int)
 	excode "if(`0`->I==`0`->B.end())return;\n"
 	excode "++`0`->I;\n"

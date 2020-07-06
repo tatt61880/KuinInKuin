@@ -855,6 +855,17 @@ func[__any]_moveOffset(me_: int, type: []int, offset: int)
 end func
 
 #exe
+func[d0000.knd]_nan(me_: float): bool
+#cpp,web
+func _nan(me_: float): bool
+#cpp
+	excode "return std::isnan(`0`);\n"
+#web
+	excode "return isNaN(`0`);\n"
+#any
+end func
+
+#exe
 func[d0000.knd, __any]_next(me_: int, type: []int)
 #cpp,web
 func[__any]_next(me_: int, type: []int)

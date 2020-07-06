@@ -515,6 +515,10 @@ func[__any]_moveOffset(me_: int, type: []int, offset: int)
 	excode "}\n"
 end func
 
+func _nan(me_: float): bool
+	excode "return isNaN(`0`);\n"
+end func
+
 func[__any]_next(me_: int, type: []int)
 	excode "if(`0`.P==null)return;\n"
 	excode "`0`.P=`0`.P.N;\n"

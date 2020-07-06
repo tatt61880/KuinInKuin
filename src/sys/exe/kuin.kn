@@ -294,6 +294,9 @@ end func
 func[d0000.knd, __any]_moveOffset(me_: int, type: []int, offset: int)
 end func
 
+func[d0000.knd]_nan(me_: float): bool
+end func
+
 func[d0000.knd, __any]_next(me_: int, type: []int)
 end func
 

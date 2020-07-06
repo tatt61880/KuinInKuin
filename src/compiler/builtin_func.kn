@@ -15,6 +15,7 @@ enum BuiltinFuncKind
 	dict_
 	comparableArrayList
 	delListDict
+	float_
 end enum
 
 var builtinFuncs: dict<[]char, @BuiltinFuncKind>
@@ -48,6 +49,7 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		do @builtinFuncs.add("max", %comparableArray)
 		do @builtinFuncs.add("min", %comparableArray)
 		do @builtinFuncs.add("moveOffset", %list_)
+		do @builtinFuncs.add("nan", %float_)
 		do @builtinFuncs.add("next", %list_)
 		do @builtinFuncs.add("not", %bitEnum)
 		do @builtinFuncs.add("offset", %char_)
@@ -250,6 +252,10 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		end if
 		if(type.typeId = %typeDict)
 			do member :: "delDict"
+			ret true
+		end if
+	case %float_
+		if(\ast@isFloat(type))
 			ret true
 		end if
 	end switch

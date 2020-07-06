@@ -790,3 +790,8 @@ true, testdir
 true
 true, testdir
 true
+-- Test 20 --
+1
+5
+true
+false
