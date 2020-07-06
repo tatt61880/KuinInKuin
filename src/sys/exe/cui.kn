@@ -1,6 +1,5 @@
 const strBufSize: int :: 1024
 var delimiters: []char :: " ,\n"
-var buf: char :: '\0'
 
 +func delimiter(delimiters_: []char)
 	do @delimiters :: delimiters_
