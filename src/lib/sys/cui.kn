@@ -109,7 +109,7 @@ end func
 	excode "else if((c_&0xfe)==0xfc){l_=5;c_&=0x01;}\n"
 	excode "else return 0xffff;\n"
 	excode "uint32_t u_=static_cast<uint32_t>(c_);\n"
-	excode "for(int i_=0;i_<l_;i_++)u_=(u_<<6)|(static_cast<uint32_t>(i_==0?c_:fgetc(stdin))&0x3f);\n"
+	excode "for(int i_=0;i_<l_;i_++)u_=(u_<<6)|(static_cast<uint32_t>(fgetc(stdin))&0x3f);\n"
 	excode "return static_cast<char16_t>(u_);\n"
 	excode "#endif\n"
 #web
