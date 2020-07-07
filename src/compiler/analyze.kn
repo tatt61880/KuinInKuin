@@ -1608,8 +1608,7 @@ func rebuildFor(ast: \ast@AstStatFor, retType: \ast@AstType, parentFunc: \ast@As
 	if(ast.step <>& null)
 		if(!\ast@isInt(ast.step.type))
 			do \err@err(%forIncreaseDecreaseValueMustBeInt, ast.step.pos, null)
-		end if
-		if(ast.step.typeId <> %exprValuePrim)
+		elif(ast.step.typeId <> %exprValuePrim)
 			do \err@err(%forIncreaseDecreaseValueMustBeConst, ast.step.pos, null)
 		elif((ast.step $ \ast@AstExprValuePrim).value = 0b64)
 			do \err@err(%forIncreaseDecreaseValueMustBeOtherThanZero, ast.step.pos, null)
