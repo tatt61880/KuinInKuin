@@ -979,15 +979,7 @@ func[__any, __rme]_repeat(me_: int, type: []int, len: int): int
 		end if
 	end if
 #cpp
-	excode "using TI_=decltype(*`0`->B);\n"
-	excode "type_(Array_<TI_>)r_=new_(Array_<TI_>)();\n"
-	excode "r_->L=`0`->L*`2`;\n"
-	excode "r_->B=newPrimArray_(static_cast<std::size_t>(r_->L+bufLen_<TI_>()),TI_);\n"
-	excode "for(int64_t i_=0;i_<`2`;i_++){\n"
-	excode "for(int64_t j_=0;j_<`0`->L;j_++)r_->B[i_*`0`->L+j_]=`0`->B[j_];\n"
-	excode "}\n"
-	excode "if(bufLen_<TI_>()>0)r_->B[r_->L]=0;\n"
-	excode "return r_;\n"
+	excode "return repeat_(`0`, `2`);\n"
 #web
 	excode "if(`1`[1]==0x02)return{S:R_(`0`.S,`2`)};\n"
 	excode "let l_=`0`.length,r_=new Array(l_*`2`);\n"
