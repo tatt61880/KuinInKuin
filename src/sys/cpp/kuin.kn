@@ -997,9 +997,9 @@ end func
 
 func toStrEImpl(value: float, len: int, large: bool): []char
 	if(value.nan())
-		ret large ?("INF", "inf")
-	elif(value = inf)
 		ret large ?("NAN", "nan")
+	elif(value = inf)
+		ret large ?("INF", "inf")
 	elif(value = 0.0)
 		ret "0" ~ (len > 0 ?(".", "")) ~ "0".repeat(len) ~ (large ?("E", "e")) ~ "+0"
 	end if
