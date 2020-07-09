@@ -74,6 +74,4 @@ EXPORT U64 _toBit64(const U8* me_, Bool* success);
 EXPORT double _toFloat(const U8* me_, Bool* success);
 EXPORT S64 _toInt(const U8* me_, Bool* success);
 EXPORT U8* _toStr(const void* me_, const U8* type);
-EXPORT U8* _toStrFmtFloat(double me_, const U8* fmt);
-EXPORT U8* _toStrFmtInt(S64 me_, const U8* fmt);
 EXPORT S64 _xor(const void* me_, const U8* type, const void* n);
