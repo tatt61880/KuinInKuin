@@ -253,6 +253,7 @@ end func
 		end block
 		var offset: int :: 0x18 + ^paths * (260 + 0x08)
 		var v: bit64 :: (0x17100B7AC917DC87b64).xor(key)
+		var maxSize: int :: 0
 		for i(0, ^paths - 1)
 			var p: []bit8 :: #[260]bit8
 			for j(0, lib@min(^paths[i], 260) - 1)
@@ -275,21 +276,25 @@ end func
 				do \err@err(%fileOpenFailed, null, [\option@resDir ~ paths[i]])
 				ret false
 			end if
+			if(maxSize < size)
+				do maxSize :: size
+			end if
 			do offset :+ size
 		end for
+		var bin: []bit8 :: #[maxSize]bit8
 		for i(0, ^paths - 1)
 			var reader: file@Reader :: file@makeReader(\option@resDir ~ paths[i])
-			if(reader =& null)
+			var size: int :: reader.fileSize()
+			if(reader =& null | !reader.readPart(bin, 0, size))
 				do writer.fin()
 				do \err@err(%fileOpenFailed, null, [\option@resDir ~ paths[i]])
 				ret false
 			end if
-			var bin: []bit8 :: reader.read(reader.fileSize())
 			do reader.fin()
 			for j(0, ^bin - 1)
 				do bin[j] :: bin[j].xor(((j $ bit64).xor(key) * 0x351CD819923ACAE7b64).shr(32) $ bit8)
 			end for
-			do writer.write(bin)
+			do writer.writePart(bin, 0, size)
 		end for
 		do writer.fin()
 		ret true
