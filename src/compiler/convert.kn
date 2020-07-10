@@ -209,9 +209,13 @@ end func
 		var src: []char :: \option@resDir
 		var dst: []char :: \option@outputDir ~ "res/"
 		if(!file@exist(src) | src = dst)
+			ret true
+		end if
+		if(!file@copyDir(dst, src))
+			do \err@err(%fileSaveFailed, null, [dst])
 			ret false
 		end if
-		ret file@copyDir(dst, src)
+		ret true
 	end if
 	
 	func getResFiles(): [][]char
