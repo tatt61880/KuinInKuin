@@ -45,8 +45,7 @@ func deploy(funcAttrs: dict<[]char, dict<[]char, bool>>): bool
 	if(!funcAttrs.forEach(deployDll, null))
 		ret false
 	end if
-	do \convert@writeResFiles()
-	ret true
+	ret \convert@writeResFiles()
 	
 	func deployDll(key: []char, value: dict<[]char, bool>, data: kuin@Class): bool
 		var cfg: []char :: \option@rls ?("rls/", "dbg/")

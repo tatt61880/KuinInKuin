@@ -561,9 +561,13 @@ func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
 		excode "*`2`=false;\n"
 		excode "return 0;\n"
 	else
+		excode "#if defined(_WIN32)\n"
+		excode "std::FILE*f_=_wfopen(reinterpret_cast<wchar_t*>(`0`->B),L\"rb\");\n"
+		excode "#else\n"
 		excode "std::u16string s_=`0`->B;\n"
 		excode "const std::string&t_=utf16ToUtf8_(s_);\n"
 		excode "std::FILE*f_=std::fopen(t_.c_str(),\"rb\");\n"
+		excode "#endif\n"
 		excode "if(f_==nullptr){\n"
 		excode "*`2`=false;\n"
 		excode "return 0;\n"
@@ -630,9 +634,13 @@ func readerReadImpl(handle: int, buf: []bit8, start: int, size: int): bool
 end func
 
 func openAsWritingImpl(path: []char, append: bool, success: &bool): int
+	excode "#if defined(_WIN32)\n"
+	excode "std::FILE*f_=_wfopen(reinterpret_cast<wchar_t*>(`0`->B),`1`?L\"ab\":L\"wb\");\n"
+	excode "#else\n"
 	excode "std::u16string s_=`0`->B;\n"
 	excode "const std::string&t_=utf16ToUtf8_(s_);\n"
 	excode "std::FILE*f_=std::fopen(t_.c_str(),`1`?\"ab\":\"wb\");\n"
+	excode "#endif\n"
 	excode "if(f_==nullptr){\n"
 	excode "*`2`=false;\n"
 	excode "return 0;\n"

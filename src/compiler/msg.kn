@@ -16,6 +16,7 @@ end enum
 	sysFileBroken
 	iconFileBroken
 	tooManyResources
+	archivingFilePathMustBeAscii
 	
 	_parsingErrs :: 0x00010000
 	sameIdentifierInSameScope
@@ -208,6 +209,13 @@ end enum
 			ret "リソースファイルの数「\{args[0]}」が多すぎます。 65535個以下でなければなりません。"
 		default
 			ret "The number of resource files '\{args[0]}' is too large. Must be 65535 or less."
+		end switch
+	case %archivingFilePathMustBeAscii
+		switch(@lang)
+		case %ja
+			ret "アーカイブするファイルパス「\{args[0]}」に使える文字はASCIIのみです。 全角文字などは使えません。"
+		default
+			ret "Only ASCII characters can be used in the file path '\{args[0]}' to be archived."
 		end switch
 	case %sameIdentifierInSameScope
 		switch(@lang)

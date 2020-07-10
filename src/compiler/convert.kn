@@ -202,16 +202,16 @@ end func
 	end func
 end func
 
-+func writeResFiles()
++func writeResFiles(): bool
 	if(\option@rls)
-		do archive(getResFiles())
+		ret archive(getResFiles())
 	else
 		var src: []char :: \option@resDir
 		var dst: []char :: \option@outputDir ~ "res/"
 		if(!file@exist(src) | src = dst)
-			ret
+			ret false
 		end if
-		do file@copyDir(dst, src)
+		ret file@copyDir(dst, src)
 	end if
 	
 	func getResFiles(): [][]char
@@ -233,13 +233,14 @@ end func
 		ret result2
 	end func
 	
-	func archive(paths: [][]char)
+	func archive(paths: [][]char): bool
 		if(^paths = 0)
-			ret
+			ret true
 		end if
 		var writer: file@Writer :: file@makeWriter(\option@outputDir ~ "res.knd", false)
 		if(writer =& null)
-			ret
+			do \err@err(%fileSaveFailed, null, [\option@outputDir ~ "res.knd"])
+			ret false
 		end if
 		var key: bit64 :: lib@rndBit64()
 		do writer.write(@bit64ToBin(key))
@@ -256,6 +257,10 @@ end func
 			var p: []bit8 :: #[260]bit8
 			for j(0, lib@min(^paths[i], 260) - 1)
 				do p[j] :: paths[i][j] $ bit8
+				if(p[j] $ char <> paths[i][j])
+					do \err@err(%archivingFilePathMustBeAscii, null, [\option@resDir ~ paths[i]])
+					ret false
+				end if
 			end for
 			for j(0, 260 - 1)
 				do v :: v * 0x8121BBA7C238010Fb64 + 0x190273B5C19BF763b64
@@ -267,7 +272,8 @@ end func
 			var size: int :: file@fileSize(\option@resDir ~ paths[i])
 			if(size < 0)
 				do writer.fin()
-				ret
+				do \err@err(%fileOpenFailed, null, [\option@resDir ~ paths[i]])
+				ret false
 			end if
 			do offset :+ size
 		end for
@@ -275,7 +281,8 @@ end func
 			var reader: file@Reader :: file@makeReader(\option@resDir ~ paths[i])
 			if(reader =& null)
 				do writer.fin()
-				ret
+				do \err@err(%fileOpenFailed, null, [\option@resDir ~ paths[i]])
+				ret false
 			end if
 			var bin: []bit8 :: reader.read(reader.fileSize())
 			do reader.fin()
@@ -285,6 +292,7 @@ end func
 			do writer.write(bin)
 		end for
 		do writer.fin()
+		ret true
 	end func
 end func
 
