@@ -65,7 +65,7 @@ v.2020.6.27
           今までは継承関係にあるクラスが使えたが、継承関係のクラスは使えないよう
           に型チェックを厳密化
         - :$(スワップ)演算子の廃止
-        - file@exeDir、file@sysDir関数を、win@exeDir、win@sysDirへ移動
+        - file@exeDir、file@sysDir関数を、wnd@exeDir、wnd@sysDirへ移動
         - .clampメソッドを、lib@clamp、lib@clampFloat関数へ移動
         - list<>.sortメソッドの廃止。 配列に変換して配列の.sortメソッドを使う
           ことを推奨
