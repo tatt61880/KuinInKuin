@@ -1,6 +1,5 @@
 const strBufSize: int :: 1024
 var delimiters: []char :: " ,\n"
-var buf: char :: '\0'
 
 +func delimiter(delimiters_: []char)
 	do @delimiters :: delimiters_
@@ -43,7 +42,6 @@ end func
 			if(c = '\uFFFF')
 				throw 0xE9170008
 			end if
-			do @skipDelimiters()
 			ret c
 		end if
 	end while
@@ -70,12 +68,24 @@ end func
 end func
 
 +func inputLetter(): char
-	if(@buf <> '\0')
-		var r: char :: @buf
-		do @buf :: '\0'
-		ret r
-	end if
-	; TODO:
+	excode "#if defined(_WIN32)\n"
+	excode "wchar_t c_=fgetwc(stdin);\n"
+	excode "return static_cast<char16_t>(c_==WEOF?0xffff:c_);\n"
+	excode "#else\n"
+	excode "int l_;\n"
+	excode "char c_;\n"
+	excode "do{c_=fgetc(stdin);}while((c_&0xc0)==0x80);\n"
+	excode "if((c_&0x80)==0x00)l_=0;\n"
+	excode "else if((c_&0xe0)==0xc0){l_=1;c_&=0x1f;}\n"
+	excode "else if((c_&0xf0)==0xe0){l_=2;c_&=0x0f;}\n"
+	excode "else if((c_&0xf8)==0xf0){l_=3;c_&=0x07;}\n"
+	excode "else if((c_&0xfc)==0xf8){l_=4;c_&=0x03;}\n"
+	excode "else if((c_&0xfe)==0xfc){l_=5;c_&=0x01;}\n"
+	excode "else return 0xffff;\n"
+	excode "uint32_t u_=static_cast<uint32_t>(c_);\n"
+	excode "for(int i_=0;i_<l_;i_++)u_=(u_<<6)|(static_cast<uint32_t>(fgetc(stdin))&0x3f);\n"
+	excode "return static_cast<char16_t>(u_);\n"
+	excode "#endif\n"
 end func
 
 +func inputStr(): []char
@@ -101,7 +111,6 @@ end func
 		do buf[ptr] :: c
 		do ptr :+ 1
 	end while
-	do @skipDelimiters()
 	ret buf.sub(0, ptr)
 end func
 
@@ -131,21 +140,5 @@ func inputCharWithDelimiter(): char
 			skip loop
 		end if
 		ret c
-	end while
-end func
-
-func skipDelimiters()
-	while loop(true)
-		var c: char :: @inputLetter()
-		for i(0, ^@delimiters - 1)
-			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
-				skip loop
-			end if
-		end for
-		if(c = '\u000D')
-			skip loop
-		end if
-		do @buf :: c
-		ret
 	end while
 end func

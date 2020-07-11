@@ -72,6 +72,9 @@ end enum
 	
 	+func read(size: int): []bit8
 		if(dbg)
+			if(size < 0)
+				throw 0xE9170006
+			end if
 			if(me.size < 0)
 				throw 0xE917000A
 			end if
@@ -82,6 +85,22 @@ end enum
 			ret r
 		end if
 		ret null
+	end func
+	
+	+func readPart(buf: []bit8, start: int, size: int): bool
+		if(dbg)
+			if(start < 0 | size < 0 | ^buf < start + size)
+				throw 0xE9170006
+			end if
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		if(@readerReadImpl(me.handle, buf, start, size))
+			do me.cur :+ size
+			ret true
+		end if
+		ret false
 	end func
 	
 	+func readChar(): char
@@ -320,6 +339,19 @@ end class
 		do me.cur :+ ^bin
 	end func
 	
+	+func writePart(bin: []bit8, start: int, size: int)
+		if(dbg)
+			if(start < 0 | size < 0 | ^bin < start + size)
+				throw 0xE9170006
+			end if
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		do @writerWriteImpl(me.handle, bin, start, size)
+		do me.cur :+ size
+	end func
+	
 	+func writeChar(n: char)
 		if(dbg)
 			if(me.size < 0)
@@ -501,27 +533,25 @@ end func
 	ret false
 end func
 
-+func makeReader(path: []char): @Reader
++func[__mki]makeReader(me2: @Reader, path: []char): @Reader
 	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
 	var success: bool
 	var handle: int :: @openAsReadingImpl(path, pack, &success)
 	if(!success)
 		ret null
 	end if
-	var r: @Reader :: #@Reader
-	do r._init(handle)
-	ret r
+	do me2._init(handle)
+	ret me2
 end func
 
-+func makeWriter(path: []char, append: bool): @Writer
++func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
 	var success: bool
 	var handle: int :: @openAsWritingImpl(path, append, &success)
 	if(!success)
 		ret null
 	end if
-	var r: @Writer :: #@Writer
-	do r._init(handle, append)
-	ret r
+	do me2._init(handle, append)
+	ret me2
 end func
 
 +func moveDir(dst: []char, src: []char): bool
@@ -547,16 +577,16 @@ end func
 end func
 
 func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
-	if(pack)
+	; TODO: if(pack)
 		excode "let f_=null,p_=`0`.S;\n"
 		excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
 		excode "if(f_==null)\n"
 		excode "f_=F_(p_,true);\n"
 		excode "if(f_==null){`2`.$=false;return null;}\n"
 		excode "`2`.$=true;return{F:f_,I:0,P:true};\n"
-	else
+	; TODO: else
 		; TODO:
-	end if
+	; TODO: end if
 end func
 
 func readerClose(handle: int)

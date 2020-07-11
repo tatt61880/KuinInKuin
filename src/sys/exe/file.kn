@@ -70,6 +70,9 @@ end enum
 	
 	+func read(size: int): []bit8
 		if(dbg)
+			if(size < 0)
+				throw 0xE9170006
+			end if
 			if(me.size < 0)
 				throw 0xE917000A
 			end if
@@ -80,6 +83,22 @@ end enum
 			ret r
 		end if
 		ret null
+	end func
+	
+	+func readPart(buf: []bit8, start: int, size: int): bool
+		if(dbg)
+			if(start < 0 | size < 0 | ^buf < start + size)
+				throw 0xE9170006
+			end if
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		if(@readerReadImpl(me.handle, buf, start, size))
+			do me.cur :+ size
+			ret true
+		end if
+		ret false
 	end func
 	
 	+func readChar(): char
@@ -316,6 +335,19 @@ end class
 		end if
 		do @writerWriteImpl(me.handle, bin, 0, ^bin)
 		do me.cur :+ ^bin
+	end func
+	
+	+func writePart(bin: []bit8, start: int, size: int)
+		if(dbg)
+			if(start < 0 | size < 0 | ^bin < start + size)
+				throw 0xE9170006
+			end if
+			if(me.size < 0)
+				throw 0xE917000A
+			end if
+		end if
+		do @writerWriteImpl(me.handle, bin, start, size)
+		do me.cur :+ size
 	end func
 	
 	+func writeChar(n: char)
