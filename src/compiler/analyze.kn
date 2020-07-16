@@ -804,7 +804,9 @@ func rebuildClass(ast: \ast@AstClass)
 						do @rebuildFunc(def $ \ast@AstFunc)
 						do astItems.setPtr(listPtr)
 					elif(def.typeId = %var_)
+						var listPtr: kuin@ListPtr :: astItems.getPtr()
 						do @rebuildVar(def $ \ast@AstVar)
+						do astItems.setPtr(listPtr)
 					end if
 				end switch
 				
@@ -2909,12 +2911,13 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 					do ast.varKind :: %globalVar {The addresses of properties are treated as those of global variables. They can be left values.}
 					do found :: true
 				elif(item.def.typeId = %func_ & ast.member = item.def.name)
+					var func_: \ast@AstFunc :: item.def $ \ast@AstFunc
 					var type: \ast@AstTypeFunc :: #\ast@AstTypeFunc
 					do @initAst(type, %typeFunc, ast.pos)
-					do type.funcOption :: (item.def $ \ast@AstFunc).funcOption
+					do type.funcOption :: func_.funcOption
 					do type.args :: #list<\ast@AstTypeFuncArg>
 					block
-						var items2: list<\ast@AstArg> :: (item.def $ \ast@AstFunc).args
+						var items2: list<\ast@AstArg> :: func_.args
 						do items2.head()
 						while(!items2.term())
 							var arg: \ast@AstArg :: items2.get()
@@ -2925,7 +2928,7 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 							do items2.next()
 						end while
 					end block
-					do type.ret_ :: (item.def $ \ast@AstFunc).ret_
+					do type.ret_ :: func_.ret_
 					do ast.type :: type
 					do ast.varKind :: %value
 					do found :: true
