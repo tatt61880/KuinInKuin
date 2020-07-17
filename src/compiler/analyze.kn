@@ -898,6 +898,7 @@ func rebuildClass(ast: \ast@AstClass)
 				var items: list<\ast@AstClassItem> :: ptr.items
 				do items.head()
 				while(!items.term())
+					var listPtr: kuin@ListPtr :: items.getPtr()
 					var item: \ast@AstClassItem :: items.get()
 					if(item.def.typeId = %var_ & \ast@isRef((item.def $ \ast@AstVar).arg.type))
 						var do_: \ast@AstStatDo :: #\ast@AstStatDo
@@ -913,6 +914,7 @@ func rebuildClass(ast: \ast@AstClass)
 						end block
 						do dtor.stats.add(@rebuildStat(do_, dtor.ret_, dtor))
 					end if
+					do items.setPtr(listPtr)
 					do items.next()
 				end while
 				do ptr :: ptr.refItem $ \ast@AstClass
@@ -970,6 +972,7 @@ func rebuildClass(ast: \ast@AstClass)
 					var items: list<\ast@AstClassItem> :: ptr.items
 					do items.head()
 					while(!items.term())
+						var listPtr: kuin@ListPtr :: items.getPtr()
 						var item: \ast@AstClassItem :: items.get()
 						if(item.def.typeId = %var_)
 							var member: \ast@AstArg :: (item.def $ \ast@AstVar).arg
@@ -1004,6 +1007,7 @@ func rebuildClass(ast: \ast@AstClass)
 								do copy.stats.add(@rebuildStat(do_, copy.ret_, copy))
 							end block
 						end if
+						do items.setPtr(listPtr)
 						do items.next()
 					end while
 					do ptr :: ptr.refItem $ \ast@AstClass
@@ -1096,6 +1100,7 @@ func rebuildClass(ast: \ast@AstClass)
 					var items: list<\ast@AstClassItem> :: ptr.items
 					do items.head()
 					while(!items.term())
+						var listPtr: kuin@ListPtr :: items.getPtr()
 						var item: \ast@AstClassItem :: items.get()
 						if(item.def.typeId = %var_)
 							var member: \ast@AstArg :: (item.def $ \ast@AstVar).arg
@@ -1130,6 +1135,7 @@ func rebuildClass(ast: \ast@AstClass)
 								do toBin.stats.add(@rebuildStat(do_, toBin.ret_, toBin))
 							end block
 						end if
+						do items.setPtr(listPtr)
 						do items.next()
 					end while
 					do ptr :: ptr.refItem $ \ast@AstClass
@@ -1190,6 +1196,7 @@ func rebuildClass(ast: \ast@AstClass)
 					var items: list<\ast@AstClassItem> :: ptr.items
 					do items.head()
 					while(!items.term())
+						var listPtr: kuin@ListPtr :: items.getPtr()
 						var item: \ast@AstClassItem :: items.get()
 						if(item.def.typeId = %var_)
 							var member: \ast@AstArg :: (item.def $ \ast@AstVar).arg
@@ -1238,6 +1245,7 @@ func rebuildClass(ast: \ast@AstClass)
 								do fromBin.stats.add(@rebuildStat(do_, fromBin.ret_, fromBin))
 							end block
 						end if
+						do items.setPtr(listPtr)
 						do items.next()
 					end while
 					do ptr :: ptr.refItem $ \ast@AstClass
