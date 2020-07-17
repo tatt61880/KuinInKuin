@@ -795,21 +795,32 @@ func rebuildClass(ast: \ast@AstClass)
 					default
 						assert false
 					end switch
-					; Skip 'RebuildFunc' to add the contents later.
-				default
-					; Analyze functions and variables in classes because they can be referred to as instances.
+				end switch
+				
+				do astItems.next()
+			end while
+			
+			do astItems.head()
+			while loop(!astItems.term())
+				var item: \ast@AstClassItem :: astItems.get()
+				block
 					var def: \ast@Ast :: item.def
+					; Analyze functions and variables in classes because they can be referred to as instances.
 					if(def.typeId = %func_)
-						var listPtr: kuin@ListPtr :: astItems.getPtr()
-						do @rebuildFunc(def $ \ast@AstFunc)
-						do astItems.setPtr(listPtr)
+						switch(def.name)
+						case "_dtor", "_copy", "_toBin", "_fromBin"
+							; Skip 'RebuildFunc' to add the contents later.
+						default
+							var listPtr: kuin@ListPtr :: astItems.getPtr()
+							do @rebuildFunc(def $ \ast@AstFunc)
+							do astItems.setPtr(listPtr)
+						end switch
 					elif(def.typeId = %var_)
 						var listPtr: kuin@ListPtr :: astItems.getPtr()
 						do @rebuildVar(def $ \ast@AstVar)
 						do astItems.setPtr(listPtr)
 					end if
-				end switch
-				
+				end block
 				do astItems.next()
 			end while
 			
