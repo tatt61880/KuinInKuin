@@ -1735,7 +1735,7 @@ func ptrToStr(ast: \ast@Ast): []char
 	excode "auto*a_=new_(Array_<char16_t>)();\n"
 	excode "a_->L=16;\n"
 	excode "a_->B=newPrimArray_(17,char16_t);\n"
-	excode "swprintf(reinterpret_cast<wchar_t*>(a_->B),17,L\"%016I64X\",`0`);\n"
+	excode "swprintf(reinterpret_cast<wchar_t*>(a_->B),17,L\"%016I64X\",reinterpret_cast<uint64_t>(`0`));\n"
 	excode "return a_;\n"
 end func
 

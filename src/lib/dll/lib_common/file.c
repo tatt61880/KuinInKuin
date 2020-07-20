@@ -30,7 +30,10 @@ EXPORT void _fileInit(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res
 	InitEnvVars(heap, heap_cnt, app_code, use_res_flags);
 
 #if !defined(DBG)
-	PackFile = _wfopen(L"res.knd", L"rb");
+	Char path[KUIN_MAX_PATH];
+	wcscpy_s(path, KUIN_MAX_PATH, EnvVars.ResRoot);
+	wcscat_s(path, KUIN_MAX_PATH, L"res.knd");
+	PackFile = _wfopen(path, L"rb");
 	if (PackFile != NULL)
 	{
 		S64 i, j;
@@ -220,8 +223,18 @@ EXPORT void _setCurDir(const U8* path)
 
 EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 {
-	UNUSED(pack);
-#if !defined(DBG)
+	const Char* true_path;
+#if defined(DBG)
+	Char buf[KUIN_MAX_PATH];
+	if (pack)
+	{
+		wcscpy_s(buf, KUIN_MAX_PATH, EnvVars.ResRoot);
+		wcscat_s(buf, KUIN_MAX_PATH, (Char*)(path + 0x10));
+		true_path = buf;
+	}
+	else
+		true_path = (Char*)(path + 0x10);
+#else
 	if (pack)
 	{
 		S64 idx = -1;
@@ -274,17 +287,16 @@ EXPORT void* _openAsReadingImpl(const U8* path, Bool pack, Bool* success)
 		return (void*)((S64)handle | 1LL);
 	}
 	else
+		true_path = (Char*)(path + 0x10);
 #endif
+	FILE* file_ptr = _wfopen(true_path, L"rb");
+	if (file_ptr == NULL)
 	{
-		FILE* file_ptr = _wfopen((Char*)(path + 0x10), L"rb");
-		if (file_ptr == NULL)
-		{
-			*success = False;
-			return NULL;
-		}
-		*success = True;
-		return file_ptr;
+		*success = False;
+		return NULL;
 	}
+	*success = True;
+	return file_ptr;
 }
 
 EXPORT void _readerCloseImpl(void* handle)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<icon></icon>
-	<env>cui</env>
+	<env>wnd</env>
 	<snap>5</snap>
 	<zoom>1</zoom>
 	<related_files />

@@ -71,10 +71,6 @@ EXPORT void _init(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_fla
 
 	setlocale(LC_ALL, "");
 
-#if defined(DBG)
-	SetCurrentDirectory(EnvVars.ResRoot);
-#endif
-
 	// Initialize the COM library and the timer.
 	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) // 'STA'
 	{
@@ -131,11 +127,6 @@ EXPORT void _pause(void)
 	system("pause");
 }
 #endif
-
-EXPORT void _setCurDirToExeDir(void)
-{
-	SetCurrentDirectory(EnvVars.ResRoot);
-}
 
 EXPORT void _freeSet(void* ptr, const U8* type)
 {

@@ -41,9 +41,6 @@ end func
 func _finVars()
 end func
 
-func[d0000.knd]_setCurDirToExeDir()
-end func
-
 +class ListPtr()
 	*func[__ndc]ctor()
 	end func

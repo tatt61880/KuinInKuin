@@ -360,9 +360,6 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			; Make the program to call 'init' and 'main'.
 			var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 			do funcs.add(@searchStdItem("kuin", "_init", false))
-			if(\option@env_ = %exe & \option@extra.get("curtoexe", &))
-				do funcs.add(@searchStdItem("kuin", "_setCurDirToExeDir", false))
-			end if
 			var data: @AddInitFuncsData :: #@AddInitFuncsData
 			do data.funcs :: funcs
 			do data.name :: "_init"

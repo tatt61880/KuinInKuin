@@ -454,11 +454,25 @@ EXPORT_CPP S64 _colorDialog(SClass* parent, S64 default_color)
 
 EXPORT_CPP void* _exeDir()
 {
-	size_t len = wcslen(EnvVars.ResRoot);
+	Char path[KUIN_MAX_PATH];
+	Char* ptr;
+	GetModuleFileName(nullptr, path, KUIN_MAX_PATH);
+	ptr = wcsrchr(path, L'\\');
+	if (ptr == nullptr)
+		return nullptr;
+	*(ptr + 1) = L'\0';
+	ptr = path;
+	while (*ptr != L'\0')
+	{
+		if (*ptr == L'\\')
+			*ptr = L'/';
+		ptr++;
+	}
+	size_t len = wcslen(path);
 	U8* result = (U8*)AllocMem(0x10 + sizeof(Char) * (len + 1));
 	*(S64*)(result + 0x00) = DefaultRefCntFunc;
 	*(S64*)(result + 0x08) = len;
-	memcpy(result + 0x10, EnvVars.ResRoot, sizeof(Char) * (len + 1));
+	memcpy(result + 0x10, path, sizeof(Char) * (len + 1));
 	return result;
 }
 
@@ -838,7 +852,7 @@ EXPORT_CPP void _setOnKeyPress(void* onKeyPressFunc)
 EXPORT_CPP void* _sysDir(S64 kind)
 {
 	Char path[KUIN_MAX_PATH + 2];
-	if (!SHGetSpecialFolderPath(NULL, path, (int)kind, TRUE))
+	if (!SHGetSpecialFolderPath(nullptr, path, (int)kind, TRUE))
 		return NULL;
 	NormPath(path, True);
 	size_t len = wcslen(path);

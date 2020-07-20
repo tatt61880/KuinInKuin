@@ -17,20 +17,19 @@ void InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flag
 	EnvVars.UseResFlags = use_res_flags;
 
 	// The resource root directory.
-#if defined(DBG)
 	{
-		Char cur_dir_path[KUIN_MAX_PATH + 12 + 1];
-		GetModuleFileName(NULL, cur_dir_path, KUIN_MAX_PATH);
+		Char res_dir_path[KUIN_MAX_PATH + 12 + 1];
+		GetModuleFileName(NULL, res_dir_path, KUIN_MAX_PATH);
 		{
-			Char* ptr = wcsrchr(cur_dir_path, L'\\');
+			Char* ptr = wcsrchr(res_dir_path, L'\\');
 			if (ptr != NULL)
 				*(ptr + 1) = L'\0';
 		}
-		wcscat(cur_dir_path, L"_curdir_.txt");
-		if (PathFileExists(cur_dir_path))
+		wcscat(res_dir_path, L"_resdir_.txt");
+		if (PathFileExists(res_dir_path))
 		{
 			Char path[KUIN_MAX_PATH + 1];
-			FILE* file_ptr = _wfopen(cur_dir_path, L"r, ccs=UTF-8");
+			FILE* file_ptr = _wfopen(res_dir_path, L"r, ccs=UTF-8");
 			fgetws(path, KUIN_MAX_PATH, file_ptr);
 			Char* ptr = path;
 			while (ptr[1] != L'\0')
@@ -58,22 +57,6 @@ void InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flag
 			}
 		}
 	}
-#else
-	{
-		Char* ptr;
-		GetModuleFileName(NULL, EnvVars.ResRoot, KUIN_MAX_PATH);
-		ptr = wcsrchr(EnvVars.ResRoot, L'\\');
-		if (ptr != NULL)
-			*(ptr + 1) = L'\0';
-		ptr = EnvVars.ResRoot;
-		while (*ptr != L'\0')
-		{
-			if (*ptr == L'\\')
-				*ptr = L'/';
-			ptr++;
-		}
-	}
-#endif
 }
 
 void* AllocMem(size_t size)

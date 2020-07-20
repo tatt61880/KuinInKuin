@@ -127,7 +127,8 @@ end enum
 	end if
 	
 	if(@sysDir =& null)
-		do @sysDir :: "sys/"
+		var exeDir: []char :: wnd@exeDir()
+		do @sysDir :: (exeDir =& null ?("", exeDir)) ~ "sys/"
 	end if
 	
 	if(@icon =& null)
