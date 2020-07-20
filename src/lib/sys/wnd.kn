@@ -867,8 +867,9 @@ end func
 
 #exe
 +func[d0001.knd, _exeDir]exeDir(): []char
-#cpp
+#cpp,web
 +func exeDir(): []char
+#cpp
 	excode "#if defined(_WIN32)\n"
 	excode "wchar_t b_[512];\n"
 	excode "wchar_t*p_;\n"
@@ -890,7 +891,9 @@ end func
 	excode "#else\n"
 	excode "return nullptr;\n"
 	excode "#endif\n"
-#exe,cpp
+#web
+	excode "return null;\n"
+#any
 end func
 
 #exe
