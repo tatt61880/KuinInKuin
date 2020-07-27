@@ -576,9 +576,9 @@ func[__any, __rme]_repeat(me_: int, type: []int, len: int): int
 			throw 0xE9170006
 		end if
 	end if
-	excode "if(`1`[1]==0x02)return{S:R_(`0`.S,`2`)};\n"
-	excode "let l_=`0`.length,r_=new Array(l_*`2`);\n"
-	excode "for(let i_=0;i_<`2`;i_++){\n"
+	excode "if(`1`[1]==0x02)return{S:R_(`0`.S,`2`[1])};\n"
+	excode "let l_=`0`.length,r_=new Array(l_*`2`[1]);\n"
+	excode "for(let i_=0;i_<`2`[1];i_++){\n"
 	excode "for(let j_=0;j_<l_;j_++)r_[i_*l_+j_]=`0`[j_];\n"
 	excode "}\n"
 	excode "return r_;\n"

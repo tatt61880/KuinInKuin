@@ -487,7 +487,7 @@ func[__any, __rme]_repeat(me_: int, type: []int, len: int): int
 			throw 0xE9170006
 		end if
 	end if
-	excode "return repeat_(`0`, `2`);\n"
+	excode "return repeat_(`0`,`2`);\n"
 end func
 
 func _replace(me_: []char, old: []char, new: []char): []char
