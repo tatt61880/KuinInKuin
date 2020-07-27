@@ -61,6 +61,7 @@ end func
 		do me.caretX :: -1
 		do me.caretY :: -1
 		do me.caretShown :: false
+		do me.sys :: false
 	end func
 	
 	+*func fix(first: bool)
@@ -71,7 +72,7 @@ end func
 		do me.interpret1SetDirty(-1, false, false)
 	end func
 	
-	+*func load(path: []char): bool
+	+*func load(path: []char, sys: bool): bool
 		var src: list<[]char> :: #list<[]char>
 		var filePtr: file@Reader :: file@makeReader(path)
 		if(filePtr =& null)
@@ -84,6 +85,7 @@ end func
 		end while
 		do filePtr.fin()
 		do me.setSrc(src.toArray())
+		do me.sys :: sys
 		ret true
 	end func
 	
@@ -1162,6 +1164,7 @@ end func
 	var caretX: int
 	var caretY: int
 	var caretShown: bool
+	var sys: bool
 	var lock: bool
 	
 	func areaSel(): bool
@@ -1675,6 +1678,9 @@ end func
 	end func
 	
 	func interpret1SetDirty(line: int, modified: bool, showCompletion: bool)
+		if(me.sys)
+			ret
+		end if
 		var record: bool :: !me.undo.recording()
 		if(record)
 			do me.undo.recordBegin()

@@ -60,7 +60,7 @@ end func
 
 +func openMainSrc(path: []char)
 	var doc: \doc_src@DocSrc :: #\doc_src@DocSrc
-	if(!doc.load(path))
+	if(!doc.load(path, false))
 		var msg: []char
 		if(\common@langEn)
 			do msg :: "Loading failed. " ~ path
@@ -273,14 +273,14 @@ end func
 	end switch
 	var name: []char
 	if(^@sysDir <= ^path & @sysDir = path.sub(0, ^@sysDir))
-		if(!doc.load(path))
+		if(!doc.load(path, true))
 			ret null
 		end if
 		do name :: file@delExt(path.sub(^@sysDir, -1)).replace("/", "\\")
 	elif(@mainSrcDir = \common@defaultDir | !(^@mainSrcDir <= ^path & @mainSrcDir = path.sub(0, ^@mainSrcDir)))
 		ret null
 	else
-		if(!doc.load(path))
+		if(!doc.load(path, false))
 			ret null
 		end if
 		do name :: "\\" ~ file@delExt(path.sub(^@mainSrcDir, -1)).replace("/", "\\")

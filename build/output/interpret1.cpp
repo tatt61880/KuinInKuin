@@ -1,6 +1,6 @@
 #include "kuin_interpreter.h"
 
-// TODO: Rewrite them in Kuin.
+#define AUXILIARY_BUF_SIZE (0x8000)
 
 enum EAlignmentToken
 {
@@ -26,6 +26,7 @@ enum ECharColor
 	CharColor_Err,
 };
 
+static wchar_t Interpret1Buf[0x10 + AUXILIARY_BUF_SIZE + 1];
 bool isReserved(Array_<char16_t>*);
 
 static void InterpretImpl1Color(int* ptr, int str_level, const wchar_t* str, uint8_t* color, int64_t comment_level, uint64_t flags);
@@ -43,7 +44,6 @@ bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, in
 		uint64_t flags_context = 0;
 		int64_t tab_context = 0;
 		int64_t i;
-		wchar_t buf_str[0x10 + AUXILIARY_BUF_SIZE + 1];
 		wchar_t add_end[32];
 		add_end[0] = L'\0';
 		for (i = 0; i < line_len; i++)
@@ -54,7 +54,7 @@ bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, in
 			uint64_t* flags2 = (uint64_t*)((uint8_t*)flags + 0x10 + 0x08 * (size_t)i);
 
 			const wchar_t* str3 = (wchar_t*)((uint8_t*)*str2 + 0x10);
-			wchar_t* dst_str = buf_str + 0x08;
+			wchar_t* dst_str = Interpret1Buf + 0x08;
 
 			int64_t len;
 			{
@@ -68,11 +68,11 @@ bool InterpretImpl1(void* str, void* color, void* comment_level, void* flags, in
 
 			if (wcscmp(str3, dst_str) != 0)
 			{
-				((int64_t*)buf_str)[0] = 2;
-				((int64_t*)buf_str)[1] = len;
+				((int64_t*)Interpret1Buf)[0] = 2;
+				((int64_t*)Interpret1Buf)[1] = len;
 				if (me != nullptr)
 					(*(int64_t*)me)++;
-				Call3Asm(me, (void*)i, (void*)buf_str, replace_func);
+				Call3Asm(me, (void*)i, (void*)Interpret1Buf, replace_func);
 
 				str2 = (void**)((uint8_t*)str + 0x10 + 0x08 * (size_t)i);
 				color2 = (void**)((uint8_t*)color + 0x10 + 0x08 * (size_t)i);

@@ -8,7 +8,7 @@
 		do me.designer.fix(first)
 	end func
 	
-	+*func load(path: []char): bool
+	+*func load(path: []char, sys: bool): bool
 		try
 			var xml: xml@Xml :: xml@makeXml(path)
 			var root: xml@Node :: xml.root()

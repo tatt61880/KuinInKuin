@@ -20,8 +20,6 @@ extern "C" void* Call1Asm(void* arg1, void* func);
 extern "C" void* Call2Asm(void* arg1, void* arg2, void* func);
 extern "C" void* Call3Asm(void* arg1, void* arg2, void* arg3, void* func);
 
-#define AUXILIARY_BUF_SIZE (4096)
-
 // debugger.cpp
 bool RunDbgImpl(const uint8_t* path, const uint8_t* cmd_line, void* idle_func, void* event_func, void* break_points_func, void* break_func, void* dbg_func);
 
