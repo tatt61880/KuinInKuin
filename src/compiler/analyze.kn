@@ -3105,8 +3105,6 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 						assert func_.funcOption.and(%any) <> %none
 						assert func_.funcOption.and(%rch) = %none
 						assert func_.funcOption.and(%rac) = %none
-						assert func_.funcOption.and(%rak) = %none
-						assert func_.funcOption.and(%rav) = %none
 						assert \ast@isInt(func_.ret_)
 					end if
 					do func_.ret_ :: varType
@@ -3116,8 +3114,6 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 						assert func_.funcOption.and(%any) <> %none
 						assert func_.funcOption.and(%rme) = %none
 						assert func_.funcOption.and(%rac) = %none
-						assert func_.funcOption.and(%rak) = %none
-						assert func_.funcOption.and(%rav) = %none
 						assert \ast@isInt(func_.ret_)
 					end if
 					if(varType.typeId = %typeArray)
@@ -3134,8 +3130,6 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 						assert func_.funcOption.and(%any) <> %none
 						assert func_.funcOption.and(%rme) = %none
 						assert func_.funcOption.and(%rch) = %none
-						assert func_.funcOption.and(%rak) = %none
-						assert func_.funcOption.and(%rav) = %none
 						assert \ast@isInt(func_.ret_)
 						assert varType.typeId = %typeGen
 						assert(varType $ \ast@AstTypeGen).kind = %list_
@@ -3143,36 +3137,6 @@ func rebuildExprDot(ast: \ast@AstExprDot): \ast@AstExpr
 					var type: \ast@AstTypeArray :: #\ast@AstTypeArray
 					do @initAst(type, %typeArray, ast.pos)
 					do type.itemType :: (varType $ \ast@AstTypeGen).itemType
-					do func_.ret_ :: type
-				end if
-				if(func_.funcOption.and(%rak) <> %none)
-					if(dbg)
-						assert func_.funcOption.and(%any) <> %none
-						assert func_.funcOption.and(%rme) = %none
-						assert func_.funcOption.and(%rch) = %none
-						assert func_.funcOption.and(%rac) = %none
-						assert func_.funcOption.and(%rav) = %none
-						assert \ast@isInt(func_.ret_)
-						assert varType.typeId = %typeDict
-					end if
-					var type: \ast@AstTypeArray :: #\ast@AstTypeArray
-					do @initAst(type, %typeArray, ast.pos)
-					do type.itemType :: (varType $ \ast@AstTypeDict).itemTypeKey
-					do func_.ret_ :: type
-				end if
-				if(func_.funcOption.and(%rav) <> %none)
-					if(dbg)
-						assert func_.funcOption.and(%any) <> %none
-						assert func_.funcOption.and(%rme) = %none
-						assert func_.funcOption.and(%rch) = %none
-						assert func_.funcOption.and(%rac) = %none
-						assert func_.funcOption.and(%rak) = %none
-						assert \ast@isInt(func_.ret_)
-						assert varType.typeId = %typeDict
-					end if
-					var type: \ast@AstTypeArray :: #\ast@AstTypeArray
-					do @initAst(type, %typeArray, ast.pos)
-					do type.itemType :: (varType $ \ast@AstTypeDict).itemTypeValue
 					do func_.ret_ :: type
 				end if
 			end block

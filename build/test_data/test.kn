@@ -1,5 +1,5 @@
 func main()
-	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14, @test15, @test16, @test17, @test18, @test19, @test20]
+	var funcs: []func<()> :: [@test1, @test2, @test3, @test4, @test5, @test6, @test7, @test8, @test9, @test10, @test11, @test12, @test13, @test14, @test15, @test16, @test17, @test18, @test19, @test20, @test21]
 	for i(0, ^funcs - 1)
 		do cui@print("-- Test \{i + 1} --\n")
 		do funcs[i]()
@@ -1879,10 +1879,153 @@ func test19()
 end func
 
 func test20()
-	var a: []int :: [2, 3, 1, 5, 4]
-	do cui@print("\{a.min()}\n")
-	do cui@print("\{a.max()}\n")
-	var x: float :: 0.0
-	do cui@print("\{(x / x).nan()}\n")
-	do cui@print("\{(x / 1.0).nan()}\n")
+	block
+		var x: float :: 0.0
+		do cui@print("\{(x / x).nan()}\n")
+		do cui@print("\{(x / 1.0).nan()}\n")
+		do cui@print("\{lib@toRad(180.0)}\n")
+		do cui@print("\{lib@toDegree(lib@pi / 4.0)}\n")
+	end block
+	
+	block
+		var p: int :: -1
+		while(p <> -1, skip)
+			do p :: "abcdabcabc".findStr("abc", p)
+			do cui@print("\{p}\n")
+			if(p <> -1)
+				do p :+ 1
+			end if
+		end while
+	end block
+	
+	block
+		var p: int :: -1
+		while(p <> -1, skip)
+			do p :: "abcdabcabc".findStrLast("abc", p)
+			do cui@print("\{p}\n")
+			if(p <> -1)
+				do p :- 1
+			end if
+		end while
+	end block
+	
+	block
+		var a: int :: 3
+		var b: int :: 5
+		do cui@print("\{lib@min(a, b)}\n")
+		do cui@print("\{lib@max(a, b)}\n")
+		var x: float :: -3.0
+		var y: float :: -5.0
+		do cui@print("\{lib@minFloat(x, y)}\n")
+		do cui@print("\{lib@maxFloat(x, y)}\n")
+	end block
+	
+	block
+		do cui@print(["cc", "bb", "aa", "ee", "dd"].min() ~ "\n")
+		do cui@print(["cc", "bb", "aa", "ee", "dd"].max() ~ "\n")
+		do cui@print("abc".repeat(3) ~ "\n")
+		do cui@print(["ab", "cd"].repeat(3).join("|") ~ "\n")
+	end block
+	
+	block
+		class C()
+			+*func toStr(): []char
+				ret "test"
+			end func
+		end class
+		
+		var c: C :: #C
+		do cui@print("\{c}\n")
+	end block
+	
+	block
+		do cui@print((65535).toStrFmt("016x") ~ "\n")
+		do cui@print(lib@pi.toStrFmt("032.12f") ~ "\n")
+	end block
+	
+	block
+		for i(0, 10)
+			var l: float :: lib@lerp(5.0, 10.0, (i $ float) / 10.0)
+			var qi: float :: lib@qerp(5.0, 10.0, true, (i $ float) / 10.0)
+			var qo: float :: lib@qerp(5.0, 10.0, false, (i $ float) / 10.0)
+			var c: float :: lib@cerp(5.0, 10.0, (i $ float) / 10.0)
+			do cui@print("\{l}, \{qi}, \{qo}, \{c}\n")
+		end for
+		var pos: []float :: [4.0, 3.0, 5.0, 10.0]
+		for i(0, 30, 2)
+			do cui@print("\{lib@hermite(pos, (i $ float) / 10.0)}\n")
+		end for
+	end block
+	
+	block
+		var a: list<int> :: #list<int>
+		do a.add(3)
+		do a.add(5)
+		do a.head()
+		if(a.find(3))
+			do cui@print("\{a.get()}\n")
+		else
+			do cui@print("Not found.\n")
+		end if
+		if(a.find(5))
+			do cui@print("\{a.get()}\n")
+		else
+			do cui@print("Not found.\n")
+		end if
+		if(a.find(7))
+			do cui@print("\{a.get()}\n")
+		else
+			do cui@print("Not found.\n")
+		end if
+		do a.tail()
+		if(a.findLast(3))
+			do cui@print("\{a.get()}\n")
+		else
+			do cui@print("Not found.\n")
+		end if
+		if(a.findLast(5))
+			do cui@print("\{a.get()}\n")
+		else
+			do cui@print("Not found.\n")
+		end if
+		if(a.findLast(7))
+			do cui@print("\{a.get()}\n")
+		else
+			do cui@print("Not found.\n")
+		end if
+	end block
+end func
+
+func test21()
+	block
+		do cui@print("\{hash@xxh64(#[32 * 4]bit8, 0x1234567812345678b64)}\n")
+		do cui@print("\{hash@xxh64([1b8, 2b8, 3b8, 4b8, 5b8, 6b8, 7b8, 8b8, 9b8], 0x1234567812345678b64)}\n")
+		var b: []bit8 :: hash@sha256([1b8, 2b8, 3b8, 4b8, 5b8, 6b8, 7b8, 8b8, 9b8])
+		for i(0, ^b - 1)
+			do cui@print(b[i].toStr().sub(2, 2))
+		end for
+		do cui@print("\n")
+	end block
+	
+	block
+		var key: []bit8 :: #[32]bit8
+		for i(0, 31)
+			do key[i] :: i $ bit8
+		end for
+		var b: []bit8 :: cipher@encrypt(1234 $> []bit8, key)
+		for i(0, ^b - 1)
+			do cui@print(b[i].toStr().sub(2, 2))
+		end for
+		do cui@print("\n")
+		do cui@print("\{cipher@decrypt(b, key) $< int}\n")
+	end block
+
+	block
+		var n: list<char> :: #list<char>
+		do n.add('a')
+		do n.add('b')
+		do n.add('c')
+		var m: []char :: n.toArray()
+		do cui@print((^m).toStr() ~ ", " ~ m ~ "\n")
+	end block
 end func

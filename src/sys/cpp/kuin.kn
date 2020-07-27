@@ -604,14 +604,6 @@ func[__any, __rac]_toArray(me_: int, type: []int): int
 	excode "return toArray_<C_>(`0`);"
 end func
 
-func[__any, __rak]_toArrayKey(me_: int, type: []int): int
-	; TODO:
-end func
-
-func[__any, __rav]_toArrayValue(me_: int, type: []int): int
-	; TODO:
-end func
-
 func _toBit64(me_: []char, success: &bool): bit64
 	excode "std::u16string u_=`0`->B;\n"
 	excode "const std::string&t_=utf16ToUtf8_(u_);\n"

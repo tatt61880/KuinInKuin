@@ -342,14 +342,8 @@ func parseFunc(parentClass: []char, overritten: bool): \ast@AstFunc
 							do ast.funcOption :: ast.funcOption.or(%rme)
 						elif(s[3] = 'c' & s[4] = 'h')
 							do ast.funcOption :: ast.funcOption.or(%rch)
-						elif(s[3] = 'a')
-							if(s[4] = 'c')
-								do ast.funcOption :: ast.funcOption.or(%rac)
-							elif(s[4] = 'k')
-								do ast.funcOption :: ast.funcOption.or(%rak)
-							elif(s[4] = 'v')
-								do ast.funcOption :: ast.funcOption.or(%rav)
-							end if
+						elif(s[3] = 'a' & s[4] = 'c')
+							do ast.funcOption :: ast.funcOption.or(%rac)
 						elif(s[3] = 'w' & s[4] = 'i')
 							do ast.funcOption :: ast.funcOption.or(%rwi)
 						end if

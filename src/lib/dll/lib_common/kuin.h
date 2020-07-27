@@ -67,8 +67,6 @@ EXPORT void _tail(void* me_, const U8* type);
 EXPORT Bool _term(void* me_, const U8* type);
 EXPORT Bool _termOffset(void* me_, const U8* type, S64 offset);
 EXPORT void* _toArray(void* me_, const U8* type);
-EXPORT void* _toArrayKey(void* me_, const U8* type);
-EXPORT void* _toArrayValue(void* me_, const U8* type);
 EXPORT U64 _toBit64(const U8* me_, Bool* success);
 EXPORT double _toFloat(const U8* me_, Bool* success);
 EXPORT S64 _toInt(const U8* me_, Bool* success);

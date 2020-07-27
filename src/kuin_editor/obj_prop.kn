@@ -47,7 +47,23 @@ func getPropInfos(objs: []\doc_ar@Obj): []@PropInfo
 		end if
 		do propInfos.add(propsNames[i], propInfo)
 	end for
-	ret propInfos.toArrayValue()
+	
+	class Data()
+		+var array: []@PropInfo
+		+var idx: int
+	end class
+	var data: Data :: #Data
+	do data.array :: #[^propInfos]@PropInfo
+	do data.idx :: 0
+	do propInfos.forEach(toArrayValue, data)
+	ret data.array
+	
+	func toArrayValue(key: []char, value: @PropInfo, data: kuin@Class): bool
+		var data2: Data :: data $ Data
+		do data2.array[data2.idx] :: value
+		do data2.idx :+ 1
+		ret true
+	end func
 end func
 
 +func show(objs: []\doc_ar@Obj): bool

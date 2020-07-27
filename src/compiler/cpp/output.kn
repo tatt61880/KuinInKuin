@@ -92,10 +92,6 @@ func buildFunc(ast: \ast@AstFunc)
 			do template :: "template<typename T_,typename K_,typename V_,typename F_>"
 		elif(ast.funcOption.and(%rac) = %rac)
 			do template :: "template<typename T_,typename C_>"
-		elif(ast.funcOption.and(%rak) = %rak)
-			do template :: "template<typename T_,typename K_>"
-		elif(ast.funcOption.and(%rav) = %rav)
-			do template :: "template<typename T_,typename V_>"
 		else
 			do template :: "template<typename T_>"
 		end if
@@ -108,10 +104,6 @@ func buildFunc(ast: \ast@AstFunc)
 		do retType :: "T_"
 	elif(ast.funcOption.and(%rac) = %rac)
 		do retType :: "type_(Array_<C_>)"
-	elif(ast.funcOption.and(%rak) = %rak)
-		do retType :: "type_(Array_<K_>)"
-	elif(ast.funcOption.and(%rav) = %rav)
-		do retType :: "type_(Array_<V_>)"
 	else
 		do retType :: @getType(ast.ret_)
 	end if
@@ -1225,10 +1217,6 @@ func buildExprCall(ast: \ast@AstExprCall)
 			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}, \{@getType(items.get().arg.type)}>"
 		elif(funcType.funcOption.and(%rac) = %rac)
 			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeGen).itemType)}>"
-		elif(funcType.funcOption.and(%rak) = %rak)
-			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeKey)}>"
-		elif(funcType.funcOption.and(%rav) = %rav)
-			do template :: "<\{@getType(meType)}, \{@getType((meType $ \ast@AstTypeDict).itemTypeValue)}>"
 		else
 			do template :: "<\{@getType(meType)}>"
 		end if

@@ -71,8 +71,6 @@ var builtinFuncs: dict<[]char, @BuiltinFuncKind>
 		do @builtinFuncs.add("term", %list_)
 		do @builtinFuncs.add("termOffset", %list_)
 		do @builtinFuncs.add("toArray", %list_)
-		do @builtinFuncs.add("toArrayKey", %dict_)
-		do @builtinFuncs.add("toArrayValue", %dict_)
 		do @builtinFuncs.add("toBit64", %str)
 		do @builtinFuncs.add("toFloat", %str)
 		do @builtinFuncs.add("toInt", %str)

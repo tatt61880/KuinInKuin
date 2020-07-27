@@ -1695,8 +1695,6 @@ func getKeywordsAddMember(type: []char, context: @GetKeywordsContext)
 				do callCallbackFunc(callback, "exist")
 				do callCallbackFunc(callback, "forEach")
 				do callCallbackFunc(callback, "get")
-				do callCallbackFunc(callback, "toArrayKey")
-				do callCallbackFunc(callback, "toArrayValue")
 			case 'e'
 				do callCallbackFunc(callback, "and")
 				do callCallbackFunc(callback, "not")

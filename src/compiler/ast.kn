@@ -112,10 +112,8 @@ end class
 	rac :: 0x40 {The function returns an array of the type of list elements of 'me'.}
 	frc :: 0x0080 {Force to define a method that cannot be overridden.}
 	kvf :: 0x0100 {The function receives a callback function that receives key-value pairs.}
-	rak :: 0x0200 {Return array of dictionary key.}
-	rav :: 0x0400 {Return array of dictionary value.}
-	mki :: 0x0800 {Make an instance automatically.}
-	ndc :: 0x1000 {Instance of the class should not be created directly.}
+	mki :: 0x0200 {Make an instance automatically.}
+	ndc :: 0x0400 {Instance of the class should not be created directly.}
 	ext :: 0x100000000 {'exe': 'exit'.}
 	rwi :: 0x200000000 {'cpp', 'web': 'raw identifier'.}
 end enum
