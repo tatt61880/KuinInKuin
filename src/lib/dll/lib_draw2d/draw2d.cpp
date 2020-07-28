@@ -9,6 +9,7 @@ struct S2dBuf
 {
 	IDXGISurface* Surface;
 	ID2D1RenderTarget* RenderTarget;
+	double Scale;
 };
 
 struct SWndBuf
@@ -19,6 +20,7 @@ struct SWndBuf
 static ID2D1Factory* Factory = nullptr;
 static HMODULE D0001Handle = nullptr;
 static ID2D1RenderTarget* CurRenderTarget = nullptr;
+static double CurScale = 1.0;
 static Bool Opened;
 
 static void* Callback2d(int kind, void* arg1, void* arg2);
@@ -51,7 +53,7 @@ EXPORT_CPP void _circle(double x, double y, double radius_x, double radius_y, S6
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->FillEllipse(D2D1::Ellipse(D2D1::Point2F(static_cast<FLOAT>(x), static_cast<FLOAT>(y)), static_cast<FLOAT>(radius_x), static_cast<FLOAT>(radius_y)), brush);
+	CurRenderTarget->FillEllipse(D2D1::Ellipse(D2D1::Point2F(static_cast<FLOAT>(x * CurScale), static_cast<FLOAT>(y * CurScale)), static_cast<FLOAT>(radius_x * CurScale), static_cast<FLOAT>(radius_y * CurScale)), brush);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -60,7 +62,7 @@ EXPORT_CPP void _circleLine(double x, double y, double radius_x, double radius_y
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(static_cast<FLOAT>(x), static_cast<FLOAT>(y)), static_cast<FLOAT>(radius_x), static_cast<FLOAT>(radius_y)), brush, static_cast<FLOAT>(stroke_width), nullptr);
+	CurRenderTarget->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(static_cast<FLOAT>(x * CurScale), static_cast<FLOAT>(y * CurScale)), static_cast<FLOAT>(radius_x * CurScale), static_cast<FLOAT>(radius_y * CurScale)), brush, static_cast<FLOAT>(stroke_width * CurScale), nullptr);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -69,7 +71,7 @@ EXPORT_CPP void _line(double x1, double y1, double x2, double y2, double stroke_
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->DrawLine(D2D1::Point2F(static_cast<FLOAT>(x1), static_cast<FLOAT>(y1)), D2D1::Point2F(static_cast<FLOAT>(x2), static_cast<FLOAT>(y2)), brush, static_cast<FLOAT>(stroke_width), nullptr);
+	CurRenderTarget->DrawLine(D2D1::Point2F(static_cast<FLOAT>(x1 * CurScale), static_cast<FLOAT>(y1 * CurScale)), D2D1::Point2F(static_cast<FLOAT>(x2 * CurScale), static_cast<FLOAT>(y2 * CurScale)), brush, static_cast<FLOAT>(stroke_width * CurScale), nullptr);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -78,7 +80,7 @@ EXPORT_CPP void _rect(double x, double y, double width, double height, S64 color
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->FillRectangle(D2D1::RectF(static_cast<FLOAT>(x), static_cast<FLOAT>(y), static_cast<FLOAT>(x + width), static_cast<FLOAT>(y + height)), brush);
+	CurRenderTarget->FillRectangle(D2D1::RectF(static_cast<FLOAT>(x * CurScale), static_cast<FLOAT>(y * CurScale), static_cast<FLOAT>((x + width) * CurScale), static_cast<FLOAT>((y + height) * CurScale)), brush);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -87,7 +89,7 @@ EXPORT_CPP void _rectLine(double x, double y, double width, double height, doubl
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->DrawRectangle(D2D1::RectF(static_cast<FLOAT>(x), static_cast<FLOAT>(y), static_cast<FLOAT>(x + width), static_cast<FLOAT>(y + height)), brush, static_cast<FLOAT>(stroke_width), nullptr);
+	CurRenderTarget->DrawRectangle(D2D1::RectF(static_cast<FLOAT>(x * CurScale), static_cast<FLOAT>(y * CurScale), static_cast<FLOAT>((x + width) * CurScale), static_cast<FLOAT>((y + height) * CurScale)), brush, static_cast<FLOAT>(stroke_width * CurScale), nullptr);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -96,7 +98,7 @@ EXPORT_CPP void _roundRect(double x, double y, double width, double height, doub
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->FillRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(static_cast<FLOAT>(x), static_cast<FLOAT>(y), static_cast<FLOAT>(x + width), static_cast<FLOAT>(y + height)), static_cast<FLOAT>(radius_x), static_cast<FLOAT>(radius_y)), brush);
+	CurRenderTarget->FillRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(static_cast<FLOAT>(x * CurScale), static_cast<FLOAT>(y * CurScale), static_cast<FLOAT>((x + width) * CurScale), static_cast<FLOAT>((y + height) * CurScale)), static_cast<FLOAT>(radius_x * CurScale), static_cast<FLOAT>(radius_y * CurScale)), brush);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -105,7 +107,7 @@ EXPORT_CPP void _roundRectLine(double x, double y, double width, double height, 
 {
 	ID2D1SolidColorBrush* brush;
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
-	CurRenderTarget->DrawRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(static_cast<FLOAT>(x), static_cast<FLOAT>(y), static_cast<FLOAT>(x + width), static_cast<FLOAT>(y + height)), static_cast<FLOAT>(radius_x), static_cast<FLOAT>(radius_y)), brush, static_cast<FLOAT>(stroke_width), nullptr);
+	CurRenderTarget->DrawRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(static_cast<FLOAT>(x * CurScale), static_cast<FLOAT>(y * CurScale), static_cast<FLOAT>((x + width) * CurScale), static_cast<FLOAT>((y + height) * CurScale)), static_cast<FLOAT>(radius_x * CurScale), static_cast<FLOAT>(radius_y * CurScale)), brush, static_cast<FLOAT>(stroke_width * CurScale), nullptr);
 	brush->Release();
 	CurRenderTarget->Flush();
 }
@@ -118,9 +120,9 @@ EXPORT_CPP void _tri(double x1, double y1, double x2, double y2, double x3, doub
 	CurRenderTarget->CreateSolidColorBrush(ColorToColorF(color), &brush);
 	Factory->CreatePathGeometry(&geometry);
 	geometry->Open(&sink);
-	sink->BeginFigure(D2D1::Point2F(static_cast<FLOAT>(x1), static_cast<FLOAT>(y1)), D2D1_FIGURE_BEGIN_FILLED);
-	sink->AddLine(D2D1::Point2F(static_cast<FLOAT>(x2), static_cast<FLOAT>(y2)));
-	sink->AddLine(D2D1::Point2F(static_cast<FLOAT>(x3), static_cast<FLOAT>(y3)));
+	sink->BeginFigure(D2D1::Point2F(static_cast<FLOAT>(x1 * CurScale), static_cast<FLOAT>(y1 * CurScale)), D2D1_FIGURE_BEGIN_FILLED);
+	sink->AddLine(D2D1::Point2F(static_cast<FLOAT>(x2 * CurScale), static_cast<FLOAT>(y2 * CurScale)));
+	sink->AddLine(D2D1::Point2F(static_cast<FLOAT>(x3 * CurScale), static_cast<FLOAT>(y3 * CurScale)));
 	sink->EndFigure(D2D1_FIGURE_END_CLOSED);
 	sink->Close();
 	CurRenderTarget->FillGeometry(geometry, brush);
@@ -136,11 +138,13 @@ static void* Callback2d(int kind, void* arg1, void* arg2)
 	{
 		case 0: // Initialize 'S2dBuf'.
 			{
+				void** arg2s = static_cast<void**>(arg2);
 				SWndBuf* wnd_buf = static_cast<SWndBuf*>(arg1);
 				wnd_buf->Extra = static_cast<S2dBuf*>(AllocMem(sizeof(S2dBuf)));
 				memset(wnd_buf->Extra, 0, sizeof(S2dBuf));
 
-				wnd_buf->Extra->Surface = static_cast<IDXGISurface*>(arg2);
+				wnd_buf->Extra->Surface = static_cast<IDXGISurface*>(arg2s[0]);
+				wnd_buf->Extra->Scale = *static_cast<double*>(arg2s[1]);
 				D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED), 96, 96);
 				if (FAILED(Factory->CreateDxgiSurfaceRenderTarget(wnd_buf->Extra->Surface, &props, &wnd_buf->Extra->RenderTarget)))
 					THROW(0xe9170009);
@@ -155,11 +159,15 @@ static void* Callback2d(int kind, void* arg1, void* arg2)
 			}
 			return nullptr;
 		case 2: // 'ActiveDrawBuf'
-			if (Opened)
-				CurRenderTarget->EndDraw();
-			CurRenderTarget = static_cast<SWndBuf*>(arg1)->Extra->RenderTarget;
-			CurRenderTarget->BeginDraw();
-			Opened = True;
+			{
+				if (Opened)
+					CurRenderTarget->EndDraw();
+				S2dBuf* extra = static_cast<SWndBuf*>(arg1)->Extra;
+				CurRenderTarget = extra->RenderTarget;
+				CurScale = extra->Scale;
+				CurRenderTarget->BeginDraw();
+				Opened = True;
+			}
 			return nullptr;
 		case 3: // Write the buffer back.
 			if (Opened)

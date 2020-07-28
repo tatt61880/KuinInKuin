@@ -1496,8 +1496,8 @@ EXPORT_CPP void _set2dCallback(void* (*callback)(int, void*, void*))
 
 static void WriteBack()
 {
-	if (Callback2d != NULL)
-		Callback2d(3, NULL, NULL);
+	if (Callback2d != nullptr)
+		Callback2d(3, nullptr, nullptr);
 }
 
 static void Clear()

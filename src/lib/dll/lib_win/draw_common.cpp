@@ -443,7 +443,9 @@ void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old,
 		IDXGISurface* surface = nullptr;
 		if (FAILED(wnd_buf->TmpTex->QueryInterface(&surface)))
 			THROW(0xe9170009);
-		Callback2d(0, wnd_buf, surface);
+		double scale = 1.0 / static_cast<double>(split);
+		void* params[2] = { surface, &scale };
+		Callback2d(0, wnd_buf, params);
 	}
 
 	ActiveDrawBuf(wnd_buf);
