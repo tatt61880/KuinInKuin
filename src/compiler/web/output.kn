@@ -1721,7 +1721,7 @@ func write()
 		do writeJs(writer, resFiles)
 		do writer.writeStr("\t\t</script>\n")
 		do writer.writeStr("\t</head>\n")
-		do writer.writeStr("\t<body>\n")
+		do writer.writeStr("\t<body id=\"k_body\">\n")
 		do writer.writeStr("\t</body>\n")
 		do writer.writeStr("</html>\n")
 		do writer.fin()
@@ -1747,7 +1747,7 @@ func write()
 		do writer.writeStr("\t\t<script src=\"\{fileName}.js\" type=\"text/javascript\"></script>\n")
 		do writer.writeStr("\t\t<title>\{fileName}</title>\n")
 		do writer.writeStr("\t</head>\n")
-		do writer.writeStr("\t<body>\n")
+		do writer.writeStr("\t<body id=\"k_body\">\n")
 		do writer.writeStr("\t</body>\n")
 		do writer.writeStr("</html>\n")
 		do writer.fin()
@@ -1762,7 +1762,7 @@ func write()
 			do writer.writeStr("let O_;\n")
 		end if
 		
-		do writer.writeStr("let AD_=1;\n") {Address counter.}
+		do writer.writeStr("let D_=document,B_=D_.getElementById(\"k_body\"),AD_=1;\n") {'document', 'body' and an address counter.}
 		
 		if(^@classTable <> 0)
 			do writer.writeStr("let CT_=new Array(\{^@classTable});\n")

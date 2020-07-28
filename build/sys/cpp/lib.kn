@@ -322,8 +322,8 @@ end func
 	if(idxP2 > len - 1)
 		do idxP2 :: len - 1
 	end if
-	var dx0: float :: pos[idxP1] - pos[idxM1] / 2.0
-	var dx1: float :: pos[idxP2] - pos[idx] / 2.0
+	var dx0: float :: (pos[idxP1] - pos[idxM1]) / 2.0
+	var dx1: float :: (pos[idxP2] - pos[idx]) / 2.0
 	var x0: float :: pos[idx]
 	var x1: float :: pos[idxP1]
 	var r2: float :: rate - idx $ float

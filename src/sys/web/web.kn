@@ -1,0 +1,40 @@
+var uniqueId: int
+
++class Draw(@TagBase)
+	*func[__ndc]ctor()
+	end func
+end class
+
++class TagBase()
+	*func[__ndc]ctor()
+	end func
+	
+	+var id: []char
+end class
+
++func[__mki]makeDraw(me2: @Draw, parent: @TagBase, id: []char, width: int, height: int): @Draw
+	do id :: @addTag(parent, me2, "canvas", id)
+	excode "let t_=D_.getElementById(`2`.S);\n"
+	excode "t_.style.width=`3`;\n"
+	excode "t_.style.height=`4`;\n"
+	ret me2
+end func
+
+func addTag(parent: @TagBase, tag: @TagBase, kind: []char, id: []char): []char
+	do id :: id =& null ?(@makeUniqueId(), id)
+	do tag.id :: id
+	excode "let p_;\n"
+	if(parent =& null)
+		excode "p_=B_;\n"
+	else
+		excode "p_=D_.getElementById(`0`.`.id`.S);\n"
+	end if
+	excode "let t_=p_.appendChild(D_.createElement(`2`.S));\n"
+	excode "t_.id=`3`;\n"
+	ret id
+end func
+
+func makeUniqueId(): []char
+	do @uniqueId :+ 1
+	ret "k_" ~ @uniqueId
+end func

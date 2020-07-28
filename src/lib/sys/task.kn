@@ -1,4 +1,10 @@
 #exe
++enum OpenMode
+	open
+	explore
+	property
+end enum
+
 +class Process()
 	*func[__ndc]ctor()
 	end func
@@ -28,5 +34,5 @@ end class
 +func[d0000.knd, _makeProcess, __mki]makeProcess(me2: @Process, path: []char, cmdLine: []char): @Process
 end func
 
-+func[d0000.knd, _taskOpen]open(path: []char)
++func[d0000.knd, _taskOpen]open(path: []char, mode: @OpenMode, waitUntilExit: bool)
 end func
