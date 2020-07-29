@@ -576,9 +576,9 @@ func[__any, __rme]_repeat(me_: int, type: []int, len: int): int
 			throw 0xE9170006
 		end if
 	end if
-	excode "if(`1`[1]==0x02)return{S:R_(`0`.S,`2`)};\n"
-	excode "let l_=`0`.length,r_=new Array(l_*`2`);\n"
-	excode "for(let i_=0;i_<`2`;i_++){\n"
+	excode "if(`1`[1]==0x02)return{S:R_(`0`.S,`2`[1])};\n"
+	excode "let l_=`0`.length,r_=new Array(l_*`2`[1]);\n"
+	excode "for(let i_=0;i_<`2`[1];i_++){\n"
 	excode "for(let j_=0;j_<l_;j_++)r_[i_*l_+j_]=`0`[j_];\n"
 	excode "}\n"
 	excode "return r_;\n"
@@ -777,21 +777,20 @@ func[__any]_termOffset(me_: int, type: []int, offset: int): bool
 end func
 
 func[__any, __rac]_toArray(me_: int, type: []int): int
-	; TODO: string.
+	excode "if(`1`[1]==0x02){\n"
+	excode "let s_=\"\",e_=`0`.H;\n"
+	excode "for(let i_=0;i_<`0`.L;i_++){\n"
+	excode "s_+=String.fromCharCode(e_.I);\n"
+	excode "e_=e_.N;\n"
+	excode "}\n"
+	excode "return{S:s_};\n"
+	excode "}\n"
 	excode "let a_=new Array(`0`.L),e_=`0`.H;\n"
 	excode "for(let i_=0;i_<`0`.L;i_++){\n"
 	excode "a_[i_]=e_.I;\n"
 	excode "e_=e_.N;\n"
 	excode "}\n"
 	excode "return a_;\n"
-end func
-
-func[__any, __rak]_toArrayKey(me_: int, type: []int): int
-	; TODO:
-end func
-
-func[__any, __rav]_toArrayValue(me_: int, type: []int): int
-	; TODO:
 end func
 
 func _toBit64(me_: []char, success: &bool): bit64

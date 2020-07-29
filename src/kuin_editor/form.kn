@@ -37,6 +37,7 @@ var groupConfig: wnd@Group
 var groupEnv: wnd@Group
 var radioEnvWnd: wnd@Radio
 var radioEnvCui: wnd@Radio
+var radioEnvWeb: wnd@Radio
 var btnProjSettings: wnd@Btn
 var btnRls: wnd@Btn
 +var listFile: wnd@List
@@ -66,7 +67,6 @@ var completionRequired: bool
 
 enum SourceCodeKind
 	cpp
-	web
 end enum
 
 +func makeWnd()
@@ -255,16 +255,18 @@ end enum
 	do @editLog.readonly(true)
 	do @btnCompile :: wnd@makeBtn(@wndMain, 1027, 12, 185, 23, %move, %fix, \common@langEn ?("Compile && Run", "コンパイル＆実行"))
 	do @btnCompile.onPush :: @btnCompileOnPush
-	do @groupConfig :: wnd@makeGroup(@wndMain, 1027, 41, 185, 115, %move, %fix, \common@langEn ?("Configuration", "設定"))
-	do @groupEnv :: wnd@makeGroup(@wndMain, 1033, 59, 173, 62, %move, %fix, \common@langEn ?("Environment", "実行環境"))
+	do @groupConfig :: wnd@makeGroup(@wndMain, 1027, 41, 185, 137, %move, %fix, \common@langEn ?("Configuration", "設定"))
+	do @groupEnv :: wnd@makeGroup(@wndMain, 1033, 59, 173, 84, %move, %fix, \common@langEn ?("Environment", "実行環境"))
 	do @radioEnvWnd :: wnd@makeRadio(@groupEnv, 6, 18, 161, 16, %fix, %fix, \common@langEn ?("Window", "ウインドウ"))
 	do @radioEnvWnd.setChk(true)
 	do @radioEnvWnd.onPush :: @radioEnvOnPush
 	do @radioEnvCui :: wnd@makeRadio(@groupEnv, 6, 40, 161, 16, %fix, %fix, \common@langEn ?("CUI", "CUI"))
 	do @radioEnvCui.onPush :: @radioEnvOnPush
-	do @btnProjSettings :: wnd@makeBtn(@wndMain, 1033, 127, 120, 23, %move, %fix, \common@langEn ?("Other Settings...", "その他の設定..."))
+	do @radioEnvWeb :: wnd@makeRadio(@groupEnv, 6, 62, 161, 16, %fix, %fix, \common@langEn ?("Web", "Web"))
+	do @radioEnvWeb.onPush :: @radioEnvOnPush
+	do @btnProjSettings :: wnd@makeBtn(@wndMain, 1033, 149, 120, 23, %move, %fix, \common@langEn ?("Other Settings...", "その他の設定..."))
 	do @btnProjSettings.onPush :: btnProjSettingsOnPush
-	do @btnRls :: wnd@makeBtn(@wndMain, 1027, 162, 185, 23, %move, %fix, \common@langEn ?("Release Build...", "リリースビルド..."))
+	do @btnRls :: wnd@makeBtn(@wndMain, 1027, 184, 185, 23, %move, %fix, \common@langEn ?("Release Build...", "リリースビルド..."))
 	do @btnRls.onPush :: @btnRlsOnPush
 	do @listFile :: wnd@makeList(@wndMain, 1027, 255, 185, 337, %move, %scale)
 	do @listFile.onSel :: @listFileOnSel
@@ -317,7 +319,6 @@ end enum
 	do @popupMainBuild.add(0x0021, \common@langEn ?("&Release Build...\tCtrl+Shift+B", "リリースビルド(&R)...\tCtrl+Shift+B"))
 	do @popupMainBuild.addLine()
 	do @popupMainBuild.add(0x0022, \common@langEn ?("Output C++ &Source Code...", "C++のソースコードを出力(試験中)(&S)..."))
-	do @popupMainBuild.add(0x0023, \common@langEn ?("Output &JavaScript Source Code...", "JavaScriptのソースコードを出力(試験中)(&J)..."))
 	do @menuMain.addPopup(\common@langEn ?("&Build", "ビルド(&B)"), @popupMainBuild)
 	do @popupMainDbg :: wnd@makePopup()
 	do @popupMainDbg.add(0x0040, \common@langEn ?("Toggle &Breakpoint\tF9", "ブレークポイントの設定/解除(&B)\tF9"))
@@ -656,7 +657,7 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 	case 0x0005
 		do @wndMain.close()
 	case 0x0010
-		do task@open("https://kuina.ch/kuin")
+		do task@open("https://kuina.ch/kuin", %open, false)
 	case 0x0011
 		block
 			var major: int
@@ -679,12 +680,6 @@ func wndMainOnPushMenu(wnd: wnd@WndBase, id: int)
 			ret
 		end if
 		do @outputSourceCode(%cpp)
-	case 0x0023
-		if(@lockingEditor)
-			do @showMsgRunning()
-			ret
-		end if
-		do @outputSourceCode(%web)
 	case 0x0030
 		if(@lockingEditor)
 			do @showMsgRunning()
@@ -943,21 +938,27 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 		do @makeRelatedFileText(tmp ~ "_related_files_.txt", option)
 		if(\dll@build(option.toArray(), \src@getSrc, @log))
 			do file@delFile(tmp ~ "_related_files_.txt")
-			if(\src@mainSrcDir <> \common@defaultDir)
-				var filePtr: file@Writer :: file@makeWriter(tmp ~ "_resdir_.txt", false)
-				do filePtr.writeStr(\src@mainSrcDir)
-				do filePtr.writeChar('\n')
-				do filePtr.fin()
-			end if
-			do @editLog.addText(\common@langEn ?("0x0003FFFF: Run.", "0x0003FFFF: 実行。\n"))
-			do \dbgwnd@show()
-			if(\dll@runDbg(cmd, null, idleFunc, eventFunc, breakPointsFunc, breakFunc, dbgFunc))
+			if(@radioEnvWeb.getChk())
+				do @editLog.addText(\common@langEn ?("0x0003FFFF: Run.", "0x0003FFFF: 実行。\n"))
+				do task@open(tmp ~ "out.html", %open, true)
 				do @editLog.addText(\common@langEn ?("\n0x0003FFFF: Succees.\n", "\n0x0003FFFF: 正常終了。\n"))
 			else
-				do @editLog.addText(\common@langEn ?("\n0x0003FFFF: Failure.\n", "\n0x0003FFFF: 実行失敗。\n"))
-				do wnd@msgBox(@wndMain, \common@langEn ?("Could not run.", "実行できませんでした。"), \common@title, %err, %ok)
+				if(\src@mainSrcDir <> \common@defaultDir)
+					var filePtr: file@Writer :: file@makeWriter(tmp ~ "_resdir_.txt", false)
+					do filePtr.writeStr(\src@mainSrcDir)
+					do filePtr.writeChar('\n')
+					do filePtr.fin()
+				end if
+				do @editLog.addText(\common@langEn ?("0x0003FFFF: Run.", "0x0003FFFF: 実行。\n"))
+				do \dbgwnd@show()
+				if(\dll@runDbg(cmd, null, idleFunc, eventFunc, breakPointsFunc, breakFunc, dbgFunc))
+					do @editLog.addText(\common@langEn ?("\n0x0003FFFF: Succees.\n", "\n0x0003FFFF: 正常終了。\n"))
+				else
+					do @editLog.addText(\common@langEn ?("\n0x0003FFFF: Failure.\n", "\n0x0003FFFF: 実行失敗。\n"))
+					do wnd@msgBox(@wndMain, \common@langEn ?("Could not run.", "実行できませんでした。"), \common@title, %err, %ok)
+				end if
+				do \src@delRunningFiles()
 			end if
-			do \src@delRunningFiles()
 		end if
 		do \src@updateErrList()
 	catch
@@ -1134,8 +1135,6 @@ func outputSourceCode(sourceCodeKind: @SourceCodeKind)
 	switch(sourceCodeKind)
 	case %cpp
 		do file :: wnd@saveFileDialog(@wndMain, [\common@langEn ?("C++ Source Code (*.cpp)", "C++ソースコード (*.cpp)"), "*.cpp"], 0, "cpp")
-	case %web
-		do file :: wnd@saveFileDialog(@wndMain, [\common@langEn ?("HTML File (*.html)", "HTML File (*.html)"), "*.html"], 0, "html")
 	end switch
 	if(file =& null)
 		ret
@@ -1147,8 +1146,6 @@ func outputSourceCode(sourceCodeKind: @SourceCodeKind)
 	switch(sourceCodeKind)
 	case %cpp
 		do ext :: ".cpp"
-	case %web
-		do ext :: ".html"
 	end switch
 	var out: []char :: tmp ~ fileName ~ ext
 	try
@@ -1186,11 +1183,6 @@ func outputSourceCode(sourceCodeKind: @SourceCodeKind)
 		case %cpp
 			do option.add("-e")
 			do option.add("cpp")
-		case %web
-			do option.add("-e")
-			do option.add("web")
-			do option.add("-x")
-			do option.add("merge")
 		end switch
 		if(\dll@build(option.toArray(), \src@getSrc, @log))
 			if(file@copyFile(file, out))
@@ -1299,6 +1291,9 @@ func addEnv(option: list<[]char>)
 		do option.add("exe")
 		do option.add("-x")
 		do option.add("pause")
+	elif(@radioEnvWeb.getChk())
+		do option.add("-e")
+		do option.add("web")
 	end if
 end func
 
@@ -1307,6 +1302,8 @@ end func
 		ret "wnd"
 	elif(@radioEnvCui.getChk())
 		ret "cui"
+	elif(@radioEnvWeb.getChk())
+		ret "web"
 	end if
 	ret "wnd"
 end func
@@ -1320,6 +1317,8 @@ end func
 		do @radioEnvWnd.setChk(true)
 	case "cui"
 		do @radioEnvCui.setChk(true)
+	case "web"
+		do @radioEnvWeb.setChk(true)
 	end switch
 	do @lockUi :: false
 end func
@@ -1370,7 +1369,7 @@ func openResFolder()
 			ret
 		end if
 	end if
-	do task@open(path)
+	do task@open(path, %open, false)
 end func
 
 func fixAll(key: []char, value: \doc@Doc, data: kuin@Class): bool

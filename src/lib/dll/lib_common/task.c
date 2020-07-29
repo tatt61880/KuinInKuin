@@ -155,7 +155,7 @@ EXPORT SClass* _makeProcess(SClass* me_, const U8* path, const U8* cmd_line)
 	return me_;
 }
 
-EXPORT void _taskOpen(const U8* path)
+EXPORT void _taskOpen(const U8* path, S64 mode, Bool wait_until_exit)
 {
 	const Char* path2 = (const Char*)(path + 0x10);
 	Char cur_dir[KUIN_MAX_PATH + 1];
@@ -166,6 +166,33 @@ EXPORT void _taskOpen(const U8* path)
 		if (ptr != NULL)
 			*(ptr + 1) = L'\0';
 	}
-	if ((U64)ShellExecute(NULL, L"open", path2, NULL, cur_dir, SW_SHOWNORMAL) <= 32)
+	SHELLEXECUTEINFO info;
+	memset(&info, 0, sizeof(info));
+	info.cbSize = sizeof(info);
+	switch (mode)
+	{
+		case 0:
+			info.lpVerb = L"open";
+			break;
+		case 1:
+			info.lpVerb = L"explore";
+			break;
+		case 2:
+			info.lpVerb = L"properties";
+			break;
+		default:
+			return;
+	}
+	info.lpFile = path2;
+	info.lpDirectory = cur_dir;
+	info.nShow = SW_SHOWNORMAL;
+	if (wait_until_exit)
+		info.fMask |= SEE_MASK_NOCLOSEPROCESS;
+	if (!ShellExecuteEx(&info))
 		THROW(0xe9170009);
+	if (wait_until_exit)
+	{
+		if (WaitForSingleObject(info.hProcess, INFINITE) != WAIT_OBJECT_0)
+			THROW(0xe9170009);
+	}
 }

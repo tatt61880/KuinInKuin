@@ -41,9 +41,6 @@ end func
 func _finVars()
 end func
 
-func[d0000.knd]_setCurDirToExeDir()
-end func
-
 +class ListPtr()
 	*func[__ndc]ctor()
 	end func
@@ -398,12 +395,6 @@ func[d0000.knd, __any]_termOffset(me_: int, type: []int, offset: int): bool
 end func
 
 func[d0000.knd, __any, __rac]_toArray(me_: int, type: []int): int
-end func
-
-func[d0000.knd, __any, __rak]_toArrayKey(me_: int, type: []int): int
-end func
-
-func[d0000.knd, __any, __rav]_toArrayValue(me_: int, type: []int): int
 end func
 
 func[d0000.knd]_toBit64(me_: []char, success: &bool): bit64
