@@ -130,15 +130,18 @@ end func
 				end if
 				if(class_ <>& null)
 					var name: []char :: value.sub(1, -1)
-					var members: list<\ast@AstClassItem> :: class_.items
-					do members.head()
-					while loop(!members.term())
-						var def: \ast@Ast :: members.get().def
-						if(def.typeId = %var_ & (def $ \ast@AstVar).arg.name <>& null & (def $ \ast@AstVar).arg.name = name)
-							do s :~ getIdCodeFunc((def $ \ast@AstVar).arg)
-							break loop
-						end if
-						do members.next()
+					while loop(class_ <>& null)
+						var members: list<\ast@AstClassItem> :: class_.items
+						do members.head()
+						while(!members.term())
+							var def: \ast@Ast :: members.get().def
+							if(def.typeId = %var_ & (def $ \ast@AstVar).arg.name <>& null & (def $ \ast@AstVar).arg.name = name)
+								do s :~ getIdCodeFunc((def $ \ast@AstVar).arg)
+								break loop
+							end if
+							do members.next()
+						end while
+						do class_ :: class_.refItem $ \ast@AstClass
 					end while
 				end if
 			else
