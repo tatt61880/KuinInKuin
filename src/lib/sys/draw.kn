@@ -1,10 +1,20 @@
-#exe
+#exe,web
 +const white: int :: 0xFFFFFFFF
 +const black: int :: 0xFF000000
+#web
++var cur: web@Draw
+#exe,web
 
+#exe
 func[d0001.knd, _drawInit]_init()
 end func
+#web
+func _init()
+	do web@targetFunc :: @target
+end func
+#exe,web
 
+#exe
 func[d0001.knd, _drawFin]_fin()
 end func
 
@@ -277,12 +287,34 @@ end func
 +func[d0001.knd, _circleLine, _1]circleLine(x: float, y: float, radiusX: float, radiusY: float, color: int)
 end func
 
+#exe
 +func[d0001.knd, _clear]clear()
+#web
++func clear()
+	do impl(@cur)
+	func impl(cur: web@Draw)
+		excode "`0`.`.gl`.clear(`0`.`.gl`.COLOR_BUFFER_BIT);\n"
+	end func
+#exe,web
 end func
 
+#exe
 +func[d0001.knd, _clearColor]clearColor(color: int)
+#web
++func clearColor(color: int)
+	var a: float
+	var r: float
+	var g: float
+	var b: float
+	do @splitColor(&a, &r, &g, &b, color)
+	do impl(@cur, a, r, g, b)
+	func impl(cur: web@Draw, a: float, r: float, g: float, b: float)
+		excode "`0`.`.gl`.clearColor(`2`,`3`,`4`,`1`);\n"
+	end func
+#exe,web
 end func
 
+#exe
 +func[d0001.knd, _cnt]cnt(): int
 end func
 
@@ -391,8 +423,23 @@ end func
 +func[d0001.knd, _screenWidth]screenWidth(): int
 end func
 
+#exe
 +func[d0001.knd, _target]target(drawCtrl: wnd@Draw)
 end func
+#web
++func target(drawTag: web@Draw)
+	do @cur :: drawTag
+end func
+#exe
 
 +func[d0001.knd, _tri]tri(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float, color: int)
+end func
+#web
+
++func splitColor(a: &float, r: &float, g: &float, b: &float, color: int)
+	var n: bit64 :: color $ bit64
+	do a :: n.shr(24).and(255b64) $ float / 255.0
+	do r :: n.shr(16).and(255b64) $ float / 255.0
+	do g :: n.shr(8).and(255b64) $ float / 255.0
+	do b :: n.and(255b64) $ float / 255.0
 end func

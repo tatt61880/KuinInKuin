@@ -1,4 +1,5 @@
 var uniqueId: int
++var targetFunc: func<(@Draw)>
 
 +class Btn(@TagBase)
 	*func[__ndc]ctor()
@@ -56,6 +57,8 @@ end class
 +class Draw(@TagBase)
 	*func[__ndc]ctor()
 	end func
+	
+	var gl: int
 end class
 
 +class Edit(@TagBase)
@@ -78,7 +81,7 @@ end class
 +class EditMulti(@TagBase)
 	*func[__ndc]ctor()
 	end func
-
+	
 	+func getText(): []char
 		ret me.getContent()
 	end func
@@ -206,6 +209,13 @@ end func
 +func[__mki]makeDraw(me2: @Draw, parent: @TagBase, x: int, y: int, width: int, height: int): @Draw
 	do @addTag(parent, me2, "canvas")
 	do me2.setPos(x, y, width, height)
+	excode "`0`.`.obj`.width=`4`[1];\n"
+	excode "`0`.`.obj`.height=`5`[1];\n"
+	excode "`0`.`.gl`=`0`.`.obj`.getContext(\"webgl\")||c.getContext(\"experimental-webgl\");\n"
+	excode "`0`.`.gl`.clearColor(0.0,0.0,0.0,1.0);\n"
+	if(@targetFunc <>& null)
+		do @targetFunc(me2)
+	end if
 	ret me2
 end func
 

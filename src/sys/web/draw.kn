@@ -1,0 +1,38 @@
++const white: int :: 0xFFFFFFFF
++const black: int :: 0xFF000000
++var cur: web@Draw
+
+func _init()
+	do web@targetFunc :: @target
+end func
+
++func clear()
+	do impl(@cur)
+	func impl(cur: web@Draw)
+		excode "`0`.`.gl`.clear(`0`.`.gl`.COLOR_BUFFER_BIT);\n"
+	end func
+end func
+
++func clearColor(color: int)
+	var a: float
+	var r: float
+	var g: float
+	var b: float
+	do @splitColor(&a, &r, &g, &b, color)
+	do impl(@cur, a, r, g, b)
+	func impl(cur: web@Draw, a: float, r: float, g: float, b: float)
+		excode "`0`.`.gl`.clearColor(`2`,`3`,`4`,`1`);\n"
+	end func
+end func
+
++func target(drawTag: web@Draw)
+	do @cur :: drawTag
+end func
+
++func splitColor(a: &float, r: &float, g: &float, b: &float, color: int)
+	var n: bit64 :: color $ bit64
+	do a :: n.shr(24).and(255b64) $ float / 255.0
+	do r :: n.shr(16).and(255b64) $ float / 255.0
+	do g :: n.shr(8).and(255b64) $ float / 255.0
+	do b :: n.and(255b64) $ float / 255.0
+end func
