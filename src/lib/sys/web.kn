@@ -1,6 +1,6 @@
 #web
 var uniqueId: int
-+var targetFunc: func<(@Draw)>
++var initFunc: func<(@Draw)>
 
 +class Btn(@TagBase)
 	*func[__ndc]ctor()
@@ -60,6 +60,19 @@ end class
 	end func
 	
 	var gl: int
+	var triShader: int
+	var triVertex: int
+	var triIdx: int
+	var triVertexSlot: int
+	var triVecs0Slot: int
+	var triVecs1Slot: int
+	var triColorSlot: int
+	var rectShader: int
+	var rectVertex: int
+	var rectIdx: int
+	var rectVertexSlot: int
+	var rectVecsSlot: int
+	var rectColorSlot: int
 end class
 
 +class Edit(@TagBase)
@@ -212,10 +225,8 @@ end func
 	do me2.setPos(x, y, width, height)
 	excode "`0`.`.obj`.width=`4`[1];\n"
 	excode "`0`.`.obj`.height=`5`[1];\n"
-	excode "`0`.`.gl`=`0`.`.obj`.getContext(\"webgl\")||c.getContext(\"experimental-webgl\");\n"
-	excode "`0`.`.gl`.clearColor(0.0,0.0,0.0,1.0);\n"
-	if(@targetFunc <>& null)
-		do @targetFunc(me2)
+	if(@initFunc <>& null)
+		do @initFunc(me2)
 	end if
 	ret me2
 end func

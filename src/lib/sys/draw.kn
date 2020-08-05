@@ -10,7 +10,7 @@ func[d0001.knd, _drawInit]_init()
 end func
 #web
 func _init()
-	do web@targetFunc :: @target
+	do web@initFunc :: @initDraw
 end func
 #exe,web
 
@@ -30,6 +30,7 @@ end enum
 	bottom
 end enum
 
+#exe,web
 +enum Blend
 	none
 	alpha
@@ -39,6 +40,7 @@ end enum
 	exclusion
 end enum
 
+#exe
 +class Font()
 	*func[__ndc]ctor()
 	end func
@@ -272,9 +274,42 @@ end func
 +func[d0001.knd, _autoClear]autoClear(enabled: bool)
 end func
 
+#exe
 +func[d0001.knd, _blend]blend(kind: @Blend)
 end func
+#web
+func blend(kind: @Blend)
+	do impl(@cur, kind)
+	func impl(cur: web@Draw, kind:@Blend)
+		switch(kind)
+		case %none
+			excode "`0`.`.gl`.disable(`0`.`.gl`.BLEND);\n"
+		case %alpha
+			excode "`0`.`.gl`.enable(`0`.`.gl`.BLEND);\n"
+			excode "`0`.`.gl`.blendFuncSeparate(`0`.`.gl`.SRC_ALPHA,`0`.`.gl`.ONE_MINUS_SRC_ALPHA,`0`.`.gl`.ONE,`0`.`.gl`.ONE_MINUS_SRC_ALPHA);\n"
+			excode "`0`.`.gl`.blendEquation(`0`.`.gl`.FUNC_ADD);\n"
+		case %add
+			excode "`0`.`.gl`.enable(`0`.`.gl`.BLEND);\n"
+			excode "`0`.`.gl`.blendFuncSeparate(`0`.`.gl`.SRC_ALPHA,`0`.`.gl`.ONE,`0`.`.gl`.ONE,`0`.`.gl`.ONE_MINUS_SRC_ALPHA);\n"
+			excode "`0`.`.gl`.blendEquation(`0`.`.gl`.FUNC_ADD);\n"
+		case %sub
+			excode "`0`.`.gl`.enable(`0`.`.gl`.BLEND);\n"
+			excode "`0`.`.gl`.blendFuncSeparate(`0`.`.gl`.SRC_ALPHA,`0`.`.gl`.ONE,`0`.`.gl`.ONE,`0`.`.gl`.ONE_MINUS_SRC_ALPHA);\n"
+			excode "`0`.`.gl`.blendEquation(`0`.`.gl`.FUNC_SUBTRACT);\n"
+		case %mul
+			excode "`0`.`.gl`.enable(`0`.`.gl`.BLEND);\n"
+			excode "`0`.`.gl`.blendFuncSeparate(`0`.`.gl`.DST_COLOR,`0`.`.gl`.ZERO,`0`.`.gl`.ONE,`0`.`.gl`.ONE_MINUS_SRC_ALPHA);\n"
+			excode "`0`.`.gl`.blendEquation(`0`.`.gl`.FUNC_ADD);\n"
+		case %exclusion
+			excode "`0`.`.gl`.enable(`0`.`.gl`.BLEND);\n"
+			excode "`0`.`.gl`.blendFuncSeparate(`0`.`.gl`.ONE_MINUS_DST_COLOR,`0`.`.gl`.ONE_MINUS_SRC_COLOR,`0`.`.gl`.ONE,`0`.`.gl`.ONE_MINUS_SRC_ALPHA);\n"
+			excode "`0`.`.gl`.blendEquation(`0`.`.gl`.FUNC_ADD);\n"
+		end switch
+	end func
+end func
+#exe,web
 
+#exe
 +func[d0001.knd, _camera]camera(eyeX: float, eyeY: float, eyeZ: float, atX: float, atY: float, atZ: float, upX: float, upY: float, upZ: float)
 end func
 
@@ -405,9 +440,34 @@ end func
 +func[d0001.knd, _proj]proj(fovy: float, aspectX: float, aspectY: float, nearZ: float, farZ: float)
 end func
 
+#exe
 +func[d0001.knd, _rect]rect(x: float, y: float, width: float, height: float, color: int)
 end func
+#web
++func rect(x: float, y: float, width: float, height: float, color: int)
+	var a: float
+	var r: float
+	var g: float
+	var b: float
+	do @splitColor(&a, &r, &g, &b, color)
+	do impl(@cur, x, y, width, height, a, r, g, b)
+	func impl(cur: web@Draw, x: float, y: float, width: float, height: float, a: float, r: float, g: float, b: float)
+		excode "`0`.`.gl`.useProgram(`0`.`.rectShader`);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,`0`.`.rectVertex`);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.rectIdx`);\n"
+		excode "`0`.`.gl`.enableVertexAttribArray(`0`.`.rectVertexSlot`);\n"
+		excode "`0`.`.gl`.vertexAttribPointer(`0`.`.rectVertexSlot`,2,`0`.`.gl`.FLOAT,false,0,0);\n"
+		excode "`0`.`.gl`.uniform4f(`0`.`.rectVecsSlot`,`1`,`2`,`3`,`4`);\n"
+		excode "`0`.`.gl`.uniform4f(`0`.`.rectColorSlot`,`6`,`7`,`8`,`5`);\n"
+		excode "`0`.`.gl`.drawElements(`0`.`.gl`.TRIANGLES,6,`0`.`.gl`.UNSIGNED_SHORT,0);\n"
+		excode "`0`.`.gl`.disableVertexAttribArray(`0`.`.rectVertexSlot`);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,null);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,null);\n"
+	end func
+end func
+#exe,web
 
+#exe
 +func[d0001.knd, _rectLine]rectLine(x: float, y: float, width: float, height: float, color: int)
 end func
 
@@ -432,9 +492,32 @@ end func
 end func
 #exe
 
+#exe
 +func[d0001.knd, _tri]tri(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float, color: int)
 end func
 #web
++func tri(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float, color: int)
+	var a: float
+	var r: float
+	var g: float
+	var b: float
+	do @splitColor(&a, &r, &g, &b, color)
+	do impl(@cur, x1, y1, x2, y2, x3, y3, a, r, g, b)
+	func impl(cur: web@Draw, x1: float, y1: float, x2: float, y2: float, x3: float, y3: float, a: float, r: float, g: float, b: float)
+		excode "`0`.`.gl`.useProgram(`0`.`.triShader`);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,`0`.`.triVertex`);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.triIdx`);\n"
+		excode "`0`.`.gl`.enableVertexAttribArray(`0`.`.triVertexSlot`);\n"
+		excode "`0`.`.gl`.vertexAttribPointer(`0`.`.triVertexSlot`,3,`0`.`.gl`.FLOAT,false,0,0);\n"
+		excode "`0`.`.gl`.uniform4f(`0`.`.triVecs0Slot`,`1`,`2`,`3`,`4`);\n"
+		excode "`0`.`.gl`.uniform2f(`0`.`.triVecs1Slot`,`5`,`6`);\n"
+		excode "`0`.`.gl`.uniform4f(`0`.`.triColorSlot`,`8`,`9`,`10`,`7`);\n"
+		excode "`0`.`.gl`.drawElements(`0`.`.gl`.TRIANGLES,3,`0`.`.gl`.UNSIGNED_SHORT,0);\n"
+		excode "`0`.`.gl`.disableVertexAttribArray(`0`.`.triVertexSlot`);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,null);\n"
+		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,null);\n"
+	end func
+end func
 
 +func splitColor(a: &float, r: &float, g: &float, b: &float, color: int)
 	var n: bit64 :: color $ bit64
@@ -442,4 +525,77 @@ end func
 	do r :: n.shr(16).and(255b64) $ float / 255.0
 	do g :: n.shr(8).and(255b64) $ float / 255.0
 	do b :: n.and(255b64) $ float / 255.0
+end func
+
+func initDraw(draw: web@Draw)
+	excode "`0`.`.gl`=`0`.`.obj`.getContext(\"webgl\")||c.getContext(\"experimental-webgl\");\n"
+	excode "`0`.`.gl`.clearColor(0.0,0.0,0.0,1.0);\n"
+	
+	excode "let triVs_=`0`.`.gl`.createShader(`0`.`.gl`.VERTEX_SHADER);\n"
+	excode "`0`.`.gl`.shaderSource(triVs_,\""
+	excode "attribute vec3 weight;"
+	excode "uniform vec4 vecs0;"
+	excode "uniform vec2 vecs1;"
+	excode "void main(){"
+	excode "gl_Position.xy=vecs0.rg*weight.r+vecs0.ba*weight.g+vecs1.rg*weight.b;"
+	excode "gl_Position.z=0.0;"
+	excode "gl_Position.w=1.0;"
+	excode "}\");\n"
+	excode "`0`.`.gl`.compileShader(triVs_);\n"
+
+	excode "let triPs_=`0`.`.gl`.createShader(`0`.`.gl`.FRAGMENT_SHADER);\n"
+	excode "`0`.`.gl`.shaderSource(triPs_,\""
+	excode "precision mediump float;"
+	excode "uniform vec4 color;"
+	excode "void main(){"
+	excode "gl_FragColor=vec4(color.r,color.g,color.b,color.a);"
+	excode "}\");\n"
+	excode "`0`.`.gl`.compileShader(triPs_);\n"
+	
+	excode "`0`.`.triShader`=`0`.`.gl`.createProgram();\n"
+	excode "`0`.`.gl`.attachShader(`0`.`.triShader`,triVs_);\n"
+	excode "`0`.`.gl`.attachShader(`0`.`.triShader`,triPs_);\n"
+	excode "`0`.`.gl`.linkProgram(`0`.`.triShader`);\n"
+	
+	excode "`0`.`.triVertex`=`0`.`.gl`.createBuffer();\n"
+	excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,`0`.`.triVertex`);\n"
+	excode "`0`.`.gl`.bufferData(`0`.`.gl`.ARRAY_BUFFER,new Float32Array([1.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0]),`0`.`.gl`.STATIC_DRAW);\n"
+	excode "`0`.`.triIdx`=`0`.`.gl`.createBuffer();\n"
+	excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.triIdx`);\n"
+	excode "`0`.`.gl`.bufferData(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,new Int16Array([0,1,2]),`0`.`.gl`.STATIC_DRAW);\n"
+	excode "`0`.`.triVertexSlot`=`0`.`.gl`.getAttribLocation(`0`.`.triShader`,\"weight\");\n"
+	excode "`0`.`.triVecs0Slot`=`0`.`.gl`.getUniformLocation(`0`.`.triShader`,\"vecs0\");\n"
+	excode "`0`.`.triVecs1Slot`=`0`.`.gl`.getUniformLocation(`0`.`.triShader`,\"vecs1\");\n"
+	excode "`0`.`.triColorSlot`=`0`.`.gl`.getUniformLocation(`0`.`.triShader`,\"color\");\n"
+	
+	excode "let rectVs_=`0`.`.gl`.createShader(`0`.`.gl`.VERTEX_SHADER);\n"
+	excode "`0`.`.gl`.shaderSource(rectVs_,\""
+	excode "attribute vec2 weight;"
+	excode "uniform vec4 vecs;"
+	excode "void main(){"
+	excode "gl_Position.xy=vecs.rg+vecs.ba*weight;"
+	excode "gl_Position.z=0.0;"
+	excode "gl_Position.w=1.0;"
+	excode "}\");\n"
+	excode "`0`.`.gl`.compileShader(rectVs_);\n"
+	
+	excode "`0`.`.rectShader`=`0`.`.gl`.createProgram();\n"
+	excode "`0`.`.gl`.attachShader(`0`.`.rectShader`,rectVs_);\n"
+	excode "`0`.`.gl`.attachShader(`0`.`.rectShader`,triPs_);\n"
+	excode "`0`.`.gl`.linkProgram(`0`.`.rectShader`);\n"
+	
+	excode "`0`.`.rectVertex`=`0`.`.gl`.createBuffer();\n"
+	excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,`0`.`.rectVertex`);\n"
+	excode "`0`.`.gl`.bufferData(`0`.`.gl`.ARRAY_BUFFER,new Float32Array([0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0]),`0`.`.gl`.STATIC_DRAW);\n"
+	excode "`0`.`.rectIdx`=`0`.`.gl`.createBuffer();\n"
+	excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.rectIdx`);\n"
+	excode "`0`.`.gl`.bufferData(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,new Int16Array([0,1,2,3,2,1]),`0`.`.gl`.STATIC_DRAW);\n"
+	excode "`0`.`.rectVertexSlot`=`0`.`.gl`.getAttribLocation(`0`.`.rectShader`,\"weight\");\n"
+	excode "`0`.`.rectVecsSlot`=`0`.`.gl`.getUniformLocation(`0`.`.rectShader`,\"vecs\");\n"
+	excode "`0`.`.rectColorSlot`=`0`.`.gl`.getUniformLocation(`0`.`.rectShader`,\"color\");\n"
+	
+	excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,null);\n"
+	excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,null);\n"
+	do @target(draw)
+	do @blend(%alpha)
 end func
