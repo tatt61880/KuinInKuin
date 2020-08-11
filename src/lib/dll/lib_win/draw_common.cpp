@@ -281,6 +281,8 @@ void Cross(double out[3], const double a[3], const double b[3])
 
 void* MakeDrawBuf(int tex_width, int tex_height, int split, HWND wnd, void* old, Bool editable)
 {
+	if (Device == nullptr)
+		return nullptr;
 	SWndBuf* old2 = static_cast<SWndBuf*>(old);
 	FLOAT clear_color[4];
 	if (old == nullptr)
