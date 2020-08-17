@@ -10,6 +10,7 @@
 +const dbgArrayIdxOutOfRange: int :: 0xE9170002
 +const invalidCmp: int :: 0xE9170004
 +const dbgArgOutDomain: int :: 0xE9170006
++const fileOpenFailed: int :: 0xE9170007
 +const invalidDataFmt: int :: 0xE9170008
 +const deviceInitFailed: int :: 0xE9170009
 +const dbgInoperableState: int :: 0xE917000A

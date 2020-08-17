@@ -89,7 +89,7 @@ end class
 +func makeXml(path: []char): @Xml
 	var f: file@Reader :: file@makeReader(path)
 	if(f =& null)
-		ret null
+		throw 0xE9170007
 	end if
 	var d: []bit8 :: f.read(f.fileSize())
 	do f.fin()

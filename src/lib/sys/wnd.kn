@@ -986,7 +986,7 @@ end func
 		for i(0, ^s - 1)
 			var f: file@Reader :: file@makeReader(smallImgs[i])
 			if(f =& null)
-				ret null
+				throw 0xE9170007
 			end if
 			do s[i] :: f.read(f.fileSize())
 			do f.fin()
@@ -997,7 +997,7 @@ end func
 		for i(0, ^l - 1)
 			var f: file@Reader :: file@makeReader(largeImgs[i])
 			if(f =& null)
-				ret null
+				throw 0xE9170007
 			end if
 			do l[i] :: f.read(f.fileSize())
 			do f.fin()
