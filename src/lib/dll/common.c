@@ -40,6 +40,7 @@ void InitEnvVars(void* heap, S64* heap_cnt, S64 app_code, const U8* use_res_flag
 				ptr--;
 			}
 			wcscpy(EnvVars.ResRoot, path);
+			SetCurrentDirectory(path);
 		}
 		else
 		{
@@ -78,7 +79,7 @@ void FreeMem(void* ptr)
 	{
 		(*EnvVars.HeapCnt)--;
 		ASSERT(*EnvVars.HeapCnt >= 0);
-	}
+}
 #endif
 }
 
