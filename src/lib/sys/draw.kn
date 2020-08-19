@@ -457,7 +457,8 @@ end func
 		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.rectIdx`);\n"
 		excode "`0`.`.gl`.enableVertexAttribArray(`0`.`.rectVertexSlot`);\n"
 		excode "`0`.`.gl`.vertexAttribPointer(`0`.`.rectVertexSlot`,2,`0`.`.gl`.FLOAT,false,0,0);\n"
-		excode "`0`.`.gl`.uniform4f(`0`.`.rectVecsSlot`,`1`,`2`,`3`,`4`);\n"
+		excode "let w_=`0`.`.obj`.width,h_=`0`.`.obj`.height;\n"
+		excode "`0`.`.gl`.uniform4f(`0`.`.rectVecsSlot`,`1`/w_*2-1,-`2`/h_*2+1,`3`/w_*2,-`4`/h_*2);\n"
 		excode "`0`.`.gl`.uniform4f(`0`.`.rectColorSlot`,`6`,`7`,`8`,`5`);\n"
 		excode "`0`.`.gl`.drawElements(`0`.`.gl`.TRIANGLES,6,`0`.`.gl`.UNSIGNED_SHORT,0);\n"
 		excode "`0`.`.gl`.disableVertexAttribArray(`0`.`.rectVertexSlot`);\n"
@@ -490,7 +491,7 @@ end func
 +func target(drawTag: web@Draw)
 	do @cur :: drawTag
 end func
-#exe
+#exe,web
 
 #exe
 +func[d0001.knd, _tri]tri(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float, color: int)
@@ -509,8 +510,9 @@ end func
 		excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.triIdx`);\n"
 		excode "`0`.`.gl`.enableVertexAttribArray(`0`.`.triVertexSlot`);\n"
 		excode "`0`.`.gl`.vertexAttribPointer(`0`.`.triVertexSlot`,3,`0`.`.gl`.FLOAT,false,0,0);\n"
-		excode "`0`.`.gl`.uniform4f(`0`.`.triVecs0Slot`,`1`,`2`,`3`,`4`);\n"
-		excode "`0`.`.gl`.uniform2f(`0`.`.triVecs1Slot`,`5`,`6`);\n"
+		excode "let w_=`0`.`.obj`.width,h_=`0`.`.obj`.height;\n"
+		excode "`0`.`.gl`.uniform4f(`0`.`.triVecs0Slot`,`1`/w_*2-1,-`2`/h_*2+1,`3`/w_*2-1,-`4`/h_*2+1);\n"
+		excode "`0`.`.gl`.uniform2f(`0`.`.triVecs1Slot`,`5`/w_*2-1,-`6`/h_*2+1);\n"
 		excode "`0`.`.gl`.uniform4f(`0`.`.triColorSlot`,`8`,`9`,`10`,`7`);\n"
 		excode "`0`.`.gl`.drawElements(`0`.`.gl`.TRIANGLES,3,`0`.`.gl`.UNSIGNED_SHORT,0);\n"
 		excode "`0`.`.gl`.disableVertexAttribArray(`0`.`.triVertexSlot`);\n"
