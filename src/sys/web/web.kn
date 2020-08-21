@@ -72,6 +72,12 @@ end class
 	var rectVertexSlot: int
 	var rectVecsSlot: int
 	var rectColorSlot: int
+	var texShader: int
+	var texVertexSlot: int
+	var texVecs0Slot: int
+	var texVecs1Slot: int
+	var texColorSlot: int
+	var texTexSlot: int
 end class
 
 +class Edit(@TagBase)
