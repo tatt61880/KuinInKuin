@@ -46,8 +46,8 @@ end enum
 			do srcY :+ srcH
 			do srcH :: -srcH
 		end if
-		do impl(@cur, me.texWidth $ float, me.texHeight $ float, me.tex, dstX, dstY, dstW, dstH, srcX, srcY, srcW, srcH, a, r, g, b)
-		func impl(cur: web@Draw, texWidth: float, texHeight: float, tex: int, dstX: float, dstY: float, dstW: float, dstH: float, srcX: float, srcY: float, srcW: float, srcH: float, a: float, r: float, g: float, b: float)
+		do impl(@cur, me.texWidth, me.texHeight, me.tex, dstX, dstY, dstW, dstH, srcX, srcY, srcW, srcH, a, r, g, b)
+		func impl(cur: web@Draw, texWidth: int, texHeight: int, tex: int, dstX: float, dstY: float, dstW: float, dstH: float, srcX: float, srcY: float, srcW: float, srcH: float, a: float, r: float, g: float, b: float)
 			excode "`0`.`.gl`.useProgram(`0`.`.texShader`);\n"
 			excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ARRAY_BUFFER,`0`.`.rectVertex`);\n"
 			excode "`0`.`.gl`.bindBuffer(`0`.`.gl`.ELEMENT_ARRAY_BUFFER,`0`.`.rectIdx`);\n"
@@ -130,25 +130,23 @@ end func
 end func
 
 +func[__mki]makeTex(me2: @Tex, path: []char, callback: func<(kuin@Class)>, data: kuin@Class): @Tex
-	var width: int
-	var height: int
-	var tex2: int
-	do impl(@cur, path, callback, data, &width, &height, &tex2)
-	do me2._init(width, height, tex2)
+	do impl(@cur, path, callback, data, init, me2)
 	ret me2
-	func impl(cur: web@Draw, path: []char, callback: func<(kuin@Class)>, data: kuin@Class, width: &int, height: &int, tex2: &int)
+	func impl(cur: web@Draw, path: []char, callback: func<(kuin@Class)>, data: kuin@Class, initCallback: func<(@Tex, int, int, int)>, tex2: @Tex)
 		excode "let i_=new Image();\n"
 		excode "i_.onload=function(){\n"
 		excode "let t_=`0`.`.gl`.createTexture();\n"
 		excode "`0`.`.gl`.bindTexture(`0`.`.gl`.TEXTURE_2D,t_);\n"
 		excode "`0`.`.gl`.texImage2D(`0`.`.gl`.TEXTURE_2D,0,`0`.`.gl`.RGBA,`0`.`.gl`.RGBA,`0`.`.gl`.UNSIGNED_BYTE,i_);\n"
+		excode "`0`.`.gl`.generateMipmap(`0`.`.gl`.TEXTURE_2D);\n"
 		excode "`0`.`.gl`.bindTexture(`0`.`.gl`.TEXTURE_2D,null);\n"
-		excode "`4`.$=i_.naturalWidth;\n"
-		excode "`5`.$=i_.naturalHeight;\n"
-		excode "`6`.$=t_;\n"
+		excode "`4`(`5`,i_.naturalWidth,i_.naturalHeight,t_);\n"
 		excode "`2`(`3`);\n"
 		excode "};\n"
 		excode "i_.src=`1`.S;\n"
+	end func
+	func init(me2: @Tex, width: int, height: int, tex2: int)
+		do me2._init(width, height, tex2)
 	end func
 end func
 
@@ -306,13 +304,13 @@ func initDraw(draw: web@Draw)
 	excode "`0`.`.gl`.shaderSource(texVs_,\""
 	excode "attribute vec2 weight;"
 	excode "uniform vec4 vecs0;"
-	excode "uniform vec2 vecs1;"
-	excode "varying vec4 vTex;"
+	excode "uniform vec4 vecs1;"
+	excode "varying vec2 vTex;"
 	excode "void main(){"
 	excode "gl_Position.xy=vecs0.rg+vecs0.ba*weight;"
 	excode "gl_Position.z=0.0;"
 	excode "gl_Position.w=1.0;"
-	excode "vTex=vecs1.rg*vecs1.ba*weight;"
+	excode "vTex=vecs1.rg+vecs1.ba*weight;"
 	excode "}\");\n"
 	excode "`0`.`.gl`.compileShader(texVs_);\n"
 
@@ -321,7 +319,7 @@ func initDraw(draw: web@Draw)
 	excode "precision mediump float;"
 	excode "uniform vec4 color;"
 	excode "uniform sampler2D tex;"
-	excode "varying vec4 vTex;"
+	excode "varying vec2 vTex;"
 	excode "void main(){"
 	excode "gl_FragColor=texture2D(tex,vTex)*color;"
 	excode "if(gl_FragColor.a<=0.02)discard;"

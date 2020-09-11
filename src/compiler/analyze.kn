@@ -277,7 +277,7 @@ func makeLibraryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			end while
 		end block
 	end block
-	block
+	if(\option@env_ <> %web)
 		; Make the program to call 'fin'.
 		var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 		do funcs.add(@searchStdItem("kuin", "_finVars", false))
@@ -307,7 +307,7 @@ func makeLibraryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 				do funcs.next()
 			end while
 		end block
-	end block
+	end if
 	ret entry
 end func
 
@@ -462,7 +462,7 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 			end block
 			do try_.catches.add(catch_)
 		end block
-		block
+		if(\option@env_ <> %web)
 			; Make the program to call 'fin'.
 			var funcs: list<\ast@Ast> :: #list<\ast@Ast>
 			do funcs.add(@searchStdItem("kuin", "_finVars", false))
@@ -492,7 +492,7 @@ func makeEntryPoint(mainFunc: \ast@AstFunc): \ast@AstFunc
 					do funcs.next()
 				end while
 			end block
-		end block
+		end if
 		do entry.stats.add(try_)
 	end block
 	ret entry

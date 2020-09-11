@@ -128,6 +128,26 @@ EXPORT void* _tcpReceive(SClass* me_, S64 size)
 	return result;
 }
 
+EXPORT S64 _tcpReceivedSize(SClass* me_)
+{
+	STcp* me2 = (STcp*)me_;
+	if (me2->ThreadExit)
+		return 0;
+	EnterCriticalSection(me2->Mutex);
+	int len;
+	if (me2->DataTop == me2->DataBottom && !me2->DataFull)
+		len = 0;
+	else
+	{
+		if (me2->DataTop < me2->DataBottom)
+			len = me2->DataBottom - me2->DataTop;
+		else
+			len = TCP_DATA_SIZE - me2->DataTop + me2->DataBottom;
+	}
+	LeaveCriticalSection(me2->Mutex);
+	return len;
+}
+
 EXPORT void _tcpSend(SClass* me_, const U8* data)
 {
 	THROWDBG(data == NULL, EXCPT_ACCESS_VIOLATION);

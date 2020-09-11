@@ -27,5 +27,6 @@
 		<resource>recent.kn</resource>
 		<resource>snippet.kn</resource>
 		<resource>src.kn</resource>
+		<resource>web_server.kn</resource>
 	</resources>
 </configuration>

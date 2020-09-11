@@ -446,16 +446,12 @@ end func
 end func
 
 +func exist(path: []char): bool
-	excode "let f_=false,p_=`0`.S;\n"
-	excode "if(O_&&O_.readFile)f_=O_.readFile(p_)!=null;\n"
-	excode "if(f_==false){\n"
-	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\")\n"
-	excode "f_=F_(p_,false);\n"
-	excode "else{\n"
-	; TODO:
+	excode "let p_=`0`.S;\n"
+	excode "if(O_&&O_.readFile){\n"
+	excode "if(O_.readFile(p_)!=null)return true;\n"
 	excode "}\n"
-	excode "}\n"
-	excode "return f_;\n"
+	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\"&&F_(p_))return true;\n"
+	excode "return false;\n"
 end func
 
 +func ext(path: []char): []char
@@ -576,17 +572,24 @@ end func
 	do @curDir :: path
 end func
 
-func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
-	; TODO: if(pack)
-		excode "let f_=null,p_=`0`.S;\n"
-		excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
-		excode "if(f_==null)\n"
-		excode "f_=F_(p_,true);\n"
-		excode "if(f_==null){`2`.$=false;return null;}\n"
-		excode "`2`.$=true;return{F:f_,I:0,P:true};\n"
-	; TODO: else
-		; TODO:
-	; TODO: end if
+func openAsReadingImpl(path: []char, pack: bool, callback: func<(int, kuin@Class)>, data: kuin@Class)
+	excode "let p_=`0`.S;\n"
+	excode "if(O_&&O_.readFile){\n"
+	excode "let f_=O_.readFile(p_);\n"
+	excode "if(f_!=null){`2`({F:f_,I:0,P:true},`3`);return;}\n"
+	excode "}\n"
+	if(pack)
+		excode "if(!F_(p_)){`2`(null,`3`);return;}\n"
+	end if
+	excode "let x_=new XMLHttpRequest();\n"
+	excode "x_.open(\\\"GET\\\",p_,true);\n"
+	excode "x_.responseType=\\\"arraybuffer\\\";\n"
+	excode "x_.onload=function(){\n"
+	excode "if(x_.status!=200)`2`(null,`3`);else `2`({F:new Uint8Array(x_.response),I:0,P:true},`3`);\n"
+	excode "};\n"
+	excode "x_.onerror=function(){\n"
+	excode "`2`(null,`3`);\n"
+	excode "};\n"
 end func
 
 func readerClose(handle: int)

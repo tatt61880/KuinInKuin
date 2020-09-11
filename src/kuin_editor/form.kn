@@ -940,7 +940,7 @@ func btnCompileOnPush(wnd: wnd@WndBase)
 			do file@delFile(tmp ~ "_related_files_.txt")
 			if(@radioEnvWeb.getChk())
 				do @editLog.addText(\common@langEn ?("0x0003FFFF: Run.", "0x0003FFFF: 実行。\n"))
-				do task@open(tmp ~ "out.html", %open, true)
+				do \web_server@run(tmp)
 				do @editLog.addText(\common@langEn ?("\n0x0003FFFF: Succees.\n", "\n0x0003FFFF: 正常終了。\n"))
 			else
 				if(\src@mainSrcDir <> \common@defaultDir)

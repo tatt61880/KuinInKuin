@@ -1783,7 +1783,7 @@ func write()
 		
 		do \web\builtin@write(writer)
 		
-		do writer.writeStr("function F_(p,f){\n")
+		do writer.writeStr("function F_(p){\n")
 		block
 			var first: bool :: true
 			do resFiles.head()
@@ -1799,32 +1799,10 @@ func write()
 					do writer.writeStr(@escapeChar(resFile[i]))
 				end for
 				do writer.writeStr("\")\n")
-				if(resFile[^resFile - 1] = '/')
-					do writer.writeStr("return f?null:true;\n")
-				else
-					do writer.writeStr("return f?Uint8Array.from([")
-					var reader: file@Reader :: file@makeReader(resFile)
-					if(reader =& null)
-						do \err@err(%fileOpenFailed, null, [resFile])
-						ret
-					end if
-					var data: []bit8 :: reader.read(reader.fileSize())
-					for i(0, ^data - 1)
-						if(i <> 0)
-							do writer.writeStr(",")
-						end if
-						do writer.writeStr(data[i].toStr())
-					end for
-					do reader.fin()
-					do writer.writeStr("]):true;\n")
-				end if
+				do writer.writeStr("return true;\n")
 				do resFiles.next()
 			end while
-			if(^resFiles > 0)
-				do writer.writeStr("else return f?null:false;\n")
-			else
-				do writer.writeStr("return f?null:false;\n")
-			end if
+			do writer.writeStr("return false;\n")
 		end block
 		do writer.writeStr("}\n")
 		

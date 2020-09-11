@@ -47,6 +47,9 @@ end class
 	+func[d0004.knd, _tcpReceive]receive(size: int): []bit8
 	end func
 	
+	+func[d0004.knd, _tcpReceivedSize]receivedSize(): int
+	end func
+	
 	+func[d0004.knd, _tcpSend]send(data: []bit8)
 	end func
 	
