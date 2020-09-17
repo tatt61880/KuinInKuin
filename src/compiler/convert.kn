@@ -121,7 +121,9 @@ end func
 		if(pos = ptr)
 			do ptr :+ 1
 			var value: []char :: parseValue(code, &ptr)
-			if(^value >= 1 & value[0] = '.')
+			if(^value = 0)
+				do s :~ "`"
+			elif(^value >= 1 & value[0] = '.')
 				var class_: \ast@AstClass :: null
 				if(func_.funcOption.and(%any) = %none & ^args >= 1 & args[0].type.refItem <>& null & args[0].type.refItem.typeId = %class_)
 					do class_ :: (args[0].type.refItem $ \ast@AstClass)

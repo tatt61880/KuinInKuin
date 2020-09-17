@@ -25,6 +25,10 @@ end enum
 		do me.tex :: tex
 	end func
 	
+	+func draw(dstX: float, dstY: float, srcX: float, srcY: float, srcW: float, srcH: float, color: int)
+		do me.drawScale(dstX, dstY, srcW, srcH, srcX, srcY, srcW, srcH, color)
+	end func
+	
 	+func drawScale(dstX: float, dstY: float, dstW: float, dstH: float, srcX: float, srcY: float, srcW: float, srcH: float, color: int)
 		var a: float
 		var r: float
@@ -55,7 +59,7 @@ end enum
 			excode "`0`.`.gl`.vertexAttribPointer(`0`.`.texVertexSlot`,2,`0`.`.gl`.FLOAT,false,0,0);\n"
 			excode "let w_=`0`.`.obj`.width,h_=`0`.`.obj`.height;\n"
 			excode "`0`.`.gl`.uniform4f(`0`.`.texVecs0Slot`,`4`/w_*2-1,-`5`/h_*2+1,`6`/w_*2,-`7`/h_*2);\n"
-			excode "`0`.`.gl`.uniform4f(`0`.`.texVecs1Slot`,`8`/`1`,-`9`/`2`,`10`/`1`,-`11`/`2`);\n"
+			excode "`0`.`.gl`.uniform4f(`0`.`.texVecs1Slot`,`8`/`1`,`9`/`2`,`10`/`1`,`11`/`2`);\n"
 			excode "`0`.`.gl`.uniform4f(`0`.`.texColorSlot`,`13`,`14`,`15`,`12`);\n"
 			excode "`0`.`.gl`.activeTexture(`0`.`.gl`.TEXTURE0);\n"
 			excode "`0`.`.gl`.bindTexture(`0`.`.gl`.TEXTURE_2D,`3`);\n"

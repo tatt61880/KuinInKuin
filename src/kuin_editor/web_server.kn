@@ -10,14 +10,15 @@ var exit: bool
 	var server: net@TcpServer :: net@makeTcpServer(8080)
 	do task@open("http://localhost:8080/out.html", %open, false)
 	do @exit :: false
-	while(!@exit)
+	while loop2(!@exit)
 		var serverConnect: net@Tcp :: null
-		do cui@print("a\n")
 		while(wnd@act() & serverConnect =& null & !@exit)
 			do lib@sleep(10)
 			do serverConnect :: server.get()
 		end while
-		do cui@print("b\n")
+		if(serverConnect =& null)
+			break loop2
+		end if
 		do serverConnect.send(strToBin("HTTP/1.0 200 OK\ntext/html\n\n"))
 		var cnt: int :: 0
 		while loop(wnd@act() & serverConnect.connecting() & !@exit)
@@ -31,13 +32,11 @@ var exit: bool
 				var str: [][]char :: binToStr(serverConnect.receive(size)).split(" ")
 				var name: []char :: str[1].sub(1, -1)
 				var reader: file@Reader
-				do cui@print("c:\{name}\n")
 				if(name = "out.html" | name = "out.js")
 					do reader :: file@makeReader(tmpDir ~ name)
 				else
 					do reader :: file@makeReader(\src@mainSrcDir ~ name)
 				end if
-				do cui@print("d:\{reader =& null}\n")
 				if(reader <>& null)
 					var fileSize: int :: reader.fileSize()
 					do serverConnect.send(reader.read(fileSize))
@@ -48,7 +47,6 @@ var exit: bool
 			end if
 		end while
 		do serverConnect.fin()
-		do cui@print("d\n")
 	end while
 	do server.fin()
 	
