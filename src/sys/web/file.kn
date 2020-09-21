@@ -450,7 +450,7 @@ end func
 	excode "if(O_&&O_.readFile){\n"
 	excode "if(O_.readFile(p_)!=null)return true;\n"
 	excode "}\n"
-	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\"&&F_(p_))return true;\n"
+	excode "if(p_.length>=4&&p_[0]==\"r\"&&p_[1]==\"e\"&&p_[2]==\"s\"&&p_[3]==\"/\"&&F_(p_,false))return true;\n"
 	excode "return false;\n"
 end func
 
@@ -540,6 +540,27 @@ end func
 	ret me2
 end func
 
++func[__mki]makeReaderAsync(me2: @Reader, path: []char, callback: func<(kuin@Class)>, data: kuin@Class): @Reader
+	var pack: bool :: path[0] = 'r' & path[1] = 'e' & path[2] = 's' & path[3] = '/'
+	class Data()
+		+var me_: @Reader
+		+var callback_: func<(kuin@Class)>
+		+var data_: kuin@Class
+	end class
+	var data2: Data :: #Data
+	do data2.me_ :: me2
+	do data2.callback_ :: callback
+	do data2.data_ :: data
+	do @openAsReadingImplAsync(path, pack, callback2, data2)
+	ret me2
+	func callback2(handle: int, data: kuin@Class)
+		var data2: Data :: data $ Data
+		do data2.me_._init(handle)
+		var callbackFunc: func<(kuin@Class)> :: data2.callback_
+		do callbackFunc(data2.data_)
+	end func
+end func
+
 +func[__mki]makeWriter(me2: @Writer, path: []char, append: bool): @Writer
 	var success: bool
 	var handle: int :: @openAsWritingImpl(path, append, &success)
@@ -572,24 +593,37 @@ end func
 	do @curDir :: path
 end func
 
-func openAsReadingImpl(path: []char, pack: bool, callback: func<(int, kuin@Class)>, data: kuin@Class)
+func openAsReadingImpl(path: []char, pack: bool, success: &bool): int
+	excode "if(!`1`){`2`.$=false;return null;}\n"
+	excode "let f_=null,p_=`0`.S;\n"
+	excode "if(O_&&O_.readFile)f_=O_.readFile(p_);\n"
+	excode "if(f_==null)\n"
+	excode "f_=F_(p_,true);\n"
+	excode "if(f_==null){`2`.$=false;return null;}\n"
+	excode "`2`.$=true;return{F:f_,I:0,P:true};\n"
+end func
+
+func openAsReadingImplAsync(path: []char, pack: bool, callback: func<(int, kuin@Class)>, data: kuin@Class)
 	excode "let p_=`0`.S;\n"
 	excode "if(O_&&O_.readFile){\n"
 	excode "let f_=O_.readFile(p_);\n"
 	excode "if(f_!=null){`2`({F:f_,I:0,P:true},`3`);return;}\n"
 	excode "}\n"
 	if(pack)
-		excode "if(!F_(p_)){`2`(null,`3`);return;}\n"
+		excode "let d_=F_(p_,true);\n"
+		excode "if(d_==null){`2`(null,`3`);return;}\n"
+		excode "`2`({F:d_,I:0,P:true},`3`);\n"
+	else
+		excode "let x_=new XMLHttpRequest();\n"
+		excode "x_.open(\\\"GET\\\",p_,true);\n"
+		excode "x_.responseType=\\\"arraybuffer\\\";\n"
+		excode "x_.onload=function(){\n"
+		excode "if(x_.status!=200)`2`(null,`3`);else `2`({F:new Uint8Array(x_.response),I:0,P:true},`3`);\n"
+		excode "};\n"
+		excode "x_.onerror=function(){\n"
+		excode "`2`(null,`3`);\n"
+		excode "};\n"
 	end if
-	excode "let x_=new XMLHttpRequest();\n"
-	excode "x_.open(\\\"GET\\\",p_,true);\n"
-	excode "x_.responseType=\\\"arraybuffer\\\";\n"
-	excode "x_.onload=function(){\n"
-	excode "if(x_.status!=200)`2`(null,`3`);else `2`({F:new Uint8Array(x_.response),I:0,P:true},`3`);\n"
-	excode "};\n"
-	excode "x_.onerror=function(){\n"
-	excode "`2`(null,`3`);\n"
-	excode "};\n"
 end func
 
 func readerClose(handle: int)

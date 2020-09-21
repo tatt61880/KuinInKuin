@@ -87,7 +87,7 @@ end func
 
 ; タイトル画面。
 func title(data: kuin@Class)
-	do @texTitle :: draw@makeTex("res/title.jpg", onLoad, null)
+	do @texTitle :: draw@makeTex("files/title.jpg", onLoad, null)
 	
 	func onLoad(data: kuin@Class)
 		do @updateKey()
@@ -103,8 +103,8 @@ end func
 ; ゲーム画面。
 func game(data: kuin@Class)
 	do @loadedTexCnt :: 0
-	do @texBack :: draw@makeTex("res/back.jpg", backOnLoad, null) {背景画像}
-	do @texGame :: draw@makeTex("res/game.png", gameOnLoad, null) {ゲームで使う画像}
+	do @texBack :: draw@makeTex("files/back.jpg", backOnLoad, null) {背景画像}
+	do @texGame :: draw@makeTex("files/game.png", gameOnLoad, null) {ゲームで使う画像}
 	do @stage :: 1 {現在のステージ}
 	
 	func backOnLoad(data: kuin@Class)
