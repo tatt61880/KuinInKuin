@@ -17,7 +17,7 @@ end func
 
 +func input(): []char
 #exe,cpp
-	var buf: []char :: #[^buf]char
+	var buf: []char :: #[@bufSizeMin]char
 	var ptr: int :: 0
 	while loop(true)
 		var c: char :: @inputLetter()
