@@ -9,8 +9,7 @@ end func
 end func
 
 +func input(): []char
-	var bufSize: int :: @bufSizeMin
-	var buf: []char :: #[bufSize]char
+	var buf: []char :: #[^buf]char
 	var ptr: int :: 0
 	while loop(true)
 		var c: char :: @inputLetter()
@@ -27,8 +26,7 @@ end func
 			break loop
 		end if
 		if(ptr = ^buf)
-			do buf :~ #[bufSize]char
-			do bufSize :* 2
+			do buf :~ #[^buf]char
 		end if
 		do buf[ptr] :: c
 		do ptr :+ 1
