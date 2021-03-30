@@ -91,8 +91,7 @@ end func
 end func
 
 +func inputStr(): []char
-	var bufSize: int :: @bufSizeMin
-	var buf: []char :: #[bufSize]char
+	var buf: []char :: #[@bufSizeMin]char
 	var ptr: int :: 0
 	while loop(true)
 		var c: char :: @inputCharWithDelimiter()
@@ -109,8 +108,7 @@ end func
 			break loop
 		end if
 		if(ptr = ^buf)
-			do buf :~ #[bufSize]char
-			do bufSize :* 2
+			do buf :~ #[^buf]char
 		end if
 		do buf[ptr] :: c
 		do ptr :+ 1
