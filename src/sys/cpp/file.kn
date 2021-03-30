@@ -1,9 +1,11 @@
-const strBufSize: int :: 1024
+const bufSizeMin: int :: 1024
+var bufSize: int
 var strBuf: []char
 var eBuf: []bit8
 
 func _init()
-	do @strBuf :: #[@strBufSize]char
+	do @bufSize :: @bufSizeMin
+	do @strBuf :: #[@bufSize]char
 	do @eBuf :: #[8]bit8
 	; TODO:
 end func
@@ -168,7 +170,8 @@ end enum
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[@strBufSize]char
+				do buf :~ #[@bufSize]char
+				do @bufSize :* 2
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1
@@ -194,7 +197,8 @@ end enum
 				break loop
 			end if
 			if(ptr = ^buf)
-				do buf :~ #[@strBufSize]char
+				do buf :~ #[@bufSize]char
+				do @bufSize :* 2
 			end if
 			do buf[ptr] :: c
 			do ptr :+ 1

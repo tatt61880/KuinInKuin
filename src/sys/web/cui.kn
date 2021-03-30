@@ -1,4 +1,4 @@
-const strBufSize: int :: 1024
+const bufSizeMin: int :: 1024
 var delimiters: []char :: " ,\n"
 
 +func delimiter(delimiters_: []char)
