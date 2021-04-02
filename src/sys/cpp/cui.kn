@@ -1,4 +1,4 @@
-const strBufSize: int :: 1024
+const bufSizeMin: int :: 1024
 var delimiters: []char :: " ,\n"
 
 +func delimiter(delimiters_: []char)
@@ -10,7 +10,7 @@ end func
 end func
 
 +func input(): []char
-	var buf: []char :: #[@strBufSize]char
+	var buf: []char :: #[@bufSizeMin]char
 	var ptr: int :: 0
 	while loop(true)
 		var c: char :: @inputLetter()
@@ -27,7 +27,7 @@ end func
 			break loop
 		end if
 		if(ptr = ^buf)
-			do buf :~ #[@strBufSize]char
+			do buf :~ #[^buf]char
 		end if
 		do buf[ptr] :: c
 		do ptr :+ 1
@@ -89,7 +89,7 @@ end func
 end func
 
 +func inputStr(): []char
-	var buf: []char :: #[@strBufSize]char
+	var buf: []char :: #[@bufSizeMin]char
 	var ptr: int :: 0
 	while loop(true)
 		var c: char :: @inputCharWithDelimiter()
@@ -106,7 +106,7 @@ end func
 			break loop
 		end if
 		if(ptr = ^buf)
-			do buf :~ #[@strBufSize]char
+			do buf :~ #[^buf]char
 		end if
 		do buf[ptr] :: c
 		do ptr :+ 1
