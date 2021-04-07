@@ -675,6 +675,12 @@ func rebuildClass(ast: \ast@AstClass)
 			while(parent <>& null)
 				if(chk.get(parent, &))
 					do \err@err(%circulatingClass, ast.pos, [ast.name])
+					do parent :: ast
+					while(parent <>& null)
+						var item: \ast@AstClass :: parent
+						do parent :: parent.refItem $ \ast@AstClass
+						do item.refItem :: null
+					end while
 					ret
 				end if
 				do chk.add(parent, true)
