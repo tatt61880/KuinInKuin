@@ -17,6 +17,7 @@ end enum
 +var appCode: int
 +var resDir: []char
 +var extra: dict<[]char, bool>
++var envDict: dict<[]char, []char>
 
 +var inputDir: []char
 +var inputName: []char
@@ -26,6 +27,7 @@ end enum
 	var envStr: []char
 	var appCodeStr: []char
 	do @extra :: #dict<[]char, bool>
+	do @envDict :: #dict<[]char, []char>
 	
 	for i(0, ^cmdLines - 1)
 		var cmdLine: []char :: cmdLines[i]
@@ -85,10 +87,14 @@ end enum
 				do @resDir :: file@fullPath(@resDir)
 			case 'x'
 				var extra: []char
-				if(!getArg1(&extra, cmdLines, &i, c))
+				var value: []char
+				if(!getArgExtra(&extra, &value, cmdLines, &i, c))
 					ret false
 				end if
-				do @extra.add(extra, true)
+				if(value = "true")
+					do @extra.add(extra, true)
+				end if
+				do @envDict.add(extra, value)
 			default
 				do \err@err(%unexpectedOption, null, ["-\{c}"])
 				ret false
@@ -117,6 +123,7 @@ end enum
 			do \err@err(%incorrectOption, null, ["-e"])
 		end switch
 	end if
+	do @envDict.add("e", @getEnvStr(@env_))
 	
 	do @appCode :: lib@rnd(1, 0xFFFFFFFF)
 	
@@ -167,6 +174,22 @@ end enum
 		do idx :+ 1
 		ret true
 	end func
+	
+	func getArgExtra(out: &[]char, outValue: &[]char, cmdLines: [][]char, idx: &int, option: char): bool
+		if(out <>& null | idx + 1 >= ^cmdLines)
+			do \err@err(%incorrectOption, null, ["-\{option}"])
+			ret false
+		end if
+		var strs: [][]char :: cmdLines[idx + 1].split("=")
+		do idx :+ 1
+		do out :: strs[0]
+		if(^strs = 1)
+			do outValue :: "true"
+		else
+			do outValue :: strs[1]
+		end if
+		ret true
+	end func
 end func
 
 +func getEnvStr(env_: @Env): []char
@@ -181,4 +204,10 @@ end func
 		assert false
 		ret null
 	end switch
+end func
+
++func getEnvValue(envName: []char): []char
+	var existence: bool
+	var value: []char :: @envDict.get(envName, &existence)
+	ret existence ?(value, "")
 end func

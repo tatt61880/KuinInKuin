@@ -36,7 +36,7 @@ func main()
 	
 	func refLibFuncs()
 		; Prevent dead code elimination.
-		if(env = "cpp")
+		if(env("e") = "cpp")
 			var refGetVersion: func<(&int, &int, &int)> :: @getVersion
 			var refSetLogFunc: func<(func<(int, []char, []char, int, int)>)> :: \err@setLogFunc
 			var refSetFileFuncs: func<(func<([]char): int>, func<(int)>, func<(int): int>, func<(int): char>)> :: \parse@setFileFuncs
@@ -102,7 +102,7 @@ func[__rwi]build(): bool
 	; 'Output'
 	switch(\option@env_)
 	case %exe
-		if(env = "web")
+		if(env("e") = "web")
 			ret false
 		else
 			if(!\exe\output@output(entry, funcAttrs, useResFlags, asts))

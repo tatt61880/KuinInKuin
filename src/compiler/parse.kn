@@ -2224,7 +2224,12 @@ func parseExprValue(): \ast@AstExpr
 			case "dbg"
 				ret @makePrimValue(pos, %bool_, \option@rls ?(0b64, 1b64))
 			case "env"
-				ret @makeStrValue(pos, \option@getEnvStr(\option@env_))
+				do @assertNextChar('(', true)
+				do @assertNextChar('"', true)
+				var envName: []char :: @readIdentifier(false, false)
+				do @assertNextChar('"', false)
+				do @assertNextChar(')', true)
+				ret @makeStrValue(pos, \option@getEnvValue(envName))
 			default
 				var ast: \ast@AstExpr :: #\ast@AstExpr
 				do @initAstExpr(ast, %exprRef, pos)
